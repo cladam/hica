@@ -1,0 +1,201 @@
+// Hica — Parser
+// Recursive descent with Pratt expression parsing.
+// Turns a token stream into an AST.
+module syntax/parser
+
+import syntax/ast
+import syntax/lexer
+
+// ---------------------------------------------------------------------------
+// Parser state — effect-based
+// ---------------------------------------------------------------------------
+
+pub effect parser
+  fun peek() : token-kind
+  fun advance() : token
+  fun current-span() : span
+  fun parse-error( msg : string ) : node
+
+// Expect a specific token kind, or emit a parse error.
+pub fun expect( expected : string, pred : (token-kind) -> bool ) : <div,parser> token
+  val tk = peek()
+  if pred(tk) then advance()
+  else
+    parse-error("expected " ++ expected ++ ", got " ++ tk.show)
+    advance()
+
+// ---------------------------------------------------------------------------
+// Top-level parsing
+// ---------------------------------------------------------------------------
+
+pub fun parse-expr() : <div,parser> node
+  parse-binary(0)
+
+// ---------------------------------------------------------------------------
+// Pratt expression parsing
+// ---------------------------------------------------------------------------
+
+fun parse-prefix() : <div,parser> node
+  val tk = peek()
+  match tk
+    TkInt(n) ->
+      val t = advance()
+      Node(t.span, Literal(LitInt(n)))
+    TkBool(b) ->
+      val t = advance()
+      Node(t.span, Literal(LitBool(b)))
+    TkString(s) ->
+      val t = advance()
+      Node(t.span, Literal(LitString(s)))
+    TkIdent(name) ->
+      val t = advance()
+      Node(t.span, Var(name))
+    TkLParen ->
+      advance()
+      val e = parse-expr()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      e
+    TkLBrace ->
+      parse-block()
+    TkIf ->
+      parse-if()
+    TkFn ->
+      parse-fn()
+    TkLet ->
+      parse-let()
+    TkMinus ->
+      val t = advance()
+      val operand = parse-prefix()
+      Node(Span(t.span.start, operand.span.end), Unary(Neg, operand))
+    TkBang ->
+      val t = advance()
+      val operand = parse-prefix()
+      Node(Span(t.span.start, operand.span.end), Unary(Not, operand))
+    _ ->
+      parse-error("unexpected token: " ++ tk.show)
+
+fun infix-bp( tk : token-kind ) : maybe<(int, int, binop)>
+  match tk
+    TkPipePipe -> Just((1, 2, Or))
+    TkAmpAmp   -> Just((3, 4, And))
+    TkEqEq     -> Just((5, 6, Eq))
+    TkBangEq   -> Just((5, 6, Neq))
+    TkLt       -> Just((7, 8, Lt))
+    TkGt       -> Just((7, 8, Gt))
+    TkLe       -> Just((7, 8, Le))
+    TkGe       -> Just((7, 8, Ge))
+    TkPlus     -> Just((9, 10, Add))
+    TkMinus    -> Just((9, 10, Sub))
+    TkStar     -> Just((11, 12, Mul))
+    TkSlash    -> Just((11, 12, Div))
+    _          -> Nothing
+
+// Pratt parser: parse binary expressions with binding power.
+fun parse-binary( min-bp : int ) : <div,parser> node
+  val lhs = parse-prefix()
+  parse-binary-loop(lhs, min-bp)
+
+fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
+  val tk = peek()
+  match infix-bp(tk)
+    Nothing -> lhs
+    Just((l-bp, r-bp, op)) ->
+      if l-bp < min-bp then lhs
+      else
+        advance()
+        val rhs = parse-binary(r-bp)
+        val combined = Node(Span(lhs.span.start, rhs.span.end), Binary(op, lhs, rhs))
+        parse-binary-loop(combined, min-bp)
+
+// ---------------------------------------------------------------------------
+// Compound expressions
+// ---------------------------------------------------------------------------
+
+fun parse-block() : <div,parser> node
+  val t = expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  var stmts := []
+  while { match peek() { TkRBrace -> False; TkEof -> False; _ -> True } }
+    stmts := Cons(parse-expr(), stmts)
+    // optional semicolons
+    match peek()
+      TkSemicolon -> { advance(); () }
+      _           -> ()
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Node(Span(t.span.start, end-tok.span.end), Block(stmts.reverse))
+
+fun parse-if() : <div,parser> node
+  val t = expect("if", fn(k) match k { TkIf -> True; _ -> False })
+  val cond = parse-expr()
+  val then-e = parse-block()
+  val else-e = match peek()
+    TkElse ->
+      advance()
+      match peek()
+        TkIf  -> parse-if()
+        _     -> parse-block()
+    _ -> Node(current-span(), Literal(LitBool(False))) // unit placeholder
+  Node(Span(t.span.start, else-e.span.end), If(cond, then-e, else-e))
+
+fun parse-fn() : <div,parser> node
+  val t = expect("fn", fn(k) match k { TkFn -> True; _ -> False })
+  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+  val params = parse-params()
+  expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  val body = match peek()
+    TkArrow ->
+      advance()
+      parse-expr()
+    _ ->
+      parse-block()
+  Node(Span(t.span.start, body.span.end), Fun(params, body))
+
+fun parse-params() : <div,parser> list<string>
+  match peek()
+    TkRParen -> []
+    TkIdent(name) ->
+      advance()
+      match peek()
+        TkComma -> { advance(); Cons(name, parse-params()) }
+        _       -> [name]
+    _ -> []
+
+fun parse-let() : <div,parser> node
+  val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected identifier"); "_" }
+  expect("=", fn(k) match k { TkEq -> True; _ -> False })
+  val init = parse-expr()
+  // optional semicolon before body
+  match peek()
+    TkSemicolon -> { advance(); () }
+    _           -> ()
+  val body = parse-expr()
+  Node(Span(t.span.start, body.span.end), Let(name, Nothing, init, body))
+
+// ---------------------------------------------------------------------------
+// Runner: handle the parser effect over a token list
+// ---------------------------------------------------------------------------
+
+pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> node ) : <div,console> node
+  var toks := tokens
+  with handler
+    fun peek()
+      match toks
+        Cons(t, _) -> t.kind
+        Nil        -> TkEof
+    fun advance()
+      match toks
+        Cons(t, rest) -> { toks := rest; t }
+        Nil           -> Token(TkEof, Span(0, 0))
+    fun current-span()
+      match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+    fun parse-error( msg )
+      val sp = match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+      println("parse error at " ++ sp.start.show ++ ": " ++ msg)
+      Node(sp, Literal(LitBool(False)))
+  action()

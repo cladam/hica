@@ -1,5 +1,5 @@
 main_branch_name: main
-release_url_template: https://github.com/owner/repository/releases/tag/{{version}}
+release_url_template: https://github.com/cladam/hica/releases/tag/{{version}}
 stale_branch_threshold_days: 1
 monorepo:
   enabled: false
@@ -19,7 +19,7 @@ review:
     dismissed: review-dismissed
   concern_blocks_status: false
 radar:
-  enabled: false
+  enabled: true
   level: file
   on_sync: true
   on_commit: off
@@ -28,15 +28,15 @@ radar:
   - '*-lock.*'
   - CHANGELOG.md
 ci_check:
-  enabled: false
+  enabled: true
 branch_types:
   feat: feat/
   docs: docs/
   refactor: refactor/
   ci: ci/
   fix: fix/
-  release: release_
-  feature: feature_
+  release: release/
+  feature: feature/
   chore: chore/
 automatic_tags:
   release_prefix: v
