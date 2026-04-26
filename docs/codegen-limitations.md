@@ -14,31 +14,22 @@ as ambiguous.
 `min`, `length`, `head`, `tail`, `zip`, `fold`, `take`, `drop`, `reverse`,
 `sort`, `compare`, `string`, `list`, `int`, `bool`, `char`, `order`.
 
-### Fix: name marshalling (prefixing)
+### Current fix: name marshalling (prefixing)
 
-Emit user-defined names with a prefix to avoid clashes:
+All user-defined names get an `hc_` prefix. A small passthrough list
+(`main`, `println`, `print`, `trace`, `show`) lets hica code call core
+Koka I/O functions directly.
 
-```
-hica: fun abs(x) => ...
-koka: fun hc_abs(x) = ...        // prefixed
-koka:   val result = hc_abs(-5)  // call sites also prefixed
-```
+**The unsolved tension:** if a user writes `abs(5)` without defining `abs`,
+they probably want Koka's `abs` — but the current approach prefixes it to
+`hc_abs(5)` which doesn't exist. The real fix is to distinguish declarations
+from call sites:
+- **Declarations** (`fun abs(x)`) → always prefix to avoid shadowing
+- **Calls** (`abs(5)`) → check if the name was declared in hica; if not,
+  pass through to Koka
 
-**Scope:** function declarations, variable bindings, function call targets,
-pattern variables. Literals and operators are unaffected.
-
-**Implementation:** in `emit/codegen.kk`, wrap name emission in a
-`marshal-name(name)` function:
-
-```koka
-fun marshal-name( name : string ) : string
-  "hc_" ++ name
-```
-
-Apply it in `emit-decl` (function name + params), `emit-expr/Var`,
-`emit-expr/Let` (binding name), and `emit-expr/Call` (callee if Var).
-
-**Exception:** `main` must NOT be prefixed — Koka expects `fun main()`.
+This requires a **name resolution pass** (tracking which names are in scope)
+before emission. Until then, the passthrough list stays small and safe.
 
 ## 2. Overloaded operators on untyped params
 

@@ -29,8 +29,7 @@ import syntax/ast
 // Koka builtins are passed through unmodified.
 // ---------------------------------------------------------------------------
 
-val koka-builtins = [
-  "main", "println", "print", "show", "trace"
+val koka-builtins = [  "main", "println", "print", "show", "trace"
 ]
 
 fun marshal-name( name : string ) : string

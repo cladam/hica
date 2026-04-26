@@ -35,9 +35,12 @@ pub val no-span = Span(0, 0)
 pub struct node
   span : span
   expr : expr
+  typ  : maybe<hica-type> = Nothing
 
 pub fun node/show( n : node ) : div string
-  n.expr.show
+  match n.typ
+    Just(t) -> n.expr.show ++ " : " ++ t.show
+    Nothing -> n.expr.show
 
 // ---------------------------------------------------------------------------
 // Types
