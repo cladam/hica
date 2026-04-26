@@ -39,25 +39,6 @@ state (diagnostics, fresh names, symbol scopes).
 | Backend target        | Koka (.kk) → C / JS / WASM via Koka              |
 | Runtime               | Koka standard library and runtime                |
 
-## Project Structure
-
-```
-src/
-  main.kk              — compiler entry point
-  syntax/
-    ast.kk              — AST node definitions
-    lexer.kk            — tokeniser
-    parser.kk           — recursive descent parser
-  semantics/
-    checker.kk          — type and effect inference
-  emit/
-    codegen.kk          — Koka code generation
-  diagnostics/
-    diagnostics.kk      — error and warning reporting
-tests/                  — test suite
-docs/                   — design notes and references
-```
-
 ## Quick Start
 
 Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
@@ -67,8 +48,37 @@ Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 koka -isrc src/main.kk -o hica
 chmod +x hica
 
-# Run on a Hica source file
-./hica examples/hello.hc
+# Compile and run a Hica source file
+./hica run examples/hello.hc
+
+# Just compile (outputs to target/main.kk)
+./hica build examples/arrow.hc
+
+# Validate without emitting
+./hica check examples/hello.hc
+```
+
+## CLI
+
+```
+$ hica --help
+
+hica v0.1.0 (koka)
+
+Usage: hica [OPTIONS] [COMMAND]
+
+Options:
+  -V, --version    Print version info and exit
+  -h, --help       Print help
+
+Commands:
+    build, b    Compile a .hc file to Koka
+    run, r      Compile and run a .hc file
+    check, c    Analyze a .hc file and report errors
+    clean       Remove the target directory
+    help        Print this message
+
+See 'hica help <command>' for more information on a specific command.
 ```
 
 ## Inspirations
