@@ -39,13 +39,22 @@ val version = "0.1.0"
 fun main()
   val args = get-args()
   match args
-    Cons("build", rest) -> cmd-build(rest)
-    Cons("run", rest)   -> cmd-run(rest)
-    Cons("help", _)     -> print-usage()
-    Cons(other, _)      -> 
-      println("error: unknown command '" ++ other ++ "'\n")
+    Cons("build", rest)       -> cmd-build(rest)
+    Cons("b", rest)           -> cmd-build(rest)
+    Cons("run", rest)         -> cmd-run(rest)
+    Cons("r", rest)           -> cmd-run(rest)
+    Cons("check", rest)       -> cmd-check(rest)
+    Cons("c", rest)           -> cmd-check(rest)
+    Cons("clean", _)          -> cmd-clean()
+    Cons("help", rest)        -> cmd-help(rest)
+    Cons("--version", _)      -> println("hica " ++ version ++ " (koka)")
+    Cons("-V", _)             -> println("hica " ++ version ++ " (koka)")
+    Cons("--help", _)         -> print-usage()
+    Cons("-h", _)             -> print-usage()
+    Cons(other, _)            ->
+      println("error: no such command: `" ++ other ++ "`\n")
       print-usage()
-    Nil                 -> print-usage()
+    Nil                       -> print-usage()
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -55,8 +64,8 @@ fun cmd-build( args : list<string> )
   match args
     Cons(file, _) -> build(file)
     Nil ->
-      println("error: missing file argument")
-      println("usage: hica build <file.hc>")
+      println("error: missing file argument\n")
+      print-help-build()
 
 fun cmd-run( args : list<string> )
   match args
@@ -64,8 +73,39 @@ fun cmd-run( args : list<string> )
       build(file)
       run-koka()
     Nil ->
-      println("error: missing file argument")
-      println("usage: hica run <file.hc>")
+      println("error: missing file argument\n")
+      print-help-run()
+
+fun cmd-check( args : list<string> )
+  match args
+    Cons(file, _) ->
+      val source = read-text-file(file.path)
+      val tokens = lex(source)
+      val prog   = run-parser-program(tokens)
+      println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations)")
+    Nil ->
+      println("error: missing file argument\n")
+      print-help-check()
+
+fun cmd-clean()
+  val target-dir = "target".path
+  if is-directory(target-dir) then
+    val code = run-system("rm -rf target")
+    if code == 0 then println("removed target/")
+    else println("error: failed to remove target/")
+  else
+    println("nothing to clean")
+
+fun cmd-help( args : list<string> )
+  match args
+    Cons("build", _) -> print-help-build()
+    Cons("b", _)     -> print-help-build()
+    Cons("run", _)   -> print-help-run()
+    Cons("r", _)     -> print-help-run()
+    Cons("check", _) -> print-help-check()
+    Cons("c", _)     -> print-help-check()
+    Cons("clean", _) -> print-help-clean()
+    _                -> print-usage()
 
 // ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk
@@ -97,10 +137,37 @@ fun run-koka()
 
 fun print-usage()
   println("hica v" ++ version ++ " (koka)\n")
-  println("Usage: hica <command>\n")
+  println("Usage: hica [OPTIONS] [COMMAND]\n")
+  println("Options:")
+  println("  -V, --version    Print version info and exit")
+  println("  -h, --help       Print help\n")
   println("Commands:")
-  println("    build      Compile a .hc file to Koka")
-  println("    run        Compile and run a .hc file")
-  println("    help       Print this message")
-  println("")
-  println("Hint: Run hica help <command> to learn more about a command.")
+  println("    build, b    Compile a .hc file to Koka")
+  println("    run, r      Compile and run a .hc file")
+  println("    check, c    Analyze a .hc file and report errors")
+  println("    clean       Remove the target directory")
+  println("    help        Print this message\n")
+  println("See 'hica help <command>' for more information on a specific command.")
+
+fun print-help-build()
+  println("Compile a .hc file to Koka\n")
+  println("Usage: hica build <FILE>\n")
+  println("Reads <FILE>, runs the compiler pipeline (lex -> parse -> emit),")
+  println("and writes the generated Koka source to target/main.kk.")
+
+fun print-help-run()
+  println("Compile and run a .hc file\n")
+  println("Usage: hica run <FILE>\n")
+  println("Compiles <FILE> to Koka (same as `hica build`), then invokes")
+  println("the Koka compiler to build and execute the result.")
+
+fun print-help-check()
+  println("Analyze a .hc file and report errors\n")
+  println("Usage: hica check <FILE>\n")
+  println("Runs the lexer and parser on <FILE> and reports any errors,")
+  println("without generating output files.")
+
+fun print-help-clean()
+  println("Remove the target directory\n")
+  println("Usage: hica clean\n")
+  println("Removes the target/ directory and all generated artifacts.")
