@@ -25,6 +25,14 @@ module emit/codegen
 import syntax/ast
 
 // ---------------------------------------------------------------------------
+// Name marshalling: prefix user-defined names to avoid Koka stdlib clashes
+// ---------------------------------------------------------------------------
+
+fun marshal-name( name : string ) : string
+  if name == "main" then name
+  else "hc_" ++ name
+
+// ---------------------------------------------------------------------------
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
@@ -34,8 +42,8 @@ pub fun emit-program( p : program ) : div string
   p.decls.map(fn(d) emit-decl(d)).join("\n\n") ++ "\n"
 
 fun emit-decl( d : fun-decl ) : div string
-  val params-str = d.params.map(fn(p) p).join(", ")
-  "fun " ++ d.name ++ "(" ++ params-str ++ ")\n" ++
+  val params-str = d.params.map(fn(p) marshal-name(p)).join(", ")
+  "fun " ++ marshal-name(d.name) ++ "(" ++ params-str ++ ")\n" ++
   emit-body(d.body).lines.map(fn(line) "  " ++ line).join("\n")
 
 fun emit-body( n : node ) : div string
@@ -46,7 +54,7 @@ fun emit-body( n : node ) : div string
 fun emit-stmt( n : node ) : div string
   match n.expr
     Let(name, _, init, body) ->
-      "val " ++ name ++ " = " ++ emit-expr(init) ++ "\n" ++ emit-stmt(body)
+      "val " ++ marshal-name(name) ++ " = " ++ emit-expr(init) ++ "\n" ++ emit-stmt(body)
     _ -> emit-expr(n)
 
 // ---------------------------------------------------------------------------
@@ -69,14 +77,14 @@ fun emit-expr( n : node ) : div string
     Literal(LitBool(True))  -> "True"
     Literal(LitBool(False)) -> "False"
     Literal(LitString(s))   -> "\"" ++ s ++ "\""
-    Var(name)               -> name
+    Var(name)               -> marshal-name(name)
     Binary(op, l, r)        -> "(" ++ emit-expr(l) ++ " " ++ emit-binop(op) ++ " " ++ emit-expr(r) ++ ")"
     Unary(Neg, o)           -> "(0 - " ++ emit-expr(o) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o) ++ ")"
     Let(name, _, init, body) ->
-      "val " ++ name ++ " = " ++ emit-expr(init) ++ "\n  " ++ emit-expr(body)
+      "val " ++ marshal-name(name) ++ " = " ++ emit-expr(init) ++ "\n  " ++ emit-expr(body)
     Fun(params, body) ->
-      "fn(" ++ params.join(", ") ++ ")\n    " ++ emit-expr(body)
+      "fn(" ++ params.map(fn(p) marshal-name(p)).join(", ") ++ ")\n    " ++ emit-expr(body)
     Call(callee, args) ->
       emit-expr(callee) ++ "(" ++ args.map(fn(a) emit-expr(a)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
@@ -90,7 +98,7 @@ fun emit-expr( n : node ) : div string
 fun emit-pattern( p : pattern ) : string
   match p
     PWild    -> "_"
-    PVar(n)  -> n
+    PVar(n)  -> marshal-name(n)
     PLit(l)  -> l.show
 
 fun emit-binop( op : binop ) : string
