@@ -29,22 +29,20 @@ import semantics/checker
 import emit/codegen
 
 fun main()
-  val source = "let x = 2 + 3; x"
+  val source = "fun double(x) => x * 2\n\nfun main() {\n  let result = double(21);\n  result\n}"
   println("hica compiler v0.1.0\n")
-  println("source: " ++ source)
+  println("source:")
+  println(source)
 
   // Lex
   val tokens = lex(source)
-  println("\ntokens: " ++ tokens.map(show).join(" "))
 
-  // Parse
-  val ast = run-parser(tokens) { parse-expr() }
-  println("\nAST: " ++ ast.show)
-
-  // Check (stub)
-  val checked = check(ast)
+  // Parse as program
+  val prog = run-parser-program(tokens)
+  println("\nAST:")
+  println(prog.show)
 
   // Emit Koka
-  val koka-code = emit(checked)
+  val koka-code = emit-program(prog)
   println("\n--- Koka output ---")
   println(koka-code)

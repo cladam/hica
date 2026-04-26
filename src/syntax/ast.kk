@@ -173,3 +173,22 @@ pub fun expr/show( e : expr ) : div string
     If(c, t, e')     -> "if " ++ c.show ++ " { " ++ t.show ++ " } else { " ++ e'.show ++ " }"
     Block(ss)        -> "{ " ++ ss.map(show).join("; ") ++ " }"
     Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ " => " ++ a.body.show).join(", ") ++ " }"
+
+// ---------------------------------------------------------------------------
+// Top-level declarations
+// ---------------------------------------------------------------------------
+
+pub struct fun-decl
+  span   : span
+  name   : string
+  params : list<string>
+  body   : node
+
+pub fun fun-decl/show( d : fun-decl ) : div string
+  "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show
+
+pub struct program
+  decls : list<fun-decl>
+
+pub fun program/show( p : program ) : div string
+  p.decls.map(show).join("\n\n")

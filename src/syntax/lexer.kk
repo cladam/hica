@@ -37,6 +37,7 @@ pub type token-kind
   TkIdent( name : string )
   TkLet
   TkFn
+  TkFun
   TkIf
   TkElse
   TkMatch
@@ -86,6 +87,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkIdent(n)   -> n
     TkLet        -> "let"
     TkFn         -> "fn"
+    TkFun        -> "fun"
     TkIf         -> "if"
     TkElse       -> "else"
     TkMatch      -> "match"
@@ -159,6 +161,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
   val kind = match word
     "let"   -> TkLet
     "fn"    -> TkFn
+    "fun"   -> TkFun
     "if"    -> TkIf
     "else"  -> TkElse
     "match" -> TkMatch
