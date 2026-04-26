@@ -63,6 +63,17 @@ pub fun hica-type/show( t : hica-type ) : div string
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
     TVar(n)     -> n
 
+pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
+  match (t1, t2)
+    (TInt, TInt)       -> True
+    (TBool, TBool)     -> True
+    (TString, TString) -> True
+    (TUnit, TUnit)     -> True
+    (TVar(a), TVar(b)) -> a == b
+    (TFun(ps1, r1), TFun(ps2, r2)) ->
+      ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
+    _ -> False
+
 // ---------------------------------------------------------------------------
 // Expressions
 // ---------------------------------------------------------------------------
