@@ -42,8 +42,8 @@ jobs:
           koka -isrc src/main.kk -o hica
           chmod +x hica
 
-#      - name: Verify binary
-#        run: ./hica --version
+      - name: Verify binary
+        run: ./hica --version
 
       - name: Run lexer tests
         run: |
@@ -56,6 +56,10 @@ jobs:
       - name: Run codegen tests
         run: |
           koka -itests -isrc -e tests/test-codegen.kk
+
+      - name: Run CLI e2e tests
+        run: |
+          koka -itests -isrc -e tests/test-cli.kk -- ./hica
 
       - name: Strip binary (Linux)
         if: runner.os == 'Linux'
