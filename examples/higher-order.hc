@@ -8,3 +8,4 @@ fun main() {
   let y = twice(x);
   y
 }
+

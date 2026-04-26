@@ -1,4 +1,5 @@
-// Hica — fizzbuzz (if/else chains)
+// Hica — fizzbuzz
+// TODO: flatten to `else if` once the parser supports it
 fun fizzbuzz(n) =>
   if n == 15 { "fizzbuzz" }
   else { if n == 3 { "fizz" }

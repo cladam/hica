@@ -69,6 +69,24 @@ Also unblocks overloaded-operator resolution (see codegen-limitations.md #2).
 Allow pulling values out of structs/tuples in match arms, leveraging Koka's
 native pattern matching. Depends on adding struct/tuple types first.
 
+### Formatter: `hica fmt` (CLI + pretty printer)
+Code formatter using the Wadler-Leijen pretty-printing algorithm.
+Parse `.hc` source into AST, then re-emit with canonical style.
+
+**Style rules (the "Hica Standard"):**
+- 2-space indentation
+- Open brace on same line as `fun`/`if` (1TBS, not Allman)
+- Single-line `=>` bodies when short; indent 2 after `=>` when multi-line
+- Spaces around operators: `x * 2`, not `x*2`
+- Semicolons separate bindings/side-effects; never on the last expression
+- Flatten `else if` (no staircase nesting)
+- `--check` flag: exit non-zero if file isn't formatted (for CI)
+
+**CLI:** `hica fmt <file.hc>`, `hica fmt --check <file.hc>`
+
+**Implementation:** read file → lex → parse → pretty-print AST → write.
+Medium complexity — needs a pretty-printer module (`emit/format.kk`).
+
 ### Technical Notes
 - Koka stdlib: `std/os/env` for `get-args()`, `std/os/file` for file I/O, `std/os/path` for paths
 - Output dir: `target/` (following Cargo/Lisette convention)
