@@ -25,11 +25,16 @@ module emit/codegen
 import syntax/ast
 
 // ---------------------------------------------------------------------------
-// Name marshalling: prefix user-defined names to avoid Koka stdlib clashes
+// Name marshalling: prefix user-defined names to avoid Koka stdlib clashes.
+// Koka builtins are passed through unmodified.
 // ---------------------------------------------------------------------------
 
+val koka-builtins = [
+  "main", "println", "print", "show", "trace"
+]
+
 fun marshal-name( name : string ) : string
-  if name == "main" then name
+  if koka-builtins.any(fn(b) b == name) then name
   else "hc_" ++ name
 
 // ---------------------------------------------------------------------------
