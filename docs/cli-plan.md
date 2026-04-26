@@ -47,6 +47,28 @@ See 'hica help <command>' for more information on a specific command.
 ### Phase 4: test runner
 - `hica test` / `hica t` — discover and run `.hc` test files
 
+## Language Backlog
+
+Features to add to the hica language itself, ordered roughly by complexity.
+
+### `else if` desugaring (parser)
+Parse `else if` as sugar for nested `If` nodes so fizzbuzz-style chains stay
+flat instead of staircase-nesting. Low complexity — parser-only change.
+
+### Pipe operator `|>` (lexer + parser)
+Desugar `a |> f` into `f(a)` during parsing. Enables pipeline style:
+`3 |> square |> double` instead of `double(square(3))`. Low complexity.
+
+### Type annotations (lexer + parser + codegen)
+Support optional annotations: `fun double(x: int) : int => x * 2`.
+Requires `: type` parsing in params and return position, threading through
+the AST, and emitting annotations in Koka output. Medium complexity.
+Also unblocks overloaded-operator resolution (see codegen-limitations.md #2).
+
+### Destructuring in match (parser + codegen)
+Allow pulling values out of structs/tuples in match arms, leveraging Koka's
+native pattern matching. Depends on adding struct/tuple types first.
+
 ### Technical Notes
 - Koka stdlib: `std/os/env` for `get-args()`, `std/os/file` for file I/O, `std/os/path` for paths
 - Output dir: `target/` (following Cargo/Lisette convention)
