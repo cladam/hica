@@ -112,7 +112,7 @@ pub fun main() : io ()
     itest("build compiles a .hc file")
       val out = hica("build examples/arrow.hc")
       assert/is-true(out.contains("compiled"))
-      assert/is-true(out.contains("target/main.kk"))
+      assert/is-true(out.contains("examples/arrow.kk"))
 
     itest("b is an alias for build")
       val out = hica("b examples/hello.hc")
@@ -142,16 +142,15 @@ pub fun main() : io ()
 
     // --- Clean ---
 
-    itest("clean removes target directory")
+    itest("clean removes build artifacts")
       // First build to ensure target/ exists
       hica("build examples/hello.hc")
-      val out = hica("clean")
+      val out = hica("clean examples/hello.kk")
       assert/is-true(out.contains("removed"))
 
-    itest("clean when nothing to clean")
-      // target/ was just removed
+    itest("clean without an argument")
       val out = hica("clean")
-      assert/is-true(out.contains("nothing to clean"))
+      assert/is-true(out.contains("error: missing file argument"))
 
     // --- Aliases ---
 
