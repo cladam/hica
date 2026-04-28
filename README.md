@@ -36,6 +36,7 @@ state (diagnostics, fresh type variables, symbol scopes).
 | Parsing               | Recursive descent with Pratt expression parsing |
 | Type system           | Hindley-Milner with unification                  |
 | Name resolution       | Declaration-aware marshalling (`hc_` prefix)     |
+| CLI argument parsing  | klap (clap-inspired, in-tree)                    |
 | Memory management     | Perceus (inherited from Koka target)             |
 | Backend target        | Koka (.kk) → C / JS / WASM via Koka              |
 | Runtime               | Koka standard library and runtime                |
@@ -46,7 +47,7 @@ Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 
 ```sh
 # Build the compiler
-koka -isrc src/main.kk -o hica
+koka -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
 
 # Compile and run a Hica source file
@@ -108,19 +109,18 @@ fun main() {
 ```
 $ hica --help
 
-hica v0.1.0 (koka)
-
-Usage: hica [OPTIONS] [COMMAND]
+Usage: hica [COMMAND] [FILE]
+The hica compiler
 
 Options:
-  -V, --version    Print version info and exit
-  -h, --help       Print help
+      --help                 display this help and exit
+      --version              output version information and exit
 
 Commands:
     build, b    Compile a .hc file to Koka and build a binary
     run, r      Compile and run a .hc file
     check, c    Analyze a .hc file and report errors
-    clean       Remove generated files
+    clean       Remove generated build artifacts
     help        Print this message
 
 See 'hica help <command>' for more information on a specific command.
