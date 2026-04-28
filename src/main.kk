@@ -42,7 +42,7 @@ fun hica-cli() : command
   command("hica")
     .version(version)
     .about("The hica compiler")
-    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, help)").required)
+    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, new, help)").required)
     .arg(positional("FILE").help("Source .hc file"))
 
 fun build-cli() : command
@@ -65,14 +65,23 @@ fun clean-cli() : command
     .about("Remove generated build artifacts")
     .arg(positional("FILE").help("Source .hc file").required)
 
+fun new-cli() : command
+  command("hica new")
+    .about("Create a new hica project")
+    .arg(positional("NAME").help("Project name").required)
+
 fun main()
   val m = hica-cli().parse-or-exit(get-args())
   val cmd  = m.get-one-or("COMMAND", "")
   val file = m.get-one("FILE")
   match cmd
     "help"  -> cmd-help(file)
+    "new"   -> cmd-new(file)
     _ ->
-      match file
+      val resolved = match file
+        Just(f) -> Just(f)
+        Nothing -> resolve-entry()
+      match resolved
         Just(f) ->
           match cmd
             "build" -> cmd-build(f)
@@ -86,7 +95,7 @@ fun main()
               println("error: no such command: `" ++ other ++ "`\n")
               println(hica-cli().format-help)
         Nothing ->
-          println("error: missing file argument")
+          println("error: missing file argument (no hica.ini found)")
           println("Usage: hica " ++ cmd ++ " <FILE>")
 
 // ---------------------------------------------------------------------------
@@ -135,6 +144,50 @@ fun cmd-clean( file : string )
   if !cleaned then
     println("nothing to clean")
 
+fun cmd-new( name-arg : maybe<string> )
+  match name-arg
+    Nothing ->
+      println("error: missing project name")
+      println(new-cli().format-help)
+    Just(name) ->
+      val project-dir = name.path
+      if is-directory(project-dir) then
+        println("error: directory '" ++ name ++ "' already exists")
+      else
+        ensure-dir(project-dir)
+        val main-file  = project-dir / "main.hc".path
+        val manifest   = project-dir / "hica.ini".path
+        val readme     = project-dir / "README.md".path
+        val main-content = [
+          "fun main() {",
+          "  println(\"hello from " ++ name ++ "\")",
+          "}"
+        ].join("\n") ++ "\n"
+        val manifest-content = [
+          "name = " ++ name,
+          "version = 0.1.0",
+          "entry = main.hc"
+        ].join("\n") ++ "\n"
+        val readme-content = [
+          "# " ++ name,
+          "",
+          "## Usage",
+          "",
+          "```sh",
+          "hica build   # compile to binary",
+          "hica run     # compile and run",
+          "hica check   # type-check without emitting",
+          "hica clean   # remove generated files",
+          "```"
+        ].join("\n") ++ "\n"
+        write-text-file(main-file, main-content)
+        write-text-file(manifest, manifest-content)
+        write-text-file(readme, readme-content)
+        println("created project '" ++ name ++ "'")
+        println("  " ++ manifest.show)
+        println("  " ++ main-file.show)
+        println("  " ++ readme.show)
+
 fun cmd-help( sub : maybe<string> )
   match sub
     Just("build") -> println(build-cli().format-help)
@@ -144,6 +197,7 @@ fun cmd-help( sub : maybe<string> )
     Just("check") -> println(check-cli().format-help)
     Just("c")     -> println(check-cli().format-help)
     Just("clean") -> println(clean-cli().format-help)
+    Just("new")   -> println(new-cli().format-help)
     _             -> print-usage()
 
 // ---------------------------------------------------------------------------
@@ -203,6 +257,29 @@ fun run-koka( file : string )
 // Help
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Manifest: read hica.ini to resolve entry file
+// ---------------------------------------------------------------------------
+
+val manifest-name = "hica.ini"
+
+fun resolve-entry() : <fsys,exn,div> maybe<string>
+  if is-file(manifest-name.path) then
+    val content = read-text-file(manifest-name.path)
+    ini-field(content, "entry")
+  else Nothing
+
+fun ini-field( content : string, key : string ) : div maybe<string>
+  // Parse "key = value" lines in a simple ini file
+  var result := Nothing
+  content.lines.foreach fn(line)
+    val trimmed = line.trim
+    if trimmed.starts-with(key).bool then
+      val rest = trimmed.slice.sslice/drop(key.count).string.trim-left
+      if rest.starts-with("=").bool then
+        result := Just(rest.slice.sslice/drop(1).string.trim)
+  result
+
 fun print-usage()
   println(hica-cli().format-help)
   println("\nCommands:")
@@ -210,5 +287,6 @@ fun print-usage()
   println("    run, r      Compile and run a .hc file")
   println("    check, c    Analyze a .hc file and report errors")
   println("    clean       Remove generated build artifacts")
+  println("    new         Create a new hica project")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
