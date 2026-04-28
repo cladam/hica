@@ -291,11 +291,6 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val result-type = apply-subst(s2, result-var)
       (s2, Node(n.span, Match(scrut', arms'), Just(result-type)))
 
-    // --- Not yet handled: assign a fresh type variable ---
-    _ ->
-      val t = fresh-tvar()
-      (s, n(typ = Just(t)))
-
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
