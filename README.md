@@ -6,6 +6,8 @@ Rust-like syntax and safety with the simplicity of Go, powered by Koka's
 algebraic effect system and Perceus reference counting. Because the target is
 Koka itself, hica programs can be compiled onward to C, JavaScript, or WASM.
 
+hica is a good name for this language and it can stand for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+
 ## Design Goals
 
 - **Expression-oriented** — everything returns a value: `if`, `match`, and
