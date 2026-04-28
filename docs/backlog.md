@@ -99,7 +99,7 @@ Legend: **done** = shipped, **—** = not started
 | `hica help <command>` | **done** | — | |
 | `hica --version` | **done** | — | via klap |
 | `hica new <name>` | **done** | — | Scaffold with hica.ini, main.hc, README.md |
-| `hica init` | — | Low | Scaffold in existing directory |
+| `hica init` | **done** | — | Initialize in current directory |
 | `hica test` / `hica t` | — | Medium | Discover + run test files |
 | `hica fmt` / `hica fmt --check` | — | Medium | Pretty-printer (Wadler-Leijen) |
 

@@ -42,7 +42,7 @@ fun hica-cli() : command
   command("hica")
     .version(version)
     .about("The hica compiler")
-    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, new, help)").required)
+    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, new, init, help)").required)
     .arg(positional("FILE").help("Source .hc file"))
 
 fun build-cli() : command
@@ -70,6 +70,10 @@ fun new-cli() : command
     .about("Create a new hica project")
     .arg(positional("NAME").help("Project name").required)
 
+fun init-cli() : command
+  command("hica init")
+    .about("Initialize a hica project in the current directory")
+
 fun main()
   val m = hica-cli().parse-or-exit(get-args())
   val cmd  = m.get-one-or("COMMAND", "")
@@ -77,6 +81,7 @@ fun main()
   match cmd
     "help"  -> cmd-help(file)
     "new"   -> cmd-new(file)
+    "init"  -> cmd-init()
     _ ->
       val resolved = match file
         Just(f) -> Just(f)
@@ -155,38 +160,49 @@ fun cmd-new( name-arg : maybe<string> )
         println("error: directory '" ++ name ++ "' already exists")
       else
         ensure-dir(project-dir)
-        val main-file  = project-dir / "main.hc".path
-        val manifest   = project-dir / "hica.ini".path
-        val readme     = project-dir / "README.md".path
-        val main-content = [
-          "fun main() {",
-          "  println(\"hello from " ++ name ++ "\")",
-          "}"
-        ].join("\n") ++ "\n"
-        val manifest-content = [
-          "name = " ++ name,
-          "version = 0.1.0",
-          "entry = main.hc"
-        ].join("\n") ++ "\n"
-        val readme-content = [
-          "# " ++ name,
-          "",
-          "## Usage",
-          "",
-          "```sh",
-          "hica build   # compile to binary",
-          "hica run     # compile and run",
-          "hica check   # type-check without emitting",
-          "hica clean   # remove generated files",
-          "```"
-        ].join("\n") ++ "\n"
-        write-text-file(main-file, main-content)
-        write-text-file(manifest, manifest-content)
-        write-text-file(readme, readme-content)
-        println("created project '" ++ name ++ "'")
-        println("  " ++ manifest.show)
-        println("  " ++ main-file.show)
-        println("  " ++ readme.show)
+        scaffold-project(project-dir, name)
+
+fun cmd-init()
+  val manifest = "hica.ini".path
+  if is-file(manifest) then
+    println("error: hica.ini already exists in this directory")
+  else
+    val name = cwd().stemname
+    scaffold-project(".".path, name)
+
+fun scaffold-project( project-dir : path, name : string )
+  val main-file  = project-dir / "main.hc".path
+  val manifest   = project-dir / "hica.ini".path
+  val readme     = project-dir / "README.md".path
+  val main-content = [
+    "fun main() {",
+    "  println(\"hello from " ++ name ++ "\")",
+    "}"
+  ].join("\n") ++ "\n"
+  val manifest-content = [
+    "name = " ++ name,
+    "version = 0.1.0",
+    "entry = main.hc"
+  ].join("\n") ++ "\n"
+  val readme-content = [
+    "# " ++ name,
+    "",
+    "## Usage",
+    "",
+    "```sh",
+    "hica build   # compile to binary",
+    "hica run     # compile and run",
+    "hica check   # type-check without emitting",
+    "hica clean   # remove generated files",
+    "```"
+  ].join("\n") ++ "\n"
+  write-text-file(main-file, main-content)
+  write-text-file(manifest, manifest-content)
+  write-text-file(readme, readme-content)
+  println("created project '" ++ name ++ "'")
+  println("  " ++ manifest.show)
+  println("  " ++ main-file.show)
+  println("  " ++ readme.show)
 
 fun cmd-help( sub : maybe<string> )
   match sub
@@ -198,6 +214,7 @@ fun cmd-help( sub : maybe<string> )
     Just("c")     -> println(check-cli().format-help)
     Just("clean") -> println(clean-cli().format-help)
     Just("new")   -> println(new-cli().format-help)
+    Just("init")  -> println(init-cli().format-help)
     _             -> print-usage()
 
 // ---------------------------------------------------------------------------
@@ -288,5 +305,6 @@ fun print-usage()
   println("    check, c    Analyze a .hc file and report errors")
   println("    clean       Remove generated build artifacts")
   println("    new         Create a new hica project")
+  println("    init        Initialize a project in the current directory")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
