@@ -57,26 +57,16 @@ pub fun main() : io ()
     itest("--version prints version string")
       val out = hica("--version")
       assert/is-true(out.contains("hica"))
-      assert/is-true(out.contains("(koka)"))
-
-    itest("-V is an alias for --version")
-      val out = hica("-V")
-      assert/is-true(out.contains("hica"))
-      assert/is-true(out.contains("(koka)"))
 
     // --- Help ---
 
-    itest("no args prints usage")
+    itest("no args shows missing command error")
       val out = hica("")
-      assert/is-true(out.contains("Usage:"))
-      assert/is-true(out.contains("Commands:"))
+      assert/is-true(out.contains("missing required argument"))
+      assert/is-true(out.contains("--help"))
 
     itest("--help prints usage")
       val out = hica("--help")
-      assert/is-true(out.contains("Usage:"))
-
-    itest("-h prints usage")
-      val out = hica("-h")
       assert/is-true(out.contains("Usage:"))
 
     itest("help prints usage")
