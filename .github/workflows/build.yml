@@ -41,7 +41,7 @@ jobs:
       - name: Build (debug)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          koka -isrc src/main.kk -o hica
+          koka -ilib/klap -isrc src/main.kk -o hica
           chmod +x hica
 
       - name: Verify binary
@@ -61,7 +61,7 @@ jobs:
 
       - name: Run CLI e2e tests
         run: |
-          koka -ilib/kunit -isrc -e tests/test-cli.kk -- ./hica
+          koka -ilib/kunit -ilib/klap -isrc -e tests/test-cli.kk -- ./hica
 
       - name: Strip binary (Linux)
         if: runner.os == 'Linux'
