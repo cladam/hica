@@ -76,7 +76,7 @@ pub fun main() : io ()
     itest("help build prints build help")
       val out = hica("help build")
       assert/is-true(out.contains("hica build"))
-      assert/is-true(out.contains("<FILE>"))
+      assert/is-true(out.contains("FILE"))
 
     itest("help run prints run help")
       val out = hica("help run")

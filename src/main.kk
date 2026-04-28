@@ -45,6 +45,26 @@ fun hica-cli() : command
     .arg(positional("COMMAND").help("Command to run (build, run, check, clean, help)").required)
     .arg(positional("FILE").help("Source .hc file"))
 
+fun build-cli() : command
+  command("hica build")
+    .about("Compile a .hc file to Koka and build a binary")
+    .arg(positional("FILE").help("Source .hc file").required)
+
+fun run-cli() : command
+  command("hica run")
+    .about("Compile and run a .hc file")
+    .arg(positional("FILE").help("Source .hc file").required)
+
+fun check-cli() : command
+  command("hica check")
+    .about("Analyze a .hc file and report errors")
+    .arg(positional("FILE").help("Source .hc file").required)
+
+fun clean-cli() : command
+  command("hica clean")
+    .about("Remove generated build artifacts")
+    .arg(positional("FILE").help("Source .hc file").required)
+
 fun main()
   val m = hica-cli().parse-or-exit(get-args())
   val cmd  = m.get-one-or("COMMAND", "")
@@ -115,15 +135,15 @@ fun cmd-clean( file : string )
   if !cleaned then
     println("nothing to clean")
 
-fun cmd-help( file : maybe<string> )
-  match file
-    Just("build") -> print-help-build()
-    Just("b")     -> print-help-build()
-    Just("run")   -> print-help-run()
-    Just("r")     -> print-help-run()
-    Just("check") -> print-help-check()
-    Just("c")     -> print-help-check()
-    Just("clean") -> print-help-clean()
+fun cmd-help( sub : maybe<string> )
+  match sub
+    Just("build") -> println(build-cli().format-help)
+    Just("b")     -> println(build-cli().format-help)
+    Just("run")   -> println(run-cli().format-help)
+    Just("r")     -> println(run-cli().format-help)
+    Just("check") -> println(check-cli().format-help)
+    Just("c")     -> println(check-cli().format-help)
+    Just("clean") -> println(clean-cli().format-help)
     _             -> print-usage()
 
 // ---------------------------------------------------------------------------
@@ -184,39 +204,11 @@ fun run-koka( file : string )
 // ---------------------------------------------------------------------------
 
 fun print-usage()
-  println("hica v" ++ version ++ " (koka)\n")
-  println("Usage: hica [OPTIONS] [COMMAND]\n")
-  println("Options:")
-  println("  -V, --version    Print version info and exit")
-  println("  -h, --help       Print help\n")
-  println("Commands:")
+  println(hica-cli().format-help)
+  println("\nCommands:")
   println("    build, b    Compile a .hc file to Koka and build a binary")
   println("    run, r      Compile and run a .hc file")
   println("    check, c    Analyze a .hc file and report errors")
   println("    clean       Remove generated build artifacts")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
-
-fun print-help-build()
-  println("Compile a .hc file to Koka and build a binary\n")
-  println("Usage: hica build <FILE>\n")
-  println("Reads <FILE>, runs the compiler pipeline (lex -> parse -> emit),")
-  println("and writes the generated Koka source and binary next to the source file.")
-  println("  hello.hc -> hello.kk + hello")
-
-fun print-help-run()
-  println("Compile and run a .hc file\n")
-  println("Usage: hica run <FILE>\n")
-  println("Compiles <FILE> (same as `hica build`), then executes")
-  println("the resulting binary.")
-
-fun print-help-check()
-  println("Analyze a .hc file and report errors\n")
-  println("Usage: hica check <FILE>\n")
-  println("Runs the lexer and parser on <FILE> and reports any errors,")
-  println("without generating output files.")
-
-fun print-help-clean()
-  println("Remove generated build artifacts\n")
-  println("Usage: hica clean <FILE>\n")
-  println("Removes the generated .kk source and binary for the given .hc file.")
