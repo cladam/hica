@@ -236,6 +236,36 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val result-type = apply-subst(s3, ret-var)
       (s3, Node(n.span, Call(callee', args'), Just(result-type)))
 
+    // --- Binary operators ---
+    Binary(op, lhs, rhs) ->
+      val (s1, lhs') = infer(env, s, lhs)
+      val (s2, rhs') = infer(env, s1, rhs)
+      val lt = apply-subst(s2, get-type(lhs'))
+      val rt = apply-subst(s2, get-type(rhs'))
+      val (s3, result-type) = match op
+        Add -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Sub -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Mul -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Div -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Eq  -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
+        Neq -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
+        Lt  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
+        Gt  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
+        Le  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
+        Ge  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
+        And -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
+        Or  -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
+      (s3, Node(n.span, Binary(op, lhs', rhs'), Just(result-type)))
+
+    // --- Unary operators ---
+    Unary(op, operand) ->
+      val (s1, operand') = infer(env, s, operand)
+      val ot = apply-subst(s1, get-type(operand'))
+      val (s2, result-type) = match op
+        Neg -> (compose-subst(unify(ot, TInt, operand.span), s1), TInt)
+        Not -> (compose-subst(unify(ot, TBool, operand.span), s1), TBool)
+      (s2, Node(n.span, Unary(op, operand'), Just(result-type)))
+
     // --- Not yet handled: assign a fresh type variable ---
     _ ->
       val t = fresh-tvar()
