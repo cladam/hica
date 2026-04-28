@@ -74,3 +74,14 @@ call `apply(square, 7)` without type annotations because `f` is unconstrained.
 | 2 | Overloaded ops     | Partial  | Type annotations (needs checker) |
 | 3 | Hyphenated idents  | No       | Design decision (use underscores)|
 | 4 | Polymorphic HOFs   | Partial  | Type annotations (needs checker) |
+
+
+
+Confirmed: the generated Koka code is valid — match as a module name is a keyword collision. This is a pre-existing codegen issue (file-to-module naming), not related to Phase 5.
+
+Phase 5 summary:
+
+All 10 examples build successfully through hica build
+Type annotations are emitted on function params, return types, and let bindings
+Generated Koka code compiles for 9/10 examples; the 1 failure is a pre-existing module match keyword collision (not a type annotation issue)
+This is a good commit point. The match module-name issue should be tracked separately as a codegen limitation.

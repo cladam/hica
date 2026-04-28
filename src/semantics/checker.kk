@@ -370,7 +370,7 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (su
   val fun-type = TFun(resolved-params, apply-subst(s1, body-type))
   // Extend the outer environment with this function's name
   val env' = env.extend(d.name, fun-type)
-  val d' = d(body = body')
+  val d' = d(body = body', param-types = resolved-params, ret-type = Just(apply-subst(s1, body-type)))
   (s1, env', d')
 
 // Check an entire program: infer all declarations in order.

@@ -193,10 +193,12 @@ pub fun expr/show( e : expr ) : div string
 // ---------------------------------------------------------------------------
 
 pub struct fun-decl
-  span   : span
-  name   : string
-  params : list<string>
-  body   : node
+  span        : span
+  name        : string
+  params      : list<string>
+  body        : node
+  param-types : list<hica-type> = []
+  ret-type    : maybe<hica-type> = Nothing
 
 pub fun fun-decl/show( d : fun-decl ) : div string
   "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show

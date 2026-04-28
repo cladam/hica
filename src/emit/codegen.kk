@@ -37,6 +37,19 @@ fun marshal-name( name : string ) : string
   else "hc_" ++ name
 
 // ---------------------------------------------------------------------------
+// Type annotation emission: convert hica types to Koka type syntax
+// ---------------------------------------------------------------------------
+
+fun emit-type( t : hica-type ) : div string
+  match t
+    TInt        -> "int"
+    TBool       -> "bool"
+    TString     -> "string"
+    TUnit       -> "()"
+    TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
+    TVar(_)     -> ""  // unresolved — omit annotation
+
+// ---------------------------------------------------------------------------
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
@@ -46,9 +59,31 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   p.decls.map(fn(d) emit-decl(d)).join("\n\n") ++ "\n"
 
 fun emit-decl( d : fun-decl ) : div string
-  val params-str = d.params.map(fn(p) marshal-name(p)).join(", ")
-  "fun " ++ marshal-name(d.name) ++ "(" ++ params-str ++ ")\n" ++
+  val params-str = emit-typed-params(d.params, d.param-types)
+  val ret-ann = match d.ret-type
+    Just(t) ->
+      val ts = emit-type(t)
+      if ts == "" then "" else " : " ++ ts
+    Nothing -> ""
+  "fun " ++ marshal-name(d.name) ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
   emit-body(d.body).lines.map(fn(line) "  " ++ line).join("\n")
+
+// Emit parameter list with type annotations when available.
+fun emit-typed-params( names : list<string>, types : list<hica-type> ) : div string
+  match (names, types)
+    (Cons(n, ns), Cons(t, ts)) ->
+      val ann = emit-type(t)
+      val param = if ann == "" then marshal-name(n)
+                  else marshal-name(n) ++ " : " ++ ann
+      match ns
+        Nil -> param
+        _   -> param ++ ", " ++ emit-typed-params(ns, ts)
+    (Cons(n, ns), Nil) ->
+      // No types available — emit bare names
+      match ns
+        Nil -> marshal-name(n)
+        _   -> marshal-name(n) ++ ", " ++ emit-typed-params(ns, [])
+    _ -> ""
 
 fun emit-body( n : node ) : div string
   match n.expr
@@ -58,7 +93,12 @@ fun emit-body( n : node ) : div string
 fun emit-stmt( n : node ) : div string
   match n.expr
     Let(name, _, init, body) ->
-      "val " ++ marshal-name(name) ++ " = " ++ emit-expr(init) ++ "\n" ++ emit-stmt(body)
+      val ann = match init.typ
+        Just(t) ->
+          val ts = emit-type(t)
+          if ts == "" then "" else " : " ++ ts
+        Nothing -> ""
+      "val " ++ marshal-name(name) ++ ann ++ " = " ++ emit-expr(init) ++ "\n" ++ emit-stmt(body)
     _ -> emit-expr(n)
 
 // ---------------------------------------------------------------------------

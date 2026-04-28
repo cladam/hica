@@ -142,7 +142,15 @@ fun build( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
-  val koka-code = emit-program(prog, stem)
+  // Type check
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(prog)
+  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(d) println(d.show))
+    println("build: " ++ errors.length.show ++ " type error(s)")
+  val koka-code = emit-program(typed-prog, stem)
   val out-kk  = dir.path / (stem ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ file ++ " -> " ++ out-kk.show)
