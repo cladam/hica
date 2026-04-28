@@ -42,28 +42,27 @@ fun hica-cli() : command
   command("hica")
     .version(version)
     .about("The hica compiler")
-    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, help)"))
+    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, help)").required)
     .arg(positional("FILE").help("Source .hc file"))
 
 fun main()
-  val args = get-args()
-  match args
-    Cons("build", rest)       -> cmd-build(rest)
-    Cons("b", rest)           -> cmd-build(rest)
-    Cons("run", rest)         -> cmd-run(rest)
-    Cons("r", rest)           -> cmd-run(rest)
-    Cons("check", rest)       -> cmd-check(rest)
-    Cons("c", rest)           -> cmd-check(rest)
-    Cons("clean", rest)      -> cmd-clean(rest)
-    Cons("help", rest)        -> cmd-help(rest)
-    Cons("--version", _)      -> println("hica " ++ version ++ " (koka)")
-    Cons("-V", _)             -> println("hica " ++ version ++ " (koka)")
-    Cons("--help", _)         -> print-usage()
-    Cons("-h", _)             -> print-usage()
-    Cons(other, _)            ->
+  val m = hica-cli().parse-or-exit(get-args())
+  val cmd  = m.get-one-or("COMMAND", "")
+  val file = match m.get-one("FILE")
+    Just(f) -> [f]
+    Nothing -> []
+  match cmd
+    "build" -> cmd-build(file)
+    "b"     -> cmd-build(file)
+    "run"   -> cmd-run(file)
+    "r"     -> cmd-run(file)
+    "check" -> cmd-check(file)
+    "c"     -> cmd-check(file)
+    "clean" -> cmd-clean(file)
+    "help"  -> cmd-help(file)
+    other   ->
       println("error: no such command: `" ++ other ++ "`\n")
-      print-usage()
-    Nil                       -> print-usage()
+      println(hica-cli().format-help)
 
 // ---------------------------------------------------------------------------
 // Commands
