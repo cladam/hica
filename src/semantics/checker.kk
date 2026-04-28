@@ -167,8 +167,109 @@ pub fun env/extend( env : type-env, name : string, t : hica-type ) : type-env
   Cons((name, t), env)
 
 // ---------------------------------------------------------------------------
-// Stub: pass-through checker (to be replaced in Phase 1+)
+// Type inference
 // ---------------------------------------------------------------------------
 
+// Infer the type of a node, returning the updated substitution and a
+// node annotated with its inferred type.
+pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, node)
+  match n.expr
+    // --- Literals: known concrete types ---
+    Literal(LitInt(_)) ->
+      (s, n(typ = Just(TInt)))
+    Literal(LitBool(_)) ->
+      (s, n(typ = Just(TBool)))
+    Literal(LitString(_)) ->
+      (s, n(typ = Just(TString)))
+
+    // --- Variables: look up in environment ---
+    Var(name) ->
+      val t = env.lookup(name, n.span)
+      val resolved = apply-subst(s, t)
+      (s, n(typ = Just(resolved)))
+
+    // --- Let bindings: infer init, extend env, infer body ---
+    Let(name, ann, init, body) ->
+      val (s1, init') = infer(env, s, init)
+      val init-type = get-type(init')
+      // If there's a type annotation, unify with inferred type
+      val s2 = match ann
+        Just(declared) -> compose-subst(unify(init-type, declared, init.span), s1)
+        Nothing        -> s1
+      val bound-type = apply-subst(s2, init-type)
+      val env' = env.extend(name, bound-type)
+      val (s3, body') = infer(env', s2, body)
+      val body-type = get-type(body')
+      (s3, Node(n.span, Let(name, ann, init', body'), Just(body-type)))
+
+    // --- Blocks: infer each statement, type is the last ---
+    Block(stmts) ->
+      val (s', stmts', last-type) = infer-stmts(env, s, stmts)
+      (s', Node(n.span, Block(stmts'), Just(last-type)))
+
+    // --- Not yet handled: assign a fresh type variable ---
+    _ ->
+      val t = fresh-tvar()
+      (s, n(typ = Just(t)))
+
+// Infer types for a list of statements (inside a block).
+// Returns the updated substitution, typed statements, and the type of
+// the last statement.
+fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh> (subst, list<node>, hica-type)
+  match stmts
+    Nil -> (s, [], TUnit)
+    Cons(stmt, Nil) ->
+      val (s', stmt') = infer(env, s, stmt)
+      (s', [stmt'], get-type(stmt'))
+    Cons(stmt, rest) ->
+      val (s1, stmt') = infer(env, s, stmt)
+      // If this stmt is a let binding, extend env for subsequent stmts
+      val env' = match stmt'.expr
+        Let(name, _, _, _) -> env.extend(name, get-type(stmt'))
+        _                  -> env
+      val (s2, rest', last-type) = infer-stmts(env', s1, rest)
+      (s2, Cons(stmt', rest'), last-type)
+
+// Extract the inferred type from a node, defaulting to TUnit.
+fun get-type( n : node ) : hica-type
+  match n.typ
+    Just(t)  -> t
+    Nothing  -> TUnit
+
+// ---------------------------------------------------------------------------
+// Top-level: check a full program
+// ---------------------------------------------------------------------------
+
+// Infer a top-level function declaration.
+fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (subst, type-env, fun-decl)
+  // Assign fresh type variables to each parameter
+  val param-types = d.params.map(fn(_p) fresh-tvar())
+  // Extend environment with params
+  val param-env = zip(d.params, param-types).foldl(env, fn(e, entry) match entry { (n, t) -> e.extend(n, t) })
+  // Infer the body
+  val (s1, body') = infer(param-env, s, d.body)
+  val body-type = get-type(body')
+  // Build the function type
+  val resolved-params = param-types.map(fn(t) apply-subst(s1, t))
+  val fun-type = TFun(resolved-params, apply-subst(s1, body-type))
+  // Extend the outer environment with this function's name
+  val env' = env.extend(d.name, fun-type)
+  val d' = d(body = body')
+  (s1, env', d')
+
+// Check an entire program: infer all declarations in order.
+pub fun check-program( p : program ) : <div,diag,fresh> program
+  val (_, _, decls') = infer-decls(empty-env, empty-subst, p.decls)
+  Program(decls')
+
+fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh> (subst, type-env, list<fun-decl>)
+  match ds
+    Nil -> (s, env, [])
+    Cons(d, rest) ->
+      val (s1, env1, d') = infer-decl(env, s, d)
+      val (s2, env2, rest') = infer-decls(env1, s1, rest)
+      (s2, env2, Cons(d', rest'))
+
+// Convenience: check a single node (legacy API, still used by some tests).
 pub fun check( n : node ) : node
-  n  // pass-through for now
+  n

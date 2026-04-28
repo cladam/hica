@@ -31,6 +31,7 @@ import std/os/process
 import syntax/ast
 import syntax/lexer
 import syntax/parser
+import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
 
@@ -82,7 +83,15 @@ fun cmd-check( args : list<string> )
       val source = read-text-file(file.path)
       val tokens = lex(source)
       val prog   = run-parser-program(tokens)
-      println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations)")
+      val (_typed-prog, diags) = collect-diagnostics
+        run-fresh
+          check-program(prog)
+      val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      if errors.is-empty then
+        println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors)")
+      else
+        errors.foreach(fn(d) println(d.show))
+        println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
     Nil ->
       println("error: missing file argument\n")
       print-help-check()
