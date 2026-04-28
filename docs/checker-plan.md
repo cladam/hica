@@ -173,6 +173,7 @@ can emit `fun hc_add(a : int, b : int) : int`.
 `If(cond, then, else)`:
 - `cond` must be `TBool`
 - `then` and `else` must unify to the same type → that's the result
+- hica should support if-else, if-then-else, else-if
 
 ### Match expressions
 

@@ -266,6 +266,31 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
         Not -> (compose-subst(unify(ot, TBool, operand.span), s1), TBool)
       (s2, Node(n.span, Unary(op, operand'), Just(result-type)))
 
+    // --- If expressions ---
+    If(cond, then-e, else-e) ->
+      // Condition must be bool
+      val (s1, cond') = infer(env, s, cond)
+      val cond-type = apply-subst(s1, get-type(cond'))
+      val s2 = compose-subst(unify(cond-type, TBool, cond.span), s1)
+      // Infer both branches
+      val (s3, then') = infer(env, s2, then-e)
+      val (s4, else') = infer(env, s3, else-e)
+      val then-type = apply-subst(s4, get-type(then'))
+      val else-type = apply-subst(s4, get-type(else'))
+      // Unify branches — they must return the same type
+      val s5 = compose-subst(unify(then-type, else-type, n.span), s4)
+      val result-type = apply-subst(s5, then-type)
+      (s5, Node(n.span, If(cond', then', else'), Just(result-type)))
+
+    // --- Match expressions ---
+    Match(scrut, arms) ->
+      val (s1, scrut') = infer(env, s, scrut)
+      val scrut-type = apply-subst(s1, get-type(scrut'))
+      val result-var = fresh-tvar()
+      val (s2, arms') = infer-arms(env, s1, scrut-type, result-var, arms)
+      val result-type = apply-subst(s2, result-var)
+      (s2, Node(n.span, Match(scrut', arms'), Just(result-type)))
+
     // --- Not yet handled: assign a fresh type variable ---
     _ ->
       val t = fresh-tvar()
@@ -297,6 +322,34 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
       val (s1, arg') = infer(env, s, arg)
       val (s2, rest') = infer-args(env, s1, rest)
       (s2, Cons(arg', rest'))
+
+// Infer types for match arms.
+// Each arm's pattern constrains the scrutinee type, and each arm's body
+// must unify with the result type variable.
+fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh> (subst, list<match-arm>)
+  match arms
+    Nil -> (s, [])
+    Cons(arm, rest) ->
+      // Constrain scrutinee type from pattern
+      val (s1, pat-env) = infer-pattern(env, s, scrut-type, arm.pattern)
+      // Infer arm body in extended environment
+      val (s2, body') = infer(pat-env, s1, arm.body)
+      val body-type = apply-subst(s2, get-type(body'))
+      // Unify with result type so all arms agree
+      val s3 = compose-subst(unify(body-type, apply-subst(s2, result-var), arm.body.span), s2)
+      val (s4, rest') = infer-arms(env, s3, scrut-type, result-var, rest)
+      (s4, Cons(Match-arm(arm.pattern, body'), rest'))
+
+// Infer type constraints from a match pattern.
+// Returns the updated substitution and the environment extended with
+// any pattern-bound variables.
+fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh> (subst, type-env)
+  match p
+    PWild    -> (s, env)
+    PVar(name) -> (s, env.extend(name, scrut-type))
+    PLit(LitInt(_))    -> (compose-subst(unify(scrut-type, TInt, no-span), s), env)
+    PLit(LitBool(_))   -> (compose-subst(unify(scrut-type, TBool, no-span), s), env)
+    PLit(LitString(_)) -> (compose-subst(unify(scrut-type, TString, no-span), s), env)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type

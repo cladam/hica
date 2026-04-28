@@ -173,7 +173,7 @@ fun parse-if() : <div,parser> node
       match peek()
         TkIf  -> parse-if()
         _     -> parse-block()
-    _ -> Node(current-span(), Literal(LitBool(False))) // unit placeholder
+    _ -> Node(current-span(), Block([])) // no else → unit
   Node(Span(t.span.start, else-e.span.end), If(cond, then-e, else-e))
 
 fun parse-fn() : <div,parser> node
