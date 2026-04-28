@@ -275,3 +275,40 @@ These are explicitly **not** in scope for the first type checker:
 - **Type annotations in syntax** — the parser doesn't parse `: type` yet;
   add when the checker is solid enough to benefit from user-provided hints
 - **Algebraic data types / structs** — not in the AST yet
+
+---
+
+## Lambda Syntax Decision
+
+Hica uses the **fat arrow `=>`** for anonymous functions (lambdas):
+
+```
+(x) => x * 2
+(a, b) => a + b
+(x) => { let y = x * x; y + 1 }
+```
+
+This is consistent with the existing expression-bodied function syntax
+(`fun double(x) => x * 2`) and familiar to C#/JS/Dart developers.
+
+### What we chose *not* to do
+
+| Alternative       | Reason to skip                                      |
+|-------------------|-----------------------------------------------------|
+| `_ * 2` placeholder | Clashes with `_` wildcard in match patterns        |
+| `@` placeholder   | Novel symbol; adds cognitive load for little gain    |
+| `\|x\| x * 2` pipes | Clashes with `\|` in match arms and Koka effect rows |
+| `fn(x) { ... }`   | That's Koka syntax, not hica                        |
+| `\x -> x * 2`     | Backslash reads as escape; `->` reserved for types   |
+
+### AST representation
+
+Lambdas desugar into the existing `Fun(params, body)` node — no new AST
+variant needed. The parser handles `(params) => expr` and produces a `Fun`.
+
+### Checker impact
+
+Phase 2 (Functions & Calls) already covers `Fun(params, body)` inference:
+assign a fresh `TVar` to each param, infer the body, produce
+`TFun([τ_p1, ..., τ_pN], τ_body)`. Lambdas passed as arguments unify
+naturally via the call-site rule.
