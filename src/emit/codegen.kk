@@ -34,7 +34,9 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
 
 pub fun safe-module-name( name : string ) : string
   if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
-  else name
+  else match name.list
+    Cons(c, _) | c.is-digit -> "hc" ++ name
+    _                       -> name
 
 // ---------------------------------------------------------------------------
 // Name marshalling: prefix user-declared names to avoid Koka stdlib clashes.
@@ -54,7 +56,7 @@ fun emit-type( t : hica-type ) : div string
     TInt        -> "int"
     TBool       -> "bool"
     TString     -> "string"
-    TUnit       -> "()"
+    TUnit       -> ""    // omit — let Koka infer effects
     TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
     TVar(_)     -> ""  // unresolved — omit annotation
 
@@ -148,6 +150,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Match(scrut, arms) ->
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
       arms.map(fn(a) "  " ++ emit-pattern(a.pattern, declared) ++ " -> " ++ emit-expr(a.body, declared)).join("\n")
+    Repeat(count, body) ->
+      "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
+      body.expr.repeat-body(declared)
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
   match p
@@ -169,3 +174,8 @@ fun emit-binop( op : binop ) : string
     Ge  -> ">="
     And -> "&&"
     Or  -> "||"
+
+fun repeat-body( e : expr, declared : list<string> ) : div string
+  match e
+    Block(stmts) -> stmts.map(fn(s) "  " ++ emit-expr(s, declared)).join("\n")
+    _            -> "  " ++ emit-expr(Node(no-span, e), declared)

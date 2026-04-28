@@ -291,6 +291,14 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val result-type = apply-subst(s2, result-var)
       (s2, Node(n.span, Match(scrut', arms'), Just(result-type)))
 
+    // --- Repeat expressions ---
+    Repeat(count, body) ->
+      val (s1, count') = infer(env, s, count)
+      val count-type = apply-subst(s1, get-type(count'))
+      val s2 = compose-subst(unify(count-type, TInt, count.span), s1)
+      val (s3, body') = infer(env, s2, body)
+      (s3, Node(n.span, Repeat(count', body'), Just(TUnit)))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.

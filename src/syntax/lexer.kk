@@ -41,6 +41,7 @@ pub type token-kind
   TkIf
   TkElse
   TkMatch
+  TkRepeat
   TkTrue
   TkFalse
   // Punctuation
@@ -91,6 +92,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkIf         -> "if"
     TkElse       -> "else"
     TkMatch      -> "match"
+    TkRepeat     -> "repeat"
     TkTrue       -> "true"
     TkFalse      -> "false"
     TkLParen     -> "("
@@ -164,9 +166,10 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "fun"   -> TkFun
     "if"    -> TkIf
     "else"  -> TkElse
-    "match" -> TkMatch
-    "true"  -> TkBool(True)
-    "false" -> TkBool(False)
+    "match"  -> TkMatch
+    "repeat" -> TkRepeat
+    "true"   -> TkBool(True)
+    "false"  -> TkBool(False)
     _       -> TkIdent(word)
   Cons(Token(kind, Span(start, end)), lex-from(rest, end))
 

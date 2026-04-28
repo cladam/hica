@@ -175,3 +175,13 @@ pub fun main() : io ()
     dtest("emit function with match in body")
       val code = emit-program-show("fun test(x) { match x { 1 => 10, _ => 0 } }")
       assert/is-true(code.contains("match x"))
+
+    // --- Repeat emission ---
+    dtest("emit repeat expression")
+      val code = emit-show("repeat(3) { 42 }")
+      assert/is-true(code.contains("repeat(3)"))
+
+    dtest("emit repeat in program")
+      val code = emit-program-show("fun main() { repeat(5) { 42 } }")
+      assert/is-true(code.contains("repeat(5)"))
+      assert/is-true(code.contains("42"))

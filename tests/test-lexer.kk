@@ -47,7 +47,7 @@ pub fun main() : io ()
 
     // --- Keywords ---
     dtest("lex keywords")
-      assert/is-true(token-string("let fn fun if else match") == "let fn fun if else match <eof>")
+      assert/is-true(token-string("let fn fun if else match repeat") == "let fn fun if else match repeat <eof>")
 
     // --- Identifiers ---
     dtest("lex identifier")

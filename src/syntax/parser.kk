@@ -84,6 +84,8 @@ fun parse-prefix() : <div,parser> node
       parse-let()
     TkMatch ->
       parse-match()
+    TkRepeat ->
+      parse-repeat()
     TkMinus ->
       val t = advance()
       val operand = parse-prefix()
@@ -242,6 +244,14 @@ fun parse-pattern() : <div,parser> pattern
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }
     TkString(s)  -> { advance(); PLit(LitString(s)) }
     _ -> { parse-error("expected pattern"); PWild }
+
+fun parse-repeat() : <div,parser> node
+  val t = expect("repeat", fn(k) match k { TkRepeat -> True; _ -> False })
+  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+  val count = parse-expr()
+  expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  val body = parse-block()
+  Node(Span(t.span.start, body.span.end), Repeat(count, body))
 
 // ---------------------------------------------------------------------------
 // Top-level declarations: fun name(params) { body } or fun name(params) => expr

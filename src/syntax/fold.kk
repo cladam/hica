@@ -45,5 +45,7 @@ pub fun walk( n : node, f : transform ) : node
       Block(stmts.map(fn(s) walk(s, f)))
     Match(scrut, arms) ->
       Match(walk(scrut, f), arms.map(fn(a) Match-arm(a.pattern, walk(a.body, f))))
+    Repeat(count, body) ->
+      Repeat(walk(count, f), walk(body, f))
     other -> other
   Node(n.span, f(walked))

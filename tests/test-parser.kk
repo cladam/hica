@@ -200,6 +200,16 @@ pub fun main() : io ()
       val result = parse-show("match x { n => n }")
       assert/is-true(result.contains("match"))
 
+    // --- Repeat expressions ---
+    itest("parse repeat")
+      val result = parse-show("repeat(3) { 42 }")
+      assert/is-true(result.contains("repeat"))
+
+    itest("parse repeat with expression count")
+      val result = parse-show("repeat(1 + 2) { 42 }")
+      assert/is-true(result.contains("repeat"))
+      assert/is-true(result.contains("+"))
+
     // --- Block expressions ---
     itest("parse block expression")
       val result = parse-show("{ 1; 2; 3 }")

@@ -156,6 +156,9 @@ pub type expr
   // match scrutinee { arms }
   Match( scrutinee : node, arms : list<match-arm> )
 
+  // repeat(count) { body }
+  Repeat( count : node, body : node )
+
 pub struct match-arm
   pattern : pattern
   body    : node
@@ -187,6 +190,7 @@ pub fun expr/show( e : expr ) : div string
     If(c, t, e')     -> "if " ++ c.show ++ " { " ++ t.show ++ " } else { " ++ e'.show ++ " }"
     Block(ss)        -> "{ " ++ ss.map(show).join("; ") ++ " }"
     Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ " => " ++ a.body.show).join(", ") ++ " }"
+    Repeat(c, b)     -> "repeat(" ++ c.show ++ ") " ++ b.show
 
 // ---------------------------------------------------------------------------
 // Top-level declarations

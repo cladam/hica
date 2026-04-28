@@ -49,9 +49,11 @@ Legend: **done** = shipped, **—** = not started
 |---------|--------|------------|-------|
 | `if` / `else if` / `else` | **done** | — | Expression-valued |
 | `match` | **done** | — | Int + wildcard + var patterns |
-| `for i in 0..n` (range loop) | — | Medium | Emit Koka `for` or `list` + `foreach` |
-| `while condition { ... }` | — | Medium | Emit Koka `while` |
 | `repeat(n) { ... }` | — | Low | Emit Koka `repeat` |
+| `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
+| `for i in 0..n` (range loop) | — | Medium | Emit Koka `for(0, n)` |
+| `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
+| `break` / `continue` | — | Medium | Needs Koka effect-based control flow |
 
 ### Functions
 
@@ -100,7 +102,6 @@ Legend: **done** = shipped, **—** = not started
 | `hica --version` | **done** | — | via klap |
 | `hica new <name>` | **done** | — | Scaffold with hica.ini, main.hc, README.md |
 | `hica init` | **done** | — | Initialize in current directory |
-| `hica test` / `hica t` | — | Medium | Discover + run test files |
 | `hica fmt` / `hica fmt --check` | — | Medium | Pretty-printer (Wadler-Leijen) |
 
 ---
