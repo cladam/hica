@@ -14,22 +14,18 @@ as ambiguous.
 `min`, `length`, `head`, `tail`, `zip`, `fold`, `take`, `drop`, `reverse`,
 `sort`, `compare`, `string`, `list`, `int`, `bool`, `char`, `order`.
 
-### Current fix: name marshalling (prefixing)
+### Current fix: name resolution (Phase 6)
 
-All user-defined names get an `hc_` prefix. A small passthrough list
-(`main`, `println`, `print`, `trace`, `show`) lets hica code call core
-Koka I/O functions directly.
+The codegen collects all user-declared top-level function names. Only those
+get the `hc_` prefix. Names not declared by the user pass through to Koka
+unchanged, so `abs(5)` calls Koka's `abs` when the user hasn't defined one.
 
-**The unsolved tension:** if a user writes `abs(5)` without defining `abs`,
-they probably want Koka's `abs` — but the current approach prefixes it to
-`hc_abs(5)` which doesn't exist. The real fix is to distinguish declarations
-from call sites:
-- **Declarations** (`fun abs(x)`) → always prefix to avoid shadowing
-- **Calls** (`abs(5)`) → check if the name was declared in hica; if not,
-  pass through to Koka
+`main` is excluded from the declared set so it stays as Koka's entry point.
+Local bindings (params, let-bound vars, pattern vars) are also excluded,
+producing cleaner output (`x` instead of `hc_x`).
 
-This requires a **name resolution pass** (tracking which names are in scope)
-before emission. Until then, the passthrough list stays small and safe.
+Additionally, filenames that collide with Koka keywords (e.g. `match.hc`)
+are emitted as `hc-match.kk` / `module hc-match` to avoid parse errors.
 
 ## 2. Overloaded operators on untyped params
 
@@ -41,13 +37,11 @@ cannot resolve which `+` to use.
 
 **Fails:** `fun add(a, b) => a + b` — no literal to anchor the type.
 
-### Fix options
+### Fix: type annotations (Phase 5)
 
-1. **Emit type annotations** when the hica type checker has inferred them
-   (requires type checker — Phase 2).
-2. **Default to `int`** — emit `: int` on untyped params as a stopgap.
-3. **Qualify operators** — emit `int/(+)` instead of `+` when types are unknown
-   (ugly but unambiguous).
+The type checker infers types for all params and return values. Codegen now
+emits `fun hc_add(a : int, b : int) : int` — Koka resolves `+` to `int/(+)`.
+This also fixes issue #4 (polymorphic higher-order functions).
 
 ## 3. Hyphenated identifiers
 
@@ -64,24 +58,15 @@ an identifier when not surrounded by spaces and preceded by an alpha char).
 `fun apply(f, x) => f(x)` emits valid Koka, but Koka can't resolve the
 call `apply(square, 7)` without type annotations because `f` is unconstrained.
 
-**Fix:** same as #2 — needs type annotations from hica's type checker.
+**Fix:** same as #2 — type annotations from hica's type checker (Phase 5).
+Now resolved.
 
 ## Priority
 
-| # | Issue              | Blocker? | Fix                              |
-|---|--------------------|----------|----------------------------------|
-| 1 | Name clashes       | Yes      | Name marshalling (`hc_` prefix)  |
-| 2 | Overloaded ops     | Partial  | Type annotations (needs checker) |
-| 3 | Hyphenated idents  | No       | Design decision (use underscores)|
-| 4 | Polymorphic HOFs   | Partial  | Type annotations (needs checker) |
+| # | Issue              | Status   | Fix                                       |
+|---|--------------------|----------|-------------------------------------------|
+| 1 | Name clashes       | Fixed    | Name resolution (Phase 6)                 |
+| 2 | Overloaded ops     | Fixed    | Type annotations (Phase 5)                |
+| 3 | Hyphenated idents  | N/A      | Design decision (use underscores)         |
+| 4 | Polymorphic HOFs   | Fixed    | Type annotations (Phase 5)                |
 
-
-
-Confirmed: the generated Koka code is valid — match as a module name is a keyword collision. This is a pre-existing codegen issue (file-to-module naming), not related to Phase 5.
-
-Phase 5 summary:
-
-All 10 examples build successfully through hica build
-Type annotations are emitted on function params, return types, and let bindings
-Generated Koka code compiles for 9/10 examples; the 1 failure is a pre-existing module match keyword collision (not a type annotation issue)
-This is a good commit point. The match module-name issue should be tracked separately as a codegen limitation.

@@ -100,9 +100,10 @@ fun cmd-clean( args : list<string> )
   match args
     Cons(file, _) ->
       val stem = file.path.stemname
+      val mod-name = safe-module-name(stem)
       val dir  = file.path.dirname
-      val kk-file = dir.path / (stem ++ ".kk").path
-      val bin-file = dir.path / stem.path
+      val kk-file = dir.path / (mod-name ++ ".kk").path
+      val bin-file = dir.path / mod-name.path
       var cleaned := False
       if is-file(kk-file) then
         val contents = read-text-file(kk-file)
@@ -138,6 +139,7 @@ fun cmd-help( args : list<string> )
 
 fun build( file : string )
   val stem = file.path.stemname
+  val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
   val source = read-text-file(file.path)
   val tokens = lex(source)
@@ -150,21 +152,20 @@ fun build( file : string )
   if !errors.is-empty then
     errors.foreach(fn(d) println(d.show))
     println("build: " ++ errors.length.show ++ " type error(s)")
-  val koka-code = emit-program(typed-prog, stem)
-  val out-kk  = dir.path / (stem ++ ".kk").path
+  val koka-code = emit-program(typed-prog, mod-name)
+  val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ file ++ " -> " ++ out-kk.show)
-  compile-koka(file)
+  compile-koka(file, mod-name)
 
 // ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
-fun compile-koka( file : string )
-  val stem = file.path.stemname
+fun compile-koka( file : string, mod-name : string )
   val dir  = file.path.dirname
-  val kk-file = (dir.path / (stem ++ ".kk").path).show
-  val out-bin = (dir.path / stem.path).show
+  val kk-file = (dir.path / (mod-name ++ ".kk").path).show
+  val out-bin = (dir.path / mod-name.path).show
   val exit-code = run-system("koka -o " ++ out-bin ++ " " ++ kk-file)
   if exit-code != 0 then
     println("error: koka failed with exit code " ++ exit-code.show)
@@ -178,8 +179,9 @@ fun compile-koka( file : string )
 
 fun run-koka( file : string )
   val stem = file.path.stemname
+  val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
-  val kk-file = (dir.path / (stem ++ ".kk").path).show
+  val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val exit-code = run-system("koka -e -v0 " ++ kk-file ++ " 2>/dev/null")
   if exit-code != 0 then
     println("error: koka failed with exit code " ++ exit-code.show)
