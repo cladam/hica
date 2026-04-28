@@ -6,12 +6,23 @@
 - Linker integration, platform support, ABI concerns
 - Effect runtime (handlers, resumptions)
 
+**What's done:**
+- Lexer and parser (with `else if`, unary operators, match, lambdas)
+- Type checker / inference (Hindley-Milner, all expr types, wired into build)
+- Diagnostics and error reporting (`diag` effect, `collect-diagnostics`)
+- The emitter (Hica AST → valid `.kk` source, with type annotations)
+- Name resolution (only user-declared names get `hc_` prefix)
+- Module keyword clash fix (`match.hc` → `hc-match.kk`)
+
 **What I still need to build:**
-- Lexer and parser (done-ish)
-- Type checker / inference
-- Desugaring (Hica syntax → Koka idioms)
-- Diagnostics and error reporting
-- The emitter (Hica AST → valid `.kk` source)
+- String matching in `match` (only int literals and wildcards today)
+- String interpolation / concatenation
+- Loops (`for`, `while`, `repeat`)
+- Lists / collections (literals, `map`, `filter`, etc.)
+- Tuples (literals, destructuring)
+- Structs and algebraic types (`struct`, `enum`)
+- Multi-file modules / imports
+- Desugaring pass (Hica syntax → Koka idioms, beyond what codegen does)
 
 **The tradeoff:** this language is constrained by what Koka can express. But given that Hica's design pillars — algebraic effects, Perceus memory, expression-oriented, strong inference — are exactly what Koka already provides, that constraint costs me almost nothing. Hica is essentially a syntax skin and a type-checking layer on top of Koka's full runtime.
 
@@ -21,10 +32,8 @@ The practical route for me going forward: get the parser and emitter solid, writ
 
 **Gaps noticed while writing the kids tutorial (2026-04-26):**
 
-- **`else if` chains** — the parser doesn't support `else if` yet; fizzbuzz
-  requires nested `else { if ... }`. Makes code harder to read for beginners.
-- **Unary negation** — no unary `-` operator, so you have to write `0 - x`
-  instead of `-x`. Confusing for kids.
+- ~~**`else if` chains**~~ — **fixed.** Parser handles `else if` natively.
+- ~~**Unary negation**~~ — **fixed.** `-x` works (lexer, parser, checker, codegen).
 - **String matching in `match`** — `match` currently works with integer
   literals only. String patterns like `"Dog" => ...` would make the match
   section much more kid-friendly.
