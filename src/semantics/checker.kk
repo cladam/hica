@@ -207,6 +207,35 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s', stmts', last-type) = infer-stmts(env, s, stmts)
       (s', Node(n.span, Block(stmts'), Just(last-type)))
 
+    // --- Lambda / anonymous functions ---
+    Fun(params, body) ->
+      // Assign a fresh type variable to each parameter
+      val param-types = params.map(fn(_p) fresh-tvar())
+      // Extend environment with params
+      val fun-env = zip(params, param-types).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
+      // Infer the body
+      val (s1, body') = infer(fun-env, s, body)
+      val resolved-params = param-types.map(fn(t) apply-subst(s1, t))
+      val ret-type = apply-subst(s1, get-type(body'))
+      val fun-type = TFun(resolved-params, ret-type)
+      (s1, Node(n.span, Fun(params, body'), Just(fun-type)))
+
+    // --- Function calls ---
+    Call(callee, args) ->
+      // Infer the callee
+      val (s1, callee') = infer(env, s, callee)
+      // Infer each argument
+      val (s2, args') = infer-args(env, s1, args)
+      val callee-type = apply-subst(s2, get-type(callee'))
+      // Build the expected function type: (arg-types) -> fresh-ret
+      val arg-types = args'.map(fn(a) apply-subst(s2, get-type(a)))
+      val ret-var = fresh-tvar()
+      val expected = TFun(arg-types, ret-var)
+      // Unify callee's type with the expected function type
+      val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
+      val result-type = apply-subst(s3, ret-var)
+      (s3, Node(n.span, Call(callee', args'), Just(result-type)))
+
     // --- Not yet handled: assign a fresh type variable ---
     _ ->
       val t = fresh-tvar()
@@ -229,6 +258,15 @@ fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fre
         _                  -> env
       val (s2, rest', last-type) = infer-stmts(env', s1, rest)
       (s2, Cons(stmt', rest'), last-type)
+
+// Infer types for a list of call arguments.
+fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh> (subst, list<node>)
+  match args
+    Nil -> (s, [])
+    Cons(arg, rest) ->
+      val (s1, arg') = infer(env, s, arg)
+      val (s2, rest') = infer-args(env, s1, rest)
+      (s2, Cons(arg', rest'))
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type
