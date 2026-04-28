@@ -29,7 +29,7 @@ import std/os/process
 // ---------------------------------------------------------------------------
 
 // The hica binary path is passed as the first CLI arg to this test runner,
-// e.g.: koka -e tests/test-cli.kk -- .koka/.../src_main__main
+// e.g.: koka -ilib/kunit -e tests/test-cli.kk -- .koka/.../src_main__main
 fun get-hica-bin() : io string
   match get-args()
     Cons(bin, _) -> bin

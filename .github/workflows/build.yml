@@ -24,6 +24,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install Koka
         run: |
@@ -47,19 +49,19 @@ jobs:
 
       - name: Run lexer tests
         run: |
-          koka -itests -isrc -e tests/test-lexer.kk
+          koka -ilib/kunit -isrc -e tests/test-lexer.kk
 
       - name: Run parser tests
         run: |
-          koka -itests -isrc -e tests/test-parser.kk
+          koka -ilib/kunit -isrc -e tests/test-parser.kk
 
       - name: Run codegen tests
         run: |
-          koka -itests -isrc -e tests/test-codegen.kk
+          koka -ilib/kunit -isrc -e tests/test-codegen.kk
 
       - name: Run CLI e2e tests
         run: |
-          koka -itests -isrc -e tests/test-cli.kk -- ./hica
+          koka -ilib/kunit -isrc -e tests/test-cli.kk -- ./hica
 
       - name: Strip binary (Linux)
         if: runner.os == 'Linux'
