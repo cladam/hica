@@ -34,8 +34,16 @@ import syntax/parser
 import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
+import klap
 
 val version = "0.1.0"
+
+fun hica-cli() : command
+  command("hica")
+    .version(version)
+    .about("The hica compiler")
+    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, help)"))
+    .arg(positional("FILE").help("Source .hc file"))
 
 fun main()
   val args = get-args()
