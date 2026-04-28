@@ -10,7 +10,7 @@
 - Lexer and parser (with `else if`, unary operators, match, lambdas)
 - Type checker / inference (Hindley-Milner, all expr types, wired into build)
 - Diagnostics and error reporting (`diag` effect, `collect-diagnostics`)
-- The emitter (Hica AST → valid `.kk` source, with type annotations)
+- The emitter (hica AST → valid `.kk` source, with type annotations)
 - Name resolution (only user-declared names get `hc_` prefix)
 - Module keyword clash fix (`match.hc` → `hc-match.kk`)
 
@@ -24,16 +24,13 @@ The practical route for me going forward: get the parser and emitter solid, writ
 
 **Gaps noticed while writing the kids tutorial (2026-04-26):**
 
-- ~~**`else if` chains**~~ — **fixed.** Parser handles `else if` natively.
-- ~~**Unary negation**~~ — **fixed.** `-x` works (lexer, parser, checker, codegen).
 - **String matching in `match`** — `match` currently works with integer
   literals only. String patterns like `"Dog" => ...` would make the match
   section much more kid-friendly.
 - **String interpolation / concatenation** — no way to build strings from
   parts (e.g. `"Hello, " + name` or `"score: {n}"`).
-- **Loops** — no `for` or `while` yet. Limits what kids can build (counting,
-  repetition, games). Could start with a simple `repeat(n) { ... }` or
-  `for i in range(n) { ... }`.
+- **Loops** — no `for` or `while` yet. Limits what people can build (counting,
+  repetition, games). Could start with a simple `for i in range(n) { ... }`.
 - **Lists / collections** — no list literals or operations. Even a basic
   `[1, 2, 3]` would unlock many beginner exercises.
 

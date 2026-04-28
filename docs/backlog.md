@@ -49,7 +49,7 @@ Legend: **done** = shipped, **—** = not started
 |---------|--------|------------|-------|
 | `if` / `else if` / `else` | **done** | — | Expression-valued |
 | `match` | **done** | — | Int + wildcard + var patterns |
-| `repeat(n) { ... }` | — | Low | Emit Koka `repeat` |
+| `repeat(n) { ... }` | **done** | – | Emit Koka `repeat` |
 | `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
 | `for i in 0..n` (range loop) | — | Medium | Emit Koka `for(0, n)` |
 | `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
