@@ -212,3 +212,21 @@ pub fun main() : io ()
       assert/is-true(code.contains("match"))
       assert/is-true(code.contains("\"yes\""))
       assert/is-true(code.contains("\"no\""))
+
+    // --- String interpolation ---
+    dtest("emit interpolation with variable")
+      val code = emit-typed-program("fun greet(name) { \"hello {name}!\" }")
+      assert/is-true(code.contains("++"))
+      assert/is-true(code.contains("\"hello \""))
+      assert/is-true(code.contains("\"!\""))
+
+    dtest("emit interpolation with int expression uses show")
+      val code = emit-typed-program("fun show_score(n) { \"score: {n + 1}\" }")
+      assert/is-true(code.contains(".show"))
+      assert/is-true(code.contains("\"score: \""))
+
+    dtest("emit interpolation string literal no show")
+      val code = emit-typed-program("fun main() { let name = \"world\"; \"hello {name}!\" }")
+      assert/is-true(code.contains("++"))
+      // name is inferred as string from the literal — should NOT have .show
+      assert/is-true(!code.contains(".show"))

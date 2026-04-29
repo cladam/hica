@@ -157,8 +157,19 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Repeat(count, body) ->
       "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
-    StringInterp(_parts) ->
-      "\"TODO:interp\""
+    StringInterp(parts) ->
+      val emitted = parts.map(fn(p) emit-interp-part(p, declared))
+      "(" ++ emitted.join(" ++ ") ++ ")"
+
+fun emit-interp-part( p : node, declared : list<string> ) : div string
+  match p.expr
+    Literal(LitString(s)) -> "\"" ++ s ++ "\""
+    _ ->
+      // If the part is already a string, emit directly; otherwise wrap in .show
+      val inner = emit-expr(p, declared)
+      match p.typ
+        Just(TString) -> inner
+        _             -> inner ++ ".show"
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
   match p
