@@ -159,6 +159,9 @@ pub type expr
   // repeat(count) { body }
   Repeat( count : node, body : node )
 
+  // "hello {expr}!" — parts alternate between LitString segments and expressions
+  StringInterp( parts : list<node> )
+
 pub struct match-arm
   pattern : pattern
   body    : node
@@ -191,6 +194,7 @@ pub fun expr/show( e : expr ) : div string
     Block(ss)        -> "{ " ++ ss.map(show).join("; ") ++ " }"
     Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ " => " ++ a.body.show).join(", ") ++ " }"
     Repeat(c, b)     -> "repeat(" ++ c.show ++ ") " ++ b.show
+    StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
 
 // ---------------------------------------------------------------------------
 // Top-level declarations
