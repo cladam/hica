@@ -5,7 +5,14 @@ fun describe(x) => match x {
   _ => "many"
 }
 
+// Match on strings too!
+fun respond(msg) => match msg {
+  "hello" => "hi there!",
+  "bye"   => "see you!",
+  _       => "huh?"
+}
+
 fun main() {
-  let label = describe(1);
-  label
+  println(describe(1));
+  println(respond("hello"))
 }

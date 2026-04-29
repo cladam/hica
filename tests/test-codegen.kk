@@ -205,3 +205,10 @@ pub fun main() : io ()
     dtest("emit int addition still uses +")
       val code = emit-typed-program("fun main() { 1 + 2 }")
       assert/is-true(code.contains("(1 + 2)"))
+
+    // --- String literal patterns ---
+    dtest("emit match with string patterns")
+      val code = emit-program-show("fun test(s) { match s { \"yes\" => 1, \"no\" => 0, _ => -1 } }")
+      assert/is-true(code.contains("match"))
+      assert/is-true(code.contains("\"yes\""))
+      assert/is-true(code.contains("\"no\""))

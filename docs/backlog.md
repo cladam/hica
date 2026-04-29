@@ -16,7 +16,7 @@ Legend: **done** = shipped, **—** = not started
 | Unary negation (`-x`, `!x`) | **done** | Low | Lexer, parser, checker, codegen |
 | `else if` chains | **done** | Low | Parser desugaring |
 | Pipe operator `\|>` | — | Low | Desugar `a \|> f` → `f(a)` in parser |
-| String concatenation (`+` on strings) | — | Low | Checker + codegen |
+| String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | — | Medium | Lexer + parser + codegen |
 | Type annotations in syntax (`: int`) | — | Medium | Parser + AST + codegen; checker already infers |
 
@@ -27,7 +27,7 @@ Legend: **done** = shipped, **—** = not started
 | Int literal patterns | **done** | — | `0 => ...`, `1 => ...` |
 | Wildcard patterns | **done** | — | `_ => ...` |
 | Variable patterns | **done** | — | `n => ...` |
-| String literal patterns | — | Low | Parser + checker; codegen already emits strings |
+| String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
 | Destructuring patterns (tuples/structs) | — | Medium | Depends on tuple/struct types |
 | Slice patterns (`[first, ..rest]`) | — | High | Depends on list types |
 

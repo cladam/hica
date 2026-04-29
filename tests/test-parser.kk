@@ -233,3 +233,10 @@ pub fun main() : io ()
       val result = parse-program-show("fun double(x) => x * 2\nfun main() { double(21) }")
       assert/is-true(result.contains("fun double"))
       assert/is-true(result.contains("fun main"))
+
+    // --- String literal patterns ---
+    itest("parse match with string patterns")
+      val result = parse-show("match x { \"yes\" => 1, \"no\" => 0, _ => -1 }")
+      assert/is-true(result.contains("match"))
+      assert/is-true(result.contains("\"yes\""))
+      assert/is-true(result.contains("\"no\""))
