@@ -240,3 +240,22 @@ pub fun main() : io ()
       assert/is-true(result.contains("match"))
       assert/is-true(result.contains("\"yes\""))
       assert/is-true(result.contains("\"no\""))
+
+    // --- String interpolation ---
+    itest("parse string interpolation with variable")
+      val result = parse-show("\"hello {name}\"")
+      assert/is-true(result.contains("hello"))
+      assert/is-true(result.contains("name"))
+
+    itest("parse string interpolation with expression")
+      val result = parse-show("\"sum: {a + b}\"")
+      assert/is-true(result.contains("sum:"))
+      assert/is-true(result.contains("+"))
+
+    itest("parse string interpolation multiple holes")
+      val result = parse-show("\"{x} and {y}\"")
+      assert/is-true(result.contains("and"))
+
+    itest("parse plain string still works")
+      val result = parse-show("\"hello\"")
+      assert/is-true(result == "\"hello\"")

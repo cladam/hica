@@ -157,6 +157,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Repeat(count, body) ->
       "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
+    StringInterp(_parts) ->
+      "\"TODO:interp\""
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
   match p

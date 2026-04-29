@@ -86,6 +86,8 @@ fun parse-prefix() : <div,parser> node
       parse-match()
     TkRepeat ->
       parse-repeat()
+    TkInterpStart ->
+      parse-string-interp()
     TkMinus ->
       val t = advance()
       val operand = parse-prefix()
@@ -252,6 +254,32 @@ fun parse-repeat() : <div,parser> node
   expect(")", fn(k) match k { TkRParen -> True; _ -> False })
   val body = parse-block()
   Node(Span(t.span.start, body.span.end), Repeat(count, body))
+
+// ---------------------------------------------------------------------------
+// String interpolation: "hello {expr}!"
+// Token stream: TkInterpStart [TkStringPart(s) | TkInterpExpr ...expr... TkRBrace]* TkInterpEnd
+// ---------------------------------------------------------------------------
+
+fun parse-string-interp() : <div,parser> node
+  val t = advance() // consume TkInterpStart
+  val parts = parse-interp-parts()
+  val end-t = expect("end of interpolated string", fn(k) match k { TkInterpEnd -> True; _ -> False })
+  Node(Span(t.span.start, end-t.span.end), StringInterp(parts))
+
+fun parse-interp-parts() : <div,parser> list<node>
+  match peek()
+    TkInterpEnd -> []
+    TkStringPart(s) ->
+      val t = advance()
+      Cons(Node(t.span, Literal(LitString(s))), parse-interp-parts())
+    TkInterpExpr ->
+      val t = advance() // consume TkInterpExpr
+      val expr = parse-expr()
+      expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+      Cons(expr, parse-interp-parts())
+    _ ->
+      parse-error("unexpected token in interpolated string: " ++ peek().show)
+      []
 
 // ---------------------------------------------------------------------------
 // Top-level declarations: fun name(params) { body } or fun name(params) => expr

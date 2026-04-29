@@ -311,6 +311,10 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s3, body') = infer(env, s2, body)
       (s3, Node(n.span, Repeat(count', body'), Just(TUnit)))
 
+    // --- String interpolation ---
+    StringInterp(_parts) ->
+      (s, n(typ = Just(TString)))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
