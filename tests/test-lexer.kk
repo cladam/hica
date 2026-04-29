@@ -93,3 +93,27 @@ pub fun main() : io ()
 
     dtest("lex unexpected character")
       assert/is-true(token-string("@").contains("error"))
+
+    // --- String interpolation ---
+    dtest("lex plain string unchanged")
+      assert/is-true(token-string("\"hello\"") == "\"hello\" <eof>")
+
+    dtest("lex interpolated string with variable")
+      val result = token-string("\"hello {name}!\"")
+      assert/is-true(result == "<interp-start> <part:\"hello \"> <interp-expr> name } <part:\"!\"> <interp-end> <eof>")
+
+    dtest("lex interpolated string at start")
+      val result = token-string("\"{x} done\"")
+      assert/is-true(result == "<interp-start> <interp-expr> x } <part:\" done\"> <interp-end> <eof>")
+
+    dtest("lex interpolated string at end")
+      val result = token-string("\"value: {x}\"")
+      assert/is-true(result == "<interp-start> <part:\"value: \"> <interp-expr> x } <interp-end> <eof>")
+
+    dtest("lex interpolated string with expression")
+      val result = token-string("\"sum: {a + b}\"")
+      assert/is-true(result == "<interp-start> <part:\"sum: \"> <interp-expr> a + b } <interp-end> <eof>")
+
+    dtest("lex interpolated string multiple holes")
+      val result = token-string("\"{a} and {b}\"")
+      assert/is-true(result == "<interp-start> <interp-expr> a } <part:\" and \"> <interp-expr> b } <interp-end> <eof>")
