@@ -312,8 +312,9 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       (s3, Node(n.span, Repeat(count', body'), Just(TUnit)))
 
     // --- String interpolation ---
-    StringInterp(_parts) ->
-      (s, n(typ = Just(TString)))
+    StringInterp(parts) ->
+      val (s1, parts') = infer-interp-parts(env, s, parts)
+      (s1, Node(n.span, StringInterp(parts'), Just(TString)))
 
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
@@ -341,6 +342,17 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
       val (s1, arg') = infer(env, s, arg)
       val (s2, rest') = infer-args(env, s1, rest)
       (s2, Cons(arg', rest'))
+
+// Infer types for string interpolation parts.
+// Each part is inferred independently — string segments stay TString,
+// expression parts can be any type (they get .show in codegen).
+fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh> (subst, list<node>)
+  match parts
+    Nil -> (s, [])
+    Cons(part, rest) ->
+      val (s1, part') = infer(env, s, part)
+      val (s2, rest') = infer-interp-parts(env, s1, rest)
+      (s2, Cons(part', rest'))
 
 // Infer types for match arms.
 // Each arm's pattern constrains the scrutinee type, and each arm's body

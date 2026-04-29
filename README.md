@@ -6,9 +6,9 @@
 
 **hica** is a high-performance, expression-oriented programming language built
 in [Koka](https://koka-lang.github.io/) that also transpiles to Koka. It blends
-Rust-like syntax and safety with the simplicity of Go, powered by Koka's
-algebraic effect system and Perceus reference counting. Because the target is
-Koka itself, hica programs can be compiled onward to C, JavaScript, or WASM.
+Rust-like syntax and safety with a pragmatic, approachable design, powered by
+Koka's algebraic effect system and Perceus reference counting. Because the target
+is Koka itself, hica programs can be compiled onward to C, JavaScript, or WASM.
 
 hica is a good name for this language and it can stand for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
