@@ -17,7 +17,7 @@ Legend: **done** = shipped, **—** = not started
 | `else if` chains | **done** | Low | Parser desugaring |
 | Pipe operator `\|>` | — | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
-| String interpolation (`"score: {n}"`) | — | Medium | Lexer + parser + codegen |
+| String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
 | Type annotations in syntax (`: int`) | — | Medium | Parser + AST + codegen; checker already infers |
 
 ### Pattern Matching

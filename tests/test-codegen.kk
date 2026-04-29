@@ -222,7 +222,7 @@ pub fun main() : io ()
 
     dtest("emit interpolation with int expression uses show")
       val code = emit-typed-program("fun show_score(n) { \"score: {n + 1}\" }")
-      assert/is-true(code.contains(".show"))
+      assert/is-true(code.contains("int/show"))
       assert/is-true(code.contains("\"score: \""))
 
     dtest("emit interpolation string literal no show")

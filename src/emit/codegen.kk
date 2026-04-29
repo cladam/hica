@@ -165,11 +165,12 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
   match p.expr
     Literal(LitString(s)) -> "\"" ++ s ++ "\""
     _ ->
-      // If the part is already a string, emit directly; otherwise wrap in .show
       val inner = emit-expr(p, declared)
       match p.typ
+        Just(TInt)    -> "int/show(" ++ inner ++ ")"
+        Just(TBool)   -> "bool/show(" ++ inner ++ ")"
         Just(TString) -> inner
-        _             -> inner ++ ".show"
+        _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
   match p
