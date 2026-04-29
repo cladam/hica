@@ -125,7 +125,7 @@ Options:
 Commands:
     build, b    Compile a .hc file to Koka and build a binary
     run, r      Compile and run a .hc file
-    check, c    Analyze a .hc file and report errors
+    check, c    Analyse a .hc file and report errors
     clean       Remove generated build artifacts
     help        Print this message
 

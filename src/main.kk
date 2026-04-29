@@ -57,7 +57,7 @@ fun run-cli() : command
 
 fun check-cli() : command
   command("hica check")
-    .about("Analyze a .hc file and report errors")
+    .about("Analyse a .hc file and report errors")
     .arg(positional("FILE").help("Source .hc file").required)
 
 fun clean-cli() : command
@@ -72,7 +72,7 @@ fun new-cli() : command
 
 fun init-cli() : command
   command("hica init")
-    .about("Initialize a hica project in the current directory")
+    .about("Initialise a hica project in the current directory")
 
 fun main()
   val m = hica-cli().parse-or-exit(get-args())
@@ -302,9 +302,9 @@ fun print-usage()
   println("\nCommands:")
   println("    build, b    Compile a .hc file to Koka and build a binary")
   println("    run, r      Compile and run a .hc file")
-  println("    check, c    Analyze a .hc file and report errors")
+  println("    check, c    Analyse a .hc file and report errors")
   println("    clean       Remove generated build artifacts")
   println("    new         Create a new hica project")
-  println("    init        Initialize a project in the current directory")
+  println("    init        Initialise a project in the current directory")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
