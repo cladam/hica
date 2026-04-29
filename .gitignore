@@ -1,9 +1,9 @@
 docs/log.txt
+docs/log-bootstrapping.txt
 docs/lisette-main
 docs/koka-labs
 docs/hica-for-kids.md
-docs/phase1-plan.md
-docs/lambda.md
+
 learn
 .koka/
 .DS_Store

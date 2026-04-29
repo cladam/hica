@@ -1,4 +1,8 @@
-# hica
+<div align="center">
+  <img src="assets/hica-logo.png" width="200" alt="hica logo" />
+  <p><b>A modern, expressive and fast systems language</b></p>
+  
+</div>
 
 **hica** is a high-performance, expression-oriented programming language built
 in [Koka](https://koka-lang.github.io/) that transpiles to Koka. It blends

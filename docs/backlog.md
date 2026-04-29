@@ -35,6 +35,7 @@ Legend: **done** = shipped, **—** = not started
 
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
+| Float / double literals (`3.14`) | — | Low | Koka `float64`; lexer + parser + checker + codegen |
 | Tuples (`(1, "hi")`, `.0`, `.1`) | — | Low | Koka has native tuples; parser + emitter only |
 | Tuple destructuring (`let (a, b) = pair`) | — | Low | Parser + codegen |
 | Lists (`[1, 2, 3]`) | — | Medium | Koka `list<a>`; same literal syntax |
@@ -69,6 +70,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
+| Prelude (`prelude.hc`) | — | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
