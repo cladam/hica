@@ -134,7 +134,11 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Literal(LitBool(False)) -> "False"
     Literal(LitString(s))   -> "\"" ++ s ++ "\""
     Var(name)               -> marshal-name(name, declared)
-    Binary(op, l, r)        -> "(" ++ emit-expr(l, declared) ++ " " ++ emit-binop(op) ++ " " ++ emit-expr(r, declared) ++ ")"
+    Binary(op, l, r)        ->
+      val op-str = match (op, n.typ)
+        (Add, Just(TString)) -> "++"
+        _                    -> emit-binop(op)
+      "(" ++ emit-expr(l, declared) ++ " " ++ op-str ++ " " ++ emit-expr(r, declared) ++ ")"
     Unary(Neg, o)           -> "(0 - " ++ emit-expr(o, declared) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->

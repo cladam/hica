@@ -243,7 +243,19 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val lt = apply-subst(s2, get-type(lhs'))
       val rt = apply-subst(s2, get-type(rhs'))
       val (s3, result-type) = match op
-        Add -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Add ->
+          // + works on int or string: unify operands, then check resolved type
+          val s-lr = compose-subst(unify(lt, rt, n.span), s2)
+          val resolved = apply-subst(s-lr, lt)
+          match resolved
+            TInt    -> (s-lr, TInt)
+            TString -> (s-lr, TString)
+            TVar(_) ->
+              // Ambiguous — default to int
+              (compose-subst(unify(resolved, TInt, n.span), s-lr), TInt)
+            _ ->
+              emit-error(n.span, "operator + requires int or string operands, got " ++ resolved.show)
+              (s-lr, TInt)
         Sub -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
         Mul -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
         Div -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)

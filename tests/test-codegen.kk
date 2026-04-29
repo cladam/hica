@@ -24,6 +24,8 @@ import kunit
 import syntax/ast
 import syntax/lexer
 import syntax/parser
+import semantics/checker
+import diagnostics/diagnostics
 import emit/codegen
 
 // Helper: parse then emit (single expression)
@@ -37,6 +39,15 @@ fun emit-program-show( source : string ) : <div,console> string
   val tokens = lex(source)
   val prog = run-parser-program(tokens)
   emit-program(prog)
+
+// Helper: parse → check → emit a full program (typed pipeline)
+fun emit-typed-program( source : string ) : <div,console> string
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  val (typed-prog, _) = collect-diagnostics
+    run-fresh
+      check-program(prog)
+  emit-program(typed-prog)
 
 pub fun main() : io ()
   println(bold("Codegen tests"))
@@ -185,3 +196,12 @@ pub fun main() : io ()
       val code = emit-program-show("fun main() { repeat(5) { 42 } }")
       assert/is-true(code.contains("repeat(5)"))
       assert/is-true(code.contains("42"))
+
+    // --- String concatenation ---
+    dtest("emit string concat uses ++")
+      val code = emit-typed-program("fun main() { \"hello\" + \" world\" }")
+      assert/is-true(code.contains("++"))
+
+    dtest("emit int addition still uses +")
+      val code = emit-typed-program("fun main() { 1 + 2 }")
+      assert/is-true(code.contains("(1 + 2)"))
