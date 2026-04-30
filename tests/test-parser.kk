@@ -317,3 +317,16 @@ pub fun main() : io ()
     itest("parse parenthesised expr not tuple")
       val result = parse-show("(42)")
       assert/is-true(result == "42")
+
+    // --- Lists ---
+    itest("parse empty list")
+      assert/is-true(parse-show("[]") == "[]")
+
+    itest("parse list literal")
+      assert/is-true(parse-show("[1, 2, 3]") == "[1, 2, 3]")
+
+    itest("parse single element list")
+      assert/is-true(parse-show("[42]") == "[42]")
+
+    itest("parse list with expressions")
+      assert/is-true(parse-show("[1 + 2, 3 * 4]") == "[(1 + 2), (3 * 4)]")

@@ -56,6 +56,8 @@ pub type token-kind
   TkRParen
   TkLBrace
   TkRBrace
+  TkLBracket
+  TkRBracket
   TkComma
   TkSemicolon
   TkColon
@@ -114,6 +116,8 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkRParen     -> ")"
     TkLBrace     -> "{"
     TkRBrace     -> "}"
+    TkLBracket   -> "["
+    TkRBracket   -> "]"
     TkComma      -> ","
     TkSemicolon  -> ";"
     TkColon      -> ":"
@@ -343,6 +347,8 @@ fun lex-punct-interp( cs : list<char>, str-start : int, pos : int, depth : int )
     Cons('!', rem) -> Cons(Token(TkBang, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('(', rem) -> Cons(Token(TkLParen, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons(')', rem) -> Cons(Token(TkRParen, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
+    Cons('[', rem) -> Cons(Token(TkLBracket, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
+    Cons(']', rem) -> Cons(Token(TkRBracket, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons(',', rem) -> Cons(Token(TkComma, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons(';', rem) -> Cons(Token(TkSemicolon, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons(':', rem) -> Cons(Token(TkColon, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
@@ -372,6 +378,8 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('!', rest) -> Cons(Token(TkBang, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('(', rest) -> Cons(Token(TkLParen, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(')', rest) -> Cons(Token(TkRParen, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons('[', rest) -> Cons(Token(TkLBracket, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons(']', rest) -> Cons(Token(TkRBracket, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('{', rest) -> Cons(Token(TkLBrace, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('}', rest) -> Cons(Token(TkRBrace, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(',', rest) -> Cons(Token(TkComma, Span(pos, pos+1)), lex-from(rest, pos+1))

@@ -86,6 +86,17 @@ fun parse-prefix() : <div,parser> node
           // Grouped expression: (e)
           expect(")", fn(k) match k { TkRParen -> True; _ -> False })
           e
+    TkLBracket ->
+      val start-tok = advance()
+      match peek()
+        TkRBracket ->
+          val end-tok = advance()
+          Node(Span(start-tok.span.start, end-tok.span.end), EList([]))
+        _ ->
+          val first = parse-expr()
+          val rest = parse-list-rest()
+          val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+          Node(Span(start-tok.span.start, end-tok.span.end), EList(Cons(first, rest)))
     TkLBrace ->
       parse-block()
     TkIf ->
@@ -173,6 +184,18 @@ fun parse-tuple-rest() : <div,parser> list<node>
       match peek()
         TkComma -> { advance(); Cons(elem, parse-tuple-rest()) }
         _       -> [elem]
+
+fun parse-list-rest() : <div,parser> list<node>
+  match peek()
+    TkRBracket -> []
+    TkComma ->
+      advance()
+      match peek()
+        TkRBracket -> []  // trailing comma
+        _ ->
+          val elem = parse-expr()
+          Cons(elem, parse-list-rest())
+    _ -> []
 
 fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
   val tk = peek()

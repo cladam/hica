@@ -67,6 +67,8 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
       TFun(params.map(fn(p) apply-subst(s, p)), apply-subst(s, result))
     TTuple(elems) ->
       TTuple(elems.map(fn(e) apply-subst(s, e)))
+    TList(elem) ->
+      TList(apply-subst(s, elem))
     _ -> t
 
 // Check if a name is bound in a substitution.
@@ -104,6 +106,7 @@ fun occurs-in( name : string, t : hica-type ) : div bool
     TVar(n)          -> n == name
     TFun(params, r)  -> params.any(fn(p) occurs-in(name, p)) || occurs-in(name, r)
     TTuple(elems)    -> elems.any(fn(e) occurs-in(name, e))
+    TList(elem)      -> occurs-in(name, elem)
     _                -> False
 
 // ---------------------------------------------------------------------------
@@ -130,6 +133,8 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
         emit-error(sp, "tuple size mismatch: expected " ++ es1.length.show ++ " elements, got " ++ es2.length.show)
         empty-subst
       else unify-lists(es1, es2, sp)
+    (TList(e1), TList(e2)) ->
+      unify(e1, e2, sp)
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       if ps1.length != ps2.length then
         emit-error(sp, "function arity mismatch: expected " ++ ps1.length.show ++ " params, got " ++ ps2.length.show)
@@ -342,6 +347,20 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s1, elems') = infer-args(env, s, elems)
       val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
       (s1, Node(n.span, Tuple(elems'), Just(TTuple(elem-types))))
+
+    // --- Lists ---
+    EList(elems) ->
+      match elems
+        Nil ->
+          val elem-var = fresh-tvar()
+          (s, Node(n.span, EList([]), Just(TList(elem-var))))
+        Cons(_, _) ->
+          val (s1, elems') = infer-args(env, s, elems)
+          val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
+          // Unify all element types with the first
+          val first-type = elem-types.head.default(TUnit)
+          val s2 = elem-types.tail.foldl(s1, fn(acc, et) compose-subst(unify(apply-subst(acc, first-type), apply-subst(acc, et), n.span), acc))
+          (s2, Node(n.span, EList(elems'), Just(TList(apply-subst(s2, first-type)))))
 
     TupleIndex(tup, idx) ->
       val (s1, tup') = infer(env, s, tup)

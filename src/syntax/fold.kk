@@ -51,6 +51,8 @@ pub fun walk( n : node, f : transform ) : node
       StringInterp(parts.map(fn(p) walk(p, f)))
     Tuple(elems) ->
       Tuple(elems.map(fn(e) walk(e, f)))
+    EList(elems) ->
+      EList(elems.map(fn(e) walk(e, f)))
     TupleIndex(tup, idx) ->
       TupleIndex(walk(tup, f), idx)
     LetTuple(names, init, body) ->

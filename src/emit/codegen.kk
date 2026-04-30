@@ -62,6 +62,9 @@ fun emit-type( t : hica-type ) : div string
       val parts = es.map(fn(e) emit-type(e))
       if parts.any(fn(p) p == "") then ""
       else "(" ++ parts.join(", ") ++ ")"
+    TList(e)    ->
+      val inner = emit-type(e)
+      if inner == "" then "" else "list<" ++ inner ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
     TVar(_)     -> ""  // unresolved — omit annotation
 
@@ -172,6 +175,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "(" ++ emitted.join(" ++ ") ++ ")"
     Tuple(elems) ->
       "(" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ ")"
+    EList(elems) ->
+      "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
     TupleIndex(tup, idx) ->
       emit-expr(tup, declared) ++ "." ++ tuple-field-name(idx)
     LetTuple(names, init, body) ->
@@ -188,6 +193,7 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TBool)   -> "bool/show(" ++ inner ++ ")"
         Just(TString) -> inner
         Just(TTuple(_)) -> inner ++ ".show"
+        Just(TList(_))  -> inner ++ ".show"
         _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
@@ -246,6 +252,7 @@ fun node-has-float( n : node ) : div bool
     Repeat(count, body)   -> node-has-float(count) || node-has-float(body)
     StringInterp(parts)   -> parts.any(fn(p) node-has-float(p))
     Tuple(elems)           -> elems.any(fn(e) node-has-float(e))
+    EList(elems)            -> elems.any(fn(e) node-has-float(e))
     TupleIndex(tup, _)     -> node-has-float(tup)
     LetTuple(_, init, body) -> node-has-float(init) || node-has-float(body)
     _                     -> False

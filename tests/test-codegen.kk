@@ -330,3 +330,22 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() => 10 % 3")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- Lists ---
+    dtest("emit empty list")
+      val code = emit-typed-program("fun main() => []")
+      assert/is-true(code.contains("[]"))
+
+    dtest("emit list literal")
+      val code = emit-typed-program("fun main() => [1, 2, 3]")
+      assert/is-true(code.contains("[1, 2, 3]"))
+
+    dtest("list elements type unify")
+      val ds = check-diagnostics("fun main() => [1, 2, 3]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list mixed types reports error")
+      val ds = check-diagnostics("fun main() => [1, true]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)

@@ -141,3 +141,10 @@ pub fun main() : io ()
 
     dtest("lex tuple with dot")
       assert/is-true(token-string("(1, 2).0") == "( 1 , 2 ) . 0 <eof>")
+
+    // --- Lists ---
+    dtest("lex list literal")
+      assert/is-true(token-string("[1, 2, 3]") == "[ 1 , 2 , 3 ] <eof>")
+
+    dtest("lex empty list")
+      assert/is-true(token-string("[]") == "[ ] <eof>")

@@ -53,6 +53,7 @@ pub type hica-type
   TString
   TUnit
   TTuple( elems : list<hica-type> )
+  TList( elem : hica-type )
   TFun( params : list<hica-type>, result : hica-type )
   TVar( name : string )
 
@@ -64,6 +65,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TString     -> "string"
     TUnit       -> "()"
     TTuple(es)  -> "(" ++ es.map(show).join(", ") ++ ")"
+    TList(e)    -> "list<" ++ e.show ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
     TVar(n)     -> n
 
@@ -76,6 +78,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TUnit, TUnit)     -> True
     (TTuple(a), TTuple(b)) ->
       a.length == b.length && zip(a, b).all(fn((x, y)) x == y)
+    (TList(a), TList(b)) -> a == b
     (TVar(a), TVar(b)) -> a == b
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
@@ -179,6 +182,9 @@ pub type expr
   // expr.0, expr.1 — tuple field access
   TupleIndex( tuple : node, index : int )
 
+  // [a, b, c] — list literal
+  EList( elems : list<node> )
+
   // let (a, b) = init; body — tuple destructuring
   LetTuple( names : list<string>, init : node, body : node )
 
@@ -216,6 +222,7 @@ pub fun expr/show( e : expr ) : div string
     Repeat(c, b)     -> "repeat(" ++ c.show ++ ") " ++ b.show
     StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
     Tuple(es)        -> "(" ++ es.map(show).join(", ") ++ ")"
+    EList(es)        -> "[" ++ es.map(show).join(", ") ++ "]"
     TupleIndex(t, i) -> t.show ++ "." ++ i.show
     LetTuple(ns, i, b) -> "let (" ++ ns.join(", ") ++ ") = " ++ i.show ++ "; " ++ b.show
 
