@@ -447,6 +447,34 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val body-type = get-type(body')
       (s3, Node(n.span, LetTuple(names, init', body'), Just(body-type)))
 
+    // --- List indexing ---
+    ListIndex(lst, idx) ->
+      val (s1, lst') = infer(env, s, lst)
+      val (s2, idx') = infer(env, s1, idx)
+      val elem-var = fresh-tvar()
+      val s3 = compose-subst(unify(apply-subst(s2, get-type(lst')), TList(elem-var), n.span), s2)
+      val s4 = compose-subst(unify(apply-subst(s3, get-type(idx')), TInt, n.span), s3)
+      (s4, Node(n.span, ListIndex(lst', idx'), Just(apply-subst(s4, elem-var))))
+
+    // --- List slicing ---
+    ListSlice(lst, start-m, end-m) ->
+      val (s1, lst') = infer(env, s, lst)
+      val elem-var = fresh-tvar()
+      val s2 = compose-subst(unify(apply-subst(s1, get-type(lst')), TList(elem-var), n.span), s1)
+      val (s3, start-m') = match start-m
+        Just(se) ->
+          val (si, se') = infer(env, s2, se)
+          val si2 = compose-subst(unify(apply-subst(si, get-type(se')), TInt, n.span), si)
+          (si2, Just(se'))
+        Nothing -> (s2, Nothing)
+      val (s4, end-m') = match end-m
+        Just(ee) ->
+          val (si, ee') = infer(env, s3, ee)
+          val si2 = compose-subst(unify(apply-subst(si, get-type(ee')), TInt, n.span), si)
+          (si2, Just(ee'))
+        Nothing -> (s3, Nothing)
+      (s4, Node(n.span, ListSlice(lst', start-m', end-m'), Just(TList(apply-subst(s4, elem-var)))))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.

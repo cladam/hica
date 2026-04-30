@@ -43,4 +43,13 @@ fun main() {
 
   // foreach — do something for each element
   foreach(nums, (x) => println(x * 10))
+
+  // indexing — get a single element
+  println(nums[0])
+  println(nums[2])
+
+  // slicing — get a sub-list
+  println(nums[1:3])
+  println(nums[:2])
+  println(nums[3:])
 }

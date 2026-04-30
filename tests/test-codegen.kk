@@ -501,3 +501,46 @@ pub fun main() : io ()
     dtest("foreach emits foreach call")
       val code = emit-typed-program("fun main() { foreach([1, 2, 3], (x) => println(x)) }")
       assert/is-true(code.contains("foreach("))
+
+    // --- List indexing ---
+    dtest("list index type-checks")
+      val ds = check-diagnostics("fun main() => [10, 20, 30][1]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list index emits bracket syntax")
+      val code = emit-typed-program("fun main() => [10, 20, 30][1]")
+      assert/is-true(code.contains("[10, 20, 30][1]"))
+
+    dtest("list index returns element type")
+      val ds = check-diagnostics("fun main() { let x = [1, 2, 3][0]; println(x + 1) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list index with variable")
+      val code = emit-typed-program("fun main() { let nums = [1, 2, 3]; println(nums[0]) }")
+      assert/is-true(code.contains("nums[0]"))
+
+    // --- List slicing ---
+    dtest("list slice start:end type-checks")
+      val ds = check-diagnostics("fun main() => [1, 2, 3, 4][1:3]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list slice start:end emits drop/take")
+      val code = emit-typed-program("fun main() => [1, 2, 3, 4][1:3]")
+      assert/is-true(code.contains(".drop("))
+      assert/is-true(code.contains(".take("))
+
+    dtest("list slice :end emits take")
+      val code = emit-typed-program("fun main() => [1, 2, 3, 4][:2]")
+      assert/is-true(code.contains(".take(2)"))
+
+    dtest("list slice start: emits drop")
+      val code = emit-typed-program("fun main() => [1, 2, 3, 4][2:]")
+      assert/is-true(code.contains(".drop(2)"))
+
+    dtest("list slice returns list type")
+      val ds = check-diagnostics("fun main() { let xs = [1, 2, 3][1:2]; println(length(xs)) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

@@ -188,6 +188,12 @@ pub type expr
   // [a, b, c] — list literal
   EList( elems : list<node> )
 
+  // list[index] — list indexing
+  ListIndex( list : node, index : node )
+
+  // list[start:end] — list slicing
+  ListSlice( list : node, slice-start : maybe<node>, slice-end : maybe<node> )
+
   // let (a, b) = init; body — tuple destructuring
   LetTuple( names : list<string>, init : node, body : node )
 
@@ -227,6 +233,11 @@ pub fun expr/show( e : expr ) : div string
     StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
     Tuple(es)        -> "(" ++ es.map(show).join(", ") ++ ")"
     EList(es)        -> "[" ++ es.map(show).join(", ") ++ "]"
+    ListIndex(l, i)  -> l.show ++ "[" ++ i.show ++ "]"
+    ListSlice(l, s, e) ->
+      val s-str = match s { Just(n) -> n.show; Nothing -> "" }
+      val e-str = match e { Just(n) -> n.show; Nothing -> "" }
+      l.show ++ "[" ++ s-str ++ ":" ++ e-str ++ "]"
     TupleIndex(t, i) -> t.show ++ "." ++ i.show
     LetTuple(ns, i, b) -> "let (" ++ ns.join(", ") ++ ") = " ++ i.show ++ "; " ++ b.show
 

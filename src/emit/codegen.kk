@@ -193,6 +193,17 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "(" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ ")"
     EList(elems) ->
       "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
+    ListIndex(lst, idx) ->
+      emit-expr(lst, declared) ++ "[" ++ emit-expr(idx, declared) ++ "]"
+    ListSlice(lst, start-m, end-m) ->
+      val lst-code = emit-expr(lst, declared)
+      match start-m
+        Just(s) -> match end-m
+          Just(e) -> lst-code ++ ".drop(" ++ emit-expr(s, declared) ++ ").take((" ++ emit-expr(e, declared) ++ ") - (" ++ emit-expr(s, declared) ++ "))"
+          Nothing -> lst-code ++ ".drop(" ++ emit-expr(s, declared) ++ ")"
+        Nothing -> match end-m
+          Just(e) -> lst-code ++ ".take(" ++ emit-expr(e, declared) ++ ")"
+          Nothing -> lst-code  // list[:] — identity
     TupleIndex(tup, idx) ->
       emit-expr(tup, declared) ++ "." ++ tuple-field-name(idx)
     LetTuple(names, init, body) ->
@@ -270,6 +281,8 @@ fun node-has-float( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-has-float(p))
     Tuple(elems)           -> elems.any(fn(e) node-has-float(e))
     EList(elems)            -> elems.any(fn(e) node-has-float(e))
+    ListIndex(lst, idx)     -> node-has-float(lst) || node-has-float(idx)
+    ListSlice(lst, s, e)    -> node-has-float(lst) || s.map(node-has-float).default(False) || e.map(node-has-float).default(False)
     TupleIndex(tup, _)     -> node-has-float(tup)
     LetTuple(_, init, body) -> node-has-float(init) || node-has-float(body)
     _                     -> False

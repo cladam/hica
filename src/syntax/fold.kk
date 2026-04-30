@@ -55,6 +55,10 @@ pub fun walk( n : node, f : transform ) : node
       Tuple(elems.map(fn(e) walk(e, f)))
     EList(elems) ->
       EList(elems.map(fn(e) walk(e, f)))
+    ListIndex(lst, idx) ->
+      ListIndex(walk(lst, f), walk(idx, f))
+    ListSlice(lst, s, e) ->
+      ListSlice(walk(lst, f), s.map(fn(n) walk(n, f)), e.map(fn(n) walk(n, f)))
     TupleIndex(tup, idx) ->
       TupleIndex(walk(tup, f), idx)
     LetTuple(names, init, body) ->

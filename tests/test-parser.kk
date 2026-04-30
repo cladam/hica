@@ -331,6 +331,26 @@ pub fun main() : io ()
     itest("parse list with expressions")
       assert/is-true(parse-show("[1 + 2, 3 * 4]") == "[(1 + 2), (3 * 4)]")
 
+    // --- List indexing ---
+    itest("parse list index")
+      assert/is-true(parse-show("[1, 2, 3][0]") == "[1, 2, 3][0]")
+
+    itest("parse variable list index")
+      assert/is-true(parse-show("xs[1]") == "xs[1]")
+
+    itest("parse list index with expression")
+      assert/is-true(parse-show("xs[i + 1]") == "xs[(i + 1)]")
+
+    // --- List slicing ---
+    itest("parse list slice start:end")
+      assert/is-true(parse-show("xs[1:3]") == "xs[1:3]")
+
+    itest("parse list slice :end")
+      assert/is-true(parse-show("xs[:2]") == "xs[:2]")
+
+    itest("parse list slice start:")
+      assert/is-true(parse-show("xs[2:]") == "xs[2:]")
+
     // --- For loop ---
     itest("parse for-in loop")
       val result = parse-show("for i in 0..10 { println(i) }")
