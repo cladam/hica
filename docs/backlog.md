@@ -14,6 +14,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Unary negation (`-x`, `!x`) | **done** | Low | Lexer, parser, checker, codegen |
+| Modulo (`%`) | **done** | Low | Lexer, parser, checker, codegen |
 | `else if` chains | **done** | Low | Parser desugaring |
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
@@ -38,7 +39,7 @@ Legend: **done** = shipped, **—** = not started
 | Float / double literals (`3.14`) | **done** | Low | Koka `float64`; lexer + parser + checker + codegen |
 | Tuples (`(1, "hi")`, `.0`, `.1`) | **done** | Low | Koka has native tuples; parser + emitter only |
 | Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
-| Lists (`[1, 2, 3]`) | — | Medium | Koka `list<a>`; same literal syntax |
+| Lists (`[1, 2, 3]`) | **done** | Medium | Koka `list<a>`; same literal syntax |
 | List operations (`map`, `filter`, `fold`) | — | Medium | Passthrough to Koka stdlib |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
