@@ -83,10 +83,10 @@ fun main() {
 
 ```rust
 fun fizzbuzz(n) =>
-  if n == 15 { "fizzbuzz" }
-  else if n == 3 { "fizz" }
-  else if n == 5 { "buzz" }
-  else { "other" }
+  if n % 15 == 0 { "fizzbuzz" }
+  else if n % 3 == 0 { "fizz" }
+  else if n % 5 == 0 { "buzz" }
+  else { show(n) }
 ```
 
 ### Match expressions
