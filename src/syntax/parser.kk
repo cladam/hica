@@ -141,15 +141,23 @@ fun parse-args() : <div,parser> list<node>
 
 fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
   val tk = peek()
-  match infix-bp(tk)
-    Nothing -> lhs
-    Just((l-bp, r-bp, op)) ->
-      if l-bp < min-bp then lhs
-      else
-        advance()
-        val rhs = parse-binary(r-bp)
-        val combined = Node(Span(lhs.span.start, rhs.span.end), Binary(op, lhs, rhs))
-        parse-binary-loop(combined, min-bp)
+  // Pipe operator |> desugars: a |> f  →  f(a)
+  match tk
+    TkPipeGt | min-bp <= 0 ->
+      advance()
+      val rhs = parse-binary(1)
+      val desugared = Node(Span(lhs.span.start, rhs.span.end), Call(rhs, [lhs]))
+      parse-binary-loop(desugared, min-bp)
+    _ ->
+      match infix-bp(tk)
+        Nothing -> lhs
+        Just((l-bp, r-bp, op)) ->
+          if l-bp < min-bp then lhs
+          else
+            advance()
+            val rhs = parse-binary(r-bp)
+            val combined = Node(Span(lhs.span.start, rhs.span.end), Binary(op, lhs, rhs))
+            parse-binary-loop(combined, min-bp)
 
 // ---------------------------------------------------------------------------
 // Compound expressions

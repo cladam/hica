@@ -74,6 +74,7 @@ pub type token-kind
   TkGe
   TkAmpAmp      // &&
   TkPipePipe    // ||
+  TkPipeGt      // |>
   TkBang        // !
   // Special
   TkEof
@@ -127,6 +128,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkGe         -> ">="
     TkAmpAmp     -> "&&"
     TkPipePipe   -> "||"
+    TkPipeGt     -> "|>"
     TkBang       -> "!"
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
@@ -316,6 +318,7 @@ fun lex-punct-interp( cs : list<char>, str-start : int, pos : int, depth : int )
     Cons('-', Cons('>', rem)) -> Cons(Token(TkThinArrow, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('&', Cons('&', rem)) -> Cons(Token(TkAmpAmp, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('|', Cons('|', rem)) -> Cons(Token(TkPipePipe, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
+    Cons('|', Cons('>', rem)) -> Cons(Token(TkPipeGt, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('=', rem) -> Cons(Token(TkEq, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('!', rem) -> Cons(Token(TkBang, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('(', rem) -> Cons(Token(TkLParen, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
@@ -342,6 +345,7 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('-', Cons('>', rest)) -> Cons(Token(TkThinArrow, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('&', Cons('&', rest)) -> Cons(Token(TkAmpAmp, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('|', Cons('|', rest)) -> Cons(Token(TkPipePipe, Span(pos, pos+2)), lex-from(rest, pos+2))
+    Cons('|', Cons('>', rest)) -> Cons(Token(TkPipeGt, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('=', rest) -> Cons(Token(TkEq, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('!', rest) -> Cons(Token(TkBang, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('(', rest) -> Cons(Token(TkLParen, Span(pos, pos+1)), lex-from(rest, pos+1))

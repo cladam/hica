@@ -259,3 +259,16 @@ pub fun main() : io ()
     itest("parse plain string still works")
       val result = parse-show("\"hello\"")
       assert/is-true(result == "\"hello\"")
+
+    // --- Pipe operator ---
+    itest("parse pipe operator desugars to call")
+      val result = parse-show("42 |> f")
+      assert/is-true(result == "f(42)")
+
+    itest("parse chained pipe operators")
+      val result = parse-show("1 |> f |> g")
+      assert/is-true(result == "g(f(1))")
+
+    itest("parse pipe with expression")
+      val result = parse-show("1 + 2 |> f")
+      assert/is-true(result == "f((1 + 2))")

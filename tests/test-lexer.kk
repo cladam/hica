@@ -117,3 +117,10 @@ pub fun main() : io ()
     dtest("lex interpolated string multiple holes")
       val result = token-string("\"{a} and {b}\"")
       assert/is-true(result == "<interp-start> <interp-expr> a } <part:\" and \"> <interp-expr> b } <interp-end> <eof>")
+
+    // --- Pipe operator ---
+    dtest("lex pipe operator")
+      assert/is-true(token-string("a |> f") == "a |> f <eof>")
+
+    dtest("lex pipe vs or")
+      assert/is-true(token-string("a || b |> f") == "a || b |> f <eof>")
