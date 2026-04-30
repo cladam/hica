@@ -372,3 +372,31 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { println(show(true)) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- map / filter / fold ---
+    dtest("map type-checks")
+      val ds = check-diagnostics("fun main() => map([1, 2, 3], fn(x) => x + 1)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("map emits map call")
+      val code = emit-typed-program("fun main() => map([1, 2, 3], fn(x) => x + 1)")
+      assert/is-true(code.contains("map("))
+
+    dtest("filter type-checks")
+      val ds = check-diagnostics("fun main() => filter([1, 2, 3], fn(x) => x > 1)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("filter emits filter call")
+      val code = emit-typed-program("fun main() => filter([1, 2, 3], fn(x) => x > 1)")
+      assert/is-true(code.contains("filter("))
+
+    dtest("fold type-checks")
+      val ds = check-diagnostics("fun main() => fold([1, 2, 3], 0, fn(acc, x) => acc + x)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("fold emits foldl")
+      val code = emit-typed-program("fun main() => fold([1, 2, 3], 0, fn(acc, x) => acc + x)")
+      assert/is-true(code.contains("foldl("))

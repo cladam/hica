@@ -157,7 +157,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Let(name, _, init, body) ->
       "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
     Fun(params, body) ->
-      "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ")\n    " ++ emit-expr(body, declared)
+      "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ") " ++ emit-expr(body, declared)
     Call(callee, args) ->
       // Auto-wrap println argument with show when it's not a string
       match (callee.expr, args)
@@ -169,7 +169,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
         _ ->
-          emit-expr(callee, declared) ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
+          val callee-code = match callee.expr
+            Var("fold") -> "foldl"
+            _           -> emit-expr(callee, declared)
+          callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
       "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
     Block(stmts) ->

@@ -36,4 +36,7 @@ import syntax/ast
 // checker.kk `env/lookup`).
 pub fun extern-env() : type-env
   [ ("println", TFun([TVar("_a")], TUnit)),
-    ("show",    TFun([TVar("_a")], TString)) ]
+    ("show",    TFun([TVar("_a")], TString)),
+    ("map",     TFun([TList(TVar("_a")), TFun([TVar("_a")], TVar("_b"))], TList(TVar("_b")))),
+    ("filter",  TFun([TList(TVar("_a")), TFun([TVar("_a")], TBool)], TList(TVar("_a")))),
+    ("fold",    TFun([TList(TVar("_a")), TVar("_b"), TFun([TVar("_b"), TVar("_a")], TVar("_b"))], TVar("_b"))) ]

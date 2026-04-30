@@ -41,7 +41,7 @@ Legend: **done** = shipped, **—** = not started
 | Tuples (`(1, "hi")`, `.0`, `.1`) | **done** | Low | Koka has native tuples; parser + emitter only |
 | Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
 | Lists (`[1, 2, 3]`) | **done** | Medium | Koka `list<a>`; same literal syntax |
-| List operations (`map`, `filter`, `fold`) | — | Medium | Passthrough to Koka stdlib |
+| List operations (`map`, `filter`, `fold`) | **done** | Medium | Extern sigs in prelude; `fold` → Koka `foldl` |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
