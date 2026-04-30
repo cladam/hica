@@ -419,3 +419,85 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { for i in 0..10 { println(i + 1) } }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- length / reverse / take / drop / zip / concat / any / all / foreach ---
+    dtest("length type-checks")
+      val ds = check-diagnostics("fun main() => length([1, 2, 3])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("length emits length call")
+      val code = emit-typed-program("fun main() => length([1, 2, 3])")
+      assert/is-true(code.contains("length("))
+
+    dtest("reverse type-checks")
+      val ds = check-diagnostics("fun main() => reverse([1, 2, 3])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("reverse emits reverse call")
+      val code = emit-typed-program("fun main() => reverse([1, 2, 3])")
+      assert/is-true(code.contains("reverse("))
+
+    dtest("take type-checks")
+      val ds = check-diagnostics("fun main() => take([1, 2, 3], 2)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("take emits take call")
+      val code = emit-typed-program("fun main() => take([1, 2, 3], 2)")
+      assert/is-true(code.contains("take("))
+
+    dtest("drop type-checks")
+      val ds = check-diagnostics("fun main() => drop([1, 2, 3], 1)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("drop emits drop call")
+      val code = emit-typed-program("fun main() => drop([1, 2, 3], 1)")
+      assert/is-true(code.contains("drop("))
+
+    dtest("zip type-checks")
+      val ds = check-diagnostics("fun main() => zip([1, 2], [\"a\", \"b\"])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("zip emits zip call")
+      val code = emit-typed-program("fun main() => zip([1, 2], [\"a\", \"b\"])")
+      assert/is-true(code.contains("zip("))
+
+    dtest("concat type-checks")
+      val ds = check-diagnostics("fun main() => concat([[1, 2], [3, 4]])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("concat emits concat call")
+      val code = emit-typed-program("fun main() => concat([[1, 2], [3, 4]])")
+      assert/is-true(code.contains("concat("))
+
+    dtest("any type-checks")
+      val ds = check-diagnostics("fun main() => any([1, 2, 3], (x) => x > 2)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("any emits any call")
+      val code = emit-typed-program("fun main() => any([1, 2, 3], (x) => x > 2)")
+      assert/is-true(code.contains("any("))
+
+    dtest("all type-checks")
+      val ds = check-diagnostics("fun main() => all([1, 2, 3], (x) => x > 0)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("all emits all call")
+      val code = emit-typed-program("fun main() => all([1, 2, 3], (x) => x > 0)")
+      assert/is-true(code.contains("all("))
+
+    dtest("foreach type-checks")
+      val ds = check-diagnostics("fun main() { foreach([1, 2, 3], (x) => println(x)) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("foreach emits foreach call")
+      val code = emit-typed-program("fun main() { foreach([1, 2, 3], (x) => println(x)) }")
+      assert/is-true(code.contains("foreach("))
