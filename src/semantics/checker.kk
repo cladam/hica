@@ -339,6 +339,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
 
     // --- Tuples ---
     Tuple(elems) ->
+      if elems.length > 5 then
+        emit-error(n.span, "tuples can have at most 5 elements, got " ++ elems.length.show)
       val (s1, elems') = infer-args(env, s, elems)
       val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
       (s1, Node(n.span, Tuple(elems'), Just(TTuple(elem-types))))

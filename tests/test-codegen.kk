@@ -49,6 +49,15 @@ fun emit-typed-program( source : string ) : <div,console> string
       check-program(prog)
   emit-program(typed-prog)
 
+// Helper: parse → check and return diagnostics
+fun check-diagnostics( source : string ) : <div,console> list<diagnostic>
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  val (_, ds) = collect-diagnostics
+    run-fresh
+      check-program(prog)
+  ds
+
 pub fun main() : io ()
   println(bold("Codegen tests"))
   println("")
@@ -265,3 +274,13 @@ pub fun main() : io ()
     dtest("emit tuple destructuring")
       val code = emit-typed-program("fun main() { let (a, b) = (1, 2); a }")
       assert/is-true(code.contains("val (a, b)"))
+
+    dtest("error on tuple with more than 5 elements")
+      val ds = check-diagnostics("fun main() { (1, 2, 3, 4, 5, 6) }")
+      assert/is-true(ds.length > 0)
+      assert/is-true(ds.head.default(Diagnostic(Info, Span(0,0), "")).message.contains("at most 5"))
+
+    dtest("no error on tuple with 5 elements")
+      val ds = check-diagnostics("fun main() { (1, 2, 3, 4, 5) }")
+      val tuple-errors = ds.filter(fn(d) d.message.contains("at most 5"))
+      assert/is-true(tuple-errors.length == 0)
