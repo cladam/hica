@@ -268,6 +268,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
         Sub -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
         Mul -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
         Div -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
+        Mod -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
         Eq  -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
         Neq -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
         Lt  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)

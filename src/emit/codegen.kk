@@ -202,6 +202,7 @@ fun emit-binop( op : binop ) : string
     Sub -> "-"
     Mul -> "*"
     Div -> "/"
+    Mod -> "%"
     Eq  -> "=="
     Neq -> "!="
     Lt  -> "<"

@@ -66,6 +66,7 @@ pub type token-kind
   TkMinus
   TkStar
   TkSlash
+  TkPercent
   TkEq          // =
   TkEqEq        // ==
   TkBangEq      // !=
@@ -122,6 +123,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkMinus      -> "-"
     TkStar       -> "*"
     TkSlash      -> "/"
+    TkPercent    -> "%"
     TkEq         -> "="
     TkEqEq       -> "=="
     TkBangEq     -> "!="
@@ -348,6 +350,7 @@ fun lex-punct-interp( cs : list<char>, str-start : int, pos : int, depth : int )
     Cons('-', rem) -> Cons(Token(TkMinus, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('*', rem) -> Cons(Token(TkStar, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('/', rem) -> Cons(Token(TkSlash, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
+    Cons('%', rem) -> Cons(Token(TkPercent, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('<', rem) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('>', rem) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('.', rem) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
@@ -378,6 +381,7 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('-', rest) -> Cons(Token(TkMinus, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('*', rest) -> Cons(Token(TkStar, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('/', rest) -> Cons(Token(TkSlash, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons('%', rest) -> Cons(Token(TkPercent, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('<', rest) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('>', rest) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('.', rest) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-from(rest, pos+1))

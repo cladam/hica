@@ -125,6 +125,7 @@ fun infix-bp( tk : token-kind ) : maybe<(int, int, binop)>
     TkMinus    -> Just((9, 10, Sub))
     TkStar     -> Just((11, 12, Mul))
     TkSlash    -> Just((11, 12, Div))
+    TkPercent  -> Just((11, 12, Mod))
     _          -> Nothing
 
 // Pratt parser: parse binary expressions with binding power.

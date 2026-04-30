@@ -103,6 +103,7 @@ pub type binop
   Sub
   Mul
   Div
+  Mod
   Eq
   Neq
   Lt
@@ -118,6 +119,7 @@ pub fun binop/show( op : binop ) : string
     Sub -> "-"
     Mul -> "*"
     Div -> "/"
+    Mod -> "%"
     Eq  -> "=="
     Neq -> "!="
     Lt  -> "<"

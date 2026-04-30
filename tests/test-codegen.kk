@@ -320,3 +320,13 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { unknown_func(1) }")
       val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
       assert/is-true(undef.length > 0)
+
+    // --- Modulo operator ---
+    dtest("emit modulo operator")
+      val code = emit-typed-program("fun main() => 10 % 3")
+      assert/is-true(code.contains("(10 % 3)"))
+
+    dtest("modulo type checks as int")
+      val ds = check-diagnostics("fun main() => 10 % 3")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

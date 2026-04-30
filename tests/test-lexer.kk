@@ -58,7 +58,7 @@ pub fun main() : io ()
 
     // --- Operators ---
     dtest("lex arithmetic operators")
-      assert/is-true(token-string("+ - * /") == "+ - * / <eof>")
+      assert/is-true(token-string("+ - * / %") == "+ - * / % <eof>")
 
     dtest("lex comparison operators")
       assert/is-true(token-string("== != < > <= >=") == "== != < > <= >= <eof>")

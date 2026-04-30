@@ -67,6 +67,9 @@ pub fun main() : io ()
     itest("parse division")
       assert/is-true(parse-show("20 / 4") == "(20 / 4)")
 
+    itest("parse modulo")
+      assert/is-true(parse-show("10 % 3") == "(10 % 3)")
+
     itest("parse equality")
       assert/is-true(parse-show("a == b") == "(a == b)")
 
