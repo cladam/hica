@@ -148,3 +148,10 @@ pub fun main() : io ()
 
     dtest("lex empty list")
       assert/is-true(token-string("[]") == "[ ] <eof>")
+
+    // --- For loop ---
+    dtest("lex for-in with range")
+      assert/is-true(token-string("for i in 0..10") == "for i in 0 .. 10 <eof>")
+
+    dtest("lex dotdot vs dot")
+      assert/is-true(token-string("x.0 0..5") == "x . 0 0 .. 5 <eof>")

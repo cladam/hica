@@ -375,28 +375,47 @@ pub fun main() : io ()
 
     // --- map / filter / fold ---
     dtest("map type-checks")
-      val ds = check-diagnostics("fun main() => map([1, 2, 3], fn(x) => x + 1)")
+      val ds = check-diagnostics("fun main() => map([1, 2, 3], (x) => x + 1)")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
     dtest("map emits map call")
-      val code = emit-typed-program("fun main() => map([1, 2, 3], fn(x) => x + 1)")
+      val code = emit-typed-program("fun main() => map([1, 2, 3], (x) => x + 1)")
       assert/is-true(code.contains("map("))
 
     dtest("filter type-checks")
-      val ds = check-diagnostics("fun main() => filter([1, 2, 3], fn(x) => x > 1)")
+      val ds = check-diagnostics("fun main() => filter([1, 2, 3], (x) => x > 1)")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
     dtest("filter emits filter call")
-      val code = emit-typed-program("fun main() => filter([1, 2, 3], fn(x) => x > 1)")
+      val code = emit-typed-program("fun main() => filter([1, 2, 3], (x) => x > 1)")
       assert/is-true(code.contains("filter("))
 
     dtest("fold type-checks")
-      val ds = check-diagnostics("fun main() => fold([1, 2, 3], 0, fn(acc, x) => acc + x)")
+      val ds = check-diagnostics("fun main() => fold([1, 2, 3], 0, (acc, x) => acc + x)")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
     dtest("fold emits foldl")
-      val code = emit-typed-program("fun main() => fold([1, 2, 3], 0, fn(acc, x) => acc + x)")
+      val code = emit-typed-program("fun main() => fold([1, 2, 3], 0, (acc, x) => acc + x)")
       assert/is-true(code.contains("foldl("))
+
+    // --- For loop ---
+    dtest("for-in emits Koka for")
+      val code = emit-typed-program("fun main() { for i in 0..10 { println(i) } }")
+      assert/is-true(code.contains("for(0, 10)"))
+
+    dtest("for-in loop variable in body")
+      val code = emit-typed-program("fun main() { for i in 1..5 { println(i) } }")
+      assert/is-true(code.contains("fn(i)"))
+
+    dtest("for-in type-checks start and end as int")
+      val ds = check-diagnostics("fun main() { for i in 0..10 { println(i) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("for-in loop variable is int")
+      val ds = check-diagnostics("fun main() { for i in 0..10 { println(i + 1) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

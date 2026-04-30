@@ -47,6 +47,8 @@ pub fun walk( n : node, f : transform ) : node
       Match(walk(scrut, f), arms.map(fn(a) Match-arm(a.pattern, walk(a.body, f))))
     Repeat(count, body) ->
       Repeat(walk(count, f), walk(body, f))
+    ForIn(name, start-e, end-e, body) ->
+      ForIn(name, walk(start-e, f), walk(end-e, f), walk(body, f))
     StringInterp(parts) ->
       StringInterp(parts.map(fn(p) walk(p, f)))
     Tuple(elems) ->

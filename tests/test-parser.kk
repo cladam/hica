@@ -149,13 +149,13 @@ pub fun main() : io ()
 
     // --- Functions ---
     itest("parse arrow function")
-      assert/is-true(parse-show("fn(x) => x + 1") == "fun(x) => (x + 1)")
+      assert/is-true(parse-show("(x) => x + 1") == "fun(x) => (x + 1)")
 
     itest("parse multi-param function")
-      assert/is-true(parse-show("fn(a, b) => a + b") == "fun(a, b) => (a + b)")
+      assert/is-true(parse-show("(a, b) => a + b") == "fun(a, b) => (a + b)")
 
     itest("parse zero-param function")
-      assert/is-true(parse-show("fn() => 42") == "fun() => 42")
+      assert/is-true(parse-show("() => 42") == "fun() => 42")
 
     // --- Function calls (new!) ---
     itest("parse function call no args")
@@ -330,3 +330,12 @@ pub fun main() : io ()
 
     itest("parse list with expressions")
       assert/is-true(parse-show("[1 + 2, 3 * 4]") == "[(1 + 2), (3 * 4)]")
+
+    // --- For loop ---
+    itest("parse for-in loop")
+      val result = parse-show("for i in 0..10 { println(i) }")
+      assert/is-true(result == "for i in 0..10 { println(i) }")
+
+    itest("parse for-in with expressions")
+      val result = parse-show("for x in 1..n { x }")
+      assert/is-true(result == "for x in 1..n { x }")

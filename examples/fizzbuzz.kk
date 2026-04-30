@@ -17,8 +17,5 @@ fun hc_fizzbuzz(n : int) : string
   if ((n % 15) == 0) then "fizzbuzz" else if ((n % 3) == 0) then "fizz" else if ((n % 5) == 0) then "buzz" else show(n)
 
 fun main()
-  println(hc_fizzbuzz(1))
-  println(hc_fizzbuzz(3))
-  println(hc_fizzbuzz(5))
-  println(hc_fizzbuzz(15))
-  println(hc_fizzbuzz(7))
+  for(1, 100) fn(i)
+    println(hc_fizzbuzz(i))

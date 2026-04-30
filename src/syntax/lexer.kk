@@ -43,11 +43,12 @@ pub type token-kind
   // Identifiers and keywords
   TkIdent( name : string )
   TkLet
-  TkFn
   TkFun
   TkIf
   TkElse
   TkMatch
+  TkFor
+  TkIn
   TkRepeat
   TkTrue
   TkFalse
@@ -81,6 +82,7 @@ pub type token-kind
   TkPipeGt      // |>
   TkBang        // !
   TkDot         // .
+  TkDotDot      // ..
   // Special
   TkEof
   TkError( msg : string )
@@ -104,10 +106,11 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkInterpEnd     -> "<interp-end>"
     TkIdent(n)   -> n
     TkLet        -> "let"
-    TkFn         -> "fn"
     TkFun        -> "fun"
     TkIf         -> "if"
     TkElse       -> "else"
+    TkFor        -> "for"
+    TkIn         -> "in"
     TkMatch      -> "match"
     TkRepeat     -> "repeat"
     TkTrue       -> "true"
@@ -140,6 +143,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkPipeGt     -> "|>"
     TkBang       -> "!"
     TkDot        -> "."
+    TkDotDot     -> ".."
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
 
@@ -191,12 +195,13 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
   val end = start + chars.length
   val kind = match word
     "let"   -> TkLet
-    "fn"    -> TkFn
     "fun"   -> TkFun
     "if"    -> TkIf
     "else"  -> TkElse
     "match"  -> TkMatch
     "repeat" -> TkRepeat
+    "for"    -> TkFor
+    "in"     -> TkIn
     "true"   -> TkBool(True)
     "false"  -> TkBool(False)
     _       -> TkIdent(word)
@@ -302,7 +307,6 @@ fun lex-one-interp( cs : list<char>, str-start : int, pos : int, depth : int ) :
         val end = pos + chars.length
         val kind = match word
           "let"    -> TkLet
-          "fn"     -> TkFn
           "fun"    -> TkFun
           "if"     -> TkIf
           "else"   -> TkElse
@@ -392,6 +396,7 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('%', rest) -> Cons(Token(TkPercent, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('<', rest) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('>', rest) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons('.', Cons('.', rest)) -> Cons(Token(TkDotDot, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('.', rest) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(c, rest)   -> Cons(Token(TkError("unexpected character: " ++ c.string), Span(pos, pos+1)), lex-from(rest, pos+1))
     Nil             -> [Token(TkEof, Span(pos, pos))]

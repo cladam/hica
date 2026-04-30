@@ -183,6 +183,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Repeat(count, body) ->
       "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
+    ForIn(name, start-e, end-e, body) ->
+      "for(" ++ emit-expr(start-e, declared) ++ ", " ++ emit-expr(end-e, declared) ++ ") fn(" ++ marshal-name(name, declared) ++ ")\n" ++
+      body.expr.repeat-body(declared)
     StringInterp(parts) ->
       val emitted = parts.map(fn(p) emit-interp-part(p, declared))
       "(" ++ emitted.join(" ++ ") ++ ")"
@@ -263,6 +266,7 @@ fun node-has-float( n : node ) : div bool
     Block(stmts)          -> stmts.any(fn(s) node-has-float(s))
     Match(scrut, arms)    -> node-has-float(scrut) || arms.any(fn(a) node-has-float(a.body))
     Repeat(count, body)   -> node-has-float(count) || node-has-float(body)
+    ForIn(_, start-e, end-e, body) -> node-has-float(start-e) || node-has-float(end-e) || node-has-float(body)
     StringInterp(parts)   -> parts.any(fn(p) node-has-float(p))
     Tuple(elems)           -> elems.any(fn(e) node-has-float(e))
     EList(elems)            -> elems.any(fn(e) node-has-float(e))

@@ -376,6 +376,18 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s3, body') = infer(env, s2, body)
       (s3, Node(n.span, Repeat(count', body'), Just(TUnit)))
 
+    // --- For-in expressions ---
+    ForIn(name, start-e, end-e, body) ->
+      val (s1, start') = infer(env, s, start-e)
+      val start-type = apply-subst(s1, get-type(start'))
+      val s2 = compose-subst(unify(start-type, TInt, start-e.span), s1)
+      val (s3, end') = infer(env, s2, end-e)
+      val end-type = apply-subst(s3, get-type(end'))
+      val s4 = compose-subst(unify(end-type, TInt, end-e.span), s3)
+      val env' = env.extend(name, TInt)
+      val (s5, body') = infer(env', s4, body)
+      (s5, Node(n.span, ForIn(name, start', end', body'), Just(TUnit)))
+
     // --- String interpolation ---
     StringInterp(parts) ->
       val (s1, parts') = infer-interp-parts(env, s, parts)

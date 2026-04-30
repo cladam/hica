@@ -6,9 +6,7 @@ fun fizzbuzz(n) =>
   else { show(n) }
 
 fun main() {
-  println(fizzbuzz(1))
-  println(fizzbuzz(3))
-  println(fizzbuzz(5))
-  println(fizzbuzz(15))
-  println(fizzbuzz(7))
+  for i in 1..100 {
+    println(fizzbuzz(i))
+  }
 }

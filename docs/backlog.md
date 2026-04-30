@@ -14,12 +14,10 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Unary negation (`-x`, `!x`) | **done** | Low | Lexer, parser, checker, codegen |
-| Modulo (`%`) | **done** | Low | Lexer, parser, checker, codegen |
 | `else if` chains | **done** | Low | Parser desugaring |
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| `println` auto-show (`println(42)`) | **done** | Low | Codegen wraps non-string args with `show` |
 | Type annotations in syntax (`: int`) | — | Medium | Parser + AST + codegen; checker already infers |
 
 ### Pattern Matching
@@ -40,8 +38,8 @@ Legend: **done** = shipped, **—** = not started
 | Float / double literals (`3.14`) | **done** | Low | Koka `float64`; lexer + parser + checker + codegen |
 | Tuples (`(1, "hi")`, `.0`, `.1`) | **done** | Low | Koka has native tuples; parser + emitter only |
 | Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
-| Lists (`[1, 2, 3]`) | **done** | Medium | Koka `list<a>`; same literal syntax |
-| List operations (`map`, `filter`, `fold`) | **done** | Medium | Extern sigs in prelude; `fold` → Koka `foldl` |
+| Lists (`[1, 2, 3]`) | — | Medium | Koka `list<a>`; same literal syntax |
+| List operations (`map`, `filter`, `fold`) | — | Medium | Passthrough to Koka stdlib |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
@@ -54,7 +52,7 @@ Legend: **done** = shipped, **—** = not started
 | `match` | **done** | — | Int + wildcard + var patterns |
 | `repeat(n) { ... }` | **done** | – | Emit Koka `repeat` |
 | `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
-| `for i in 0..n` (range loop) | — | Medium | Emit Koka `for(0, n)` |
+| `for i in 0..n` (range loop) | **done** | Medium | Emit Koka `for(0, n) fn(i)` |
 | `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
 | `break` / `continue` | — | Medium | Needs Koka effect-based control flow |
 
@@ -72,7 +70,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
-| Prelude (`prelude.hc`) | **done** | Low | `prelude/*.hc` loaded at build time; abs, min, max, clamp written in Hica; println/show as extern sigs |
+| Prelude (`prelude.hc`) | — | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
@@ -114,10 +112,10 @@ Legend: **done** = shipped, **—** = not started
 
 Issues that exist today but are not yet fixed:
 
-- **~~`println` reports "undefined variable"~~** — Fixed by prelude.
-  `println`, `show`, `abs`, `min`, `max` are now seeded into the type
-  checker's environment. Note: `show` is typed as `(int) -> string`;
-  calling it on non-int types still triggers a type error but compiles fine.
+- **`println` reports "undefined variable"** — `println` is a Koka stdlib
+  function. The hica type checker doesn't know about it, so it emits a type
+  error. Programs still compile and run correctly because Koka resolves it.
+  Fix: add a prelude / built-in environment with `println`, `show`, etc.
 - **Polymorphic functions over tuples** — a function like
   `fun swap(p) => (p.1, p.0)` leaves param/return types unresolved (TVar).
   The generated Koka code omits annotations, but Koka can't always resolve

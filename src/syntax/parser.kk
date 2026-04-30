@@ -74,18 +74,44 @@ fun parse-prefix() : <div,parser> node
       Node(t.span, Var(name))
     TkLParen ->
       val start-tok = advance()
-      val e = parse-expr()
       match peek()
-        TkComma ->
-          // Tuple: (e, e2, ...)
-          advance()
-          val rest = parse-tuple-rest()
-          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-          Node(Span(start-tok.span.start, end-tok.span.end), Tuple(Cons(e, rest)))
+        TkRParen ->
+          // Either () => lambda or empty parens
+          val end-tok = advance()
+          match peek()
+            TkArrow ->
+              advance()
+              val body = parse-lambda-body()
+              Node(Span(start-tok.span.start, body.span.end), Fun([], body))
+            _ ->
+              Node(Span(start-tok.span.start, end-tok.span.end), Tuple([]))
         _ ->
-          // Grouped expression: (e)
-          expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-          e
+          val e = parse-expr()
+          match peek()
+            TkComma ->
+              // (e, e2, ...) — could be tuple or multi-param lambda
+              advance()
+              val rest = parse-tuple-rest()
+              val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+              match peek()
+                TkArrow ->
+                  advance()
+                  val params = extract-param-names(Cons(e, rest))
+                  val body = parse-lambda-body()
+                  Node(Span(start-tok.span.start, body.span.end), Fun(params, body))
+                _ ->
+                  Node(Span(start-tok.span.start, end-tok.span.end), Tuple(Cons(e, rest)))
+            _ ->
+              // (e) — could be grouped expr or single-param lambda
+              expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+              match peek()
+                TkArrow ->
+                  advance()
+                  val params = extract-param-names([e])
+                  val body = parse-lambda-body()
+                  Node(Span(start-tok.span.start, body.span.end), Fun(params, body))
+                _ ->
+                  e
     TkLBracket ->
       val start-tok = advance()
       match peek()
@@ -101,14 +127,14 @@ fun parse-prefix() : <div,parser> node
       parse-block()
     TkIf ->
       parse-if()
-    TkFn ->
-      parse-fn()
     TkLet ->
       parse-let()
     TkMatch ->
       parse-match()
     TkRepeat ->
       parse-repeat()
+    TkFor ->
+      parse-for-in()
     TkInterpStart ->
       parse-string-interp()
     TkMinus ->
@@ -246,18 +272,16 @@ fun parse-if() : <div,parser> node
     _ -> Node(current-span(), Block([])) // no else → unit
   Node(Span(t.span.start, else-e.span.end), If(cond, then-e, else-e))
 
-fun parse-fn() : <div,parser> node
-  val t = expect("fn", fn(k) match k { TkFn -> True; _ -> False })
-  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
-  val params = parse-params()
-  expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-  val body = match peek()
-    TkArrow ->
-      advance()
-      parse-expr()
-    _ ->
-      parse-block()
-  Node(Span(t.span.start, body.span.end), Fun(params, body))
+fun extract-param-names( exprs : list<node> ) : <div,parser> list<string>
+  exprs.map fn(n)
+    match n.expr
+      Var(name) -> name
+      _ -> { parse-error("expected parameter name"); "" }
+
+fun parse-lambda-body() : <div,parser> node
+  match peek()
+    TkLBrace -> parse-block()
+    _        -> parse-expr()
 
 fun parse-params() : <div,parser> list<string>
   match peek()
@@ -344,6 +368,18 @@ fun parse-repeat() : <div,parser> node
   expect(")", fn(k) match k { TkRParen -> True; _ -> False })
   val body = parse-block()
   Node(Span(t.span.start, body.span.end), Repeat(count, body))
+
+fun parse-for-in() : <div,parser> node
+  val t = expect("for", fn(k) match k { TkFor -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected loop variable after 'for'"); "_" }
+  expect("in", fn(k) match k { TkIn -> True; _ -> False })
+  val start-expr = parse-expr()
+  expect("..", fn(k) match k { TkDotDot -> True; _ -> False })
+  val end-expr = parse-expr()
+  val body = parse-block()
+  Node(Span(t.span.start, body.span.end), ForIn(name, start-expr, end-expr, body))
 
 // ---------------------------------------------------------------------------
 // String interpolation: "hello {expr}!"
