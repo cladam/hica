@@ -117,6 +117,7 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
     (_, TVar(b)) ->
       unify(TVar(b), t1, sp)
     (TInt, TInt)       -> empty-subst
+    (TFloat, TFloat)   -> empty-subst
     (TBool, TBool)     -> empty-subst
     (TString, TString) -> empty-subst
     (TUnit, TUnit)     -> empty-subst
@@ -177,6 +178,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
     // --- Literals: known concrete types ---
     Literal(LitInt(_)) ->
       (s, n(typ = Just(TInt)))
+    Literal(LitFloat(_)) ->
+      (s, n(typ = Just(TFloat)))
     Literal(LitBool(_)) ->
       (s, n(typ = Just(TBool)))
     Literal(LitString(_)) ->
@@ -244,27 +247,28 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val rt = apply-subst(s2, get-type(rhs'))
       val (s3, result-type) = match op
         Add ->
-          // + works on int or string: unify operands, then check resolved type
+          // + works on int, float, or string: unify operands, then check resolved type
           val s-lr = compose-subst(unify(lt, rt, n.span), s2)
           val resolved = apply-subst(s-lr, lt)
           match resolved
             TInt    -> (s-lr, TInt)
+            TFloat  -> (s-lr, TFloat)
             TString -> (s-lr, TString)
             TVar(_) ->
               // Ambiguous — default to int
               (compose-subst(unify(resolved, TInt, n.span), s-lr), TInt)
             _ ->
-              emit-error(n.span, "operator + requires int or string operands, got " ++ resolved.show)
+              emit-error(n.span, "operator + requires int, float, or string operands, got " ++ resolved.show)
               (s-lr, TInt)
-        Sub -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
-        Mul -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
-        Div -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TInt)
+        Sub -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
+        Mul -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
+        Div -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
         Eq  -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
         Neq -> (compose-subst(unify(lt, rt, n.span), s2), TBool)
-        Lt  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
-        Gt  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
-        Le  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
-        Ge  -> (compose-subst(unify(rt, TInt, rhs.span), compose-subst(unify(lt, TInt, lhs.span), s2)), TBool)
+        Lt  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)
+        Gt  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)
+        Le  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)
+        Ge  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)
         And -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
         Or  -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
       (s3, Node(n.span, Binary(op, lhs', rhs'), Just(result-type)))
@@ -274,7 +278,16 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s1, operand') = infer(env, s, operand)
       val ot = apply-subst(s1, get-type(operand'))
       val (s2, result-type) = match op
-        Neg -> (compose-subst(unify(ot, TInt, operand.span), s1), TInt)
+        Neg ->
+          val s-u = compose-subst(unify(ot, ot, operand.span), s1)
+          val resolved = apply-subst(s-u, ot)
+          match resolved
+            TInt    -> (s-u, TInt)
+            TFloat  -> (s-u, TFloat)
+            TVar(_) -> (compose-subst(unify(resolved, TInt, operand.span), s-u), TInt)
+            _       ->
+              emit-error(operand.span, "operator - requires int or float operand, got " ++ resolved.show)
+              (s-u, TInt)
         Not -> (compose-subst(unify(ot, TBool, operand.span), s1), TBool)
       (s2, Node(n.span, Unary(op, operand'), Just(result-type)))
 
@@ -371,6 +384,30 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
       val (s4, rest') = infer-arms(env, s3, scrut-type, result-var, rest)
       (s4, Cons(Match-arm(arm.pattern, body'), rest'))
 
+// Infer a numeric binary operator (-, *, /): works on int or float.
+fun infer-numeric-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node, n : node, s : subst ) : <div,diag,fresh> (subst, hica-type)
+  val s-lr = compose-subst(unify(lt, rt, n.span), s)
+  val resolved = apply-subst(s-lr, lt)
+  match resolved
+    TInt    -> (s-lr, TInt)
+    TFloat  -> (s-lr, TFloat)
+    TVar(_) -> (compose-subst(unify(resolved, TInt, n.span), s-lr), TInt)
+    _       ->
+      emit-error(n.span, "arithmetic operator requires int or float operands, got " ++ resolved.show)
+      (s-lr, TInt)
+
+// Infer a comparison operator (<, >, <=, >=): works on int or float, returns bool.
+fun infer-comparison-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node, n : node, s : subst ) : <div,diag,fresh> (subst, hica-type)
+  val s-lr = compose-subst(unify(lt, rt, n.span), s)
+  val resolved = apply-subst(s-lr, lt)
+  match resolved
+    TInt    -> (s-lr, TBool)
+    TFloat  -> (s-lr, TBool)
+    TVar(_) -> (compose-subst(unify(resolved, TInt, n.span), s-lr), TBool)
+    _       ->
+      emit-error(n.span, "comparison operator requires int or float operands, got " ++ resolved.show)
+      (s-lr, TBool)
+
 // Infer type constraints from a match pattern.
 // Returns the updated substitution and the environment extended with
 // any pattern-bound variables.
@@ -379,6 +416,7 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
     PWild    -> (s, env)
     PVar(name) -> (s, env.extend(name, scrut-type))
     PLit(LitInt(_))    -> (compose-subst(unify(scrut-type, TInt, no-span), s), env)
+    PLit(LitFloat(_))  -> (compose-subst(unify(scrut-type, TFloat, no-span), s), env)
     PLit(LitBool(_))   -> (compose-subst(unify(scrut-type, TBool, no-span), s), env)
     PLit(LitString(_)) -> (compose-subst(unify(scrut-type, TString, no-span), s), env)
 

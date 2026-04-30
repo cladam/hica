@@ -230,3 +230,21 @@ pub fun main() : io ()
       assert/is-true(code.contains("++"))
       // name is inferred as string from the literal — should NOT have .show
       assert/is-true(!code.contains(".show"))
+
+    // --- Float literals ---
+    dtest("emit float literal")
+      val code = emit-typed-program("fun main() => 3.14")
+      assert/is-true(code.contains("3.14"))
+
+    dtest("emit float program imports float64")
+      val code = emit-typed-program("fun main() => 3.14")
+      assert/is-true(code.contains("import std/num/float64"))
+
+    dtest("emit int program no float64 import")
+      val code = emit-typed-program("fun main() => 42")
+      assert/is-true(!code.contains("float64"))
+
+    dtest("emit float arithmetic")
+      val code = emit-typed-program("fun main() => 1.5 + 2.5")
+      assert/is-true(code.contains("1.5"))
+      assert/is-true(code.contains("2.5"))

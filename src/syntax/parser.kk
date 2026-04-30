@@ -60,6 +60,9 @@ fun parse-prefix() : <div,parser> node
     TkInt(n) ->
       val t = advance()
       Node(t.span, Literal(LitInt(n)))
+    TkFloat(f) ->
+      val t = advance()
+      Node(t.span, Literal(LitFloat(f)))
     TkBool(b) ->
       val t = advance()
       Node(t.span, Literal(LitBool(b)))

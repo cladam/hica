@@ -272,3 +272,16 @@ pub fun main() : io ()
     itest("parse pipe with expression")
       val result = parse-show("1 + 2 |> f")
       assert/is-true(result == "f((1 + 2))")
+
+    // --- Float literals ---
+    itest("parse float literal")
+      val result = parse-show("3.14")
+      assert/is-true(result == "3.14")
+
+    itest("parse float arithmetic")
+      val result = parse-show("1.5 + 2.5")
+      assert/is-true(result == "(1.5 + 2.5)")
+
+    itest("parse negative float")
+      val result = parse-show("-3.14")
+      assert/is-true(result == "-3.14")

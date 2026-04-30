@@ -48,6 +48,7 @@ pub fun node/show( n : node ) : div string
 
 pub type hica-type
   TInt
+  TFloat
   TBool
   TString
   TUnit
@@ -57,6 +58,7 @@ pub type hica-type
 pub fun hica-type/show( t : hica-type ) : div string
   match t
     TInt        -> "int"
+    TFloat      -> "float"
     TBool       -> "bool"
     TString     -> "string"
     TUnit       -> "()"
@@ -66,6 +68,7 @@ pub fun hica-type/show( t : hica-type ) : div string
 pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
   match (t1, t2)
     (TInt, TInt)       -> True
+    (TFloat, TFloat)   -> True
     (TBool, TBool)     -> True
     (TString, TString) -> True
     (TUnit, TUnit)     -> True
@@ -80,12 +83,14 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
 
 pub type literal
   LitInt( i : int )
+  LitFloat( f : string )
   LitBool( b : bool )
   LitString( s : string )
 
 pub fun literal/show( l : literal ) : string
   match l
     LitInt(i)    -> i.show
+    LitFloat(f)  -> f
     LitBool(b)   -> b.show
     LitString(s) -> "\"" ++ s ++ "\""
 

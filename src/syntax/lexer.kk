@@ -31,6 +31,7 @@ import syntax/ast
 pub type token-kind
   // Literals
   TkInt( value : int )
+  TkFloat( value : string )
   TkBool( value : bool )
   TkString( value : string )
   // String interpolation: "hello {name}!" becomes
@@ -90,6 +91,7 @@ pub fun token/show( t : token ) : string
 pub fun token-kind/show( tk : token-kind ) : string
   match tk
     TkInt(v)     -> v.show
+    TkFloat(v)   -> v
     TkBool(v)    -> v.show
     TkString(v)  -> "\"" ++ v ++ "\""
     TkInterpStart   -> "<interp-start>"
@@ -164,9 +166,16 @@ fun skip-line-comment( cs : list<char>, pos : int ) : div list<token>
 
 fun lex-number( cs : list<char>, start : int ) : div list<token>
   val (digits, rest) = cs.span(fn(c) c.is-digit)
-  val n = digits.string.parse-int.default(0)
-  val end = start + digits.length
-  Cons(Token(TkInt(n), Span(start, end)), lex-from(rest, end))
+  match rest
+    Cons('.', Cons(d, _)) | d.is-digit ->
+      val (frac, rest2) = rest.tail.span(fn(c) c.is-digit)
+      val text = digits.string ++ "." ++ frac.string
+      val end = start + digits.length + 1 + frac.length
+      Cons(Token(TkFloat(text), Span(start, end)), lex-from(rest2, end))
+    _ ->
+      val n = digits.string.parse-int.default(0)
+      val end = start + digits.length
+      Cons(Token(TkInt(n), Span(start, end)), lex-from(rest, end))
 
 fun lex-ident( cs : list<char>, start : int ) : div list<token>
   val (chars, rest) = cs.span(fn(c) c.is-alpha || c.is-digit || c == '_')
@@ -269,9 +278,16 @@ fun lex-one-interp( cs : list<char>, str-start : int, pos : int, depth : int ) :
       if c.is-white then lex-one-interp(rest, str-start, pos + 1, depth)
       elif c.is-digit then
         val (digits, rem) = cs.span(fn(ch) ch.is-digit)
-        val n = digits.string.parse-int.default(0)
-        val end = pos + digits.length
-        Cons(Token(TkInt(n), Span(pos, end)), lex-interp-expr(rem, str-start, end, depth))
+        match rem
+          Cons('.', Cons(d, _)) | d.is-digit ->
+            val (frac, rem2) = rem.tail.span(fn(ch) ch.is-digit)
+            val text = digits.string ++ "." ++ frac.string
+            val end = pos + digits.length + 1 + frac.length
+            Cons(Token(TkFloat(text), Span(pos, end)), lex-interp-expr(rem2, str-start, end, depth))
+          _ ->
+            val n = digits.string.parse-int.default(0)
+            val end = pos + digits.length
+            Cons(Token(TkInt(n), Span(pos, end)), lex-interp-expr(rem, str-start, end, depth))
       elif c.is-alpha || c == '_' then
         val (chars, rem) = cs.span(fn(ch) ch.is-alpha || ch.is-digit || ch == '_')
         val word = chars.string

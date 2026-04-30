@@ -124,3 +124,13 @@ pub fun main() : io ()
 
     dtest("lex pipe vs or")
       assert/is-true(token-string("a || b |> f") == "a || b |> f <eof>")
+
+    // --- Float literals ---
+    dtest("lex float literal")
+      assert/is-true(token-string("3.14") == "3.14 <eof>")
+
+    dtest("lex integer vs float")
+      assert/is-true(token-string("42 3.14") == "42 3.14 <eof>")
+
+    dtest("lex float in expression")
+      assert/is-true(token-string("1.5 + 2.5") == "1.5 + 2.5 <eof>")
