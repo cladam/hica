@@ -19,7 +19,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| `println` auto-show (`println(42)`) | — | Low | Codegen wraps non-string args with `show` |
+| `println` auto-show (`println(42)`) | **done** | Low | Codegen wraps non-string args with `show` |
 | Type annotations in syntax (`: int`) | — | Medium | Parser + AST + codegen; checker already infers |
 
 ### Pattern Matching

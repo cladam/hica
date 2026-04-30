@@ -29,10 +29,11 @@ import syntax/ast
 // ---------------------------------------------------------------------------
 
 // Type signatures for Koka built-ins.  Everything that *can* be written
-// in Hica lives in prelude/*.hc instead.  `show` is typed as
-// `(int) -> string` which covers the most common case; other uses
-// (e.g. `show(true)`) will get a type error from the checker but still
-// compile correctly because Koka resolves the polymorphic `show`.
+// in Hica lives in prelude/*.hc instead.  `println` uses a TVar param
+// so it accepts any type — the codegen auto-wraps non-string arguments
+// with `.show`.  `show` likewise uses a TVar so `show(true)` works.
+// TVars in extern signatures are freshened on each lookup (see
+// checker.kk `env/lookup`).
 pub fun extern-env() : type-env
-  [ ("println", TFun([TString], TUnit)),
-    ("show",    TFun([TInt], TString)) ]
+  [ ("println", TFun([TVar("_a")], TUnit)),
+    ("show",    TFun([TVar("_a")], TString)) ]

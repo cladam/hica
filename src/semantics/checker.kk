@@ -167,15 +167,56 @@ fun env-find( env : type-env, name : string ) : maybe<hica-type>
     Nil -> Nothing
     Cons((k, v), rest) -> if k == name then Just(v) else env-find(rest, name)
 
-pub fun env/lookup( env : type-env, name : string, sp : span ) : <diag,fresh> hica-type
+pub fun env/lookup( env : type-env, name : string, sp : span ) : <div,diag,fresh> hica-type
   match env-find(env, name)
-    Just(t)  -> t
+    Just(t)  -> freshen(t)
     Nothing  ->
       emit-error(sp, "undefined variable: " ++ name)
       fresh-tvar()
 
 pub fun env/extend( env : type-env, name : string, t : hica-type ) : type-env
   Cons((name, t), env)
+
+// ---------------------------------------------------------------------------
+// Freshening: replace TVars with fresh ones (minimal let-polymorphism)
+// ---------------------------------------------------------------------------
+
+// Collect all TVar names in a type that start with "_" (extern TVars).
+fun collect-tvars( t : hica-type ) : div list<string>
+  match t
+    TVar(n)          -> if n.head-char.default(' ') == '_' then [n] else []
+    TFun(params, r)  -> params.flatmap(fn(p) collect-tvars(p)) ++ collect-tvars(r)
+    TTuple(elems)    -> elems.flatmap(fn(e) collect-tvars(e))
+    TList(elem)      -> collect-tvars(elem)
+    _                -> []
+
+// Replace TVars according to a mapping.
+fun apply-rename( mapping : list<(string, hica-type)>, t : hica-type ) : div hica-type
+  match t
+    TVar(n) ->
+      match mapping.find-mapping(n)
+        Just(replacement) -> replacement
+        Nothing           -> t
+    TFun(params, r) -> TFun(params.map(fn(p) apply-rename(mapping, p)), apply-rename(mapping, r))
+    TTuple(elems)   -> TTuple(elems.map(fn(e) apply-rename(mapping, e)))
+    TList(elem)     -> TList(apply-rename(mapping, elem))
+    _               -> t
+
+fun find-mapping( mapping : list<(string, hica-type)>, name : string ) : maybe<hica-type>
+  match mapping
+    Nil -> Nothing
+    Cons((k, v), rest) -> if k == name then Just(v) else find-mapping(rest, name)
+
+// Freshen a type: replace all TVars with fresh ones.
+// This is a no-op for types without TVars (e.g. user-declared functions).
+fun freshen( t : hica-type ) : <div,fresh> hica-type
+  val tvars = collect-tvars(t)
+  match tvars
+    Nil -> t
+    _   ->
+      val unique = tvars.foldl([], fn(acc : list<string>, v) if acc.any(fn(a) a == v) then acc else Cons(v, acc))
+      val mapping = unique.map(fn(v) (v, fresh-tvar()))
+      apply-rename(mapping, t)
 
 // ---------------------------------------------------------------------------
 // Type inference

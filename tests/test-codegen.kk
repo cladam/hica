@@ -349,3 +349,26 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() => [1, true]")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length > 0)
+
+    // --- println auto-show ---
+    dtest("println auto-wraps int with show")
+      val code = emit-typed-program("fun main() { println(42) }")
+      assert/is-true(code.contains("println(42.show)"))
+
+    dtest("println string arg unchanged")
+      val code = emit-typed-program("fun main() { println(\"hi\") }")
+      assert/is-true(code.contains("println(\"hi\")"))
+
+    dtest("println list auto-wraps with show")
+      val code = emit-typed-program("fun main() { println([1, 2]) }")
+      assert/is-true(code.contains("println([1, 2].show)"))
+
+    dtest("println int no type error")
+      val ds = check-diagnostics("fun main() { println(42) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("show accepts any type")
+      val ds = check-diagnostics("fun main() { println(show(true)) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
