@@ -38,8 +38,8 @@ Legend: **done** = shipped, **—** = not started
 | Float / double literals (`3.14`) | **done** | Low | Koka `float64`; lexer + parser + checker + codegen |
 | Tuples (`(1, "hi")`, `.0`, `.1`) | **done** | Low | Koka has native tuples; parser + emitter only |
 | Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
-| Lists (`[1, 2, 3]`) | — | Medium | Koka `list<a>`; same literal syntax |
-| List operations (`map`, `filter`, `fold`) | — | Medium | Passthrough to Koka stdlib |
+| Lists (`[1, 2, 3]`) | **done** | Medium | Koka `list<a>`; same literal syntax |
+| List operations (`map`, `filter`, `fold`) | **done** | Medium | Extern sigs in prelude; `fold` → Koka `foldl` |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
@@ -70,7 +70,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
-| Prelude (`prelude.hc`) | — | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
+| Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
@@ -112,10 +112,10 @@ Legend: **done** = shipped, **—** = not started
 
 Issues that exist today but are not yet fixed:
 
-- **`println` reports "undefined variable"** — `println` is a Koka stdlib
-  function. The hica type checker doesn't know about it, so it emits a type
-  error. Programs still compile and run correctly because Koka resolves it.
-  Fix: add a prelude / built-in environment with `println`, `show`, etc.
+- **~~`println` reports "undefined variable"~~** — Fixed by prelude.
+  `println`, `show`, `abs`, `min`, `max` are now seeded into the type
+  checker's environment. Note: `show` is typed as `(int) -> string`;
+  calling it on non-int types still triggers a type error but compiles fine.
 - **Polymorphic functions over tuples** — a function like
   `fun swap(p) => (p.1, p.0)` leaves param/return types unresolved (TVar).
   The generated Koka code omits annotations, but Koka can't always resolve
