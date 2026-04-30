@@ -73,10 +73,19 @@ fun parse-prefix() : <div,parser> node
       val t = advance()
       Node(t.span, Var(name))
     TkLParen ->
-      advance()
+      val start-tok = advance()
       val e = parse-expr()
-      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-      e
+      match peek()
+        TkComma ->
+          // Tuple: (e, e2, ...)
+          advance()
+          val rest = parse-tuple-rest()
+          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          Node(Span(start-tok.span.start, end-tok.span.end), Tuple(Cons(e, rest)))
+        _ ->
+          // Grouped expression: (e)
+          expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          e
     TkLBrace ->
       parse-block()
     TkIf ->
@@ -123,14 +132,27 @@ fun parse-binary( min-bp : int ) : <div,parser> node
   val lhs = parse-postfix()
   parse-binary-loop(lhs, min-bp)
 
-// Parse postfix operations: function calls f(args)
+// Parse postfix operations: function calls f(args) and tuple index expr.N
 fun parse-postfix() : <div,parser> node
   var result := parse-prefix()
-  while { match peek() { TkLParen -> True; _ -> False } }
-    advance()
-    val args = parse-args()
-    val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-    result := Node(Span(result.span.start, end-tok.span.end), Call(result, args))
+  var cont := True
+  while { cont }
+    match peek()
+      TkLParen ->
+        advance()
+        val args = parse-args()
+        val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+        result := Node(Span(result.span.start, end-tok.span.end), Call(result, args))
+      TkDot ->
+        advance()
+        match peek()
+          TkInt(idx) ->
+            val t = advance()
+            result := Node(Span(result.span.start, t.span.end), TupleIndex(result, idx))
+          _ ->
+            parse-error("expected tuple index (0, 1, ...) after '.'")
+            ()
+      _ -> cont := False
   result
 
 fun parse-args() : <div,parser> list<node>
@@ -141,6 +163,15 @@ fun parse-args() : <div,parser> list<node>
       match peek()
         TkComma -> { advance(); Cons(first, parse-args()) }
         _       -> [first]
+
+fun parse-tuple-rest() : <div,parser> list<node>
+  match peek()
+    TkRParen -> []
+    _ ->
+      val elem = parse-expr()
+      match peek()
+        TkComma -> { advance(); Cons(elem, parse-tuple-rest()) }
+        _       -> [elem]
 
 fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
   val tk = peek()
@@ -216,17 +247,41 @@ fun parse-params() : <div,parser> list<string>
 
 fun parse-let() : <div,parser> node
   val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
-  val name = match peek()
-    TkIdent(n) -> { advance(); n }
-    _          -> { parse-error("expected identifier"); "_" }
-  expect("=", fn(k) match k { TkEq -> True; _ -> False })
-  val init = parse-expr()
-  // optional semicolon before body
   match peek()
-    TkSemicolon -> { advance(); () }
-    _           -> ()
-  val body = parse-expr()
-  Node(Span(t.span.start, body.span.end), Let(name, Nothing, init, body))
+    TkLParen ->
+      // Tuple destructuring: let (a, b) = init; body
+      advance()
+      val names = parse-let-tuple-names()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      expect("=", fn(k) match k { TkEq -> True; _ -> False })
+      val init = parse-expr()
+      match peek()
+        TkSemicolon -> { advance(); () }
+        _           -> ()
+      val body = parse-expr()
+      Node(Span(t.span.start, body.span.end), LetTuple(names, init, body))
+    _ ->
+      val name = match peek()
+        TkIdent(n) -> { advance(); n }
+        _          -> { parse-error("expected identifier"); "_" }
+      expect("=", fn(k) match k { TkEq -> True; _ -> False })
+      val init = parse-expr()
+      // optional semicolon before body
+      match peek()
+        TkSemicolon -> { advance(); () }
+        _           -> ()
+      val body = parse-expr()
+      Node(Span(t.span.start, body.span.end), Let(name, Nothing, init, body))
+
+fun parse-let-tuple-names() : <div,parser> list<string>
+  match peek()
+    TkRParen -> []
+    TkIdent(n) ->
+      advance()
+      match peek()
+        TkComma -> { advance(); Cons(n, parse-let-tuple-names()) }
+        _       -> [n]
+    _ -> { parse-error("expected identifier in tuple pattern"); [] }
 
 fun parse-match() : <div,parser> node
   val t = expect("match", fn(k) match k { TkMatch -> True; _ -> False })

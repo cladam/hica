@@ -77,6 +77,7 @@ pub type token-kind
   TkPipePipe    // ||
   TkPipeGt      // |>
   TkBang        // !
+  TkDot         // .
   // Special
   TkEof
   TkError( msg : string )
@@ -132,6 +133,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkPipePipe   -> "||"
     TkPipeGt     -> "|>"
     TkBang       -> "!"
+    TkDot        -> "."
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
 
@@ -348,6 +350,7 @@ fun lex-punct-interp( cs : list<char>, str-start : int, pos : int, depth : int )
     Cons('/', rem) -> Cons(Token(TkSlash, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('<', rem) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons('>', rem) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
+    Cons('.', rem) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Cons(c, rem) -> Cons(Token(TkError("unexpected character in interpolation: " ++ c.string), Span(pos, pos+1)), lex-interp-expr(rem, str-start, pos+1, depth))
     Nil -> [Token(TkError("unterminated interpolation expression"), Span(str-start, pos))]
 
@@ -377,5 +380,6 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('/', rest) -> Cons(Token(TkSlash, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('<', rest) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('>', rest) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons('.', rest) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(c, rest)   -> Cons(Token(TkError("unexpected character: " ++ c.string), Span(pos, pos+1)), lex-from(rest, pos+1))
     Nil             -> [Token(TkEof, Span(pos, pos))]

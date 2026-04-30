@@ -248,3 +248,20 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => 1.5 + 2.5")
       assert/is-true(code.contains("1.5"))
       assert/is-true(code.contains("2.5"))
+
+    // --- Tuples ---
+    dtest("emit tuple literal")
+      val code = emit-typed-program("fun main() => (1, 2)")
+      assert/is-true(code.contains("(1, 2)"))
+
+    dtest("emit tuple index fst")
+      val code = emit-typed-program("fun main() { let t = (1, 2); t.0 }")
+      assert/is-true(code.contains(".fst"))
+
+    dtest("emit tuple index snd")
+      val code = emit-typed-program("fun main() { let t = (1, 2); t.1 }")
+      assert/is-true(code.contains(".snd"))
+
+    dtest("emit tuple destructuring")
+      val code = emit-typed-program("fun main() { let (a, b) = (1, 2); a }")
+      assert/is-true(code.contains("val (a, b)"))

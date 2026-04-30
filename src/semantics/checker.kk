@@ -64,6 +64,8 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
         Nothing           -> t
     TFun(params, result) ->
       TFun(params.map(fn(p) apply-subst(s, p)), apply-subst(s, result))
+    TTuple(elems) ->
+      TTuple(elems.map(fn(e) apply-subst(s, e)))
     _ -> t
 
 // Check if a name is bound in a substitution.
@@ -100,6 +102,7 @@ fun occurs-in( name : string, t : hica-type ) : div bool
   match t
     TVar(n)          -> n == name
     TFun(params, r)  -> params.any(fn(p) occurs-in(name, p)) || occurs-in(name, r)
+    TTuple(elems)    -> elems.any(fn(e) occurs-in(name, e))
     _                -> False
 
 // ---------------------------------------------------------------------------
@@ -121,6 +124,11 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
     (TBool, TBool)     -> empty-subst
     (TString, TString) -> empty-subst
     (TUnit, TUnit)     -> empty-subst
+    (TTuple(es1), TTuple(es2)) ->
+      if es1.length != es2.length then
+        emit-error(sp, "tuple size mismatch: expected " ++ es1.length.show ++ " elements, got " ++ es2.length.show)
+        empty-subst
+      else unify-lists(es1, es2, sp)
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       if ps1.length != ps2.length then
         emit-error(sp, "function arity mismatch: expected " ++ ps1.length.show ++ " params, got " ++ ps2.length.show)
@@ -329,6 +337,44 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s1, parts') = infer-interp-parts(env, s, parts)
       (s1, Node(n.span, StringInterp(parts'), Just(TString)))
 
+    // --- Tuples ---
+    Tuple(elems) ->
+      val (s1, elems') = infer-args(env, s, elems)
+      val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
+      (s1, Node(n.span, Tuple(elems'), Just(TTuple(elem-types))))
+
+    TupleIndex(tup, idx) ->
+      val (s1, tup') = infer(env, s, tup)
+      val tup-type = apply-subst(s1, get-type(tup'))
+      match tup-type
+        TTuple(elems) ->
+          if idx >= 0 && idx < elems.length then
+            val elem-type = elems[idx].default(TUnit)
+            (s1, Node(n.span, TupleIndex(tup', idx), Just(elem-type)))
+          else
+            emit-error(n.span, "tuple index " ++ idx.show ++ " out of range for " ++ tup-type.show)
+            (s1, Node(n.span, TupleIndex(tup', idx), Just(fresh-tvar())))
+        TVar(_) ->
+          // Type not yet known — return a fresh var
+          val result-var = fresh-tvar()
+          (s1, Node(n.span, TupleIndex(tup', idx), Just(result-var)))
+        _ ->
+          emit-error(n.span, "cannot index non-tuple type " ++ tup-type.show)
+          (s1, Node(n.span, TupleIndex(tup', idx), Just(fresh-tvar())))
+
+    LetTuple(names, init, body) ->
+      val (s1, init') = infer(env, s, init)
+      val init-type = apply-subst(s1, get-type(init'))
+      // Unify with a tuple of fresh vars
+      val name-vars = names.map(fn(_n) fresh-tvar())
+      val expected = TTuple(name-vars)
+      val s2 = compose-subst(unify(init-type, expected, init.span), s1)
+      val bound-types = name-vars.map(fn(v) apply-subst(s2, v))
+      val env' = zip(names, bound-types).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
+      val (s3, body') = infer(env', s2, body)
+      val body-type = get-type(body')
+      (s3, Node(n.span, LetTuple(names, init', body'), Just(body-type)))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
@@ -342,7 +388,11 @@ fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fre
       val (s1, stmt') = infer(env, s, stmt)
       // If this stmt is a let binding, extend env for subsequent stmts
       val env' = match stmt'.expr
-        Let(name, _, _, _) -> env.extend(name, get-type(stmt'))
+        Let(name, _, init', _) -> env.extend(name, apply-subst(s1, get-type(init')))
+        LetTuple(names, init', _) ->
+          match apply-subst(s1, get-type(init'))
+            TTuple(ts) -> zip(names, ts).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
+            _ -> env
         _                  -> env
       val (s2, rest', last-type) = infer-stmts(env', s1, rest)
       (s2, Cons(stmt', rest'), last-type)

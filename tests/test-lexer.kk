@@ -134,3 +134,10 @@ pub fun main() : io ()
 
     dtest("lex float in expression")
       assert/is-true(token-string("1.5 + 2.5") == "1.5 + 2.5 <eof>")
+
+    // --- Dot token ---
+    dtest("lex dot")
+      assert/is-true(token-string("x.0") == "x . 0 <eof>")
+
+    dtest("lex tuple with dot")
+      assert/is-true(token-string("(1, 2).0") == "( 1 , 2 ) . 0 <eof>")

@@ -49,5 +49,11 @@ pub fun walk( n : node, f : transform ) : node
       Repeat(walk(count, f), walk(body, f))
     StringInterp(parts) ->
       StringInterp(parts.map(fn(p) walk(p, f)))
+    Tuple(elems) ->
+      Tuple(elems.map(fn(e) walk(e, f)))
+    TupleIndex(tup, idx) ->
+      TupleIndex(walk(tup, f), idx)
+    LetTuple(names, init, body) ->
+      LetTuple(names, walk(init, f), walk(body, f))
     other -> other
   Node(n.span, f(walked))

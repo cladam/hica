@@ -58,6 +58,10 @@ fun emit-type( t : hica-type ) : div string
     TBool       -> "bool"
     TString     -> "string"
     TUnit       -> ""    // omit — let Koka infer effects
+    TTuple(es)  ->
+      val parts = es.map(fn(e) emit-type(e))
+      if parts.any(fn(p) p == "") then ""
+      else "(" ++ parts.join(", ") ++ ")"
     TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
     TVar(_)     -> ""  // unresolved — omit annotation
 
@@ -114,6 +118,8 @@ fun emit-stmt( n : node, declared : list<string> ) : div string
           if ts == "" then "" else " : " ++ ts
         Nothing -> ""
       "val " ++ marshal-name(name, declared) ++ ann ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
+    LetTuple(names, init, body) ->
+      "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
     _ -> emit-expr(n, declared)
 
 // ---------------------------------------------------------------------------
@@ -164,6 +170,12 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     StringInterp(parts) ->
       val emitted = parts.map(fn(p) emit-interp-part(p, declared))
       "(" ++ emitted.join(" ++ ") ++ ")"
+    Tuple(elems) ->
+      "(" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ ")"
+    TupleIndex(tup, idx) ->
+      emit-expr(tup, declared) ++ "." ++ tuple-field-name(idx)
+    LetTuple(names, init, body) ->
+      "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
 
 fun emit-interp-part( p : node, declared : list<string> ) : div string
   match p.expr
@@ -175,6 +187,7 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TFloat)  -> "float64/show(" ++ inner ++ ")"
         Just(TBool)   -> "bool/show(" ++ inner ++ ")"
         Just(TString) -> inner
+        Just(TTuple(_)) -> inner ++ ".show"
         _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
@@ -203,6 +216,14 @@ fun repeat-body( e : expr, declared : list<string> ) : div string
     Block(stmts) -> stmts.map(fn(s) "  " ++ emit-expr(s, declared)).join("\n")
     _            -> "  " ++ emit-expr(Node(no-span, e), declared)
 
+// Map a 0-based tuple index to Koka's named accessor.
+fun tuple-field-name( idx : int ) : string
+  match idx
+    0 -> "fst"
+    1 -> "snd"
+    2 -> "thd"
+    n -> "field" ++ (n + 1).show
+
 // ---------------------------------------------------------------------------
 // Float detection: check if the program contains any float literals
 // ---------------------------------------------------------------------------
@@ -223,4 +244,7 @@ fun node-has-float( n : node ) : div bool
     Match(scrut, arms)    -> node-has-float(scrut) || arms.any(fn(a) node-has-float(a.body))
     Repeat(count, body)   -> node-has-float(count) || node-has-float(body)
     StringInterp(parts)   -> parts.any(fn(p) node-has-float(p))
+    Tuple(elems)           -> elems.any(fn(e) node-has-float(e))
+    TupleIndex(tup, _)     -> node-has-float(tup)
+    LetTuple(_, init, body) -> node-has-float(init) || node-has-float(body)
     _                     -> False

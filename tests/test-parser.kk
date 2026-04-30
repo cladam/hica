@@ -285,3 +285,32 @@ pub fun main() : io ()
     itest("parse negative float")
       val result = parse-show("-3.14")
       assert/is-true(result == "-3.14")
+
+    // --- Tuples ---
+    itest("parse tuple literal")
+      val result = parse-show("(1, 2)")
+      assert/is-true(result == "(1, 2)")
+
+    itest("parse triple")
+      val result = parse-show("(1, 2, 3)")
+      assert/is-true(result == "(1, 2, 3)")
+
+    itest("parse tuple index")
+      val result = parse-show("x.0")
+      assert/is-true(result == "x.0")
+
+    itest("parse tuple index .1")
+      val result = parse-show("x.1")
+      assert/is-true(result == "x.1")
+
+    itest("parse tuple literal then index")
+      val result = parse-show("(1, 2).0")
+      assert/is-true(result == "(1, 2).0")
+
+    itest("parse let tuple destructuring")
+      val result = parse-show("let (a, b) = (1, 2); a")
+      assert/is-true(result == "let (a, b) = (1, 2); a")
+
+    itest("parse parenthesised expr not tuple")
+      val result = parse-show("(42)")
+      assert/is-true(result == "42")

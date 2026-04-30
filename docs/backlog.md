@@ -35,9 +35,9 @@ Legend: **done** = shipped, **—** = not started
 
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| Float / double literals (`3.14`) | — | Low | Koka `float64`; lexer + parser + checker + codegen |
-| Tuples (`(1, "hi")`, `.0`, `.1`) | — | Low | Koka has native tuples; parser + emitter only |
-| Tuple destructuring (`let (a, b) = pair`) | — | Low | Parser + codegen |
+| Float / double literals (`3.14`) | **done** | Low | Koka `float64`; lexer + parser + checker + codegen |
+| Tuples (`(1, "hi")`, `.0`, `.1`) | **done** | Low | Koka has native tuples; parser + emitter only |
+| Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
 | Lists (`[1, 2, 3]`) | — | Medium | Koka `list<a>`; same literal syntax |
 | List operations (`map`, `filter`, `fold`) | — | Medium | Passthrough to Koka stdlib |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
