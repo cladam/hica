@@ -581,21 +581,31 @@ fun get-type( n : node ) : hica-type
 // ---------------------------------------------------------------------------
 
 // Infer a top-level function declaration.
+// Supports self-recursion: the function's own name is pre-seeded in the
+// environment with a fresh type so recursive calls can resolve.
 fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (subst, type-env, fun-decl)
   // Assign fresh type variables to each parameter
   val param-types = d.params.map(fn(_p) fresh-tvar())
+  val ret-var = fresh-tvar()
+  // Pre-seed the environment with the function's own type (enables recursion)
+  val self-type = TFun(param-types, ret-var)
+  val env-with-self = env.extend(d.name, self-type)
   // Extend environment with params
-  val param-env = zip(d.params, param-types).foldl(env, fn(e, entry) match entry { (n, t) -> e.extend(n, t) })
+  val param-env = zip(d.params, param-types).foldl(env-with-self, fn(e, entry) match entry { (n, t) -> e.extend(n, t) })
   // Infer the body
   val (s1, body') = infer(param-env, s, d.body)
   val body-type = get-type(body')
+  // Unify the pre-seeded return type with the actual body type
+  val s2 = compose-subst(unify(apply-subst(s1, ret-var), apply-subst(s1, body-type), d.body.span), s1)
   // Build the function type
-  val resolved-params = param-types.map(fn(t) apply-subst(s1, t))
-  val fun-type = TFun(resolved-params, apply-subst(s1, body-type))
+  val resolved-params = param-types.map(fn(t) apply-subst(s2, t))
+  val fun-type = TFun(resolved-params, apply-subst(s2, body-type))
+  // Detect if the function is recursive (calls itself in its body)
+  val recursive = body-calls-name(d.body, d.name)
   // Extend the outer environment with this function's name
   val env' = env.extend(d.name, fun-type)
-  val d' = d(body = body', param-types = resolved-params, ret-type = Just(apply-subst(s1, body-type)))
-  (s1, env', d')
+  val d' = d(body = body', param-types = resolved-params, ret-type = Just(apply-subst(s2, body-type)), is-recursive = recursive)
+  (s2, env', d')
 
 // Check an entire program: infer all declarations in order.
 pub fun check-program( p : program ) : <div,diag,fresh> program
@@ -613,3 +623,32 @@ fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fr
 // Convenience: check a single node (legacy API, still used by some tests).
 pub fun check( n : node ) : node
   n
+
+// ---------------------------------------------------------------------------
+// Recursion detection: check if a function body calls a given name
+// ---------------------------------------------------------------------------
+
+fun body-calls-name( n : node, name : string ) : div bool
+  match n.expr
+    Var(v)                  -> v == name
+    Call(callee, args)      -> body-calls-name(callee, name) || args.any(fn(a) body-calls-name(a, name))
+    Binary(_, l, r)         -> body-calls-name(l, name) || body-calls-name(r, name)
+    Unary(_, o)             -> body-calls-name(o, name)
+    Let(_, _, init, body)   -> body-calls-name(init, name) || body-calls-name(body, name)
+    LetTuple(_, init, body) -> body-calls-name(init, name) || body-calls-name(body, name)
+    Block(stmts)            -> stmts.any(fn(st) body-calls-name(st, name))
+    If(cond, th, el)        -> body-calls-name(cond, name) || body-calls-name(th, name) || body-calls-name(el, name)
+    Match(scrut, arms)      -> body-calls-name(scrut, name) || arms.any(fn(a) body-calls-name(a.body, name))
+    Fun(_, body)            -> body-calls-name(body, name)
+    Repeat(count, body)     -> body-calls-name(count, name) || body-calls-name(body, name)
+    ForIn(_, s, e, body)    -> body-calls-name(s, name) || body-calls-name(e, name) || body-calls-name(body, name)
+    StringInterp(parts)     -> parts.any(fn(p) body-calls-name(p, name))
+    Tuple(elems)            -> elems.any(fn(e) body-calls-name(e, name))
+    EList(elems)            -> elems.any(fn(e) body-calls-name(e, name))
+    TupleIndex(tup, _)      -> body-calls-name(tup, name)
+    ListIndex(lst, idx)     -> body-calls-name(lst, name) || body-calls-name(idx, name)
+    ListSlice(lst, sm, em)  ->
+      body-calls-name(lst, name) ||
+      sm.map(fn(x) body-calls-name(x, name)).default(False) ||
+      em.map(fn(x) body-calls-name(x, name)).default(False)
+    _                       -> False

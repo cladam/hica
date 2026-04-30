@@ -7,8 +7,4 @@ fun max(a, b) => if a > b { a } else { b }
 fun clamp(v, lo, hi) => min(max(v, lo), hi)
 
 // Greatest Common Divisor (GCD)
-// fun main() {
-//   gcd(48, 18) // Result: 6
-// }
-// fun gcd(a, b) => if b == 0 { a } else { gcd(b, a % b) }
-// TODO: needs recursive function support in checker + Koka div effect
+fun gcd(a, b) => if b == 0 { a } else { gcd(b, a % b) }

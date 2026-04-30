@@ -63,6 +63,7 @@ Legend: **done** = shipped, **—** = not started
 | Named functions (`fun f(x) => ...`) | **done** | — | Arrow + block bodies |
 | Lambdas (`(x) => x * 2`) | **done** | — | Desugars to `Fun` node |
 | Higher-order functions | **done** | — | Checker infers `TFun` types |
+| Self-recursion | **done** | Medium | Checker pre-seeds env; codegen omits annotation for `div` |
 | Mutual recursion | — | Medium | Needs fixpoint or two-pass approach |
 
 ### Modules & Visibility

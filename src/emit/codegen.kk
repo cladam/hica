@@ -82,7 +82,8 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
 
 fun emit-decl( d : fun-decl, declared : list<string> ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
-  val ret-ann = match d.ret-type
+  // Omit return type annotation for recursive functions — let Koka infer `div`
+  val ret-ann = if d.is-recursive then "" else match d.ret-type
     Just(t) ->
       val ts = emit-type(t)
       if ts == "" then "" else " : " ++ ts

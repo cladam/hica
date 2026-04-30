@@ -544,3 +544,19 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { let xs = [1, 2, 3][1:2]; println(length(xs)) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- Recursion ---
+    dtest("recursive function type-checks without error")
+      val ds = check-diagnostics("fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }\nfun main() => factorial(5)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("recursive function omits return annotation for div")
+      val code = emit-typed-program("fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }\nfun main() => factorial(5)")
+      // Should emit factorial without return type annotation so Koka infers div
+      assert/is-true(code.contains("fun hc_factorial("))
+      assert/is-true(code.contains("hc_factorial("))
+
+    dtest("non-recursive function still emits return annotation")
+      val code = emit-typed-program("fun double(x) => x * 2\nfun main() => double(3)")
+      assert/is-true(code.contains(": int"))
