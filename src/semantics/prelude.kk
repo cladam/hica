@@ -25,17 +25,14 @@ module semantics/prelude
 import syntax/ast
 
 // ---------------------------------------------------------------------------
-// Prelude: Koka stdlib functions known to the type checker
+// Extern environment: Koka stdlib functions that cannot be written in Hica
 // ---------------------------------------------------------------------------
 
-// Build the prelude environment with type signatures for Koka stdlib
-// functions.  These are all monomorphic for now.  `show` is typed as
+// Type signatures for Koka built-ins.  Everything that *can* be written
+// in Hica lives in prelude/*.hc instead.  `show` is typed as
 // `(int) -> string` which covers the most common case; other uses
 // (e.g. `show(true)`) will get a type error from the checker but still
 // compile correctly because Koka resolves the polymorphic `show`.
-pub fun prelude-env() : type-env
+pub fun extern-env() : type-env
   [ ("println", TFun([TString], TUnit)),
-    ("show",    TFun([TInt], TString)),
-    ("abs",     TFun([TInt], TInt)),
-    ("min",     TFun([TInt, TInt], TInt)),
-    ("max",     TFun([TInt, TInt], TInt)) ]
+    ("show",    TFun([TInt], TString)) ]

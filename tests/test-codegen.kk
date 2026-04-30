@@ -297,17 +297,17 @@ pub fun main() : io ()
       assert/is-true(undef.length == 0)
 
     dtest("abs no undefined variable error")
-      val ds = check-diagnostics("fun main() { abs(-5) }")
+      val ds = check-diagnostics("fun abs(n) => if n < 0 { -n } else { n }\nfun main() { abs(-5) }")
       val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
       assert/is-true(undef.length == 0)
 
     dtest("min no undefined variable error")
-      val ds = check-diagnostics("fun main() { min(1, 2) }")
+      val ds = check-diagnostics("fun min(a, b) => if a < b { a } else { b }\nfun main() { min(1, 2) }")
       val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
       assert/is-true(undef.length == 0)
 
     dtest("max no undefined variable error")
-      val ds = check-diagnostics("fun main() { max(1, 2) }")
+      val ds = check-diagnostics("fun max(a, b) => if a > b { a } else { b }\nfun main() { max(1, 2) }")
       val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
       assert/is-true(undef.length == 0)
 

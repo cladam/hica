@@ -70,7 +70,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
-| Prelude (`prelude.hc`) | **done** | Low | Seed checker env with stdlib signatures (println, show, abs, min, max); no module system needed |
+| Prelude (`prelude.hc`) | **done** | Low | `prelude/*.hc` loaded at build time; abs, min, max, clamp written in Hica; println/show as extern sigs |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 

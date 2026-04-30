@@ -118,9 +118,11 @@ fun cmd-check( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
+  val prelude-decls = load-prelude-decls()
+  val merged = Program(prelude-decls ++ prog.decls)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(prog)
+      check-program(merged)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if errors.is-empty then
     println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors)")
@@ -218,6 +220,22 @@ fun cmd-help( sub : maybe<string> )
     _             -> print-usage()
 
 // ---------------------------------------------------------------------------
+// Prelude: load .hc library files written in Hica
+// ---------------------------------------------------------------------------
+
+val prelude-files = ["prelude/math.hc"]
+
+fun load-prelude-decls()
+  var result : list<fun-decl> := []
+  prelude-files.foreach fn(f)
+    if is-file(f.path) then
+      val source = read-text-file(f.path)
+      val tokens = lex(source)
+      val prog = run-parser-program(tokens)
+      result := result ++ prog.decls
+  result
+
+// ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
@@ -228,10 +246,13 @@ fun build( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
+  // Load prelude .hc files and merge with user program
+  val prelude-decls = load-prelude-decls()
+  val merged = Program(prelude-decls ++ prog.decls)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(prog)
+      check-program(merged)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(d.show))

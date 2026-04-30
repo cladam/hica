@@ -498,7 +498,7 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (su
 
 // Check an entire program: infer all declarations in order.
 pub fun check-program( p : program ) : <div,diag,fresh> program
-  val (_, _, decls') = infer-decls(prelude-env(), empty-subst, p.decls)
+  val (_, _, decls') = infer-decls(extern-env(), empty-subst, p.decls)
   Program(decls')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh> (subst, type-env, list<fun-decl>)
