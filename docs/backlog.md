@@ -70,7 +70,7 @@ Legend: **done** = shipped, **—** = not started
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
-| Prelude (`prelude.hc`) | — | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
+| Prelude (`prelude.hc`) | **done** | Low | Seed checker env with stdlib signatures (println, show, abs, min, max); no module system needed |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
@@ -112,10 +112,10 @@ Legend: **done** = shipped, **—** = not started
 
 Issues that exist today but are not yet fixed:
 
-- **`println` reports "undefined variable"** — `println` is a Koka stdlib
-  function. The hica type checker doesn't know about it, so it emits a type
-  error. Programs still compile and run correctly because Koka resolves it.
-  Fix: add a prelude / built-in environment with `println`, `show`, etc.
+- **~~`println` reports "undefined variable"~~** — Fixed by prelude.
+  `println`, `show`, `abs`, `min`, `max` are now seeded into the type
+  checker's environment. Note: `show` is typed as `(int) -> string`;
+  calling it on non-int types still triggers a type error but compiles fine.
 - **Polymorphic functions over tuples** — a function like
   `fun swap(p) => (p.1, p.0)` leaves param/return types unresolved (TVar).
   The generated Koka code omits annotations, but Koka can't always resolve

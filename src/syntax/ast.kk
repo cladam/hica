@@ -237,3 +237,11 @@ pub struct program
 
 pub fun program/show( p : program ) : div string
   p.decls.map(show).join("\n\n")
+
+// ---------------------------------------------------------------------------
+// Type environment
+// ---------------------------------------------------------------------------
+
+pub alias type-env = list<(string, hica-type)>
+
+pub val empty-env : type-env = []

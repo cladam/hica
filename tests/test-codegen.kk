@@ -284,3 +284,39 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { (1, 2, 3, 4, 5) }")
       val tuple-errors = ds.filter(fn(d) d.message.contains("at most 5"))
       assert/is-true(tuple-errors.length == 0)
+
+    // --- Prelude: built-in stdlib functions ---
+    dtest("println no undefined variable error")
+      val ds = check-diagnostics("fun main() { println(\"hello\") }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length == 0)
+
+    dtest("show no undefined variable error")
+      val ds = check-diagnostics("fun main() { show(42) }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length == 0)
+
+    dtest("abs no undefined variable error")
+      val ds = check-diagnostics("fun main() { abs(-5) }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length == 0)
+
+    dtest("min no undefined variable error")
+      val ds = check-diagnostics("fun main() { min(1, 2) }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length == 0)
+
+    dtest("max no undefined variable error")
+      val ds = check-diagnostics("fun main() { max(1, 2) }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length == 0)
+
+    dtest("println passes through to Koka (no hc_ prefix)")
+      val code = emit-typed-program("fun main() { println(\"hi\") }")
+      assert/is-true(code.contains("println(\"hi\")"))
+      assert/is-true(!code.contains("hc_println"))
+
+    dtest("unknown variable still reports error")
+      val ds = check-diagnostics("fun main() { unknown_func(1) }")
+      val undef = ds.filter(fn(d) d.message.contains("undefined variable"))
+      assert/is-true(undef.length > 0)

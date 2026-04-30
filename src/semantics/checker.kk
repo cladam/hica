@@ -24,6 +24,7 @@ module semantics/checker
 
 import syntax/ast
 import diagnostics/diagnostics
+import semantics/prelude
 
 // ---------------------------------------------------------------------------
 // Fresh type variable generation
@@ -154,10 +155,6 @@ fun unify-lists( ts1 : list<hica-type>, ts2 : list<hica-type>, sp : span ) : <di
 // ---------------------------------------------------------------------------
 // Type environment
 // ---------------------------------------------------------------------------
-
-pub alias type-env = list<(string, hica-type)>
-
-pub val empty-env : type-env = []
 
 // Find a type in the environment by name.
 fun env-find( env : type-env, name : string ) : maybe<hica-type>
@@ -501,7 +498,7 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (su
 
 // Check an entire program: infer all declarations in order.
 pub fun check-program( p : program ) : <div,diag,fresh> program
-  val (_, _, decls') = infer-decls(empty-env, empty-subst, p.decls)
+  val (_, _, decls') = infer-decls(prelude-env(), empty-subst, p.decls)
   Program(decls')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh> (subst, type-env, list<fun-decl>)
