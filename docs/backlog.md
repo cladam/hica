@@ -108,6 +108,26 @@ Legend: **done** = shipped, **—** = not started
 
 ---
 
+## Known Limitations
+
+Issues that exist today but are not yet fixed:
+
+- **`println` reports "undefined variable"** — `println` is a Koka stdlib
+  function. The hica type checker doesn't know about it, so it emits a type
+  error. Programs still compile and run correctly because Koka resolves it.
+  Fix: add a prelude / built-in environment with `println`, `show`, etc.
+- **Polymorphic functions over tuples** — a function like
+  `fun swap(p) => (p.1, p.0)` leaves param/return types unresolved (TVar).
+  The generated Koka code omits annotations, but Koka can't always resolve
+  `.fst`/`.snd` without them. Fix: propagate call-site type info back to
+  declarations, or let users add type annotations.
+- **Tuples limited to 5 elements** — Koka defines tuple types up to `tuple5`.
+  The checker now rejects tuples with > 5 elements.
+- **No cross-function type propagation** — each function is inferred
+  independently. Call-site constraints don't refine a callee's inferred types.
+
+---
+
 ## What We Defer
 
 These are explicitly **not** in scope near-term:
