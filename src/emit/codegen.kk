@@ -194,7 +194,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     EList(elems) ->
       "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
     ListIndex(lst, idx) ->
-      emit-expr(lst, declared) ++ "[" ++ emit-expr(idx, declared) ++ "]"
+      emit-expr(lst, declared) ++ "[" ++ emit-expr(idx, declared) ++ "].unjust"
     ListSlice(lst, start-m, end-m) ->
       val lst-code = emit-expr(lst, declared)
       match start-m

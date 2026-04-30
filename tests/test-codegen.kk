@@ -510,7 +510,7 @@ pub fun main() : io ()
 
     dtest("list index emits bracket syntax")
       val code = emit-typed-program("fun main() => [10, 20, 30][1]")
-      assert/is-true(code.contains("[10, 20, 30][1]"))
+      assert/is-true(code.contains("[10, 20, 30][1].unjust"))
 
     dtest("list index returns element type")
       val ds = check-diagnostics("fun main() { let x = [1, 2, 3][0]; println(x + 1) }")
@@ -519,7 +519,7 @@ pub fun main() : io ()
 
     dtest("list index with variable")
       val code = emit-typed-program("fun main() { let nums = [1, 2, 3]; println(nums[0]) }")
-      assert/is-true(code.contains("nums[0]"))
+      assert/is-true(code.contains("nums[0].unjust"))
 
     // --- List slicing ---
     dtest("list slice start:end type-checks")
