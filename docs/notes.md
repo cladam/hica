@@ -22,11 +22,4 @@ The practical route for me going forward: get the parser and emitter solid, writ
 
 ---
 
-**Gaps noticed while writing the kids tutorial (2026-04-29):**
-
-- **Loops** — no `for` or `while` yet. Limits what people can build (counting,
-  repetition, games). Could start with a simple `for i in range(n) { ... }`.
-- **Lists / collections** — no list literals or operations. Even a basic
-  `[1, 2, 3]` would unlock many beginner exercises.
-
 See [backlog.md](backlog.md) for the full feature backlog.
