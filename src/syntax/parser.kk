@@ -184,11 +184,18 @@ fun parse-postfix() : <div,parser> node
         advance()
         match peek()
           TkColon ->
-            // list[:end] — slice with no start
+            // list[:end] or list[:] — slice with no start
             advance()
-            val end-e = parse-expr()
-            val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
-            result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Just(end-e)))
+            match peek()
+              TkRBracket ->
+                // list[:] — identity slice
+                val end-tok = advance()
+                result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Nothing))
+              _ ->
+                // list[:end]
+                val end-e = parse-expr()
+                val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Just(end-e)))
           TkRBracket ->
             // list[] — parse error, empty index
             parse-error("expected index expression inside []")
