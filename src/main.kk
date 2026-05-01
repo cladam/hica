@@ -1,24 +1,10 @@
 /*
  * hica – compiler entry point
+ * 
+ * This source file is part of the hica open source project
  * Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
- * SOFTWARE.
+ *
+ * See https://github.com/cladam/hica/blob/main/LICENSE for license information
 */
 module main
 
@@ -162,7 +148,7 @@ fun cmd-new( name-arg : maybe<string> )
         println("error: directory '" ++ name ++ "' already exists")
       else
         ensure-dir(project-dir)
-        scaffold-project(project-dir, name)
+        scaffold-project(project-dir, project-dir.stemname)
 
 fun cmd-init()
   val manifest = "hica.ini".path
@@ -182,9 +168,11 @@ fun scaffold-project( project-dir : path, name : string )
     "}"
   ].join("\n") ++ "\n"
   val manifest-content = [
-    "name = " ++ name,
-    "version = 0.1.0",
-    "entry = main.hc"
+    "[project]",
+    "name = \"" ++ name ++ "\"",
+    "version = \"0.1.0\"",
+    "license = \"MIT\"",
+    "entry = \"main.hc\""
   ].join("\n") ++ "\n"
   val readme-content = [
     "# " ++ name,
@@ -308,15 +296,20 @@ fun resolve-entry() : <fsys,exn,div> maybe<string>
   else Nothing
 
 fun ini-field( content : string, key : string ) : div maybe<string>
-  // Parse "key = value" lines in a simple ini file
+  // Parse "key = value" or 'key = "value"' lines in a simple ini/toml file
   var result := Nothing
   content.lines.foreach fn(line)
     val trimmed = line.trim
     if trimmed.starts-with(key).bool then
       val rest = trimmed.slice.sslice/drop(key.count).string.trim-left
       if rest.starts-with("=").bool then
-        result := Just(rest.slice.sslice/drop(1).string.trim)
+        result := Just(rest.slice.sslice/drop(1).string.trim.unquote)
   result
+
+fun unquote( s : string ) : string
+  if s.count >= 2 && s.starts-with("\"").bool && s.ends-with("\"").bool then
+    s.slice.sslice/drop(1).sslice/extend(0 - 1).string
+  else s
 
 fun print-usage()
   println(hica-cli().format-help)

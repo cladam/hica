@@ -1,3 +1,10 @@
+// hica – math prelude
+//
+// This source file is part of the hica open source project
+// Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
+//
+// See https://github.com/cladam/hica/blob/main/LICENSE for license information
+
 fun abs(n) => if n < 0 { -n } else { n }
 
 fun min(a, b) => if a < b { a } else { b }
