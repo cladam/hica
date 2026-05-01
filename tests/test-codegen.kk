@@ -531,6 +531,14 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
+    dtest("list slice negative end emits length adjustment")
+      val code = emit-typed-program("fun main() => [1, 2, 3, 4, 5][1:-1]")
+      assert/is-true(code.contains("list/length"))
+
+    dtest("list slice negative start emits length adjustment")
+      val code = emit-typed-program("fun main() => [1, 2, 3, 4, 5][-3:]")
+      assert/is-true(code.contains("list/length"))
+
     // --- Recursion ---
     dtest("recursive function type-checks without error")
       val ds = check-diagnostics("fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }\nfun main() => factorial(5)")
