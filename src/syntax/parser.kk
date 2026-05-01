@@ -140,6 +140,7 @@ fun infix-bp( tk : token-kind ) : maybe<(int, int, binop)>
     TkAmpAmp   -> Just((3, 4, And))
     TkEqEq     -> Just((5, 6, Eq))
     TkBangEq   -> Just((5, 6, Neq))
+    TkIn       -> Just((7, 8, In))
     TkLt       -> Just((7, 8, Lt))
     TkGt       -> Just((7, 8, Gt))
     TkLe       -> Just((7, 8, Le))

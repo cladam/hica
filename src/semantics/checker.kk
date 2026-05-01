@@ -284,18 +284,19 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val rt = apply-subst(s2, get-type(rhs'))
       val (s3, result-type) = match op
         Add ->
-          // + works on int, float, or string: unify operands, then check resolved type
+          // + works on int, float, string, or lists: unify operands, then check resolved type
           val s-lr = compose-subst(unify(lt, rt, n.span), s2)
           val resolved = apply-subst(s-lr, lt)
           match resolved
             TInt    -> (s-lr, TInt)
             TFloat  -> (s-lr, TFloat)
             TString -> (s-lr, TString)
+            TList(_) -> (s-lr, resolved)
             TVar(_) ->
               // Ambiguous — default to int
               (compose-subst(unify(resolved, TInt, n.span), s-lr), TInt)
             _ ->
-              emit-error(n.span, "operator + requires int, float, or string operands, got " ++ resolved.show)
+              emit-error(n.span, "operator + requires int, float, string, or list operands, got " ++ resolved.show)
               (s-lr, TInt)
         Sub -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
         Mul -> infer-numeric-op(lt, rt, lhs, rhs, n, s2)
@@ -309,6 +310,13 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
         Ge  -> infer-comparison-op(lt, rt, lhs, rhs, n, s2)
         And -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
         Or  -> (compose-subst(unify(rt, TBool, rhs.span), compose-subst(unify(lt, TBool, lhs.span), s2)), TBool)
+        In  ->
+          // x in list: rhs must be TList(elem), lhs must match elem
+          val elem-var = fresh-tvar()
+          val s-list = compose-subst(unify(rt, TList(elem-var), rhs.span), s2)
+          val resolved-elem = apply-subst(s-list, elem-var)
+          val s-elem = compose-subst(unify(lt, resolved-elem, lhs.span), s-list)
+          (s-elem, TBool)
       (s3, Node(n.span, Binary(op, lhs', rhs'), Just(result-type)))
 
     // --- Unary operators ---

@@ -101,6 +101,7 @@ pub type binop
   Ge
   And
   Or
+  In
 
 pub fun binop/show( op : binop ) : string
   match op
@@ -117,6 +118,7 @@ pub fun binop/show( op : binop ) : string
     Ge  -> ">="
     And -> "&&"
     Or  -> "||"
+    In  -> "in"
 
 pub type unop
   Neg

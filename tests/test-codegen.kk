@@ -546,3 +546,53 @@ pub fun main() : io ()
     dtest("non-recursive function still emits return annotation")
       val code = emit-typed-program("fun double(x) => x * 2\nfun main() => double(3)")
       assert/is-true(code.contains(": int"))
+
+    // --- enumerate ---
+    dtest("enumerate type-checks")
+      val ds = check-diagnostics("fun main() => enumerate([10, 20, 30])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("cannot be found"))
+      assert/is-true(errors.length == 0)
+
+    dtest("enumerate emits map-indexed")
+      val code = emit-typed-program("fun main() => enumerate([10, 20, 30])")
+      assert/is-true(code.contains("map-indexed"))
+
+    // --- list concat with + ---
+    dtest("list + list type-checks")
+      val ds = check-diagnostics("fun main() => [1, 2] + [3, 4]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("requires"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list + list emits ++")
+      val code = emit-typed-program("fun main() => [1, 2] + [3, 4]")
+      assert/is-true(code.contains("++"))
+
+    dtest("list + non-list reports error")
+      val ds = check-diagnostics("fun main() => [1, 2] + 3")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("cannot unify"))
+      assert/is-true(errors.length > 0)
+
+    // --- negative indexing ---
+    dtest("negative index emits length adjustment")
+      val code = emit-typed-program("fun main() => [10, 20, 30][-1]")
+      assert/is-true(code.contains(".length"))
+
+    // --- in operator ---
+    dtest("in operator type-checks")
+      val ds = check-diagnostics("fun main() => 3 in [1, 2, 3]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("cannot"))
+      assert/is-true(errors.length == 0)
+
+    dtest("in operator emits any")
+      val code = emit-typed-program("fun main() => 3 in [1, 2, 3]")
+      assert/is-true(code.contains(".any("))
+
+    dtest("in operator returns bool")
+      val ds = check-diagnostics("fun main() { let result = 3 in [1, 2, 3]; println(result && true) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("in operator type mismatch reports error")
+      val ds = check-diagnostics("fun main() => \"hi\" in [1, 2, 3]")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("cannot unify"))
+      assert/is-true(errors.length > 0)

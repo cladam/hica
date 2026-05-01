@@ -40,6 +40,11 @@ Legend: **done** = shipped, **—** = not started
 | Tuple destructuring (`let (a, b) = pair`) | **done** | Low | Parser + codegen |
 | Lists (`[1, 2, 3]`) | **done** | Medium | Koka `list<a>`; same literal syntax |
 | List operations (`map`, `filter`, `fold`) | **done** | Medium | Extern sigs in prelude; `fold` → Koka `foldl` |
+| List indexing (`list[0]`, `list[-1]`) | **done** | Medium | Negative index → length adjustment; `.unjust` unwrap |
+| List slicing (`list[1:3]`, `list[:2]`, `list[2:]`) | **done** | Medium | Emit `drop`/`take` composition |
+| List concat with `+` | **done** | Low | Checker allows `+` on lists; codegen emits `++` |
+| `in` operator (`x in list`) | **done** | Medium | New binop; emits `list.any(fn(el) el == x)` |
+| `enumerate(list)` | **done** | Low | Prelude sig; emits Koka `map-indexed` |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |

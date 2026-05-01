@@ -52,4 +52,19 @@ fun main() {
   println(nums[1:3])
   println(nums[:2])
   println(nums[3:])
+
+  // negative indexing — count from end
+  println(nums[-1])
+  println(nums[-2])
+
+  // list concatenation with +
+  let more = nums + [6, 7, 8];
+  println(more)
+
+  // in operator — membership test
+  println(3 in nums)
+  println(9 in nums)
+
+  // enumerate — pair each element with its index
+  println(enumerate(words))
 }

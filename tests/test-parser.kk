@@ -345,3 +345,10 @@ pub fun main() : io ()
     itest("parse for-in with expressions")
       val result = parse-show("for x in 1..n { x }")
       assert/is-true(result == "for x in 1..n { x }")
+
+    // --- In operator ---
+    itest("parse in operator")
+      assert/is-true(parse-show("3 in xs") == "(3 in xs)")
+
+    itest("parse in with list literal")
+      assert/is-true(parse-show("x in [1, 2, 3]") == "(x in [1, 2, 3])")

@@ -140,7 +140,8 @@ See 'hica help <command>' for more information on a specific command.
 - [Koka](https://koka-lang.github.io/) — language with algebraic effects and
   Perceus memory management
 - C# — the `=>` operator and query expression syntax
+- Python – easy and powerful lists
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](LICENSE).

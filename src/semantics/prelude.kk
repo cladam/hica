@@ -34,4 +34,5 @@ pub fun extern-env() : type-env
     ("concat",  TFun([TList(TList(TVar("_a")))], TList(TVar("_a")))),
     ("any",     TFun([TList(TVar("_a")), TFun([TVar("_a")], TBool)], TBool)),
     ("all",     TFun([TList(TVar("_a")), TFun([TVar("_a")], TBool)], TBool)),
-    ("foreach", TFun([TList(TVar("_a")), TFun([TVar("_a")], TUnit)], TUnit)) ]
+    ("foreach", TFun([TList(TVar("_a")), TFun([TVar("_a")], TUnit)], TUnit)),
+    ("enumerate", TFun([TList(TVar("_a"))], TList(TTuple([TInt, TVar("_a")])))) ]

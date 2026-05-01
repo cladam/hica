@@ -13,6 +13,9 @@ fun hc_max(a : int, b : int) : int
 fun hc_clamp(v : int, lo : int, hi : int) : int
   hc_min(hc_max(v, lo), hi)
 
+fun hc_gcd(a : int, b : int)
+  if (b == 0) then a else hc_gcd(b, (a % b))
+
 fun main()
   val nums : list<int> = [1, 2, 3, 4, 5]
   println(nums.show)
@@ -41,3 +44,10 @@ fun main()
   println(nums.drop(1).take((3) - (1)).show)
   println(nums.take(2).show)
   println(nums.drop(3).show)
+  println(nums[nums.length + (0 - 1)].unjust.show)
+  println(nums[nums.length + (0 - 2)].unjust.show)
+  val more : list<int> = (nums ++ [6, 7, 8])
+  println(more.show)
+  println(nums.any(fn(hc__el) hc__el == 3).show)
+  println(nums.any(fn(hc__el) hc__el == 9).show)
+  println(words.map-indexed(fn(hc__i, hc__x) (hc__i, hc__x)).show)

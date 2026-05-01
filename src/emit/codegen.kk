@@ -135,10 +135,16 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Literal(LitString(s))   -> "\"" ++ s ++ "\""
     Var(name)               -> marshal-name(name, declared)
     Binary(op, l, r)        ->
-      val op-str = match (op, n.typ)
-        (Add, Just(TString)) -> "++"
-        _                    -> emit-binop(op)
-      "(" ++ emit-expr(l, declared) ++ " " ++ op-str ++ " " ++ emit-expr(r, declared) ++ ")"
+      match op
+        In ->
+          // x in list → list.any(fn(hc__el) hc__el == x)
+          emit-expr(r, declared) ++ ".any(fn(hc__el) hc__el == " ++ emit-expr(l, declared) ++ ")"
+        _ ->
+          val op-str = match (op, n.typ)
+            (Add, Just(TString))  -> "++"
+            (Add, Just(TList(_))) -> "++"
+            _                     -> emit-binop(op)
+          "(" ++ emit-expr(l, declared) ++ " " ++ op-str ++ " " ++ emit-expr(r, declared) ++ ")"
     Unary(Neg, o)           -> "(0 - " ++ emit-expr(o, declared) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->
@@ -155,6 +161,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TFloat)  -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+        (Var("enumerate"), [arg]) ->
+          emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
         _ ->
           val callee-code = match callee.expr
             Var("fold") -> "foldl"
@@ -181,7 +189,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     EList(elems) ->
       "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
     ListIndex(lst, idx) ->
-      emit-expr(lst, declared) ++ "[" ++ emit-expr(idx, declared) ++ "].unjust"
+      val lst-code = emit-expr(lst, declared)
+      val idx-code = emit-expr(idx, declared)
+      match idx.expr
+        Unary(Neg, _) ->
+          // Negative index: count from end
+          lst-code ++ "[" ++ lst-code ++ ".length + " ++ idx-code ++ "].unjust"
+        _ ->
+          lst-code ++ "[" ++ idx-code ++ "].unjust"
     ListSlice(lst, start-m, end-m) ->
       val lst-code = emit-expr(lst, declared)
       match start-m
@@ -231,6 +246,7 @@ fun emit-binop( op : binop ) : string
     Ge  -> ">="
     And -> "&&"
     Or  -> "||"
+    In  -> "in"  // never reached — handled specially above
 
 fun repeat-body( e : expr, declared : list<string> ) : div string
   match e
