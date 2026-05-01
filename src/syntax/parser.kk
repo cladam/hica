@@ -55,6 +55,9 @@ fun parse-prefix() : <div,parser> node
     TkString(s) ->
       val t = advance()
       Node(t.span, Literal(LitString(s)))
+    TkChar(c) ->
+      val t = advance()
+      Node(t.span, Literal(LitChar(c)))
     TkIdent(name) ->
       val t = advance()
       Node(t.span, Var(name))

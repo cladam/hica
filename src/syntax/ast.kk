@@ -37,6 +37,7 @@ pub type hica-type
   TFloat
   TBool
   TString
+  TChar
   TUnit
   TTuple( elems : list<hica-type> )
   TList( elem : hica-type )
@@ -49,6 +50,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TFloat      -> "float"
     TBool       -> "bool"
     TString     -> "string"
+    TChar       -> "char"
     TUnit       -> "()"
     TTuple(es)  -> "(" ++ es.map(show).join(", ") ++ ")"
     TList(e)    -> "list<" ++ e.show ++ ">"
@@ -61,6 +63,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TFloat, TFloat)   -> True
     (TBool, TBool)     -> True
     (TString, TString) -> True
+    (TChar, TChar)     -> True
     (TUnit, TUnit)     -> True
     (TTuple(a), TTuple(b)) ->
       a.length == b.length && zip(a, b).all(fn((x, y)) x == y)
@@ -79,6 +82,7 @@ pub type literal
   LitFloat( f : string )
   LitBool( b : bool )
   LitString( s : string )
+  LitChar( c : string )
 
 pub fun literal/show( l : literal ) : string
   match l
@@ -86,6 +90,7 @@ pub fun literal/show( l : literal ) : string
     LitFloat(f)  -> f
     LitBool(b)   -> b.show
     LitString(s) -> "\"" ++ s ++ "\""
+    LitChar(c)   -> "'" ++ c ++ "'"
 
 pub type binop
   Add

@@ -113,6 +113,7 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
     (TFloat, TFloat)   -> empty-subst
     (TBool, TBool)     -> empty-subst
     (TString, TString) -> empty-subst
+    (TChar, TChar)     -> empty-subst
     (TUnit, TUnit)     -> empty-subst
     (TTuple(es1), TTuple(es2)) ->
       if es1.length != es2.length then
@@ -221,6 +222,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       (s, n(typ = Just(TBool)))
     Literal(LitString(_)) ->
       (s, n(typ = Just(TString)))
+    Literal(LitChar(_)) ->
+      (s, n(typ = Just(TChar)))
 
     // --- Variables: look up in environment ---
     Var(name) ->
@@ -571,6 +574,7 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
     PLit(LitFloat(_))  -> (compose-subst(unify(scrut-type, TFloat, no-span), s), env)
     PLit(LitBool(_))   -> (compose-subst(unify(scrut-type, TBool, no-span), s), env)
     PLit(LitString(_)) -> (compose-subst(unify(scrut-type, TString, no-span), s), env)
+    PLit(LitChar(_))   -> (compose-subst(unify(scrut-type, TChar, no-span), s), env)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type

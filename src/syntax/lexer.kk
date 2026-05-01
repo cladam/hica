@@ -20,6 +20,7 @@ pub type token-kind
   TkFloat( value : string )
   TkBool( value : bool )
   TkString( value : string )
+  TkChar( value : string )
   // String interpolation: "hello {name}!" becomes
   //   TkInterpStart  TkStringPart("hello ")  TkInterpExpr  ...expr tokens...  TkRBrace  TkStringPart("!")  TkInterpEnd
   TkInterpStart                     // opening " of interpolated string
@@ -86,6 +87,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkFloat(v)   -> v
     TkBool(v)    -> v.show
     TkString(v)  -> "\"" ++ v ++ "\""
+    TkChar(v)    -> "'" ++ v ++ "'"
     TkInterpStart   -> "<interp-start>"
     TkStringPart(v) -> "<part:\"" ++ v ++ "\">"
     TkInterpExpr    -> "<interp-expr>"
@@ -149,6 +151,7 @@ fun lex-from( cs : list<char>, pos : int ) : div list<token>
       elif c.is-digit then lex-number(cs, pos)
       elif c.is-alpha || c == '_' then lex-ident(cs, pos)
       elif c == '"' then lex-string(rest, pos, pos + 1)
+      elif c == '\'' then lex-char(rest, pos, pos + 1)
       else lex-punct(cs, pos)
 
 fun head-is( cs : list<char>, ch : char ) : bool
@@ -221,6 +224,19 @@ fun lex-plain-string( cs : list<char>, start : int, pos : int ) : div list<token
             Cons(c, _) -> Cons(Token(TkString(c.string ++ s), sp), toks)
             _          -> Cons(Token(TkString(s), sp), toks)
         other -> other
+
+// Lex a character literal: 'c'
+fun lex-char( cs : list<char>, start : int, pos : int ) : div list<token>
+  match cs
+    Nil -> [Token(TkError("unterminated character literal"), Span(start, pos))]
+    Cons('\'', rest) ->
+      [Token(TkError("empty character literal"), Span(start, pos + 1))] ++ lex-from(rest, pos + 1)
+    Cons(c, rest) ->
+      match rest
+        Cons('\'', rest2) ->
+          Cons(Token(TkChar(c.string), Span(start, pos + 2)), lex-from(rest2, pos + 2))
+        _ ->
+          [Token(TkError("character literal must contain exactly one character"), Span(start, pos))] ++ lex-from(rest, pos + 1)
 
 // Lex interpolated string parts: text segments and {expr} holes
 fun lex-interp-parts( cs : list<char>, start : int, pos : int ) : div list<token>

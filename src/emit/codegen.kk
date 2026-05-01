@@ -48,6 +48,7 @@ fun emit-type( t : hica-type ) : div string
     TFloat      -> "float64"
     TBool       -> "bool"
     TString     -> "string"
+    TChar       -> "char"
     TUnit       -> ""    // omit — let Koka infer effects
     TTuple(es)  ->
       val parts = es.map(fn(e) emit-type(e))
@@ -138,6 +139,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Literal(LitBool(True))  -> "True"
     Literal(LitBool(False)) -> "False"
     Literal(LitString(s))   -> "\"" ++ s ++ "\""
+    Literal(LitChar(c))     -> "'" ++ c ++ "'"
     Var(name)               -> marshal-name(name, declared)
     Binary(op, l, r)        ->
       match op
@@ -165,6 +167,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TInt)    -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TFloat)  -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+            Just(TChar)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
         (Var("enumerate"), [arg]) ->
           emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
@@ -226,6 +229,7 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TInt)    -> "int/show(" ++ inner ++ ")"
         Just(TFloat)  -> "float64/show(" ++ inner ++ ")"
         Just(TBool)   -> "bool/show(" ++ inner ++ ")"
+        Just(TChar)   -> "char/show(" ++ inner ++ ")"
         Just(TString) -> inner
         Just(TTuple(_)) -> inner ++ ".show"
         Just(TList(_))  -> inner ++ ".show"
