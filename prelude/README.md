@@ -13,10 +13,30 @@ These functions are provided by the Koka runtime and cannot be written in
 Hica. Their type signatures are declared in the compiler
 (`src/semantics/prelude.kk`).
 
+#### I/O & display
+
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `println(s)` | `(string) -> ()` | Print a string to stdout with a newline |
-| `show(n)` | `(int) -> string` | Convert an integer to its string representation |
+| `println(s)` | `(a) -> ()` | Print a value to stdout with a newline |
+| `show(n)` | `(a) -> string` | Convert a value to its string representation |
+
+#### List operations
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `map(xs, f)` | `(list<a>, (a) -> b) -> list<b>` | Apply `f` to each element |
+| `filter(xs, f)` | `(list<a>, (a) -> bool) -> list<a>` | Keep elements where `f` returns true |
+| `fold(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> b` | Reduce a list to a single value |
+| `length(xs)` | `(list<a>) -> int` | Length of a list |
+| `reverse(xs)` | `(list<a>) -> list<a>` | Reverse a list |
+| `take(xs, n)` | `(list<a>, int) -> list<a>` | Take the first `n` elements |
+| `drop(xs, n)` | `(list<a>, int) -> list<a>` | Drop the first `n` elements |
+| `zip(xs, ys)` | `(list<a>, list<b>) -> list<(a, b)>` | Pair up elements from two lists |
+| `concat(xss)` | `(list<list<a>>) -> list<a>` | Flatten a list of lists |
+| `any(xs, f)` | `(list<a>, (a) -> bool) -> bool` | True if `f` holds for any element |
+| `all(xs, f)` | `(list<a>, (a) -> bool) -> bool` | True if `f` holds for all elements |
+| `foreach(xs, f)` | `(list<a>, (a) -> ()) -> ()` | Call `f` on each element for side effects |
+| `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
 
 ### `math.hc` — numeric helpers
 
@@ -28,6 +48,7 @@ Written in Hica. Source: [`prelude/math.hc`](math.hc)
 | `min(a, b)` | `(int, int) -> int` | Smaller of two values |
 | `max(a, b)` | `(int, int) -> int` | Larger of two values |
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
+| `gcd(a, b)` | `(int, int) -> int` | Greatest common divisor |
 
 ## How to add a prelude function
 
@@ -91,11 +112,7 @@ These are candidates once the language adds the necessary features:
 | `is_even(n)` | modulo (`%`) | Check if a number is even |
 | `is_odd(n)` | modulo (`%`) | Check if a number is odd |
 | `sign(n)` | — | Return -1, 0, or 1 |
-| `sum(xs)` | lists | Sum a list of integers |
-| `length(xs)` | lists | Length of a list |
-| `map(xs, f)` | lists, higher-order | Apply `f` to each element |
-| `filter(xs, f)` | lists, higher-order | Keep elements where `f` returns true |
-| `reverse(xs)` | lists | Reverse a list |
+| `sum(xs)` | fold | Sum a list of integers |
 | `range(a, b)` | lists, `for` loop | Generate a list from `a` to `b` |
 
 ## Inspiration
