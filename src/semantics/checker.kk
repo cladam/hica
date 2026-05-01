@@ -480,16 +480,24 @@ fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fre
       (s', [stmt'], get-type(stmt'))
     Cons(stmt, rest) ->
       val (s1, stmt') = infer(env, s, stmt)
-      // If this stmt is a let binding, extend env for subsequent stmts
-      val env' = match stmt'.expr
-        Let(name, _, init', _) -> env.extend(name, apply-subst(s1, get-type(init')))
-        LetTuple(names, init', _) ->
-          match apply-subst(s1, get-type(init'))
-            TTuple(ts) -> zip(names, ts).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
-            _ -> env
-        _                  -> env
+      // If this stmt is a let (chain), extend env for subsequent stmts
+      val env' = extend-let-chain(env, s1, stmt')
       val (s2, rest', last-type) = infer-stmts(env', s1, rest)
       (s2, Cons(stmt', rest'), last-type)
+
+// Recursively extract all let bindings from a let chain (let a = ...; let b = ...; body)
+// and extend the environment with each one.
+fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
+  match n.expr
+    Let(name, _, init', body) ->
+      val env' = env.extend(name, apply-subst(s, get-type(init')))
+      extend-let-chain(env', s, body)
+    LetTuple(names, init', body) ->
+      val env' = match apply-subst(s, get-type(init'))
+        TTuple(ts) -> zip(names, ts).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
+        _ -> env
+      extend-let-chain(env', s, body)
+    _ -> env
 
 // Infer types for a list of call arguments.
 fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh> (subst, list<node>)

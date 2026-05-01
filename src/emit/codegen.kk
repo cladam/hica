@@ -26,11 +26,16 @@ pub fun safe-module-name( name : string ) : string
 
 // ---------------------------------------------------------------------------
 // Name marshalling: prefix user-declared names to avoid Koka stdlib clashes.
-// Names not declared by the user pass through to Koka unchanged.
+// Names declared by the user or that conflict with Koka builtins get an hc_ prefix.
 // ---------------------------------------------------------------------------
 
+val koka-reserved-names = ["list", "vector", "string", "int", "bool", "float",
+  "char", "order", "maybe", "either", "tuple", "sslice", "console", "debug",
+  "exn", "div", "ndet", "io", "show", "core", "std"]
+
 fun marshal-name( name : string, declared : list<string> ) : string
-  if declared.any(fn(d) d == name) then "hc_" ++ name
+  if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
+    then "hc_" ++ name
   else name
 
 // ---------------------------------------------------------------------------
@@ -165,8 +170,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
         _ ->
           val callee-code = match callee.expr
-            Var("fold") -> "foldl"
-            _           -> emit-expr(callee, declared)
+            Var("fold")   -> "foldl"
+            Var("length") -> "list/length"
+            _             -> emit-expr(callee, declared)
           callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
       "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
