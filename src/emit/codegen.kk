@@ -175,6 +175,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
             Var("length") -> "list/length"
+            Var("cons")   -> "Cons"
             _             -> emit-expr(callee, declared)
           callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
