@@ -45,6 +45,7 @@ Legend: **done** = shipped, **—** = not started
 | List concat with `+` | **done** | Low | Checker allows `+` on lists; codegen emits `++` |
 | `in` operator (`x in list`) | **done** | Medium | New binop; emits `list.any(fn(el) el == x)` |
 | `enumerate(list)` | **done** | Low | Prelude sig; emits Koka `map-indexed` |
+| Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |

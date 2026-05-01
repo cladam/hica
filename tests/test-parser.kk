@@ -352,3 +352,13 @@ pub fun main() : io ()
 
     itest("parse in with list literal")
       assert/is-true(parse-show("x in [1, 2, 3]") == "(x in [1, 2, 3])")
+
+    // --- Char literals ---
+    itest("parse char literal")
+      assert/is-true(parse-show("'a'") == "'a'")
+
+    itest("parse char in list")
+      assert/is-true(parse-show("['a', 'b', 'c']") == "['a', 'b', 'c']")
+
+    itest("parse char equality")
+      assert/is-true(parse-show("'x' == 'y'") == "('x' == 'y')")

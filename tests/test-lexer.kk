@@ -141,3 +141,13 @@ pub fun main() : io ()
 
     dtest("lex dotdot vs dot")
       assert/is-true(token-string("x.0 0..5") == "x . 0 0 .. 5 <eof>")
+
+    // --- Char literals ---
+    dtest("lex char literal")
+      assert/is-true(token-string("'a'") == "'a' <eof>")
+
+    dtest("lex char in expression")
+      assert/is-true(token-string("'x' == 'y'") == "'x' == 'y' <eof>")
+
+    dtest("lex char in list")
+      assert/is-true(token-string("['a', 'b']") == "[ 'a' , 'b' ] <eof>")

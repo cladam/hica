@@ -596,3 +596,28 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() => \"hi\" in [1, 2, 3]")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("cannot unify"))
       assert/is-true(errors.length > 0)
+
+    // --- Char literals ---
+    dtest("char literal type-checks")
+      val ds = check-diagnostics("fun main() => 'a'")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("char literal emits single quote")
+      val code = emit-typed-program("fun main() => 'x'")
+      assert/is-true(code.contains("'x'"))
+
+    dtest("char list type-checks")
+      val ds = check-diagnostics("fun main() => ['a', 'b', 'c']")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("char equality type-checks")
+      val ds = check-diagnostics("fun main() => 'a' == 'b'")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("char and string mismatch reports error")
+      val ds = check-diagnostics("fun main() => 'a' == \"a\"")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
