@@ -1,14 +1,13 @@
 // ============================================================
-// Lesson 18: Maybe — Something or Nothing
+// Lesson 18: Maybe - Optional Values
 // ============================================================
 //
-// Sometimes a value might exist or might not.
+// `maybe` represents a value that might or might not exist:
 //
-// Hica has a "maybe" type for this:
-//   Some(value) — yes, here it is!
-//   None        — nope, nothing here
+//   Some(value) - the value is present
+//   None        - no value
 //
-// Use `match` to look inside a maybe and handle both cases.
+// Use `match` to handle both cases.
 //
 // ============================================================
 
@@ -49,7 +48,7 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `safe_head(nums)` that
-//    returns Some(nums[0]) if the list is not empty,
-//    or None if it is. Then match on the result in main.
+// Challenge: Write a function `safe_head(nums)` that
+// returns Some(nums[0]) if the list is not empty,
+// or None if it is. Then match on the result in main.
 // ============================================================

@@ -1,16 +1,14 @@
 // ============================================================
-// Lesson 19: Result — It Worked or It Didn't
+// Lesson 19: Result - Success or Failure
 // ============================================================
 //
-// Sometimes things can go wrong: dividing by zero,
-// looking up something that doesn't exist, etc.
+// `result` represents an operation that can succeed or fail:
 //
-// Hica has a "result" type for this:
-//   Ok(value)  — it worked! Here's the answer
-//   Err(error) — something went wrong, here's why
+//   Ok(value)  - success, with the computed value
+//   Err(error) - failure, with an error message
 //
-// Result is like maybe, but the failure case carries
-// information about what went wrong.
+// Like `maybe`, but the failure case carries information
+// about what went wrong.
 //
 // ============================================================
 
@@ -54,7 +52,7 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `parse_bool(s)` that takes
-//    a string and returns Ok(true) for "true", Ok(false)
-//    for "false", and Err("not a boolean") for anything else.
+// Challenge: Write a function `parse_bool(s)` that takes
+// a string and returns Ok(true) for "true", Ok(false)
+// for "false", and Err("not a boolean") for anything else.
 // ============================================================

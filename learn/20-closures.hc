@@ -1,25 +1,24 @@
 // ============================================================
-// Lesson 20: Closures — Functions That Remember
+// Lesson 20: Closures and Higher-Order Functions
 // ============================================================
 //
-// A closure is a function that "remembers" values from the
-// place where it was created.
+// A closure is a function that captures variables from its
+// enclosing scope.
 //
-// You've already seen anonymous functions:
+// Anonymous functions:
 //
 //   let double = (x) => x * 2
 //
-// But closures can capture variables from their surroundings:
+// Closures capture surrounding variables:
 //
 //   let factor = 10
 //   let scale = (x) => x * factor   // captures "factor"
 //
-// You can even write functions that RETURN new functions:
+// Functions can return new functions:
 //
 //   fun make_adder(n) => (x) => x + n
 //
-// And you can write your own higher-order functions —
-// functions that take other functions as arguments:
+// Higher-order functions take functions as arguments:
 //
 //   fun apply(f, x) => f(x)
 //
@@ -62,11 +61,11 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a `make_multiplier(n)` function that
-//    returns a closure multiplying its argument by n.
-//    Then use it: make_multiplier(3)(7) should give 21.
+// Challenge: Write a `make_multiplier(n)` function that
+// returns a closure multiplying its argument by n.
+// Then use it: make_multiplier(3)(7) should give 21.
 //
-// 🎯 Bonus: Write a `compose(f, g)` function that returns
-//    a new function: (x) => g(f(x)).
-//    Use it to combine double and add5 into one function.
+// Bonus: Write a `compose(f, g)` function that returns
+// a new function: (x) => g(f(x)).
+// Use it to combine double and add5 into one function.
 // ============================================================

@@ -2,21 +2,18 @@
 // Lesson 05: Conditional Expressions (if / else)
 // ============================================================
 //
-// An `if` in Hica is like a fork in the road. You check a
-// condition, and go left or right.
+// `if`/`else` are expressions in hica - they return values.
 //
-// IMPORTANT: both sides must give back a value! Hica won't
-// let you leave one path empty.
+// Both branches must produce a value of the same type:
 //
 //   if condition { value_a } else { value_b }
 //
-// You can even use if/else to SET a variable:
+// You can use if/else to bind a variable:
 //
 //   let bigger = if a > b { a } else { b };
 //
 // ============================================================
 
-// A function that makes negative numbers positive
 fun negate(x) => if x < 0 { -x } else { x }
 
 fun main() {
@@ -26,6 +23,6 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `max(a, b)` that returns
-//    the larger of two numbers using if/else.
+// Challenge: Write a function `max(a, b)` that returns
+// the larger of two numbers using if/else.
 // ============================================================

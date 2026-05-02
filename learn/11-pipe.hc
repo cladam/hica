@@ -1,17 +1,17 @@
 // ============================================================
-// Lesson 11: The Pipe Operator — Connecting Machines
+// Lesson 11: The Pipe Operator (|>)
 // ============================================================
 //
-// Remember how functions are like little machines?
-// The pipe operator |> is the conveyor belt between them!
+// The pipe operator passes a value as the first argument
+// to the next function, enabling left-to-right reading:
 //
-// Instead of nesting calls inside each other:
-//   square(double(3))            // read inside-out 😵
+// Instead of nested calls:
+//   square(double(3))            // read inside-out
 //
-// You can pipe values left to right:
-//   3 |> double |> square        // read like a story 😎
+// You can pipe values through a chain:
+//   3 |> double |> square        // read left-to-right
 //
-// The rule is simple:
+// The transformation:
 //   a |> f       becomes  f(a)
 //   a |> f |> g  becomes  g(f(a))
 //
@@ -24,21 +24,21 @@ fun square(n) => n * n
 fun add_one(n) => n + 1
 
 fun main() {
-  // Without pipe — inside-out reading
+  // Without pipe - nested, inside-out
   let a = square(double(3));
   println(a);
 
-  // With pipe — left-to-right reading
+  // With pipe - left-to-right
   let b = 3 |> double |> square;
   println(b);
 
-  // Chain three machines together
+  // Chain three functions
   let c = 4 |> add_one |> double |> square;
   println(c)
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `half(n)` that divides by 2.
-//    Use the pipe to compute: 10 |> double |> square |> half
-//    What do you get? Work it out step by step!
+// Challenge: Write a function `half(n)` that divides by 2.
+// Use the pipe to compute: 10 |> double |> square |> half
+// Work it out step by step.
 // ============================================================

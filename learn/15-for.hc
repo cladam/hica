@@ -1,18 +1,12 @@
 // ============================================================
-// Lesson 15: For Loops — ranges and collections
+// Lesson 15: For Loops - Ranges and Collections
 // ============================================================
 //
-// Now that we have lists, we can do even more with loops!
+// Range loop: `for i in start..end { ... }`
+// Runs for each integer from start to end (inclusive).
 //
-// Range loop: `for i in start..end { ... }` runs a block
-// for each integer from start to end (inclusive).
-//
-// Collection loop: `for x in list { ... }` runs a block
-// for each element in a list.
-//
-// New concepts:
-//   ✅ for i in start..end { body }
-//   ✅ for x in list { body }
+// Collection loop: `for x in list { ... }`
+// Runs for each element in a list.
 //
 // ============================================================
 
@@ -36,9 +30,8 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Change the range to 1..100 to get the full
-//    fizzbuzz from 1 to 100.
+// Challenge: Change the range to 1..100 for full fizzbuzz.
 //
-// 🎯 Bonus: Use `for n in [10, 20, 30] { println(n * 2) }`
-//    to double each number and print it.
+// Bonus: Use `for n in [10, 20, 30] { println(n * 2) }`
+// to double each number and print it.
 // ============================================================

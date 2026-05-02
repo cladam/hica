@@ -2,11 +2,8 @@
 // Lesson 04: Functions and Chaining
 // ============================================================
 //
-// Functions are little machines. You put something in, they
-// do some work, and something comes out.
-//
-// You can CHAIN machines — feed the output of one into the
-// next, like an assembly line in a factory.
+// Functions take inputs and produce outputs. You can chain
+// them by passing the result of one as input to the next.
 //
 //   fun double(n) => n * 2
 //   fun square(n) => n * n
@@ -27,7 +24,7 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Add a `half(n)` function that divides by 2.
-//    Chain all three: double → square → half.
-//    What do you get for double(3) → square → half?
+// Challenge: Add a `half(n)` function that divides by 2.
+// Chain all three: double -> square -> half.
+// What do you get for double(3) -> square -> half?
 // ============================================================

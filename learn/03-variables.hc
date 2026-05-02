@@ -2,21 +2,19 @@
 // Lesson 03: Variables and Let
 // ============================================================
 //
-// A variable is like a labelled box. You use `let` to create
-// one and put a value inside.
+// Variables are immutable bindings created with `let`.
 //
-//   let age = 11;          // a box called "age" holding 11
-//   let name = "Alex";     // a box called "name" holding "Alex"
+//   let age = 30;
+//   let name = "Alex";
 //
-// Rules for names:
-//   ✅ start with a letter or _
-//   ✅ can contain letters, numbers, _
-//   ❌ no spaces, no hyphens
-//   ⚠️  case-sensitive: score ≠ Score
+// Naming rules:
+//   - Start with a letter or _
+//   - Can contain letters, numbers, _
+//   - No spaces or hyphens
+//   - Case-sensitive: score != Score
 //
-// THE LAST LINE RULE:
-// The computer looks at the very last line of a { } block
-// and says "That's the answer!" No need to write "return."
+// The last expression in a { } block is its return value.
+// No need to write "return". Use println() to see output.
 //
 // ============================================================
 
@@ -28,6 +26,6 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Create variables for your age, a lucky number,
-//    and compute their sum. Make the sum the last line.
+// Challenge: Create variables for two numbers and compute
+// their sum. Print the result.
 // ============================================================

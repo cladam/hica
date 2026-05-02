@@ -2,16 +2,16 @@
 // Lesson 06: Pattern Matching (match)
 // ============================================================
 //
-// When you have many choices, use `match`. It's like a sorting
-// machine — drop a value in, and it lands in the right slot!
+// `match` dispatches on a value, selecting the first arm
+// whose pattern matches:
 //
 //   match value {
 //     0 => "zero",
 //     1 => "one",
-//     _ => "other"     // _ catches everything else
+//     _ => "other"     // _ is the wildcard (catch-all)
 //   }
 //
-// Always include `_` (the wildcard) so nothing falls through!
+// Always include `_` so all cases are covered.
 //
 // ============================================================
 
@@ -27,7 +27,7 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Expand describe to label 0 through 5
-//    individually ("zero", "one", "two", ..., "five") and
-//    everything else as "lots".
+// Challenge: Expand describe to label 0 through 5
+// individually ("zero", "one", ..., "five") and
+// everything else as "lots".
 // ============================================================

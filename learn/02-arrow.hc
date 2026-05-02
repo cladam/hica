@@ -1,24 +1,19 @@
 // ============================================================
-// Lesson 02: The Magic Arrow (=>)
+// Lesson 02: Arrow Syntax (=>)
 // ============================================================
 //
-// When a function does just ONE thing, you can skip the curly
-// braces and use the arrow => instead.
+// When a function body is a single expression, you can skip
+// the curly braces and use `=>` instead.
 //
-// Think of it as a machine:
-//   Input goes in on the left → Output comes out on the right
-//
-// These two are identical:
+// These two are equivalent:
 //
 //   fun double(n) { n * 2 }      // block body
-//   fun double(n) => n * 2        // arrow body (shorter!)
+//   fun double(n) => n * 2        // arrow body (shorter)
 //
 // ============================================================
 
-// The "double" machine: put in x, get out x times 2
 fun double(x) => x * 2
 
-// The "square" machine: put in n, get out n times n
 fun square(n) => n * n
 
 fun main() {
@@ -27,6 +22,6 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `triple(n)` that multiplies
-//    by 3. Call it in main and see the result!
+// Challenge: Write a function `triple(n)` that multiplies
+// by 3. Call it in main and print the result.
 // ============================================================

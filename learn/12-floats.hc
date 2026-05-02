@@ -1,18 +1,13 @@
 // ============================================================
-// Lesson 12: Floats — Numbers with Decimals
+// Lesson 12: Floats
 // ============================================================
 //
 // Integers are whole numbers: 1, 42, 100.
-// Floats are numbers with a decimal point: 3.14, 0.5, 99.9.
+// Floats have a decimal point: 3.14, 0.5, 99.9.
 //
-// Floats are great for:
-//   - Measuring things (height, weight, temperature)
-//   - Math with fractions (pi, percentages)
-//   - Science and geometry
-//
-// Important: floats and ints don't mix!
-//   3.14 * 5     ← error! 5 is an int
-//   3.14 * 5.0   ← correct! both are floats
+// Important: floats and ints don't mix.
+//   3.14 * 5     - error: 5 is an int
+//   3.14 * 5.0   - correct: both are floats
 //
 // ============================================================
 
@@ -29,7 +24,7 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Write a function `bmi(weight, height)` that
-//    computes weight / (height * height).
-//    Try it with weight = 70.0 and height = 1.75.
+// Challenge: Write a function `bmi(weight, height)` that
+// computes weight / (height * height).
+// Try it with weight = 70.0 and height = 1.75.
 // ============================================================

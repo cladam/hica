@@ -1,19 +1,11 @@
 // ============================================================
-// Lesson 09: Repeating Things — repeat
+// Lesson 09: Repeat
 // ============================================================
 //
-// Sometimes you want to do something multiple times.
-// Hica has `repeat(n) { ... }` which runs a block n times.
+// `repeat(n) { ... }` runs a block n times.
 //
-// This is great for:
-//   - Printing something several times
-//   - Running an action a fixed number of times
-//
-// New concept:
-//   ✅ repeat(n) { body } — runs body n times
-//
-// Note: repeat doesn't give you a counter variable.
-// For counted loops, we'll add `for` in a future lesson!
+// Note: repeat doesn't provide a counter variable.
+// For counted loops, see Lesson 15 (for loops).
 //
 // ============================================================
 
@@ -24,9 +16,6 @@ fun main() {
 }
 
 // ============================================================
-// 🎯 Challenge: Change the count to 10 — does it print 10
-//    times?
-//
-// 🎯 Bonus: Try repeat(0) { ... } — what happens? What
-//    about repeat(1)?
+// Challenge: Change the count to 10. Try repeat(0) and
+// repeat(1) to see how they behave.
 // ============================================================
