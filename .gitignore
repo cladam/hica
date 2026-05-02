@@ -1,12 +1,13 @@
-docs/log.txt
-docs/log-bootstrapping.txt
-docs/lisette-main
-docs/koka-labs
-docs/hica-for-kids.md
-docs/hica-vs-python.md
-docs/README.md
-docs/operators.hc
-docs/review.md
+documentation/log.txt
+documentation/log-bootstrapping.txt
+documentation/lisette-main
+documentation/koka-labs
+documentation/choreo
+documentation/hica-for-kids.md
+documentation/hica-vs-python.md
+documentation/README.md
+documentation/operators.hc
+documentation/review.md
 
 learn
 .koka/

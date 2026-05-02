@@ -1,0 +1,34 @@
+# -- Site Settings --
+title: hica Documentation
+description: "A modern, expressive and fast systems language built in Koka with algebraic effects."
+keywords: "hica, programming language, koka, algebraic effects, systems language, functional programming"
+
+url: "https://cladam.github.io"
+baseurl: "/hica"
+
+# -- Build Settings --
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# -- Plugins --
+plugins:
+  - jekyll-feed
+
+permalink: pretty
+
+# -- Exclude non-site files --
+exclude:
+  - src
+  - lib
+  - tests
+  - examples
+  - learn
+  - prelude
+  - hica
+  - test-hica.sh
+  - AUTHORS
+  - LICENSE
+  - Makefile
+  - documentation

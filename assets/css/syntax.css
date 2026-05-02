@@ -1,0 +1,65 @@
+/* hica syntax highlighting theme */
+
+pre.highlight {
+    background-color: #f6f8fa;
+    border-radius: 8px;
+    line-height: 1.6;
+    margin-bottom: 1.5em;
+    overflow: auto;
+    padding: 16px;
+    font-size: 0.9em;
+    border: 1px solid #e2e8f0;
+}
+
+/* Default text color */
+.highlight .h, .highlight {
+    color: #1e293b;
+}
+
+/* Keywords (fun, let, if, else, match, for, in) */
+.highlight .k, .highlight .kn, .highlight .kd {
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+/* Built-ins & Literals (true, false, None, Some, Ok, Err) and Numbers */
+.highlight .nb, .highlight .mi, .highlight .mf, .highlight .m {
+    color: #0550ae;
+}
+
+/* Functions */
+.highlight .nf {
+    color: #0891b2;
+}
+
+/* Strings */
+.highlight .s, .highlight .s1, .highlight .s2 {
+    color: #16a34a;
+}
+
+/* Variables */
+.highlight .nv {
+    color: #ea580c;
+}
+
+/* Comments */
+.highlight .c, .highlight .c1, .highlight .cm {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Punctuation */
+.highlight .p {
+    color: #64748b;
+}
+
+/* Operators */
+.highlight .o {
+    color: #be185d;
+}
+
+/* Errors */
+.highlight .err {
+    color: #dc2626;
+    background-color: #fef2f2;
+}

@@ -1,0 +1,73 @@
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="{{ '/docs/' | relative_url }}">
+            <img src="{{ '/assets/hica-logo.png' | relative_url }}" alt="hica logo">
+        </a>
+    </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-category">
+      <h3 class="nav-category-title">Getting Started</h3>
+      <ul>
+        <li>
+          <a href="{{ '/docs/intro' | relative_url }}" {% if page.url == "/docs/intro/" %}class="active"{% endif %}>
+            Introduction
+          </a>
+        </li>
+        <li>
+          <a href="{{ '/docs/quick-start' | relative_url }}" {% if page.url == "/docs/quick-start/" %}class="active"{% endif %}>
+            Quick Start
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav-category">
+      <h3 class="nav-category-title">Learn</h3>
+      <ul>
+        <li>
+          <a href="{{ '/docs/learn' | relative_url }}" {% if page.url == "/docs/learn/" %}class="active"{% endif %}>
+            Learn hica
+          </a>
+        </li>
+        <li>
+          <a href="{{ '/docs/hica-for-kids' | relative_url }}" {% if page.url == "/docs/hica-for-kids/" %}class="active"{% endif %}>
+            hica for Kids
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav-category">
+      <h3 class="nav-category-title">Reference</h3>
+      <ul>
+        <li>
+          <a href="{{ '/docs/language-reference' | relative_url }}" {% if page.url == "/docs/language-reference/" %}class="active"{% endif %}>
+            Language Reference
+          </a>
+        </li>
+        <li>
+          <a href="{{ '/docs/standard-library' | relative_url }}" {% if page.url == "/docs/standard-library/" %}class="active"{% endif %}>
+            Standard Library
+          </a>
+        </li>
+        <li>
+          <a href="{{ '/docs/cli' | relative_url }}" {% if page.url == "/docs/cli/" %}class="active"{% endif %}>
+            CLI Reference
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav-category">
+      <h3 class="nav-category-title">Comparisons</h3>
+      <ul>
+        <li>
+          <a href="{{ '/docs/hica-vs-python' | relative_url }}" {% if page.url == "/docs/hica-vs-python/" %}class="active"{% endif %}>
+            hica vs Python
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</aside>

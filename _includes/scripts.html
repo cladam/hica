@@ -1,0 +1,23 @@
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.getElementById('hamburger');
+            const mainContent = document.getElementById('main-content');
+            const navLinks = document.querySelectorAll('.sidebar nav ul li a');
+
+            hamburger.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                hamburger.classList.toggle('active');
+                document.body.classList.toggle('sidebar-open');
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        document.body.classList.remove('sidebar-open');
+                    }
+                });
+            });
+        });
+    </script>
