@@ -55,7 +55,7 @@ Variables are bound with `let` and are immutable:
 
 ```rust
 let x = 42;
-let name = "Alice";
+let name = "Alicia";
 let pi = 3.14;
 ```
 
