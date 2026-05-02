@@ -6,8 +6,9 @@
     <meta content="A modern, expressive and fast systems language built in Koka with algebraic effects." name="description"/>
     <meta content="hica, programming language, koka, algebraic effects, systems language, functional programming" name="keywords">
     <meta content="index, follow" name="robots">
+    <meta content="c7yBT2wAbZMG9ON-mYwt-HndBlthrBo1mhsx-88Iw7M" name="google-site-verification"/>
 
-    <title>hica — A Modern Systems Language with Algebraic Effects</title>
+    <title>hica - A Modern Systems Language</title>
 
     <link href="/hica/assets/hica-icon.png" rel="icon" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,6 +16,8 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Umami Analytics -->
+    <script data-website-id="6b6a0254-9e5f-4cf5-9ca8-eb306ada8f82" defer src="https://cloud.umami.is/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -64,11 +67,11 @@
                                  onError={(e) => e.target.style.display = 'none'}/>
                         </div>
                         <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight text-[#1e293b] mb-6">
-                            A <span style={{color: theme.indigo}}>modern</span>, expressive systems language.
+                            A <span style={{color: theme.indigo}}>statically typed</span>, expression-oriented language.
                         </h1>
                         <p className="text-xl md:text-2xl text-[#64748b] max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
-                            Expression-oriented. Effect-tracked. Compiled to <strong>C</strong>, <strong>JS</strong>, or <strong>WASM</strong> via Koka.
-                            No garbage collector. Strong inference. Familiar syntax.
+                            Hindley-Milner inference. Compiled to <strong>C</strong>, <strong>JS</strong>, or <strong>WASM</strong> through Koka.
+                            Perceus reference counting. Familiar syntax.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center gap-4">
                             <a href="https://cladam.github.io/hica/docs/intro"
@@ -166,23 +169,23 @@
                                 <div className="absolute -top-10 -left-10 w-32 h-32 opacity-10 bg-[#4f46e5] rounded-full blur-3xl"></div>
                                 <h2 className="text-4xl font-bold mb-6 text-[#1e293b]">Why hica exists.</h2>
                                 <p className="text-lg text-[#64748b] mb-6 leading-relaxed">
-                                    Most languages force you to choose: easy to learn <em>or</em> safe and fast.
-                                    hica gives you both — familiar syntax with Rust-level safety.
+                                    hica is a high-performance, expression-oriented language that blends
+                                    familiar syntax with a pragmatic, approachable design. Side effects
+                                    are tracked by the type system, and memory is handled automatically.
                                 </p>
                                 <div className="bg-[#f8fafc] p-6 rounded-xl border-l-4 border-[#4f46e5] italic text-[#1e293b] font-medium mb-8">
-                                    "You write the easy version, and hica's translator turns it into the
-                                    hardcore version for the computer."
+                                    <strong>H</strong>indley-milner <strong>I</strong>nference <strong>C</strong>ompiler with <strong>A</strong>lgebraic effects
                                 </div>
                                 <p className="text-[#64748b] leading-relaxed">
                                     By targeting Koka, hica inherits Perceus reference counting, algebraic effects,
-                                    and compilation to C — without reinventing any of it.
+                                    and compilation to C without reinventing any of it.
                                 </p>
                             </div>
                             <div className="grid grid-cols-1 gap-6">
                                 {[
-                                    {title: "Expression-Oriented", desc: "Everything returns a value: if, match, and blocks. No void surprises.", icon: "zap"},
-                                    {title: "Strong Inference", desc: "Hindley-Milner type inference catches bugs at compile time. Annotations optional.", icon: "shield-check"},
-                                    {title: "No GC", desc: "Perceus reference counting from Koka. Fast, predictable, no pauses.", icon: "cpu"}
+                                    {title: "Expression-Oriented", desc: "if, match, and blocks all return values. No return keyword needed.", icon: "zap"},
+                                    {title: "Type Inference", desc: "Hindley-Milner inference catches errors at compile time. Annotations are optional.", icon: "shield-check"},
+                                    {title: "No GC", desc: "Perceus reference counting via Koka. Predictable performance.", icon: "cpu"}
                                 ].map(item => (
                                     <div key={item.title}
                                          className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow flex gap-4">
@@ -205,19 +208,19 @@
                 <section className="py-24 bg-[#f8fafc] border-y border-[#e2e8f0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-4xl font-bold text-[#1e293b] mb-4">Built for Real Programs.</h2>
+                            <h2 className="text-4xl font-bold text-[#1e293b] mb-4">Language Features</h2>
                             <p className="text-xl text-[#64748b] font-medium max-w-2xl mx-auto">
-                                From hello world to systems programming — hica scales with you.
+                                What hica supports today.
                             </p>
                         </div>
                         <div className="grid md:grid-cols-3 gap-8">
                             {[
-                                {icon: 'arrow-right', name: 'Arrow Syntax', desc: 'Expression-bodied functions with =>. One line, no return keyword, no fuss.'},
-                                {icon: 'git-branch', name: 'Pattern Matching', desc: 'match with integers, strings, Some/None, Ok/Err, and wildcards. Core from day one.'},
+                                {icon: 'arrow-right', name: 'Arrow Syntax', desc: 'Expression-bodied functions with =>. Single expressions or block bodies.'},
+                                {icon: 'git-branch', name: 'Pattern Matching', desc: 'match on integers, strings, Some/None, Ok/Err, and wildcards.'},
                                 {icon: 'repeat', name: 'For & Repeat', desc: 'for i in 0..n ranges, for x in list iteration, and repeat(n) blocks.'},
-                                {icon: 'link', name: 'Pipe Operator', desc: 'Chain functions left-to-right with |>. Data flows naturally through pipelines.'},
-                                {icon: 'box', name: 'Maybe & Result', desc: 'Optional values and error handling as types. The compiler forces you to handle both cases.'},
-                                {icon: 'layers', name: 'Compiles to C', desc: 'Through Koka: native binaries, JavaScript, or WASM. Real performance for real programs.'}
+                                {icon: 'link', name: 'Pipe Operator', desc: 'Chain functions left-to-right with |>. Pairs well with map, filter, and fold.'},
+                                {icon: 'box', name: 'Maybe & Result', desc: 'Optional values and error handling as types, with match to handle both cases.'},
+                                {icon: 'layers', name: 'Compiles to C', desc: 'Through Koka to native binaries, JavaScript, or WASM.'}
                             ].map(feature => (
                                 <div key={feature.name}
                                      className="bg-white p-8 rounded-2xl shadow-sm border border-[#e2e8f0] hover:shadow-md transition-all">
@@ -261,7 +264,7 @@
                             ))}
                         </div>
                         <p className="mt-16 text-xl text-[#64748b] max-w-2xl mx-auto leading-relaxed">
-                            Each phase uses <strong>algebraic effects</strong> for compiler state — diagnostics,
+                            Each phase uses <strong>algebraic effects</strong> for compiler state: diagnostics,
                             type variables, and symbol scopes are all effect-tracked.
                         </p>
                     </div>
@@ -270,7 +273,7 @@
                 {/* Call to Action */}
                 <section className="py-24 bg-[#1e293b] relative overflow-hidden">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-10">Ready to try hica?</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-10">Get started</h2>
                         <div className="flex flex-col sm:flex-row justify-center gap-5">
                             <a href="https://cladam.github.io/hica/docs/quick-start"
                                className="px-10 py-4 rounded-xl font-bold text-lg text-white hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg"
