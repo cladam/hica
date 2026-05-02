@@ -1,11 +1,11 @@
 ---
 layout: default
-title: hica vs Python — hica
+title: hica vs Python - hica
 ---
 
 # hica vs Python
 
-If you're looking for a first programming language — for yourself, your kids, or your students — Python and hica are both excellent choices. But they take very different paths to the same goal: making programming accessible.
+If you're looking for a first programming language, whether for yourself, your kids, or your students, Python and hica are both excellent choices. But they take very different paths to the same goal: making programming accessible.
 
 ## At a Glance
 
@@ -65,7 +65,7 @@ fun main() {
 }
 ```
 
-Both are very readable. Python wins on prose-like syntax; hica wins on explicitness — curly braces make nesting clear, `let` makes bindings visible.
+Both are very readable. Python wins on prose-like syntax; hica wins on explicitness: curly braces make nesting clear, `let` makes bindings visible.
 
 ## Immutability
 
@@ -117,7 +117,7 @@ except ValueError as e:
     print(e)
 ```
 
-**hica** uses `Result` types — the compiler forces you to handle both cases:
+**hica** uses `Result` types. The compiler forces you to handle both cases:
 
 ```rust
 fun safe_divide(a, b) =>
@@ -144,7 +144,7 @@ match command:
         print("Unknown")
 ```
 
-**hica** makes `match` central — it works with integers, strings, `Some`/`None`, `Ok`/`Err`, and wildcards:
+**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, and wildcards:
 
 ```rust
 fun describe(x) => match x {
@@ -156,7 +156,7 @@ fun describe(x) => match x {
 
 ## Performance
 
-**Python** is interpreted. **hica** compiles through Koka to C — the resulting binaries run at native speed.
+**Python** is interpreted. **hica** compiles through Koka to C, so the resulting binaries run at native speed.
 
 ## Ecosystem
 

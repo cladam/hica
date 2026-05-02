@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Introduction — hica
+title: Introduction - hica
 ---
 
 # Introduction
@@ -24,7 +24,7 @@ Most programming languages force you to choose: easy to learn **or** safe and fa
 hica compiles through a multi-stage pipeline:
 
 ```
-.hc source → Lex → Parse → Type Check → Emit Koka (.kk) → Koka → C / JS / WASM
+.hc source -> Lex -> Parse -> Type Check -> Emit Koka (.kk) -> Koka -> C / JS / WASM
 ```
 
 Each phase is implemented as a Koka module using algebraic effects for compiler state; diagnostics, fresh type variables, and symbol scopes.
@@ -36,7 +36,7 @@ Because the final target is Koka, hica programs inherit the full Koka runtime: i
 By targeting Koka, hica doesn't need to reinvent:
 
 - Memory management (Perceus reference counting)
-- Backend codegen (C, JS, WASM — all handled by Koka)
+- Backend codegen (C, JS, WASM, all handled by Koka)
 - Standard library (strings, lists, I/O, concurrency)
 - Optimisation passes (tail-call, FBIP in-place reuse)
 - Platform support and ABI concerns
@@ -60,13 +60,13 @@ fun main() {
 
 ## Inspirations
 
-- [Koka](https://koka-lang.github.io/) — language with algebraic effects and Perceus memory management
-- [Lisette](https://lisette.run/) — Rust-inspired language that compiles to Go
-- C# — the `=>` operator and query expression syntax
-- Python — easy and powerful lists
+- [Koka](https://koka-lang.github.io/) - language with algebraic effects and Perceus memory management
+- [Lisette](https://lisette.run/) - Rust-inspired language that compiles to Go
+- C# - the `=>` operator and query expression syntax
+- Python - easy and powerful lists
 
 ## Next Steps
 
-- [Quick Start](/hica/docs/quick-start) — install and run your first program
-- [Learn hica](/hica/docs/learn) — 20 progressive lessons, one concept at a time
-- [Language Reference](/hica/docs/language-reference) — the full syntax and semantics
+- [Quick Start](/hica/docs/quick-start) - install and run your first program
+- [Learn hica](/hica/docs/learn) - 20 progressive lessons, one concept at a time
+- [Language Reference](/hica/docs/language-reference) - the full syntax and semantics

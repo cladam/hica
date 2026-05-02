@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Learn hica — hica
+title: Learn hica - hica
 ---
 
 # Learn hica
@@ -70,7 +70,7 @@ koka -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
 ```
 
-Then work through the lessons in order — each one builds on the previous:
+Then work through the lessons in order. Each one builds on the previous:
 
 ```sh
 ./hica run learn/01-hello.hc

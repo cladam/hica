@@ -1,6 +1,6 @@
 ---
 layout: default
-title: CLI Reference — hica
+title: CLI Reference - hica
 ---
 
 # CLI Reference

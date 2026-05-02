@@ -1,6 +1,6 @@
 ---
 layout: default
-title: hica — A Modern Systems Language
+title: hica - A Modern Systems Language
 ---
 
 # What is hica?
@@ -9,7 +9,7 @@ title: hica — A Modern Systems Language
 
 Because the target is Koka itself, hica programs can be compiled onward to **C**, **JavaScript**, or **WASM**.
 
-> **hica** — **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+> **hica** - **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
 ## Design Goals
 
@@ -53,6 +53,6 @@ Each phase is implemented as a Koka module using algebraic effects for compiler 
 | Name resolution       | Declaration-aware marshalling (`hc_` prefix)    |
 | CLI argument parsing  | klap (clap-inspired, in-tree)                   |
 | Memory management     | Perceus (inherited from Koka target)            |
-| Backend target        | Koka (.kk) → C / JS / WASM via Koka            |
+| Backend target        | Koka (.kk) -> C / JS / WASM via Koka            |
 
 Ready to get started? Check the [Quick Start](/hica/docs/quick-start) guide, or dive into [Learn hica](/hica/docs/learn) for a step-by-step tutorial.

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: hica for Beginners — hica
+title: hica for Beginners - hica
 ---
 
 # hica for Beginners
@@ -13,10 +13,10 @@ hica is a statically typed, expression-oriented language. The compiler is built 
 
 | Feature | Details |
 |---------|---------|
-| **Type inference** | Hindley-Milner — types are inferred, annotations optional |
+| **Type inference** | Hindley-Milner; types are inferred, annotations are optional |
 | **Expression-oriented** | `if`, `match`, and blocks all return values |
-| **Compiled** | `.hc` → Koka → C → native executable |
-| **Memory management** | Perceus reference counting — no GC pauses |
+| **Compiled** | `.hc` -> Koka -> C -> native executable |
+| **Memory management** | Perceus reference counting, no GC pauses |
 | **Functional core** | First-class functions, closures, pipe operator |
 
 ## Setup
@@ -43,7 +43,7 @@ fun main() {
 }
 ```
 
-Every hica program starts at `fun main()`. The last expression in a block is its return value — no `return` keyword needed.
+Every hica program starts at `fun main()`. The last expression in a block is its return value, so no `return` keyword is needed.
 
 ## Variables
 
@@ -60,7 +60,7 @@ fun main() {
 
 ### Optional type annotations
 
-Type annotations use `: type` after the name. They're optional — the compiler infers types — but useful for documentation:
+Type annotations use `: type` after the name. They're optional (the compiler infers types) but useful for documentation:
 
 ```rust
 let count: int = 42
@@ -128,7 +128,7 @@ fun main() {
 
 ### If / else
 
-`if`/`else` are expressions — they return values:
+`if`/`else` are expressions that return values:
 
 ```rust
 fun abs(x) => if x < 0 { -x } else { x }
@@ -264,7 +264,7 @@ fun main() {
 
 ## Error Handling
 
-### Maybe — optional values
+### Maybe - optional values
 
 Use `Some` and `None` to represent values that might not exist:
 
@@ -283,7 +283,7 @@ fun main() {
 }
 ```
 
-### Result — success or failure
+### Result - success or failure
 
 Use `Ok` and `Err` for operations that can fail:
 
@@ -334,6 +334,6 @@ fun main() {
 
 ## What's Next?
 
-- Work through the [Learn hica](/hica/docs/learn) lessons — 20 programs that teach you one concept at a time
+- Work through the [Learn hica](/hica/docs/learn) lessons, 20 programs that teach you one concept at a time
 - Browse the [Language Reference](/hica/docs/language-reference) for full syntax details
 - Check the [Standard Library](/hica/docs/standard-library) for available functions

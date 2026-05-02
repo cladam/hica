@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Language Reference — hica
+title: Language Reference - hica
 ---
 
 # Language Reference
@@ -29,7 +29,7 @@ fun double(x) => x * 2
 fun add(a: int, b: int) : int => a + b
 ```
 
-Type annotations are optional — Hindley-Milner inference handles most cases.
+Type annotations are optional. Hindley-Milner inference handles most cases.
 
 ### Lambdas / closures
 
@@ -61,7 +61,7 @@ let pi = 3.14;
 
 ### The last-line rule
 
-The last expression in a block is its return value — no `return` keyword needed:
+The last expression in a block is its return value, so no `return` keyword is needed:
 
 ```rust
 fun main() {
@@ -75,7 +75,7 @@ fun main() {
 
 ### If / else
 
-`if`/`else` are expressions — they return values:
+`if`/`else` are expressions that return values:
 
 ```rust
 let sign = if x < 0 { "negative" } else { "non-negative" };

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Quick Start — hica
+title: Quick Start - hica
 ---
 
 # Quick Start
@@ -71,6 +71,6 @@ The repo ships with ready-to-run examples:
 
 ## Next Steps
 
-- [Learn hica](/hica/docs/learn) — 20 progressive lessons
-- [Language Reference](/hica/docs/language-reference) — full syntax guide
-- [Standard Library](/hica/docs/standard-library) — built-in functions
+- [Learn hica](/hica/docs/learn) - 20 progressive lessons
+- [Language Reference](/hica/docs/language-reference) - full syntax guide
+- [Standard Library](/hica/docs/standard-library) - built-in functions

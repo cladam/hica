@@ -1,11 +1,11 @@
 ---
 layout: default
-title: Standard Library — hica
+title: Standard Library - hica
 ---
 
 # Standard Library
 
-The prelude is hica's built-in standard library. Every function defined here is automatically available in every hica program — no imports needed.
+The prelude is hica's built-in standard library. Every function defined here is automatically available in every hica program. No imports needed.
 
 ## I/O & Display
 
