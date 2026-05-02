@@ -561,11 +561,18 @@ fun parse-for-in() : <div,parser> node
     TkIdent(n) -> { advance(); n }
     _          -> { parse-error("expected loop variable after 'for'"); "_" }
   expect("in", fn(k) match k { TkIn -> True; _ -> False })
-  val start-expr = parse-expr()
-  expect("..", fn(k) match k { TkDotDot -> True; _ -> False })
-  val end-expr = parse-expr()
-  val body = parse-block()
-  Node(Span(t.span.start, body.span.end), ForIn(name, start-expr, end-expr, body))
+  val collection-expr = parse-expr()
+  match peek()
+    TkDotDot ->
+      // for name in start..end { body }
+      advance()
+      val end-expr = parse-expr()
+      val body = parse-block()
+      Node(Span(t.span.start, body.span.end), ForIn(name, collection-expr, end-expr, body))
+    _ ->
+      // for name in collection { body }
+      val body = parse-block()
+      Node(Span(t.span.start, body.span.end), ForEach(name, collection-expr, body))
 
 // ---------------------------------------------------------------------------
 // String interpolation: "hello {expr}!"

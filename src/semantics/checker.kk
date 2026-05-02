@@ -410,6 +410,17 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val (s5, body') = infer(env', s4, body)
       (s5, Node(n.span, ForIn(name, start', end', body'), Just(TUnit)))
 
+    // --- For-each over collections ---
+    ForEach(name, coll, body) ->
+      val (s1, coll') = infer(env, s, coll)
+      val coll-type = apply-subst(s1, get-type(coll'))
+      val elem-type = fresh-tvar()
+      val s2 = compose-subst(unify(coll-type, TList(elem-type), coll.span), s1)
+      val resolved-elem = apply-subst(s2, elem-type)
+      val env' = env.extend(name, resolved-elem)
+      val (s3, body') = infer(env', s2, body)
+      (s3, Node(n.span, ForEach(name, coll', body'), Just(TUnit)))
+
     // --- String interpolation ---
     StringInterp(parts) ->
       val (s1, parts') = infer-interp-parts(env, s, parts)

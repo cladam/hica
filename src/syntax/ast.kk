@@ -175,6 +175,9 @@ pub type expr
   // for name in start..end { body }
   ForIn( name : string, start : node, end : node, body : node )
 
+  // for name in collection { body }
+  ForEach( name : string, collection : node, body : node )
+
   // "hello {expr}!" — parts alternate between LitString segments and expressions
   StringInterp( parts : list<node> )
 
@@ -249,6 +252,7 @@ pub fun expr/show( e : expr ) : div string
     Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ " => " ++ a.body.show).join(", ") ++ " }"
     Repeat(c, b)     -> "repeat(" ++ c.show ++ ") " ++ b.show
     ForIn(nm, s, e, b) -> "for " ++ nm ++ " in " ++ s.show ++ ".." ++ e.show ++ " " ++ b.show
+    ForEach(nm, coll, b) -> "for " ++ nm ++ " in " ++ coll.show ++ " " ++ b.show
     StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
     Tuple(es)        -> "(" ++ es.map(show).join(", ") ++ ")"
     EList(es)        -> "[" ++ es.map(show).join(", ") ++ "]"

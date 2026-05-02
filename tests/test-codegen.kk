@@ -760,3 +760,25 @@ pub fun main() : io ()
       val code = emit-typed-program("fun add(a: int, b) => a + b\nfun main() { println(add(1, 2)) }")
       assert/is-true(code.contains("a : int"))
       assert/is-true(code.contains("b : int"))
+
+    // --- for-each collection loops ---
+    dtest("for-each emits foreach")
+      val code = emit-typed-program("fun main() { let xs = [1, 2, 3]; for x in xs { println(x) } }")
+      assert/is-true(code.contains(".foreach"))
+
+    dtest("for-each type-checks")
+      val ds = check-diagnostics("fun main() { let xs = [1, 2, 3]; for x in xs { println(x) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("for-each infers element type")
+      val code = emit-typed-program("fun main() { let xs = [1, 2, 3]; for x in xs { println(x * 2) } }")
+      assert/is-true(code.contains(".show"))
+
+    dtest("for-each with string list")
+      val code = emit-typed-program("fun main() { let ws = [\"hi\", \"there\"]; for w in ws { println(w) } }")
+      assert/is-true(code.contains(".foreach"))
+
+    dtest("range for loop still works")
+      val code = emit-typed-program("fun main() { for i in 1..5 { println(i) } }")
+      assert/is-true(code.contains("for(1, 5)"))

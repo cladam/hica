@@ -77,7 +77,7 @@ Legend: **done** = shipped, **—** = not started
 | `repeat(n) { ... }` | **done** | – | Emit Koka `repeat` |
 | `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
 | `for i in 0..n` (range loop) | **done** | Medium | Emit Koka `for(0, n) fn(i)` |
-| `for x in list` (collection loop) | — | Medium | Emit Koka `list.foreach(fn(x) { body })` |
+| `for x in list` (collection loop) | **done** | Medium | Emit Koka `list.foreach(fn(x) { body })` |
 | `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
 | `break` / `continue` | — | Medium | Needs Koka effect-based control flow |
 
@@ -150,6 +150,11 @@ Issues that exist today but are not yet fixed:
   The generated Koka code omits annotations, but Koka can't always resolve
   `.fst`/`.snd` without them. **Workaround:** use type annotations:
   `fun swap(p: (int, int)) : (int, int) => (p.1, p.0)`.
+- **`show` gets marshalled to `hc_show` in user functions** — name resolution
+  prefixes `show` with `hc_` when it appears inside a user-declared function,
+  because the declared-names list includes the enclosing function name.
+  Koka has no `hc_show`, so compilation fails. **Workaround:** use string
+  interpolation (`"{n}"`) instead of `show(n)`.
 - **Tuples limited to 5 elements** — Koka defines tuple types up to `tuple5`.
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred
