@@ -5,18 +5,18 @@ title: hica vs Rust - hica
 
 # hica vs Rust
 
-hica and Rust share a lot of syntax and values: expression-oriented design, immutability by default, `match` as a core feature, and `Result`/`Option` types. But they target very different audiences and make very different trade-offs.
+hica and Rust share values like immutability, expression-oriented design, `match` as a core feature, and `Result`/`Option` types. They diverge in how much complexity they expose to achieve control and performance.
 
 ## At a Glance
 
 | Dimension | Rust | hica |
 |-----------|------|------|
-| Type system | Ownership + lifetimes + traits | Hindley-Milner inference |
-| Memory model | Borrow checker, zero-cost abstractions | Perceus reference counting (via Koka) |
+| Type system | Ownership + lifetimes + traits | Hindley-Milner inference (little to no annotations in practice) |
+| Memory model | Borrow checker, zero-cost abstractions | Automatic reference counting with compile-time optimisation (Koka/Perceus) |
 | Mutability | Immutable by default, `mut` opt-in | Immutable, no `mut` |
 | Error handling | `Result<T, E>` + `?` operator | `Result` + `match` |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
-| Pattern matching | Exhaustive, deeply nested | Integer, string, wildcard patterns |
+| Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result), not deeply nested |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
 | Learning curve | Steep (ownership, lifetimes, traits) | Gentle (write, run, iterate) |
@@ -34,7 +34,7 @@ fn add(a: i32, b: i32) -> i32 {
 let x = add(2, 3); // x inferred as i32
 ```
 
-hica infers everything. Annotations are optional, not required:
+hica infers types across function boundaries. Annotations are optional rather than required:
 
 ```rust
 fun add(a, b) => a + b
@@ -63,7 +63,7 @@ fn main() {
 }
 ```
 
-hica has no ownership system. Koka's Perceus reference counting handles memory automatically. You never think about borrows, lifetimes, or moves:
+hica has no ownership system. Koka's Perceus reference counting handles memory automatically, so you never think about borrows, lifetimes, or moves:
 
 ```rust
 fun main() {
@@ -74,7 +74,7 @@ fun main() {
 }
 ```
 
-The trade-off: Rust gives you zero-cost control over allocation. hica gives you simplicity at the cost of some runtime overhead.
+Rust enforces memory safety at compile time through ownership. hica delegates memory management to Perceus reference counting, trading compile-time guarantees and fine-grained control for a simpler programming model.
 
 ## Functions and Closures
 
@@ -89,7 +89,7 @@ let name = String::from("hi");
 let take = move || println!("{}", name); // captures by move (FnOnce)
 ```
 
-hica has one closure type. Closures capture values from their scope, and that's it:
+hica has one closure type. Closures capture values implicitly, without exposing capture modes (no by-ref vs by-move distinction):
 
 ```rust
 fun make_adder(n) => (x) => x + n
@@ -130,7 +130,7 @@ fun main() {
 }
 ```
 
-Rust's `?` is more ergonomic for chaining fallible operations. hica keeps it simple with explicit matching.
+Rust's `?` is more ergonomic for chaining fallible operations. hica favours explicit control flow via `match` rather than implicit propagation. This keeps behaviour visible but can be more verbose for deeply chained operations.
 
 ## Pattern Matching
 
@@ -162,7 +162,7 @@ fun main() {
 }
 ```
 
-Rust's pattern matching is more powerful. hica covers the common cases with less syntax to learn.
+Rust's pattern matching is more powerful. hica covers the common cases with fewer constructs and edge cases to learn.
 
 ## Immutability
 
@@ -174,7 +174,7 @@ let mut y = 10;    // mutable
 y += 1;
 ```
 
-hica has no `mut`. All bindings are immutable. You create new values instead:
+hica has no `mut`. All bindings are immutable. State changes are expressed by creating new values rather than mutating existing ones:
 
 ```rust
 fun main() {
@@ -196,7 +196,7 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
     .collect();
 ```
 
-hica has a first-class pipe `|>` that works with any function:
+hica has a first-class pipe `|>` that works with any function, not just methods:
 
 ```rust
 fun main() {
@@ -212,7 +212,7 @@ fun main() {
 
 Rust compiles through LLVM to native code with fine-grained control over performance, allocation, and inlining.
 
-hica compiles through Koka to C. The resulting binaries are fast, but you don't have Rust-level control over memory layout, inlining, or zero-cost abstractions.
+hica compiles through Koka to C. The resulting binaries are fast in practice, but without fine-grained control over allocation patterns, inlining, or memory layout.
 
 ## Ecosystem
 
@@ -222,6 +222,6 @@ Rust has crates.io with over 150,000 packages, extensive documentation, an activ
 
 **Rust** is the right choice when you need zero-cost abstractions, fine-grained memory control, and a battle-tested ecosystem for production systems.
 
-**hica** is the right choice when you want the same values (immutability, type safety, expression-oriented design) without the learning curve of ownership and lifetimes. It's a good stepping stone toward Rust, or a simpler alternative when Perceus-level memory management is enough.
+**hica** is the right choice when you want the same values (immutability, type safety, expression-oriented design) without the learning curve of ownership and lifetimes. It's a good stepping stone toward Rust, or a simpler alternative when automatic reference counting is sufficient and you don't need fine-grained control over memory or performance.
 
 If you already know Rust, you'll read hica code fluently. If you're learning hica first, you'll find that many of its patterns (Result types, match expressions, immutability) transfer directly when you're ready for Rust.
