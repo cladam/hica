@@ -235,7 +235,7 @@ fun safe_divide(a, b) =>
 | Operator | Description |
 | -------- | ----------- |
 | `&&` | Logical AND |
-| `\|\|` | Logical OR |
+| `||` | Logical OR |
 
 ### Pipe
 

@@ -40,7 +40,7 @@ fun main() {
   };
 
   // Some wraps any value
-  let name = Some("Alice");
+  let name = Some("Alicia");
   match name {
     Some(n) => println("hello, {n}!"),
     None    => println("hello, stranger!")
