@@ -18,7 +18,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| Type annotations in syntax (`: int`) | — | Medium | Parser + AST + codegen; checker already infers |
+| Type annotations in syntax (`: int`) | — | Medium | **Priority up**: escape hatch when inference fails (e.g. polymorphic tuple fns). Parser + AST + codegen; checker already infers |
 
 ### Pattern Matching
 
@@ -29,6 +29,7 @@ Legend: **done** = shipped, **—** = not started
 | Variable patterns | **done** | — | `n => ...` |
 | String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
 | Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
+| Match exhaustiveness checking | — | Medium | Warn/error on missing cases (e.g. unhandled `None`); key safety feature for a functional language |
 | Destructuring patterns (tuples/structs) | — | Medium | Depends on tuple/struct types |
 | Slice patterns (`[first, ..rest]`) | — | High | Depends on list types |
 
@@ -144,7 +145,6 @@ These are explicitly **not** in scope near-term:
 
 - **Row polymorphism / effect inference** — Koka handles this
 - **Generics / let-polymorphism** — add later when needed
-- **Type annotations in syntax** — parser doesn't parse `: type` yet
 - **Sets** — Koka has no built-in set; use maps
 - **File I/O** — passthrough to Koka stdlib when needed
 - **Interfaces / traits** — Koka's effects cover many of the same use cases
