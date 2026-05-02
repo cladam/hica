@@ -96,7 +96,7 @@ scores = list(map(double, [1, 2, 3, 4, 5]))
 
 **hica** has `fun` and full closures with the pipe operator:
 
-```hica
+```rust
 let double = (x) => x * 2;
 let scores = [1, 2, 3, 4, 5] |> map((x) => x * 2);
 ```

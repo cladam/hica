@@ -133,7 +133,7 @@ fun main() {
 
 The pipe `|>` connects the output of one function to the input of the next — like an assembly line:
 
-```hica
+```rust
 fun double(x) => x * 2
 fun add_one(x) => x + 1
 

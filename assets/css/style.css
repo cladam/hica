@@ -156,6 +156,7 @@ pre {
 
 code {
     font-family: 'Fira Code', monospace;
+    font-variant-ligatures: none;
     background-color: rgba(79, 70, 229, 0.08);
     color: var(--accent-indigo);
     padding: 3px 6px;
