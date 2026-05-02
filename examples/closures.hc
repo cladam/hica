@@ -9,35 +9,35 @@ fun apply(f, x) => f(x)
 
 fun main() {
   // A closure stored in a variable
-  let double = (x) => x * 2;
-  println(double(5));
+  let double = (x) => x * 2
+  println(double(5))
 
   // Closures passed to higher-order functions
-  let nums = [1, 2, 3, 4, 5];
-  let squares = map(nums, (x) => x * x);
-  println(squares);
+  let nums = [1, 2, 3, 4, 5]
+  let squares = map(nums, (x) => x * x)
+  println(squares)
 
-  let evens = filter(nums, (x) => x % 2 == 0);
-  println(evens);
+  let evens = filter(nums, (x) => x % 2 == 0)
+  println(evens)
 
-  let total = fold(nums, 0, (acc, x) => acc + x);
-  println(total);
+  let total = fold(nums, 0, (acc, x) => acc + x)
+  println(total)
 
   // Closures capture values from their scope
-  let factor = 10;
-  let scale = (x) => x * factor;
-  println(scale(7));
+  let factor = 10
+  let scale = (x) => x * factor
+  println(scale(7))
 
   // Composing closures with pipe
-  let result = 3 |> double |> scale;
-  println(result);
+  let result = 3 |> double |> scale
+  println(result)
 
   // Returning closures from functions
-  let add5 = make_adder(5);
-  println(add5(10));
-  println(make_adder(100)(1));
+  let add5 = make_adder(5)
+  println(add5(10))
+  println(make_adder(100)(1))
 
   // Passing functions to user-defined higher-order functions
-  println(apply(double, 21));
+  println(apply(double, 21))
   println(apply(add5, 7))
 }
