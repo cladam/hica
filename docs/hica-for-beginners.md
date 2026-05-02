@@ -25,7 +25,7 @@ hica is a statically typed, expression-oriented language. The compiler is built 
 2. Build the compiler:
 
 ```sh
-koka -ilib/klap -isrc src/main.kk -o hica
+koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
 ```
 
@@ -183,7 +183,7 @@ fun main() {
 
 ```rust
 fun main() {
-  let names = ["Alicia", "Kalle", "Olle"];
+  let names = ["Kalle", "Olle", "Lisa"];
   for name in names {
     println("Hello, " + name)
   }
