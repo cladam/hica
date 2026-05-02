@@ -19,7 +19,7 @@ Legend: **done** = shipped, **—** = not started
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
 | String utility functions | — | Low | `str_length`, `contains`, `trim`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`. Preferably written in hica (like `operators.hc`) once extern/FFI support exists; backed by Koka `std/core/string` |
-| Type annotations in syntax (`: int`) | — | Medium | **Priority up**: escape hatch when inference fails (e.g. polymorphic tuple fns). Parser + AST + codegen; checker already infers |
+| Type annotations in syntax (`: int`) | **done** | Medium | Escape hatch when inference fails. Parser + AST + checker unification. Supports `let x: int`, `fun f(a: int) : int`, all types |
 
 ### Pattern Matching
 
@@ -90,8 +90,8 @@ Legend: **done** = shipped, **—** = not started
 | Higher-order functions | **done** | — | Checker infers `TFun` types |
 | Self-recursion | **done** | Medium | Checker pre-seeds env; codegen omits annotation for `div` |
 | Mutual recursion | — | Medium | Needs fixpoint or two-pass approach |
-| Returning closures from functions | — | Medium | `fun make_adder(n) => (x) => x + n` — codegen emits `int` annotation that Koka can't resolve; need to omit or qualify |
-| User-defined higher-order functions | — | Medium | `fun apply(f, x) => f(x)` — codegen emits incomplete function type `() ->`; need to emit `TFun` params properly |
+| Returning closures from functions | **done** | Medium | Codegen omits function-typed return annotations; Koka infers them |
+| User-defined higher-order functions | **done** | Medium | Codegen omits incomplete `TFun` annotations; Koka infers them |
 
 ### Modules & Visibility
 
@@ -148,8 +148,8 @@ Issues that exist today but are not yet fixed:
 - **Polymorphic functions over tuples** — a function like
   `fun swap(p) => (p.1, p.0)` leaves param/return types unresolved (TVar).
   The generated Koka code omits annotations, but Koka can't always resolve
-  `.fst`/`.snd` without them. Fix: propagate call-site type info back to
-  declarations, or let users add type annotations.
+  `.fst`/`.snd` without them. **Workaround:** use type annotations:
+  `fun swap(p: (int, int)) : (int, int) => (p.1, p.0)`.
 - **Tuples limited to 5 elements** — Koka defines tuple types up to `tuple5`.
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred

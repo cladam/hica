@@ -21,7 +21,7 @@ hica is a good name for this language and it can stand for **H**indley-milner **
 - **No garbage collector** — memory safety via Koka's Perceus (Functional But
   In-Place) reference counting, inherited from the Koka target.
 - **Strong inference** — Hindley-Milner type inference with row polymorphism;
-  type annotations are rarely required.
+  type annotations are rarely required but fully supported.
 - **Familiar syntax** — curly braces, `let`, `fun`, `match`, `if`, and the `=>`
   expression-bodied shorthand.
 
@@ -107,6 +107,17 @@ fun apply(f, x) => f(x)
 fun main() {
   let sq = (n) => n * n;
   apply(sq, 5)
+}
+```
+
+### Type annotations
+
+```rust
+fun add(a: int, b: int) : int => a + b
+
+fun main() {
+  let x: int = 42
+  println(add(x, 8))
 }
 ```
 
