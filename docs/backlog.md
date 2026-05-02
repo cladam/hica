@@ -18,6 +18,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
+| String utility functions | — | Low | `str_length`, `contains`, `trim`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`. Preferably written in hica (like `operators.hc`) once extern/FFI support exists; backed by Koka `std/core/string` |
 | Type annotations in syntax (`: int`) | — | Medium | **Priority up**: escape hatch when inference fails (e.g. polymorphic tuple fns). Parser + AST + codegen; checker already infers |
 
 ### Pattern Matching
@@ -31,6 +32,10 @@ Legend: **done** = shipped, **—** = not started
 | Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
 | Match exhaustiveness checking | — | Medium | Warn/error on missing cases (e.g. unhandled `None`); key safety feature for a functional language |
 | Destructuring patterns (tuples/structs) | — | Medium | Depends on tuple/struct types |
+| Or-patterns (`1 \| 2 \| 3 => ...`) | — | Medium | Multiple patterns per arm; desugar to repeated arms or Koka `\|\|` guard |
+| Match guards (`n if n > 5 => ...`) | — | Medium | Koka supports guards natively (`\| cond ->`); add `if` after pattern in parser |
+| Tuple destructuring patterns (`(a, b) => ...`) | — | Low | Koka handles tuple patterns directly; just parse + emit |
+| Range patterns (`4..=6 => ...`) | — | Medium | Desugar to match guard (`x >= 4 && x <= 6`); depends on guards |
 | Slice patterns (`[first, ..rest]`) | — | High | Depends on list types |
 
 ### Data Types
@@ -47,12 +52,21 @@ Legend: **done** = shipped, **—** = not started
 | List concat with `+` | **done** | Low | Checker allows `+` on lists; codegen emits `++` |
 | `in` operator (`x in list`) | **done** | Medium | New binop; emits `list.any(fn(el) el == x)` |
 | `enumerate(list)` | **done** | Low | Prelude sig; emits Koka `map-indexed` |
+| `find(list, fn)` | — | Low | Prelude sig; return `maybe<a>`; emits Koka `list.find(fn)` |
+| `all(list, fn)` | **done** | Low | Prelude sig; emits Koka `list.all(fn)` |
 | Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
 | Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
-| Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
+| Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct`. Sub-tasks: construction, field access, update syntax (`{ ...old, x: 5 }` — good fit for immutable lang). No `impl` blocks — use qualified free functions (`point_area(p)`) + module system instead |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
+| User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |
+| File I/O (`read_file`, `write_file`, `read_lines`) | — | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `result<(), string>`, `read_lines(path)` → `result<list<string>, string>`. Koka `std/os/file` has `read-text-file` / `write-text-file` |
+| Parse functions (`parse_int`, `parse_float`) | — | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
+| Type conversion (`to_int`, `to_float`) | — | Low | Prelude externs; `float64` → `int` truncation, `int` → `float64` promotion |
+| Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | — | Medium | Prelude fns operating on `maybe`/`result`; needs user-defined higher-order fns working first |
+| `?` operator (early return on Err/None) | — | High | Needs a return/early-exit mechanism; Koka uses effects for this |
+| Environment (`get_args()`, `get_env(key)`, `eprintln`) | — | Low | `get_args()` → `list<string>` (Koka `get-args`), `get_env(key)` → `maybe<string>` (Koka `get-env`), `eprintln(msg)` → stderr output. Enables simple CLI programs and scripting |
 
 ### Control Flow
 
@@ -63,6 +77,7 @@ Legend: **done** = shipped, **—** = not started
 | `repeat(n) { ... }` | **done** | – | Emit Koka `repeat` |
 | `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
 | `for i in 0..n` (range loop) | **done** | Medium | Emit Koka `for(0, n) fn(i)` |
+| `for x in list` (collection loop) | — | Medium | Emit Koka `list.foreach(fn(x) { body })` |
 | `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
 | `break` / `continue` | — | Medium | Needs Koka effect-based control flow |
 
@@ -75,6 +90,8 @@ Legend: **done** = shipped, **—** = not started
 | Higher-order functions | **done** | — | Checker infers `TFun` types |
 | Self-recursion | **done** | Medium | Checker pre-seeds env; codegen omits annotation for `div` |
 | Mutual recursion | — | Medium | Needs fixpoint or two-pass approach |
+| Returning closures from functions | — | Medium | `fun make_adder(n) => (x) => x + n` — codegen emits `int` annotation that Koka can't resolve; need to omit or qualify |
+| User-defined higher-order functions | — | Medium | `fun apply(f, x) => f(x)` — codegen emits incomplete function type `() ->`; need to emit `TFun` params properly |
 
 ### Modules & Visibility
 
@@ -82,7 +99,7 @@ Legend: **done** = shipped, **—** = not started
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
 | Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
-| `import "mymodule"` | — | High | Multi-file compilation, module graph |
+| `import "mymodule"` | — | High | Multi-file compilation, module graph. Sub-tasks: file resolution, selective imports (`from "math" import { sin, cos }`), qualified names (`math.sin(x)`) |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
 ---
@@ -116,6 +133,7 @@ Legend: **done** = shipped, **—** = not started
 | `hica new <name>` | **done** | — | Scaffold with hica.ini, main.hc, README.md |
 | `hica init` | **done** | — | Initialise in current directory |
 | `hica fmt` / `hica fmt --check` | — | Medium | Pretty-printer (Wadler-Leijen) |
+| `hica test [file]` | — | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail. Later: auto-discover `test_*.hc` / `*_test.hc`. Goal: simplest testing experience possible — no modules, no annotations, no imports, use kunit as reference|
 
 ---
 
