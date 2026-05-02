@@ -695,3 +695,29 @@ pub fun main() : io ()
     dtest("println auto-wraps result with show")
       val code = emit-typed-program("fun main() { println(Ok(42)) }")
       assert/is-true(code.contains(".show"))
+
+    // --- Returning closures ---
+    dtest("function returning closure omits return annotation")
+      val code = emit-typed-program("fun make_adder(n) => (x) => x + n\nfun main() { println(make_adder(5)(10)) }")
+      // Return type must NOT have `: (int) -> int` — Koka can't parse it
+      assert/is-true(!code.contains(": (int) -> int"))
+      assert/is-true(code.contains("fn(x)"))
+
+    dtest("closure captures outer variable")
+      val code = emit-typed-program("fun make_adder(n) => (x) => x + n\nfun main() { let add5 = make_adder(5); println(add5(10)) }")
+      assert/is-true(code.contains("fn(x)"))
+
+    // --- User-defined higher-order functions ---
+    dtest("higher-order function with unresolved param types omits annotation")
+      val code = emit-typed-program("fun apply(f, x) => f(x)\nfun double(n) => n * 2\nfun main() { println(apply(double, 5)) }")
+      // Param annotation must NOT be broken `() -> ` syntax
+      assert/is-true(!code.contains("() -> ,"))
+      assert/is-true(!code.contains(": () ->"))
+
+    dtest("higher-order function with typed callback emits valid annotation")
+      val code = emit-typed-program("fun twice(f, x) => f(f(x))\nfun double(n) => n * 2\nfun main() { println(twice(double, 3)) }")
+      assert/is-true(!code.contains("() -> ,"))
+
+    dtest("closure stored in let variable")
+      val code = emit-typed-program("fun main() { let f = (x) => x * 2; println(f(5)) }")
+      assert/is-true(code.contains("fn(x)"))

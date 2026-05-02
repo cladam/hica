@@ -64,7 +64,11 @@ fun emit-type( t : hica-type ) : div string
       val ok-str = emit-type(o)
       val err-str = emit-type(e)
       if ok-str == "" || err-str == "" then "" else "either<" ++ err-str ++ ", " ++ ok-str ++ ">"
-    TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
+    TFun(ps, r) ->
+      val param-strs = ps.map(fn(p) emit-type(p))
+      val ret-str = emit-type(r)
+      if param-strs.any(fn(s) s == "") || ret-str == "" then ""
+      else "(" ++ param-strs.join(", ") ++ ") -> " ++ ret-str
     TVar(_)     -> ""  // unresolved — omit annotation
 
 // ---------------------------------------------------------------------------
@@ -82,7 +86,10 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
 fun emit-decl( d : fun-decl, declared : list<string> ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   // Omit return type annotation for recursive functions — let Koka infer `div`
+  // Omit function-typed returns — Koka's parser confuses `(a) -> b` with the
+  // function's own signature, so we let Koka infer it.
   val ret-ann = if d.is-recursive then "" else match d.ret-type
+    Just(TFun(_, _)) -> ""
     Just(t) ->
       val ts = emit-type(t)
       if ts == "" then "" else " : " ++ ts
