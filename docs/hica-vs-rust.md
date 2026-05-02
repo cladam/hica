@@ -1,6 +1,6 @@
 ---
 layout: default
-title: hica vs Rust - hica
+title: Hica vs. Rust - hica
 ---
 
 # hica vs Rust

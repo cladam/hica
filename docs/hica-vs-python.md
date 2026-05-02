@@ -1,6 +1,6 @@
 ---
 layout: default
-title: hica vs Python - hica
+title: Hica vs. Python - hica
 ---
 
 # hica vs Python
