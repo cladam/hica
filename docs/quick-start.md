@@ -59,7 +59,7 @@ Short aliases work too: `hica r`, `hica b`, `hica c`.
 
 ## Try the Examples
 
-The repo ships with ready-to-run examples:
+The repo ships with ready-to-run [examples](https://github.com/cladam/hica/tree/main/examples):
 
 ```sh
 ./hica run examples/hello.hc

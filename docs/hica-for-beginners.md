@@ -1,9 +1,9 @@
 ---
 layout: default
-title: hica for Beginners - hica
+title: Hica for Beginners - hica
 ---
 
-# hica for Beginners
+# Hica for Beginners
 
 A practical introduction to hica for programmers new to the language. If you already know Python, JavaScript, or Rust, you'll feel at home quickly.
 

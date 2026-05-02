@@ -61,13 +61,14 @@ let pi = 3.14;
 
 ### The last-line rule
 
-The last expression in a block is its return value, so no `return` keyword is needed:
+The last expression in a { } block is its return value. No need to write "return". Use println() to see output.
 
 ```rust
 fun main() {
   let a = 10;
   let b = 20;
-  a + b
+  let c = a + b;
+  println(c)
 }
 ```
 
@@ -84,11 +85,11 @@ let sign = if x < 0 { "negative" } else { "non-negative" };
 ### Else-if chains
 
 ```rust
-fun classify(n) =>
+fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
   else if n % 5 == 0 { "buzz" }
-  else { show(n) }
+  else { "{n}" }
 ```
 
 ### Match expressions
@@ -130,7 +131,7 @@ for i in 0..10 {
 ### For-in collection loops
 
 ```rust
-let names = ["Alice", "Bob", "Carol"];
+let names = ["Kalle", "Lisa", "Olle"];
 for name in names {
   println(name)
 }
