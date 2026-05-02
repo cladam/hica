@@ -14,7 +14,7 @@ If you're looking for a first programming language — for yourself, your kids, 
 | Type safety | Runtime errors | Compile-time errors |
 | Readability | Excellent (indentation) | Excellent (arrows, braces) |
 | Mutability | Mutable by default | Immutable by design |
-| Functions | `def` + limited `lambda` | `fun` + full closures + `\|>` pipe |
+| Functions | `def` + limited `lambda` | `fun` + full closures + `&#124;>` pipe |
 | Error handling | Exceptions (easy to forget) | Result types (forced to handle) |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |

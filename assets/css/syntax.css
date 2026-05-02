@@ -19,7 +19,6 @@ pre.highlight {
 /* Keywords (fun, let, if, else, match, for, in) */
 .highlight .k, .highlight .kn, .highlight .kd {
     color: #7c3aed;
-    font-weight: bold;
 }
 
 /* Built-ins & Literals (true, false, None, Some, Ok, Err) and Numbers */
