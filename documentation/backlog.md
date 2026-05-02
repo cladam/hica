@@ -18,7 +18,9 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| String utility functions | — | Low | `str_length`, `contains`, `trim`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`. Preferably written in hica (like `operators.hc`) once extern/FFI support exists; backed by Koka `std/core/string` |
+| String utility functions | — | Low | `str_length`, `contains`, `trim`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`, `index_of(str, substr)` → `maybe<int>`. Preferably written in hica (like `operators.hc`) once extern/FFI support exists; backed by Koka `std/core/string` |
+| String indexing & slicing (`s[0]`, `s[1:]`) | — | Low | Same syntax as list indexing/slicing but on strings. Emit Koka `string/slice`. Needed by hica-semver to strip `v` prefix, extract substrings |
+| String comparison (`<`, `>`, `<=`, `>=`) | — | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
 | Type annotations in syntax (`: int`) | **done** | Medium | Escape hatch when inference fails. Parser + AST + checker unification. Supports `let x: int`, `fun f(a: int) : int`, all types |
 
 ### Pattern Matching
@@ -57,7 +59,7 @@ Legend: **done** = shipped, **—** = not started
 | Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
 | Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
-| Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct`. Sub-tasks: construction, field access, update syntax (`{ ...old, x: 5 }` — good fit for immutable lang). No `impl` blocks — use qualified free functions (`point_area(p)`) + module system instead |
+| Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct`. Sub-tasks: construction, field access, update syntax (`{ ...old, x: 5 }` — good fit for immutable lang). No `impl` blocks — use qualified free functions (`point_area(p)`) + module system instead. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
 | User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |

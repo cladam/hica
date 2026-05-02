@@ -8,6 +8,8 @@ documentation/hica-vs-python.md
 documentation/README.md
 documentation/operators.hc
 documentation/review.md
+documentation/diff.h
+documentation/diff.c
 
 .koka/
 .DS_Store
