@@ -273,6 +273,8 @@ pub struct fun-decl
   name        : string
   params      : list<string>
   body        : node
+  param-anns  : list<maybe<hica-type>> = []  // user-written type annotations per param
+  ret-ann     : maybe<hica-type> = Nothing   // user-written return type annotation
   param-types : list<hica-type> = []
   ret-type    : maybe<hica-type> = Nothing
   is-recursive : bool = False

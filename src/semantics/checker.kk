@@ -221,6 +221,15 @@ fun freshen( t : hica-type ) : <div,fresh> hica-type
       val mapping = unique.map(fn(v) (v, fresh-tvar()))
       apply-rename(mapping, t)
 
+// Zip parameter names with their optional annotations.
+// Uses the annotation when present, otherwise a fresh type variable.
+fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div,fresh> list<hica-type>
+  match (params, anns)
+    (Cons(_, ps), Cons(Just(t), as')) -> Cons(t, zip-with-anns(ps, as'))
+    (Cons(_, ps), Cons(Nothing, as')) -> Cons(fresh-tvar(), zip-with-anns(ps, as'))
+    (Cons(_, ps), Nil)                -> Cons(fresh-tvar(), zip-with-anns(ps, []))
+    _                                 -> []
+
 // ---------------------------------------------------------------------------
 // Type inference
 // ---------------------------------------------------------------------------
@@ -650,9 +659,11 @@ fun get-type( n : node ) : hica-type
 // Supports self-recursion: the function's own name is pre-seeded in the
 // environment with a fresh type so recursive calls can resolve.
 fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (subst, type-env, fun-decl)
-  // Assign fresh type variables to each parameter
-  val param-types = d.params.map(fn(_p) fresh-tvar())
-  val ret-var = fresh-tvar()
+  // Assign types to each parameter: use annotation if provided, otherwise fresh type variable
+  val param-types = zip-with-anns(d.params, d.param-anns)
+  val ret-var = match d.ret-ann
+    Just(t) -> t
+    Nothing -> fresh-tvar()
   // Pre-seed the environment with the function's own type (enables recursion)
   val self-type = TFun(param-types, ret-var)
   val env-with-self = env.extend(d.name, self-type)

@@ -721,3 +721,42 @@ pub fun main() : io ()
     dtest("closure stored in let variable")
       val code = emit-typed-program("fun main() { let f = (x) => x * 2; println(f(5)) }")
       assert/is-true(code.contains("fn(x)"))
+
+    // --- Type annotations ---
+    dtest("let with type annotation type-checks")
+      val ds = check-diagnostics("fun main() { let x: int = 42; println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("let type annotation mismatch reports error")
+      val ds = check-diagnostics("fun main() { let x: int = \"hello\"; println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
+    dtest("function param type annotations emit correctly")
+      val code = emit-typed-program("fun add(a: int, b: int) : int => a + b\nfun main() { println(add(1, 2)) }")
+      assert/is-true(code.contains("a : int"))
+      assert/is-true(code.contains("b : int"))
+
+    dtest("function return type annotation emits correctly")
+      val code = emit-typed-program("fun double(n: int) : int => n * 2\nfun main() { println(double(5)) }")
+      assert/is-true(code.contains(": int"))
+
+    dtest("tuple type annotation works")
+      val code = emit-typed-program("fun swap(p: (int, int)) : (int, int) => (p.1, p.0)\nfun main() { println(swap((3, 7))) }")
+      assert/is-true(code.contains("(int, int)"))
+
+    dtest("list type annotation works")
+      val ds = check-diagnostics("fun main() { let xs: list<int> = [1, 2, 3]; println(xs) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("maybe type annotation works")
+      val ds = check-diagnostics("fun main() { let x: maybe<int> = Some(42); println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("partial annotations work — unannotated params inferred")
+      val code = emit-typed-program("fun add(a: int, b) => a + b\nfun main() { println(add(1, 2)) }")
+      assert/is-true(code.contains("a : int"))
+      assert/is-true(code.contains("b : int"))

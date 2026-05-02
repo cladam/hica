@@ -337,6 +337,118 @@ fun parse-lambda-body() : <div,parser> node
     TkLBrace -> parse-block()
     _        -> parse-expr()
 
+// ---------------------------------------------------------------------------
+// Type annotations
+// ---------------------------------------------------------------------------
+
+// Parse a type expression: int, float, bool, string, char,
+// list<T>, maybe<T>, result<T,E>, (T, T) tuples, (T) -> T functions.
+fun parse-type() : <div,parser> hica-type
+  match peek()
+    TkLParen ->
+      // Tuple type or function type: (int, string) or (int) -> string
+      advance()
+      match peek()
+        TkRParen ->
+          // () -> T  (no-param function type)
+          advance()
+          match peek()
+            TkThinArrow ->
+              advance()
+              val ret = parse-type()
+              TFun([], ret)
+            _ ->
+              TUnit
+        _ ->
+          val first = parse-type()
+          match peek()
+            TkComma ->
+              // (T, T, ...) — could be tuple or multi-param function type
+              advance()
+              val rest = parse-type-list()
+              expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+              match peek()
+                TkThinArrow ->
+                  advance()
+                  val ret = parse-type()
+                  TFun(Cons(first, rest), ret)
+                _ ->
+                  TTuple(Cons(first, rest))
+            TkRParen ->
+              // (T) — could be grouped or single-param function type
+              advance()
+              match peek()
+                TkThinArrow ->
+                  advance()
+                  val ret = parse-type()
+                  TFun([first], ret)
+                _ ->
+                  first  // just grouping parens
+            _ ->
+              parse-error("expected ',' or ')' in type")
+              first
+    TkIdent(name) ->
+      advance()
+      match name
+        "int"    -> TInt
+        "float"  -> TFloat
+        "bool"   -> TBool
+        "string" -> TString
+        "char"   -> TChar
+        "list"   ->
+          expect("<", fn(k) match k { TkLt -> True; _ -> False })
+          val elem = parse-type()
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          TList(elem)
+        "maybe"  ->
+          expect("<", fn(k) match k { TkLt -> True; _ -> False })
+          val elem = parse-type()
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          TMaybe(elem)
+        "result" ->
+          expect("<", fn(k) match k { TkLt -> True; _ -> False })
+          val ok-t = parse-type()
+          expect(",", fn(k) match k { TkComma -> True; _ -> False })
+          val err-t = parse-type()
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          TResult(ok-t, err-t)
+        _ ->
+          parse-error("unknown type: " ++ name)
+          TUnit
+    _ ->
+      parse-error("expected type")
+      TUnit
+
+fun parse-type-list() : <div,parser> list<hica-type>
+  match peek()
+    TkRParen -> []
+    _ ->
+      val t = parse-type()
+      match peek()
+        TkComma -> { advance(); Cons(t, parse-type-list()) }
+        _       -> [t]
+
+// Parse an optional `: type` annotation. Returns Nothing if no colon.
+fun parse-optional-type-ann() : <div,parser> maybe<hica-type>
+  match peek()
+    TkColon -> { advance(); Just(parse-type()) }
+    _       -> Nothing
+
+// ---------------------------------------------------------------------------
+// Parameters and bindings
+// ---------------------------------------------------------------------------
+
+fun parse-typed-params() : <div,parser> list<(string, maybe<hica-type>)>
+  match peek()
+    TkRParen -> []
+    TkIdent(name) ->
+      advance()
+      val ann = parse-optional-type-ann()
+      match peek()
+        TkComma -> { advance(); Cons((name, ann), parse-typed-params()) }
+        _       -> [(name, ann)]
+    _ -> []
+
 fun parse-params() : <div,parser> list<string>
   match peek()
     TkRParen -> []
@@ -366,6 +478,7 @@ fun parse-let() : <div,parser> node
       val name = match peek()
         TkIdent(n) -> { advance(); n }
         _          -> { parse-error("expected identifier"); "_" }
+      val ann = parse-optional-type-ann()
       expect("=", fn(k) match k { TkEq -> True; _ -> False })
       val init = parse-expr()
       // optional semicolon before body
@@ -373,7 +486,7 @@ fun parse-let() : <div,parser> node
         TkSemicolon -> { advance(); () }
         _           -> ()
       val body = parse-expr()
-      Node(Span(t.span.start, body.span.end), Let(name, Nothing, init, body))
+      Node(Span(t.span.start, body.span.end), Let(name, ann, init, body))
 
 fun parse-let-tuple-names() : <div,parser> list<string>
   match peek()
@@ -490,15 +603,18 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
     TkIdent(n) -> { advance(); n }
     _          -> { parse-error("expected function name"); "_" }
   expect("(", fn(k) match k { TkLParen -> True; _ -> False })
-  val params = parse-params()
+  val typed-params = parse-typed-params()
   expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  val ret-ann = parse-optional-type-ann()
+  val param-names = typed-params.map(fn(e) e.fst)
+  val p-anns = typed-params.map(fn(e) e.snd)
   val body = match peek()
     TkArrow ->
       advance()
       parse-expr()
     _ ->
       parse-block()
-  Fun-decl(Span(t.span.start, body.span.end), name, params, body)
+  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann)
 
 pub fun parse-program() : <div,parser> program
   var decls := []
