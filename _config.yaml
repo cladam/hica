@@ -31,4 +31,10 @@ exclude:
   - AUTHORS
   - LICENSE
   - Makefile
+  - README.md
   - documentation
+  - .github
+  - .gitignore
+  - .gitmodules
+  - .tbdflow.yml
+  - Gemfile.lock

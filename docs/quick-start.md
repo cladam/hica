@@ -18,7 +18,7 @@ git clone https://github.com/cladam/hica.git
 cd hica
 
 # Build the hica compiler
-koka -ilib/klap -isrc src/main.kk -o hica
+koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
 ```
 

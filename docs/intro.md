@@ -13,11 +13,11 @@ title: Introduction — hica
 
 Most programming languages force you to choose: easy to learn **or** safe and fast. hica gives you both.
 
-- **Familiar syntax** — if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
-- **Everything is an expression** — `if`, `match`, and blocks all return values. No surprise `void` returns.
-- **Compile-time safety** — Hindley-Milner type inference catches bugs before your program runs, without requiring type annotations everywhere.
-- **No garbage collector** — memory safety via Koka's Perceus (Functional But In-Place) reference counting.
-- **Effect tracking** — side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
+- **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
+- **Everything is an expression**: `if`, `match`, and blocks all return values. No surprise `void` returns.
+- **Compile-time safety**: Hindley-Milner type inference catches bugs before your program runs, without requiring type annotations everywhere.
+- **No garbage collector**: memory safety via Koka's Perceus (Functional But In-Place) reference counting.
+- **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
 
 ## How It Works
 
@@ -27,7 +27,7 @@ hica compiles through a multi-stage pipeline:
 .hc source → Lex → Parse → Type Check → Emit Koka (.kk) → Koka → C / JS / WASM
 ```
 
-Each phase is implemented as a Koka module using algebraic effects for compiler state — diagnostics, fresh type variables, and symbol scopes.
+Each phase is implemented as a Koka module using algebraic effects for compiler state; diagnostics, fresh type variables, and symbol scopes.
 
 Because the final target is Koka, hica programs inherit the full Koka runtime: its standard library, Perceus memory management, and the ability to compile to C (native), JavaScript (browser/Node), or WASM.
 
@@ -49,7 +49,7 @@ fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
   else if n % 5 == 0 { "buzz" }
-  else { show(n) }
+  else { "{n}" }
 
 fun main() {
   for i in 0..20 {

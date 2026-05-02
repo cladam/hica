@@ -13,11 +13,11 @@ Because the target is Koka itself, hica programs can be compiled onward to **C**
 
 ## Design Goals
 
-- **Expression-oriented**: everything returns a value: `if`, `match`, and blocks are all expressions.
-- **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
-- **No garbage collector**: memory safety via Koka's Perceus reference counting, inherited from the Koka target.
-- **Strong inference**: Hindley-Milner type inference with row polymorphism; type annotations are rarely required but fully supported.
-- **Familiar syntax**: curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
+- **Expression-oriented** — everything returns a value: `if`, `match`, and blocks are all expressions.
+- **Effect tracking** — side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
+- **No garbage collector** — memory safety via Koka's Perceus reference counting, inherited from the Koka target.
+- **Strong inference** — Hindley-Milner type inference with row polymorphism; type annotations are rarely required but fully supported.
+- **Familiar syntax** — curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 
 ## A Quick Taste
 
@@ -26,7 +26,7 @@ fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
   else if n % 5 == 0 { "buzz" }
-  else { "{n}" }
+  else { show(n) }
 
 fun main() {
   for i in 0..20 {
