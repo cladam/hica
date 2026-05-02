@@ -240,7 +240,7 @@ fun safe_divide(a, b) =>
 
 The pipe operator passes the left-hand value as the first argument to the right-hand function:
 
-```rust
+```hica
 fun double(x) => x * 2
 fun add_one(x) => x + 1
 
