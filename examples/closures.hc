@@ -1,6 +1,12 @@
 // Hica — closures
 // Closures are anonymous functions that capture their environment.
 
+// A function that returns a closure
+fun make_adder(n) => (x) => x + n
+
+// A user-defined higher-order function
+fun apply(f, x) => f(x)
+
 fun main() {
   // A closure stored in a variable
   let double = (x) => x * 2;
@@ -24,5 +30,14 @@ fun main() {
 
   // Composing closures with pipe
   let result = 3 |> double |> scale;
-  println(result)
+  println(result);
+
+  // Returning closures from functions
+  let add5 = make_adder(5);
+  println(add5(10));
+  println(make_adder(100)(1));
+
+  // Passing functions to user-defined higher-order functions
+  println(apply(double, 21));
+  println(apply(add5, 7))
 }

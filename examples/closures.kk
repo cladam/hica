@@ -16,6 +16,12 @@ fun hc_clamp(v : int, lo : int, hi : int) : int
 fun hc_gcd(a : int, b : int)
   if (b == 0) then a else hc_gcd(b, (a % b))
 
+fun hc_make_adder(n : int)
+  fn(x) (x + n)
+
+fun hc_apply(f, x)
+  f(x)
+
 fun main()
   val double : (int) -> int = fn(x) (x * 2)
   println(double(5).show)
@@ -31,3 +37,8 @@ fun main()
   println(scale(7).show)
   val result : int = scale(double(3))
   println(result.show)
+  val add5 : (int) -> int = hc_make_adder(5)
+  println(add5(10).show)
+  println(hc_make_adder(100)(1).show)
+  println(hc_apply(double, 21).show)
+  println(hc_apply(add5, 7).show)
