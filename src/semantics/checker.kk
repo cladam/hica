@@ -55,6 +55,10 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
       TTuple(elems.map(fn(e) apply-subst(s, e)))
     TList(elem) ->
       TList(apply-subst(s, elem))
+    TMaybe(elem) ->
+      TMaybe(apply-subst(s, elem))
+    TResult(ok, err) ->
+      TResult(apply-subst(s, ok), apply-subst(s, err))
     _ -> t
 
 // Check if a name is bound in a substitution.
@@ -93,6 +97,8 @@ fun occurs-in( name : string, t : hica-type ) : div bool
     TFun(params, r)  -> params.any(fn(p) occurs-in(name, p)) || occurs-in(name, r)
     TTuple(elems)    -> elems.any(fn(e) occurs-in(name, e))
     TList(elem)      -> occurs-in(name, elem)
+    TMaybe(elem)     -> occurs-in(name, elem)
+    TResult(ok, err) -> occurs-in(name, ok) || occurs-in(name, err)
     _                -> False
 
 // ---------------------------------------------------------------------------
@@ -122,6 +128,12 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
       else unify-lists(es1, es2, sp)
     (TList(e1), TList(e2)) ->
       unify(e1, e2, sp)
+    (TMaybe(e1), TMaybe(e2)) ->
+      unify(e1, e2, sp)
+    (TResult(o1, e1), TResult(o2, e2)) ->
+      val s1 = unify(o1, o2, sp)
+      val s2 = unify(apply-subst(s1, e1), apply-subst(s1, e2), sp)
+      compose-subst(s2, s1)
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       if ps1.length != ps2.length then
         emit-error(sp, "function arity mismatch: expected " ++ ps1.length.show ++ " params, got " ++ ps2.length.show)
@@ -175,6 +187,8 @@ fun collect-tvars( t : hica-type ) : div list<string>
     TFun(params, r)  -> params.flatmap(fn(p) collect-tvars(p)) ++ collect-tvars(r)
     TTuple(elems)    -> elems.flatmap(fn(e) collect-tvars(e))
     TList(elem)      -> collect-tvars(elem)
+    TMaybe(elem)     -> collect-tvars(elem)
+    TResult(ok, err) -> collect-tvars(ok) ++ collect-tvars(err)
     _                -> []
 
 // Replace TVars according to a mapping.
@@ -187,6 +201,8 @@ fun apply-rename( mapping : list<(string, hica-type)>, t : hica-type ) : div hic
     TFun(params, r) -> TFun(params.map(fn(p) apply-rename(mapping, p)), apply-rename(mapping, r))
     TTuple(elems)   -> TTuple(elems.map(fn(e) apply-rename(mapping, e)))
     TList(elem)     -> TList(apply-rename(mapping, elem))
+    TMaybe(elem)    -> TMaybe(apply-rename(mapping, elem))
+    TResult(ok, err) -> TResult(apply-rename(mapping, ok), apply-rename(mapping, err))
     _               -> t
 
 fun find-mapping( mapping : list<(string, hica-type)>, name : string ) : maybe<hica-type>
@@ -472,6 +488,29 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
         Nothing -> (s3, Nothing)
       (s4, Node(n.span, ListSlice(lst', start-m', end-m'), Just(TList(apply-subst(s4, elem-var)))))
 
+    // --- Maybe constructors ---
+    ESome(value) ->
+      val (s1, value') = infer(env, s, value)
+      val val-type = apply-subst(s1, get-type(value'))
+      (s1, Node(n.span, ESome(value'), Just(TMaybe(val-type))))
+
+    ENone ->
+      val elem-var = fresh-tvar()
+      (s, Node(n.span, ENone, Just(TMaybe(elem-var))))
+
+    // --- Result constructors ---
+    EOk(value) ->
+      val (s1, value') = infer(env, s, value)
+      val val-type = apply-subst(s1, get-type(value'))
+      val err-var = fresh-tvar()
+      (s1, Node(n.span, EOk(value'), Just(TResult(val-type, err-var))))
+
+    EErr(value) ->
+      val (s1, value') = infer(env, s, value)
+      val val-type = apply-subst(s1, get-type(value'))
+      val ok-var = fresh-tvar()
+      (s1, Node(n.span, EErr(value'), Just(TResult(ok-var, val-type))))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
@@ -575,6 +614,27 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
     PLit(LitBool(_))   -> (compose-subst(unify(scrut-type, TBool, no-span), s), env)
     PLit(LitString(_)) -> (compose-subst(unify(scrut-type, TString, no-span), s), env)
     PLit(LitChar(_))   -> (compose-subst(unify(scrut-type, TChar, no-span), s), env)
+    PSome(inner) ->
+      val elem-var = fresh-tvar()
+      val s1 = compose-subst(unify(scrut-type, TMaybe(elem-var), no-span), s)
+      val inner-type = apply-subst(s1, elem-var)
+      infer-pattern(env, s1, inner-type, inner)
+    PNone ->
+      val elem-var = fresh-tvar()
+      val s1 = compose-subst(unify(scrut-type, TMaybe(elem-var), no-span), s)
+      (s1, env)
+    POk(inner) ->
+      val ok-var = fresh-tvar()
+      val err-var = fresh-tvar()
+      val s1 = compose-subst(unify(scrut-type, TResult(ok-var, err-var), no-span), s)
+      val inner-type = apply-subst(s1, ok-var)
+      infer-pattern(env, s1, inner-type, inner)
+    PErr(inner) ->
+      val ok-var = fresh-tvar()
+      val err-var = fresh-tvar()
+      val s1 = compose-subst(unify(scrut-type, TResult(ok-var, err-var), no-span), s)
+      val inner-type = apply-subst(s1, err-var)
+      infer-pattern(env, s1, inner-type, inner)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type
@@ -657,4 +717,7 @@ fun body-calls-name( n : node, name : string ) : div bool
       body-calls-name(lst, name) ||
       sm.map(fn(x) body-calls-name(x, name)).default(False) ||
       em.map(fn(x) body-calls-name(x, name)).default(False)
+    ESome(v)                -> body-calls-name(v, name)
+    EOk(v)                  -> body-calls-name(v, name)
+    EErr(v)                 -> body-calls-name(v, name)
     _                       -> False

@@ -57,6 +57,9 @@ fun main() {
   println(nums[-1])
   println(nums[-2])
 
+  // prepend using cons
+  println(cons(0, nums))
+
   // list concatenation with +
   let more = nums + [6, 7, 8];
   println(more)

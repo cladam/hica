@@ -629,3 +629,69 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() => 'a' == \"a\"")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length > 0)
+
+    // --- Maybe: Some / None ---
+    dtest("Some emits Just")
+      val code = emit-typed-program("fun main() => Some(42)")
+      assert/is-true(code.contains("Just(42)"))
+
+    dtest("None emits Nothing")
+      val code = emit-typed-program("fun main() => None")
+      assert/is-true(code.contains("Nothing"))
+
+    dtest("Some type-checks without error")
+      val ds = check-diagnostics("fun main() => Some(42)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("None type-checks without error")
+      val ds = check-diagnostics("fun main() => None")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("match Some pattern emits Just")
+      val code = emit-typed-program("fun main() { let x = Some(5); match x { Some(n) => n, None => 0 } }")
+      assert/is-true(code.contains("Just(n)"))
+      assert/is-true(code.contains("Nothing"))
+
+    dtest("match maybe type-checks")
+      val ds = check-diagnostics("fun main() { let x = Some(5); match x { Some(n) => n, None => 0 } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("println auto-wraps maybe with show")
+      val code = emit-typed-program("fun main() { println(Some(42)) }")
+      assert/is-true(code.contains(".show"))
+
+    // --- Result: Ok / Err ---
+    dtest("Ok emits Right")
+      val code = emit-typed-program("fun main() => Ok(42)")
+      assert/is-true(code.contains("Right(42)"))
+
+    dtest("Err emits Left")
+      val code = emit-typed-program("fun main() => Err(\"oops\")")
+      assert/is-true(code.contains("Left(\"oops\")"))
+
+    dtest("Ok type-checks without error")
+      val ds = check-diagnostics("fun main() => Ok(42)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("Err type-checks without error")
+      val ds = check-diagnostics("fun main() => Err(\"oops\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("match Ok/Err patterns emit Right/Left")
+      val code = emit-typed-program("fun main() { let x = Ok(5); match x { Ok(n) => n, Err(e) => 0 } }")
+      assert/is-true(code.contains("Right(n)"))
+      assert/is-true(code.contains("Left("))
+
+    dtest("match result type-checks")
+      val ds = check-diagnostics("fun main() { let x = Ok(5); match x { Ok(n) => n, Err(e) => 0 } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("println auto-wraps result with show")
+      val code = emit-typed-program("fun main() { println(Ok(42)) }")
+      assert/is-true(code.contains(".show"))

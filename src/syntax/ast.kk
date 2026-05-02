@@ -41,6 +41,8 @@ pub type hica-type
   TUnit
   TTuple( elems : list<hica-type> )
   TList( elem : hica-type )
+  TMaybe( elem : hica-type )
+  TResult( ok-type : hica-type, err-type : hica-type )
   TFun( params : list<hica-type>, result : hica-type )
   TVar( name : string )
 
@@ -54,6 +56,8 @@ pub fun hica-type/show( t : hica-type ) : div string
     TUnit       -> "()"
     TTuple(es)  -> "(" ++ es.map(show).join(", ") ++ ")"
     TList(e)    -> "list<" ++ e.show ++ ">"
+    TMaybe(e)   -> "maybe<" ++ e.show ++ ">"
+    TResult(o, e) -> "result<" ++ o.show ++ ", " ++ e.show ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
     TVar(n)     -> n
 
@@ -68,6 +72,8 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TTuple(a), TTuple(b)) ->
       a.length == b.length && zip(a, b).all(fn((x, y)) x == y)
     (TList(a), TList(b)) -> a == b
+    (TMaybe(a), TMaybe(b)) -> a == b
+    (TResult(o1, e1), TResult(o2, e2)) -> o1 == o2 && e1 == e2
     (TVar(a), TVar(b)) -> a == b
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
@@ -190,6 +196,18 @@ pub type expr
   // let (a, b) = init; body — tuple destructuring
   LetTuple( names : list<string>, init : node, body : node )
 
+  // Some(x) — wrap value in maybe
+  ESome( value : node )
+
+  // None — empty maybe
+  ENone
+
+  // Ok(x) — success result
+  EOk( value : node )
+
+  // Err(x) — error result
+  EErr( value : node )
+
 pub struct match-arm
   pattern : pattern
   body    : node
@@ -198,12 +216,20 @@ pub type pattern
   PWild
   PVar( name : string )
   PLit( lit : literal )
+  PSome( inner : pattern )
+  PNone
+  POk( inner : pattern )
+  PErr( inner : pattern )
 
 pub fun pattern/show( p : pattern ) : string
   match p
     PWild    -> "_"
     PVar(n)  -> n
     PLit(l)  -> l.show
+    PSome(i) -> "Some(" ++ i.show ++ ")"
+    PNone    -> "None"
+    POk(i)   -> "Ok(" ++ i.show ++ ")"
+    PErr(i)  -> "Err(" ++ i.show ++ ")"
 
 // ---------------------------------------------------------------------------
 // Pretty printing
@@ -233,6 +259,10 @@ pub fun expr/show( e : expr ) : div string
       l.show ++ "[" ++ s-str ++ ":" ++ e-str ++ "]"
     TupleIndex(t, i) -> t.show ++ "." ++ i.show
     LetTuple(ns, i, b) -> "let (" ++ ns.join(", ") ++ ") = " ++ i.show ++ "; " ++ b.show
+    ESome(v)         -> "Some(" ++ v.show ++ ")"
+    ENone            -> "None"
+    EOk(v)           -> "Ok(" ++ v.show ++ ")"
+    EErr(v)          -> "Err(" ++ v.show ++ ")"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations

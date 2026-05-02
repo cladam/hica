@@ -49,5 +49,11 @@ pub fun walk( n : node, f : transform ) : node
       TupleIndex(walk(tup, f), idx)
     LetTuple(names, init, body) ->
       LetTuple(names, walk(init, f), walk(body, f))
+    ESome(value) ->
+      ESome(walk(value, f))
+    EOk(value) ->
+      EOk(walk(value, f))
+    EErr(value) ->
+      EErr(walk(value, f))
     other -> other
   Node(n.span, f(walked))

@@ -59,8 +59,31 @@ fun parse-prefix() : <div,parser> node
       val t = advance()
       Node(t.span, Literal(LitChar(c)))
     TkIdent(name) ->
-      val t = advance()
-      Node(t.span, Var(name))
+      match name
+        "None" ->
+          val t = advance()
+          Node(t.span, ENone)
+        "Some" ->
+          val t = advance()
+          expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+          val inner = parse-expr()
+          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          Node(Span(t.span.start, end-tok.span.end), ESome(inner))
+        "Ok" ->
+          val t = advance()
+          expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+          val inner = parse-expr()
+          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          Node(Span(t.span.start, end-tok.span.end), EOk(inner))
+        "Err" ->
+          val t = advance()
+          expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+          val inner = parse-expr()
+          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          Node(Span(t.span.start, end-tok.span.end), EErr(inner))
+        _ ->
+          val t = advance()
+          Node(t.span, Var(name))
     TkLParen ->
       val start-tok = advance()
       match peek()
@@ -386,6 +409,25 @@ fun parse-match-arms() : <div,parser> list<match-arm>
 fun parse-pattern() : <div,parser> pattern
   match peek()
     TkIdent("_") -> { advance(); PWild }
+    TkIdent("None") -> { advance(); PNone }
+    TkIdent("Some") ->
+      advance()
+      expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+      val inner = parse-pattern()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      PSome(inner)
+    TkIdent("Ok") ->
+      advance()
+      expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+      val inner = parse-pattern()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      POk(inner)
+    TkIdent("Err") ->
+      advance()
+      expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+      val inner = parse-pattern()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      PErr(inner)
     TkIdent(n)   -> { advance(); PVar(n) }
     TkInt(i)     -> { advance(); PLit(LitInt(i)) }
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }

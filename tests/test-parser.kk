@@ -362,3 +362,30 @@ pub fun main() : io ()
 
     itest("parse char equality")
       assert/is-true(parse-show("'x' == 'y'") == "('x' == 'y')")
+
+    // --- Maybe: Some / None ---
+    itest("parse Some expression")
+      assert/is-true(parse-show("Some(42)") == "Some(42)")
+
+    itest("parse None expression")
+      assert/is-true(parse-show("None") == "None")
+
+    itest("parse Some with variable")
+      assert/is-true(parse-show("Some(x)") == "Some(x)")
+
+    itest("parse match with Some/None patterns")
+      val result = parse-show("match x { Some(n) => n, None => 0 }")
+      assert/is-true(result.contains("Some(n)"))
+      assert/is-true(result.contains("None"))
+
+    // --- Result: Ok / Err ---
+    itest("parse Ok expression")
+      assert/is-true(parse-show("Ok(42)") == "Ok(42)")
+
+    itest("parse Err expression")
+      assert/is-true(parse-show("Err(\"oops\")") == "Err(\"oops\")")
+
+    itest("parse match with Ok/Err patterns")
+      val result = parse-show("match x { Ok(n) => n, Err(e) => 0 }")
+      assert/is-true(result.contains("Ok(n)"))
+      assert/is-true(result.contains("Err(e)"))

@@ -57,6 +57,13 @@ fun emit-type( t : hica-type ) : div string
     TList(e)    ->
       val inner = emit-type(e)
       if inner == "" then "" else "list<" ++ inner ++ ">"
+    TMaybe(e)   ->
+      val inner = emit-type(e)
+      if inner == "" then "" else "maybe<" ++ inner ++ ">"
+    TResult(o, e) ->
+      val ok-str = emit-type(o)
+      val err-str = emit-type(e)
+      if ok-str == "" || err-str == "" then "" else "either<" ++ err-str ++ ", " ++ ok-str ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(fn(p) emit-type(p)).join(", ") ++ ") -> " ++ emit-type(r)
     TVar(_)     -> ""  // unresolved — omit annotation
 
@@ -168,6 +175,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TFloat)  -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TChar)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+            Just(TMaybe(_)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+            Just(TResult(_, _)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
         (Var("enumerate"), [arg]) ->
           emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
@@ -198,6 +207,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "(" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ ")"
     EList(elems) ->
       "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
+    ESome(value) ->
+      "Just(" ++ emit-expr(value, declared) ++ ")"
+    ENone ->
+      "Nothing"
+    EOk(value) ->
+      "Right(" ++ emit-expr(value, declared) ++ ")"
+    EErr(value) ->
+      "Left(" ++ emit-expr(value, declared) ++ ")"
     ListIndex(lst, idx) ->
       val lst-code = emit-expr(lst, declared)
       val idx-code = emit-expr(idx, declared)
@@ -239,6 +256,8 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TString) -> inner
         Just(TTuple(_)) -> inner ++ ".show"
         Just(TList(_))  -> inner ++ ".show"
+        Just(TMaybe(_)) -> inner ++ ".show"
+        Just(TResult(_, _)) -> inner ++ ".show"
         _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
 
 fun emit-pattern( p : pattern, declared : list<string> ) : string
@@ -246,6 +265,10 @@ fun emit-pattern( p : pattern, declared : list<string> ) : string
     PWild    -> "_"
     PVar(n)  -> marshal-name(n, declared)
     PLit(l)  -> l.show
+    PSome(i) -> "Just(" ++ emit-pattern(i, declared) ++ ")"
+    PNone    -> "Nothing"
+    POk(i)   -> "Right(" ++ emit-pattern(i, declared) ++ ")"
+    PErr(i)  -> "Left(" ++ emit-pattern(i, declared) ++ ")"
 
 fun emit-binop( op : binop ) : string
   match op
@@ -304,4 +327,7 @@ fun node-has-float( n : node ) : div bool
     ListSlice(lst, s, e)    -> node-has-float(lst) || s.map(node-has-float).default(False) || e.map(node-has-float).default(False)
     TupleIndex(tup, _)     -> node-has-float(tup)
     LetTuple(_, init, body) -> node-has-float(init) || node-has-float(body)
+    ESome(v)                -> node-has-float(v)
+    EOk(v)                  -> node-has-float(v)
+    EErr(v)                 -> node-has-float(v)
     _                     -> False
