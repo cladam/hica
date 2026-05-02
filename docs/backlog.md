@@ -28,6 +28,7 @@ Legend: **done** = shipped, **—** = not started
 | Wildcard patterns | **done** | — | `_ => ...` |
 | Variable patterns | **done** | — | `n => ...` |
 | String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
+| Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
 | Destructuring patterns (tuples/structs) | — | Medium | Depends on tuple/struct types |
 | Slice patterns (`[first, ..rest]`) | — | High | Depends on list types |
 
@@ -46,6 +47,8 @@ Legend: **done** = shipped, **—** = not started
 | `in` operator (`x in list`) | **done** | Medium | New binop; emits `list.any(fn(el) el == x)` |
 | `enumerate(list)` | **done** | Low | Prelude sig; emits Koka `map-indexed` |
 | Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
+| Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
+| Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
 | Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct` |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |

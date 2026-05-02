@@ -110,6 +110,21 @@ fun main() {
 }
 ```
 
+### Maybe and Result types
+
+```rust
+fun safe_divide(a, b) =>
+  if b == 0 { Err("division by zero") }
+  else { Ok(a / b) }
+
+fun main() {
+  match safe_divide(10, 3) {
+    Ok(n)  => println(n),
+    Err(e) => println(e)
+  }
+}
+```
+
 ## CLI
 
 ```
