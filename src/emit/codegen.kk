@@ -259,7 +259,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("get_args"), []) ->
           "get-args()"
         (Var("get_env"), [key]) ->
-          "get-env().list.lookup(" ++ emit-expr(key, declared) ++ ")"
+          "get-env-value(" ++ emit-expr(key, declared) ++ ")"
         (Var("eprintln"), [arg]) ->
           match arg.typ
             Just(TString) -> "trace(" ++ emit-expr(arg, declared) ++ ")"

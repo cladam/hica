@@ -35,6 +35,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 19 | `19-result.hc`        | Result                           | `Ok(x)`, `Err(e)`, handling success and failure |
 | 20 | `20-closures.hc`      | Closures                         | Capturing variables, returning functions, HOFs  |
 | 21 | `21-structs.hc`       | Structs                          | `struct` definitions, construction, field access |
+| 22 | `22-env.hc`           | Environment                      | `get_args()`, `get_env(key)`, `eprintln`         |
 
 ## Language features shown
 
@@ -73,6 +74,9 @@ Each lesson is a standalone `.hc` file you can run:
 | Struct definitions             | `21-structs.hc`                       |
 | Struct construction            | `21-structs.hc`                       |
 | Field access (`.field`)        | `21-structs.hc`                       |
+| `get_args()`                   | `22-env.hc`                           |
+| `get_env(key)`                 | `22-env.hc`                           |
+| `eprintln` (stderr output)     | `22-env.hc`                           |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
@@ -85,7 +89,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 21 lessons, try these challenges:
+Once you finish all 22 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers

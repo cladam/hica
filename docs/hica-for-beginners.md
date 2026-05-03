@@ -361,6 +361,6 @@ fun main() {
 
 ## What's Next?
 
-- Work through the [Learn hica](/hica/docs/learn) lessons, 21 programs that teach you one concept at a time
+- Work through the [Learn hica](/hica/docs/learn) lessons, 22 programs that teach you one concept at a time
 - Browse the [Language Reference](/hica/docs/language-reference) for full syntax details
 - Check the [Standard Library](/hica/docs/standard-library) for available functions

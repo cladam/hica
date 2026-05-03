@@ -12,7 +12,15 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `println(s)` | `(a) -> ()` | Print a value to stdout with a newline |
+| `eprintln(s)` | `(a) -> ()` | Print a value to stderr with a newline |
 | `show(n)` | `(a) -> string` | Convert a value to its string representation |
+
+## Environment
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
+| `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
 
 ## List Operations
 

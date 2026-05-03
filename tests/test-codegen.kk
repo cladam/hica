@@ -1223,10 +1223,9 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => get_args()")
       assert/is-true(code.contains("import std/os/env"))
 
-    dtest("get_env emits lookup")
+    dtest("get_env emits get-env-value")
       val code = emit-typed-program("fun main() => get_env(\"HOME\")")
-      assert/is-true(code.contains("get-env()"))
-      assert/is-true(code.contains("lookup"))
+      assert/is-true(code.contains("get-env-value"))
 
     dtest("get_env type-checks as maybe<string>")
       val ds = check-diagnostics("fun main() => get_env(\"HOME\")")

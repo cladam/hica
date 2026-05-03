@@ -60,8 +60,18 @@ fun init-cli() : command
   command("hica init")
     .about("Initialise a hica project in the current directory")
 
+// Split a list at the first "--" element. Returns (before, after).
+fun split-at-double-dash( args : list<string> ) : (list<string>, list<string>)
+  match args
+    Nil -> ([], [])
+    Cons("--", rest) -> ([], rest)
+    Cons(a, rest) ->
+      val (before, after) = split-at-double-dash(rest)
+      (Cons(a, before), after)
+
 fun main()
-  val m = hica-cli().parse-or-exit(get-args())
+  val (hica-args, user-args) = split-at-double-dash(get-args())
+  val m = hica-cli().parse-or-exit(hica-args)
   val cmd  = m.get-one-or("COMMAND", "")
   val file = m.get-one("FILE")
   match cmd
@@ -77,8 +87,8 @@ fun main()
           match cmd
             "build" -> cmd-build(f)
             "b"     -> cmd-build(f)
-            "run"   -> cmd-run(f)
-            "r"     -> cmd-run(f)
+            "run"   -> cmd-run(f, user-args)
+            "r"     -> cmd-run(f, user-args)
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
             "clean" -> cmd-clean(f)
@@ -96,9 +106,9 @@ fun main()
 fun cmd-build( file : string )
   build(file)
 
-fun cmd-run( file : string )
+fun cmd-run( file : string, user-args : list<string> )
   build(file)
-  run-koka(file)
+  run-koka(file, user-args)
 
 fun cmd-check( file : string )
   val source = read-text-file(file.path)
@@ -274,14 +284,19 @@ fun compile-koka( file : string, mod-name : string )
 // Run: compile and execute via koka, suppressing compilation output
 // ---------------------------------------------------------------------------
 
-fun run-koka( file : string )
+fun run-koka( file : string, user-args : list<string> = [] )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
-  val exit-code = run-system("koka -e -v0 " ++ kk-file ++ " 2>/dev/null")
+  val args-str = if user-args.is-nil then "" else " -- " ++ user-args.map(shell-escape).join(" ")
+  val exit-code = run-system("koka -e -v0 " ++ kk-file ++ args-str ++ " 2>/dev/null")
   if exit-code != 0 then
     println("error: koka failed with exit code " ++ exit-code.show)
+
+// Escape a shell argument: wrap in single quotes, escaping any inner single quotes.
+fun shell-escape( s : string ) : string
+  "'" ++ s.replace-all("'", "'\\''") ++ "'"
 
 // ---------------------------------------------------------------------------
 // Help
