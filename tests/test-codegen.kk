@@ -782,3 +782,137 @@ pub fun main() : io ()
     dtest("range for loop still works")
       val code = emit-typed-program("fun main() { for i in 1..5 { println(i) } }")
       assert/is-true(code.contains("for(1, 5)"))
+
+    // -----------------------------------------------------------------
+    // String utility functions
+    // -----------------------------------------------------------------
+
+    dtest("str_length type-checks")
+      val ds = check-diagnostics("fun main() => str_length(\"hello\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("str_length emits .count")
+      val code = emit-typed-program("fun main() => str_length(\"hello\")")
+      assert/is-true(code.contains(".count"))
+
+    dtest("str_length returns int")
+      val ds = check-diagnostics("fun main() { let n = str_length(\"hi\"); n + 1 }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("str_length on non-string reports error")
+      val ds = check-diagnostics("fun main() => str_length(42)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
+    dtest("contains type-checks")
+      val ds = check-diagnostics("fun main() => contains(\"hello world\", \"world\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("contains emits .contains")
+      val code = emit-typed-program("fun main() => contains(\"hello\", \"ell\")")
+      assert/is-true(code.contains(".contains("))
+
+    dtest("contains returns bool")
+      val ds = check-diagnostics("fun main() { if contains(\"abc\", \"b\") { 1 } else { 0 } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("starts_with type-checks")
+      val ds = check-diagnostics("fun main() => starts_with(\"hello\", \"hel\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("starts_with emits .starts-with .is-just")
+      val code = emit-typed-program("fun main() => starts_with(\"hello\", \"he\")")
+      assert/is-true(code.contains(".starts-with("))
+      assert/is-true(code.contains(".is-just"))
+
+    dtest("ends_with type-checks")
+      val ds = check-diagnostics("fun main() => ends_with(\"hello\", \"llo\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("ends_with emits .ends-with .is-just")
+      val code = emit-typed-program("fun main() => ends_with(\"hello\", \"lo\")")
+      assert/is-true(code.contains(".ends-with("))
+      assert/is-true(code.contains(".is-just"))
+
+    dtest("trim type-checks")
+      val ds = check-diagnostics("fun main() => trim(\"  hi  \")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("trim emits .trim")
+      val code = emit-typed-program("fun main() => trim(\"  hi  \")")
+      assert/is-true(code.contains(".trim"))
+
+    dtest("trim returns string")
+      val ds = check-diagnostics("fun main() => trim(\"  hi  \") + \"!\"")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("trim_start emits .trim-left")
+      val code = emit-typed-program("fun main() => trim_start(\"  hi\")")
+      assert/is-true(code.contains(".trim-left"))
+
+    dtest("trim_end emits .trim-right")
+      val code = emit-typed-program("fun main() => trim_end(\"hi  \")")
+      assert/is-true(code.contains(".trim-right"))
+
+    dtest("to_upper type-checks")
+      val ds = check-diagnostics("fun main() => to_upper(\"hello\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("to_upper emits .to-upper")
+      val code = emit-typed-program("fun main() => to_upper(\"hello\")")
+      assert/is-true(code.contains(".to-upper"))
+
+    dtest("to_lower emits .to-lower")
+      val code = emit-typed-program("fun main() => to_lower(\"HELLO\")")
+      assert/is-true(code.contains(".to-lower"))
+
+    dtest("split type-checks")
+      val ds = check-diagnostics("fun main() => split(\"a,b,c\", \",\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("split emits .split")
+      val code = emit-typed-program("fun main() => split(\"a,b\", \",\")")
+      assert/is-true(code.contains(".split("))
+
+    dtest("split returns list of strings")
+      val ds = check-diagnostics("fun main() { let xs = split(\"a,b\", \",\"); length(xs) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("replace type-checks")
+      val ds = check-diagnostics("fun main() => replace(\"hello\", \"l\", \"r\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("replace emits .replace-all")
+      val code = emit-typed-program("fun main() => replace(\"hello\", \"l\", \"r\")")
+      assert/is-true(code.contains(".replace-all("))
+
+    dtest("join type-checks")
+      val ds = check-diagnostics("fun main() => join([\"a\", \"b\"], \",\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("join emits .join")
+      val code = emit-typed-program("fun main() => join([\"a\", \"b\"], \"-\")")
+      assert/is-true(code.contains(".join("))
+
+    dtest("join returns string")
+      val ds = check-diagnostics("fun main() => join([\"a\", \"b\"], \",\") + \"!\"")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("show emits show not hc_show")
+      val code = emit-typed-program("fun main() => show(42)")
+      assert/is-true(code.contains("show("))
+      assert/is-true(!code.contains("hc_show"))
