@@ -68,7 +68,7 @@ Legend: **done** = shipped, **—** = not started
 | Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | — | Medium | Prelude fns operating on `maybe`/`result`; needs user-defined higher-order fns working first |
 | `?` operator (early return on Err/None) | — | High | Needs a return/early-exit mechanism; Koka uses effects for this |
-| Environment (`get_args()`, `get_env(key)`, `eprintln`) | — | Low | `get_args()` → `list<string>` (Koka `get-args`), `get_env(key)` → `maybe<string>` (Koka `get-env`), `eprintln(msg)` → stderr output. Enables simple CLI programs and scripting |
+| Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
 
 ### Control Flow
 

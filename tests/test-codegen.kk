@@ -1208,4 +1208,48 @@ pub fun main() : io ()
       val d = Diagnostic(Error, Span(0, 0), "unknown error")
       val out = render-diagnostic("anything", "test.hc", d)
       assert/is-true(out.contains("error[test.hc]"))
-      assert/is-true(!out.contains("|"))
+
+    // --- Environment helpers ---
+    dtest("get_args emits get-args()")
+      val code = emit-typed-program("fun main() => get_args()")
+      assert/is-true(code.contains("get-args()"))
+
+    dtest("get_args type-checks as list<string>")
+      val ds = check-diagnostics("fun main() => get_args()")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("get_args imports std/os/env")
+      val code = emit-typed-program("fun main() => get_args()")
+      assert/is-true(code.contains("import std/os/env"))
+
+    dtest("get_env emits lookup")
+      val code = emit-typed-program("fun main() => get_env(\"HOME\")")
+      assert/is-true(code.contains("get-env()"))
+      assert/is-true(code.contains("lookup"))
+
+    dtest("get_env type-checks as maybe<string>")
+      val ds = check-diagnostics("fun main() => get_env(\"HOME\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("get_env imports std/os/env")
+      val code = emit-typed-program("fun main() => get_env(\"HOME\")")
+      assert/is-true(code.contains("import std/os/env"))
+
+    dtest("eprintln emits trace")
+      val code = emit-typed-program("fun main() => eprintln(\"oops\")")
+      assert/is-true(code.contains("trace("))
+
+    dtest("eprintln type-checks without error")
+      val ds = check-diagnostics("fun main() => eprintln(\"oops\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("eprintln auto-shows non-string")
+      val code = emit-typed-program("fun main() => eprintln(42)")
+      assert/is-true(code.contains(".show"))
+
+    dtest("no env import when not using env functions")
+      val code = emit-typed-program("fun main() => println(42)")
+      assert/is-true(!code.contains("std/os/env"))

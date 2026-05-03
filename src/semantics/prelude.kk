@@ -52,4 +52,8 @@ pub fun extern-env() : type-env
     ("replace",     TFun([TString, TString, TString], TString)),
     ("join",        TFun([TList(TString), TString], TString)),
     ("index_of",    TFun([TString, TString], TMaybe(TInt))),
-    ("to_int",      TFun([TString], TInt)) ]
+    ("to_int",      TFun([TString], TInt)),
+    // Environment helpers
+    ("get_args",    TFun([], TList(TString))),
+    ("get_env",     TFun([TString], TMaybe(TString))),
+    ("eprintln",    TFun([TVar("_a")], TUnit)) ]
