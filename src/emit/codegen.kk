@@ -16,7 +16,9 @@ import syntax/ast
 
 val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "then", "return", "with", "handle", "handler", "effect", "type", "struct",
-  "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall"]
+  "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
+  "raw", "inline", "include", "co", "rec", "open", "extend", "behind",
+  "linear", "value", "reference", "named", "scoped"]
 
 pub fun safe-module-name( name : string ) : string
   if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
@@ -35,6 +37,7 @@ val koka-reserved-names = ["list", "vector", "string", "int", "bool", "float",
 
 fun marshal-name( name : string, declared : list<string> ) : string
   if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
+    || koka-keywords.any(fn(k) k == name)
     then "hc_" ++ name
   else name
 
@@ -278,7 +281,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       stmts.map(fn(s) emit-expr(s, declared)).join("\n  ")
     Match(scrut, arms) ->
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
-      arms.map(fn(a) "  " ++ emit-pattern(a.pattern, declared) ++ " -> " ++ emit-expr(a.body, declared)).join("\n")
+      arms.map(fn(a) "  " ++ emit-pattern(a.pattern, declared) ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")).join("\n")
     Repeat(count, body) ->
       "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
@@ -419,6 +422,15 @@ fun tuple-field-name( idx : int ) : string
 // ---------------------------------------------------------------------------
 // Float detection: check if the program contains any float literals
 // ---------------------------------------------------------------------------
+
+// Check if an expression needs parenthesised block wrapping in if-then-else branches
+fun needs-block( e : expr ) : bool
+  match e
+    Let(_, _, _, _)     -> True
+    LetTuple(_, _, _)   -> True
+    Match(_, _)         -> True
+    Block(_)            -> True
+    _                   -> False
 
 fun program-has-float( p : program ) : div bool
   p.decls.any(fn(d) node-has-float(d.body))

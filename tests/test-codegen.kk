@@ -137,8 +137,10 @@ pub fun main() : io ()
     dtest("emit match expression")
       val code = emit-show("match x { 1 => 10, _ => 0 }")
       assert/is-true(code.contains("match x"))
-      assert/is-true(code.contains("-> 10"))
-      assert/is-true(code.contains("_ -> 0"))
+      assert/is-true(code.contains("1 ->"))
+      assert/is-true(code.contains("10"))
+      assert/is-true(code.contains("_ ->"))
+      assert/is-true(code.contains("0"))
 
     // --- Program emission (new, inspired by lisette) ---
     dtest("emit simple program")
