@@ -984,3 +984,40 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { let xs = [1,2,3]; println(show(length(xs[1:]))) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
+
+    // --- String comparison ---
+
+    dtest("string less-than type-checks")
+      val ds = check-diagnostics("fun main() => \"alpha\" < \"beta\"")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("comparison"))
+      assert/is-true(errors.length == 0)
+
+    dtest("string greater-than type-checks")
+      val ds = check-diagnostics("fun main() => \"beta\" > \"alpha\"")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("comparison"))
+      assert/is-true(errors.length == 0)
+
+    dtest("string comparison emits operator")
+      val code = emit-typed-program("fun main() => \"alpha\" < \"beta\"")
+      assert/is-true(code.contains("<"))
+
+    dtest("string comparison returns bool")
+      val ds = check-diagnostics("fun main() { let r = \"a\" < \"b\"; println(r && true) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    // --- find(list, fn) ---
+
+    dtest("find type-checks")
+      val ds = check-diagnostics("fun main() => find([1, 2, 3], (x) => x > 2)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("find emits find call")
+      val code = emit-typed-program("fun main() => find([1, 2, 3], (x) => x > 2)")
+      assert/is-true(code.contains("find("))
+
+    dtest("find returns maybe")
+      val ds = check-diagnostics("fun main() { match find([1, 2, 3], (x) => x > 2) { Some(v) => println(v), None => println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)

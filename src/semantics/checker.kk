@@ -620,16 +620,17 @@ fun infer-numeric-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node, n 
       emit-error(n.span, "arithmetic operator requires int or float operands, got " ++ resolved.show)
       (s-lr, TInt)
 
-// Infer a comparison operator (<, >, <=, >=): works on int or float, returns bool.
+// Infer a comparison operator (<, >, <=, >=): works on int, float, or string, returns bool.
 fun infer-comparison-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node, n : node, s : subst ) : <div,diag,fresh> (subst, hica-type)
   val s-lr = compose-subst(unify(lt, rt, n.span), s)
   val resolved = apply-subst(s-lr, lt)
   match resolved
     TInt    -> (s-lr, TBool)
     TFloat  -> (s-lr, TBool)
+    TString -> (s-lr, TBool)
     TVar(_) -> (compose-subst(unify(resolved, TInt, n.span), s-lr), TBool)
     _       ->
-      emit-error(n.span, "comparison operator requires int or float operands, got " ++ resolved.show)
+      emit-error(n.span, "comparison operator requires int, float, or string operands, got " ++ resolved.show)
       (s-lr, TBool)
 
 // Infer type constraints from a match pattern.
