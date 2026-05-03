@@ -45,7 +45,7 @@ fun center(s: string, width: int, ch: string) {
 
 fun surround(s: string, wrap: string) => wrap + s + wrap
 
-// --- Case helpers (require slicing) ---
+// --- Case helpers ---
 
 fun capitalize(s: string) : string =>
   if str_length(s) == 0 { "" }
@@ -54,7 +54,9 @@ fun capitalize(s: string) : string =>
 fun capwords(s: string) : string =>
   join(map(words(s), (w) => capitalize(w)), " ")
 
-// --- Prefix / suffix removal (require slicing) ---
+fun shout(s: string) : string => s + "!"
+
+// --- Prefix / suffix removal ---
 
 fun removeprefix(s: string, pre: string) : string =>
   if starts_with(s, pre) { s[str_length(pre):] }

@@ -3,7 +3,7 @@ layout: default
 title: Hica vs. Rust - hica
 ---
 
-# hica vs Rust
+# Hica vs Rust
 
 hica and Rust share values like immutability, expression-oriented design, `match` as a core feature, and `Result`/`Option` types. They diverge in how much complexity they expose to achieve control and performance.
 
@@ -170,7 +170,7 @@ fun main() {
 | `s.strip_prefix("v").unwrap_or(s)` | `removeprefix(s, "v")` |
 | `s.strip_suffix(".txt").unwrap_or(s)` | `removesuffix(s, ".txt")` |
 
-Rust requires understanding `String` vs `&str` ownership and byte vs char indexing. hica has a single immutable `string` type with char-based indexing — simpler to learn, though without Rust's fine-grained control over allocation.
+Rust requires understanding `String` vs `&str` ownership and byte vs char indexing. hica has a single immutable `string` type with char-based indexing that is simpler to learn, although without Rust's fine-grained control over allocation.
 
 ## Pattern Matching
 
