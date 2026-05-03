@@ -1,0 +1,31 @@
+// hica – string prelude
+//
+// Higher-level string functions built on top of the string primitives
+// (str_length, contains, trim, split, etc.).
+//
+// This source file is part of the hica open source project
+// Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
+//
+// See https://github.com/cladam/hica/blob/main/LICENSE for license information
+
+// --- Predicates ---
+
+fun is_empty(s) => str_length(s) == 0
+
+fun is_blank(s) => is_empty(trim(s))
+
+// --- Splitting helpers ---
+
+fun words(s: string) => filter(split(s, " "), (w) => not_(is_empty(w)))
+
+fun lines(s) => split(s, "\n")
+
+// --- Building ---
+
+fun repeat_str(s: string, n: int) : string => if n <= 0 { "" } else { s + repeat_str(s, n - 1) }
+
+fun pad_left(s: string, width: int, ch: string) => repeat_str(ch, max(0, width - str_length(s))) + s
+
+fun pad_right(s: string, width: int, ch: string) => s + repeat_str(ch, max(0, width - str_length(s)))
+
+fun surround(s: string, wrap: string) => wrap + s + wrap

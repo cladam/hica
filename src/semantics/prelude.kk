@@ -36,4 +36,17 @@ pub fun extern-env() : type-env
     ("all",     TFun([TList(TVar("_a")), TFun([TVar("_a")], TBool)], TBool)),
     ("foreach", TFun([TList(TVar("_a")), TFun([TVar("_a")], TUnit)], TUnit)),
     ("enumerate", TFun([TList(TVar("_a"))], TList(TTuple([TInt, TVar("_a")])))),
-    ("cons",      TFun([TVar("_a"), TList(TVar("_a"))], TList(TVar("_a")))) ]
+    ("cons",      TFun([TVar("_a"), TList(TVar("_a"))], TList(TVar("_a")))),
+    // String utilities — backed by Koka std/core/string
+    ("str_length",  TFun([TString], TInt)),
+    ("contains",    TFun([TString, TString], TBool)),
+    ("starts_with", TFun([TString, TString], TBool)),
+    ("ends_with",   TFun([TString, TString], TBool)),
+    ("trim",        TFun([TString], TString)),
+    ("trim_start",  TFun([TString], TString)),
+    ("trim_end",    TFun([TString], TString)),
+    ("to_upper",    TFun([TString], TString)),
+    ("to_lower",    TFun([TString], TString)),
+    ("split",       TFun([TString, TString], TList(TString))),
+    ("replace",     TFun([TString, TString, TString], TString)),
+    ("join",        TFun([TList(TString), TString], TString)) ]

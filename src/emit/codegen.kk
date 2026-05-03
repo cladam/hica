@@ -88,7 +88,9 @@ fun emit-decl( d : fun-decl, declared : list<string> ) : div string
   // Omit return type annotation for recursive functions — let Koka infer `div`
   // Omit function-typed returns — Koka's parser confuses `(a) -> b` with the
   // function's own signature, so we let Koka infer it.
-  val ret-ann = if d.is-recursive then "" else match d.ret-type
+  // Use ret-ann (user-written) rather than ret-type (inferred) so that Koka
+  // can freely infer effects for functions that call divergent helpers.
+  val ret-ann = if d.is-recursive then "" else match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
       val ts = emit-type(t)
@@ -187,11 +189,37 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
         (Var("enumerate"), [arg]) ->
           emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
+        // --- String utilities ---
+        (Var("str_length"), [s]) ->
+          emit-expr(s, declared) ++ ".count"
+        (Var("contains"), [s, sub]) ->
+          emit-expr(s, declared) ++ ".contains(" ++ emit-expr(sub, declared) ++ ")"
+        (Var("starts_with"), [s, pre]) ->
+          emit-expr(s, declared) ++ ".starts-with(" ++ emit-expr(pre, declared) ++ ").is-just"
+        (Var("ends_with"), [s, suf]) ->
+          emit-expr(s, declared) ++ ".ends-with(" ++ emit-expr(suf, declared) ++ ").is-just"
+        (Var("trim"), [s]) ->
+          emit-expr(s, declared) ++ ".trim"
+        (Var("trim_start"), [s]) ->
+          emit-expr(s, declared) ++ ".trim-left"
+        (Var("trim_end"), [s]) ->
+          emit-expr(s, declared) ++ ".trim-right"
+        (Var("to_upper"), [s]) ->
+          emit-expr(s, declared) ++ ".to-upper"
+        (Var("to_lower"), [s]) ->
+          emit-expr(s, declared) ++ ".to-lower"
+        (Var("split"), [s, sep]) ->
+          emit-expr(s, declared) ++ ".split(" ++ emit-expr(sep, declared) ++ ")"
+        (Var("replace"), [s, old, new_]) ->
+          emit-expr(s, declared) ++ ".replace-all(" ++ emit-expr(old, declared) ++ ", " ++ emit-expr(new_, declared) ++ ")"
+        (Var("join"), [xs, sep]) ->
+          emit-expr(xs, declared) ++ ".join(" ++ emit-expr(sep, declared) ++ ")"
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
             Var("length") -> "list/length"
             Var("cons")   -> "Cons"
+            Var("show")   -> "show"
             _             -> emit-expr(callee, declared)
           callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->

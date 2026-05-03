@@ -50,6 +50,59 @@ Written in Hica. Source: [`prelude/math.hc`](math.hc)
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
 | `gcd(a, b)` | `(int, int) -> int` | Greatest common divisor |
 
+### `operators.hc` — operators as functions
+
+Inspired by Python's [`operator`](https://docs.python.org/3/library/operator.html)
+module. Wraps built-in operators as named functions so they can be passed to
+`fold`, `map`, `filter`, etc.
+
+Written in Hica. Source: [`prelude/operators.hc`](operators.hc)
+
+#### Arithmetic
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `add(a, b)` | `(int, int) -> int` | `a + b` |
+| `sub(a, b)` | `(int, int) -> int` | `a - b` |
+| `mul(a, b)` | `(int, int) -> int` | `a * b` |
+| `div(a, b)` | `(int, int) -> int` | `a / b` |
+| `mod(a, b)` | `(int, int) -> int` | `a % b` |
+| `neg(n)` | `(int) -> int` | `-n` |
+| `square(n)` | `(int) -> int` | `n * n` |
+
+#### Comparison
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `lt(a, b)` | `(int, int) -> bool` | `a < b` |
+| `le(a, b)` | `(int, int) -> bool` | `a <= b` |
+| `gt(a, b)` | `(int, int) -> bool` | `a > b` |
+| `ge(a, b)` | `(int, int) -> bool` | `a >= b` |
+
+#### Logical
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `not_(b)` | `(bool) -> bool` | `!b` |
+| `and_(a, b)` | `(bool, bool) -> bool` | `a && b` |
+| `or_(a, b)` | `(bool, bool) -> bool` | `a \|\| b` |
+
+#### Predicates
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_positive(n)` | `(int) -> bool` | `n > 0` |
+| `is_negative(n)` | `(int) -> bool` | `n < 0` |
+| `is_zero(n)` | `(int) -> bool` | `n == 0` |
+| `is_even(n)` | `(int) -> bool` | `n % 2 == 0` |
+| `is_odd(n)` | `(int) -> bool` | `n % 2 != 0` |
+
+#### Utility
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `identity(x)` | `(a) -> a` | Return the value unchanged |
+
 ## How to add a prelude function
 
 **1. Write your function in a `.hc` file inside `prelude/`.**
@@ -109,10 +162,8 @@ These are candidates once the language adds the necessary features:
 
 | Function | Needs | Description |
 |----------|-------|-------------|
-| `is_even(n)` | modulo (`%`) | Check if a number is even |
-| `is_odd(n)` | modulo (`%`) | Check if a number is odd |
 | `sign(n)` | — | Return -1, 0, or 1 |
-| `sum(xs)` | fold | Sum a list of integers |
+| `sum(xs)` | — | Sum a list of integers (can use `fold(xs, 0, add)` today) |
 | `range(a, b)` | lists, `for` loop | Generate a list from `a` to `b` |
 
 ## Inspiration
@@ -125,6 +176,9 @@ people reach for every day:
   `abs`, `all`, `any`, `filter`, `len`, `map`, `max`, `min`, `print`,
   `range`, `reversed`, `round`, `sorted`, `sum`, `zip`. Decades of
   refinement into ~70 functions that are always available.
+- [Python `operator` module](https://docs.python.org/3/library/operator.html) —
+  operators as first-class functions (`add`, `mul`, `eq`, `lt`, …). Makes
+  `fold(xs, 0, add)` possible instead of `fold(xs, 0, fun(a, b) => a + b)`.
 - [Go `builtin` package](https://pkg.go.dev/builtin) — minimal by design:
   `len`, `cap`, `append`, `copy`, `delete`, `make`, `new`, `print`,
   `println`, `min`, `max`. Proof that a small prelude can be powerful.

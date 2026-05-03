@@ -211,7 +211,7 @@ fun cmd-help( sub : maybe<string> )
 // Prelude: load .hc library files written in Hica
 // ---------------------------------------------------------------------------
 
-val prelude-files = ["prelude/math.hc"]
+val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings.hc"]
 
 fun load-prelude-decls()
   var result : list<fun-decl> := []
