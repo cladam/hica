@@ -249,11 +249,14 @@ fun main() {
   let p = Point { x: 3, y: 4 };
   println(p.x);              // 3
   println(distance_sq(p));   // 25
-  println(p)                  // Point(x: 3, y: 4)
+  println(p)                 // Point(x: 3, y: 4)
 }
 ```
 
 Struct names must start with an uppercase letter. Fields are accessed with dot notation (`p.x`). Functions that operate on structs are regular free functions.
+
+> **Struct vs. Tuple — when to use which?**
+> Use a tuple for quick, throwaway grouping (returning two values, a temporary pair). Use a struct when the data has a clear identity. If you'd write a comment to explain what `.0` and `.1` mean, reach for a struct instead.
 
 ## The Pipe Operator
 
