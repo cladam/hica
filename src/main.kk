@@ -114,8 +114,8 @@ fun cmd-check( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
-  val prelude-decls = load-prelude-decls()
-  val merged = Program(prog.structs, prelude-decls ++ prog.decls)
+  val prelude = load-prelude()
+  val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
@@ -223,17 +223,19 @@ fun cmd-help( sub : maybe<string> )
 // Prelude: load .hc library files written in Hica
 // ---------------------------------------------------------------------------
 
-val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings.hc"]
+val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings.hc", "prelude/cli.hc"]
 
-fun load-prelude-decls()
-  var result : list<fun-decl> := []
+fun load-prelude()
+  var decl-result : list<fun-decl> := []
+  var struct-result : list<struct-def> := []
   prelude-files.foreach fn(f)
     if is-file(f.path) then
       val source = read-text-file(f.path)
       val tokens = lex(source)
       val prog = run-parser-program(tokens)
-      result := result ++ prog.decls
-  result
+      decl-result := decl-result ++ prog.decls
+      struct-result := struct-result ++ prog.structs
+  Program(struct-result, decl-result)
 
 // ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk
@@ -247,8 +249,8 @@ fun build( file : string )
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
   // Load prelude .hc files and merge with user program
-  val prelude-decls = load-prelude-decls()
-  val merged = Program(prog.structs, prelude-decls ++ prog.decls)
+  val prelude = load-prelude()
+  val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh

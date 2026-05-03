@@ -104,6 +104,12 @@ Legend: **done** = shipped, **—** = not started
 | `import "mymodule"` | — | High | Multi-file compilation, module graph. Sub-tasks: file resolution, selective imports (`from "math" import { sin, cos }`), qualified names (`math.sin(x)`) |
 | `pub` visibility | — | Medium | Emit Koka `pub` |
 
+### Bundled Libraries
+
+| Feature | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| hica-klap (CLI parsing) | — | Medium | Expose klap as built-in `cli_*` functions. Opaque types (`CliArg`, `CliMatches`), codegen emits klap calls, compiler passes `-ilib/klap/src` to koka. See `documentation/building-klap-in-hica.md` |
+
 ---
 
 ## Compiler Infrastructure

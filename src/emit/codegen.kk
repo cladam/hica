@@ -278,7 +278,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     If(cond, then-e, else-e) ->
       "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
     Block(stmts) ->
-      stmts.map(fn(s) emit-expr(s, declared)).join("\n  ")
+      stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
       arms.map(fn(a) "  " ++ emit-pattern(a.pattern, declared) ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")).join("\n")

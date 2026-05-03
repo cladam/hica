@@ -52,7 +52,7 @@ Variables are immutable bindings created with `let`:
 ```rust
 fun main() {
   let name = "Alicia";
-  let age = 30;
+  let age = 15;
   let pi = 3.14;
   println("name={name}, age={age}, pi={pi}")
 }

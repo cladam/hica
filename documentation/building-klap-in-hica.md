@@ -1,12 +1,16 @@
 # Building a CLI Argument Parser in hica
 
-> Draft — what it would take to build something like klap entirely in hica.
+> Draft — what it would take to build something like klap entirely in hica,
+> and how to bundle klap as a built-in module in the meantime.
 
 ## Goal
 
-Write a CLI argument parsing library (like klap, clap, argparse) in hica itself.
-A user would define commands, flags, and options, then parse `get_args()` into a
-structured result with auto-generated `--help`.
+Two goals, short-term and long-term:
+
+1. **Short-term:** Bundle klap (the Koka library already in `lib/klap`) as
+   built-in CLI parsing functions available to every hica program, no imports needed.
+2. **Long-term:** Write a CLI argument parsing library in hica itself once
+   the language has enums, maps, and modules.
 
 ## What klap does today (in Koka)
 
@@ -183,3 +187,214 @@ that each unlock a qualitative jump in what's expressible.
 - **`get_args()` + `get_env()`** — environment access works
 - **Pipe operator** — enables fluent data transformation
 - **Higher-order functions** — `map`, `filter`, `fold` on lists
+
+## Bundling hica-klap — the short-term plan
+
+Since hica compiles to Koka and klap is already a Koka library in `lib/klap`,
+we can expose klap's functionality as **built-in functions** — the same pattern
+used for `get_args()`, `get_env()`, and `eprintln()`.
+
+### Proposed hica API
+
+```
+// Define arguments
+let verbose = cli_flag("verbose", "v", "Enable verbose output")
+let output  = cli_option("output", "o", "Output file")
+let file    = cli_positional("file", "Input file")
+
+// Build command and parse
+let app = cli_command("mytool", "1.0", "A tool that does things",
+                      [verbose, output, file])
+
+match cli_parse(app) {
+  Err(msg)      => eprintln(msg),
+  Ok(matches)   => {
+    let is_verbose = cli_get_flag(matches, "verbose");
+    let out_file   = cli_get_option(matches, "output");
+    let in_file    = cli_get_positional(matches, 0);
+    // ...
+  }
+}
+```
+
+Or with pipe syntax:
+
+```
+fun main() {
+  let matches = cli_command("mytool", "1.0", "Does things", [
+    cli_flag("verbose", "v", "Be noisy"),
+    cli_option("output", "o", "Output file"),
+    cli_positional("file", "Input file")
+  ]) |> cli_parse_or_exit;
+
+  if cli_get_flag(matches, "verbose") {
+    eprintln("verbose mode on")
+  };
+
+  let file = cli_get_positional(matches, 0);
+  println("processing: {file}")
+}
+```
+
+### Types needed
+
+Two opaque built-in types (no user access to internals):
+
+| hica type      | Maps to Koka          | Description               |
+|----------------|-----------------------|---------------------------|
+| `CliArg`       | `klap/arg/arg-def`    | Argument definition       |
+| `CliMatches`   | `klap/matches/arg-matches` | Parsed result        |
+
+These are opaque — hica users interact through functions only.
+The command itself is not a type; `cli_command()` + `cli_parse()` combines
+building and parsing in one step.
+
+### Built-in functions
+
+**Argument builders:**
+
+| hica function | Signature | Emits Koka |
+|---------------|-----------|------------|
+| `cli_flag(name, short, help)` | `(string, string, string) -> CliArg` | `flag(name, Just(short[0])).help(help)` |
+| `cli_option(name, short, help)` | `(string, string, string) -> CliArg` | `option(name, Just(short[0])).help(help)` |
+| `cli_positional(name, help)` | `(string, string) -> CliArg` | `positional(name).help(help)` |
+| `cli_required(arg)` | `(CliArg) -> CliArg` | `arg.required` |
+| `cli_default(arg, val)` | `(CliArg, string) -> CliArg` | `arg.default-value(val)` |
+
+**Parsing:**
+
+| hica function | Signature | Emits Koka |
+|---------------|-----------|------------|
+| `cli_command(name, ver, about, args)` | `(string, string, string, list<CliArg>) -> CliCommand` | builds a klap `command` |
+| `cli_parse(cmd)` | `(CliCommand) -> result<CliMatches, string>` | `try-klap { cmd.parse(get-args()) }` |
+| `cli_parse_or_exit(cmd)` | `(CliCommand) -> CliMatches` | `cmd.parse-or-exit(get-args())` |
+
+**Querying results:**
+
+| hica function | Signature | Emits Koka |
+|---------------|-----------|------------|
+| `cli_get_flag(m, name)` | `(CliMatches, string) -> bool` | `m.get-flag(name)` |
+| `cli_get_option(m, name)` | `(CliMatches, string) -> maybe<string>` | `m.get-one(name)` |
+| `cli_get_option_or(m, name, default)` | `(CliMatches, string, string) -> string` | `m.get-one-or(name, default)` |
+| `cli_get_positional(m, index)` | `(CliMatches, int) -> maybe<string>` | list indexing on `m.get-positionals()` |
+| `cli_get_positionals(m)` | `(CliMatches) -> list<string>` | `m.get-positionals()` |
+| `cli_get_count(m, name)` | `(CliMatches, int) -> int` | `m.get-count(name)` |
+
+### Implementation plan
+
+**Step 1: Add opaque types to the type system**
+
+Add `TCliArg`, `TCliMatches`, `TCliCommand` to the `hica-type` enum in `ast.kk`.
+These are opaque — not constructable by users, only returned by built-in functions.
+
+```koka
+// In ast.kk
+TCliArg
+TCliMatches
+TCliCommand
+```
+
+**Step 2: Add built-in function signatures to the prelude**
+
+In `prelude.kk`, add `extern-cli()` returning the function type environment:
+
+```koka
+("cli_flag",         TFun([TString, TString, TString], TCliArg))
+("cli_option",       TFun([TString, TString, TString], TCliArg))
+("cli_positional",   TFun([TString, TString], TCliArg))
+("cli_required",     TFun([TCliArg], TCliArg))
+("cli_default",      TFun([TCliArg, TString], TCliArg))
+("cli_command",      TFun([TString, TString, TString, TList(TCliArg)], TCliCommand))
+("cli_parse",        TFun([TCliCommand], TResult(TCliMatches, TString)))
+("cli_parse_or_exit",TFun([TCliCommand], TCliMatches))
+("cli_get_flag",     TFun([TCliMatches, TString], TBool))
+("cli_get_option",   TFun([TCliMatches, TString], TMaybe(TString)))
+("cli_get_option_or",TFun([TCliMatches, TString, TString], TString))
+("cli_get_positional",  TFun([TCliMatches, TInt], TMaybe(TString)))
+("cli_get_positionals", TFun([TCliMatches], TList(TString)))
+("cli_get_count",    TFun([TCliMatches, TString], TInt))
+```
+
+**Step 3: Add codegen match arms**
+
+In `codegen.kk`, emit the appropriate klap Koka calls for each built-in:
+
+```koka
+(Var("cli_flag"), [name, short, help]) ->
+  "flag(" ++ emit-expr(name) ++ ", Just('" ++ ... ++ "')).help(" ++ emit-expr(help) ++ ")"
+```
+
+**Step 4: Conditional `import klap` in generated code**
+
+Like the existing `import std/os/env` detection, add a `program-uses-cli` check.
+When any `cli_*` function is used, emit:
+
+```koka
+import arg
+import command
+import parse
+import matches
+import error
+```
+
+**Step 5: Pass `-ilib/klap/src` to koka**
+
+In `run-koka()` and `compile-koka()`, detect when the generated `.kk` imports
+klap and add `-ilib/klap/src` to the koka command line.
+
+The klap source ships with hica already (as a git submodule in `lib/klap`).
+For installed binaries, klap `.kk` files would be installed alongside hica
+(e.g., `~/.hica/lib/klap/`).
+
+### What this gives users
+
+- Full POSIX-style CLI parsing: `-arF`, `--sort=name`, `--`, combined flags
+- Auto-generated `--help` and `--version`
+- Type-safe flag/option/positional access
+- Error messages on invalid arguments
+- No imports needed — just call `cli_*` functions
+- Zero new language features required — works with hica as-is
+
+### Example: a complete CLI tool
+
+```
+struct Config {
+  verbose: bool,
+  output: string,
+  files: list<string>
+}
+
+fun main() {
+  let matches = cli_command("filetool", "0.1.0", "Process files", [
+    cli_flag("verbose", "v", "Enable verbose output"),
+    cli_option("output", "o", "Output file") |> cli_default("out.txt"),
+    cli_positional("files", "Input files")
+  ]) |> cli_parse_or_exit;
+
+  let cfg = Config {
+    verbose: cli_get_flag(matches, "verbose"),
+    output:  cli_get_option_or(matches, "output", "out.txt"),
+    files:   cli_get_positionals(matches)
+  };
+
+  if cfg.verbose { eprintln("processing {length(cfg.files)} files...") };
+  println("output: {cfg.output}")
+}
+```
+
+```
+$ ./filetool --help
+filetool 0.1.0 — Process files
+
+USAGE: filetool [OPTIONS] [files...]
+
+OPTIONS:
+  -v, --verbose       Enable verbose output
+  -o, --output VALUE  Output file [default: out.txt]
+  -h, --help          Show this help
+      --version       Show version
+
+$ ./filetool -v --output=result.txt a.txt b.txt
+processing 2 files...
+output: result.txt
+```
