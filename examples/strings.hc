@@ -13,7 +13,7 @@ fun main() {
   println("starts_with 'He': " + show(starts_with(trim(msg), "He")))
   println("ends_with '!':    " + show(ends_with(trim(msg), "!")))
 
-  let csv = "alice,bob,charlie"
+  let csv = "kalle,lisa,olle"
   println("split:  " + show(split(csv, ",")))
   println("join:   " + join(split(csv, ","), " & "))
   println("replace: " + replace(csv, ",", " | "))

@@ -152,7 +152,7 @@ fun main() {
   println(to_upper(trim(msg)));
   println(contains(msg, "World"));
 
-  let csv = "alice,bob,charlie";
+  let csv = "kalle,lisa,olle";
   println(split(csv, ","));
   println(join(split(csv, ","), " & "));
   println(replace(csv, ",", " | "))

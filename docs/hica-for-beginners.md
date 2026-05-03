@@ -302,7 +302,7 @@ fun main() {
 
 ## Strings
 
-Concatenation with `+` and interpolation with `{expr}` inside double-quoted strings:
+Concatenation with `+`, interpolation with `{expr}`, and indexing/slicing with `[]`:
 
 ```rust
 fun main() {
@@ -310,7 +310,18 @@ fun main() {
   let greeting = "Hello, " + name;
   let math = "2 + 2 = {2 + 2}";
   println(greeting);
-  println(math)
+  println(math);
+
+  // Indexing returns a char, slicing returns a string
+  let s = "hello";
+  println(s[0]);      // 'h'
+  println(s[1:4]);    // "ell"
+  println(s[-1]);     // 'o'
+
+  // Utility functions
+  println(trim("  hi  "));
+  println(capitalize("hello"));
+  println(removeprefix("v1.2.3", "v"))
 }
 ```
 

@@ -160,7 +160,17 @@ fun main() {
 }
 ```
 
-Rust requires understanding `String` vs `&str` ownership. hica has a single immutable `string` type — simpler to learn, though without Rust's fine-grained control over allocation.
+### Indexing & slicing
+
+| Rust | hica |
+|------|------|
+| `s.chars().nth(0).unwrap()` | `s[0]` |
+| `&s[1..4]` (byte indices, can panic) | `s[1:4]` (char indices, safe) |
+| `&s[..3]` | `s[:3]` |
+| `s.strip_prefix("v").unwrap_or(s)` | `removeprefix(s, "v")` |
+| `s.strip_suffix(".txt").unwrap_or(s)` | `removesuffix(s, ".txt")` |
+
+Rust requires understanding `String` vs `&str` ownership and byte vs char indexing. hica has a single immutable `string` type with char-based indexing — simpler to learn, though without Rust's fine-grained control over allocation.
 
 ## Pattern Matching
 

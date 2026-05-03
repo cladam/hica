@@ -23,7 +23,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 07 | `07-logic.hc`         | Boolean logic                    | `&&`, comparisons, combining conditions         |
 | 08 | `08-fizzbuzz.hc`      | Putting it all together          | `else if` chains, multi-step logic              |
 | 09 | `09-repeat.hc`        | Repeating things                 | `repeat(n) { body }`, running code n times      |
-| 10 | `10-strings.hc`       | Strings                          | `+` concatenation, `"{expr}"` interpolation     |
+| 10 | `10-strings.hc`       | Strings                          | `+` concat, `"{}"`interpolation, `s[i]` indexing, `s[1:3]` slicing, utility functions |
 | 11 | `11-pipe.hc`          | The pipe operator                | `\|>` to chain functions left to right          |
 | 12 | `12-floats.hc`        | Floating-point numbers           | Float literals (`3.14`), float arithmetic       |
 | 13 | `13-tuples.hc`        | Tuples                           | `(a, b)` literals, `.0`/`.1`, destructuring     |
@@ -51,6 +51,9 @@ Each lesson is a standalone `.hc` file you can run:
 | `repeat(n) { ... }`            | `09-repeat.hc`                        |
 | String concatenation (`+`)     | `10-strings.hc`                       |
 | String interpolation (`{}`)    | `10-strings.hc`                       |
+| String indexing (`s[0]`)       | `10-strings.hc`                       |
+| String slicing (`s[1:3]`)      | `10-strings.hc`                       |
+| String utility functions       | `10-strings.hc`                       |
 | Pipe operator (`\|>`)          | `11-pipe.hc`                          |
 | Float literals (`3.14`)        | `12-floats.hc`                        |
 | Tuples `(a, b)`                | `13-tuples.hc`                        |

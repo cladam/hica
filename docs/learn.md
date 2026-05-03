@@ -25,7 +25,7 @@ A progressive set of 20 lessons that teach hica one concept at a time. Each less
 | 07 | [`07-logic.hc`](https://github.com/cladam/hica/blob/main/learn/07-logic.hc) | Boolean logic | `&&`, comparisons, combining conditions |
 | 08 | [`08-fizzbuzz.hc`](https://github.com/cladam/hica/blob/main/learn/08-fizzbuzz.hc) | Putting it all together | `else if` chains, multi-step logic |
 | 09 | [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc) | Repeating things | `repeat(n) { body }`, running code n times |
-| 10 | [`10-strings.hc`](https://github.com/cladam/hica/blob/main/learn/10-strings.hc) | Strings | `+` concatenation, `"{expr}"` interpolation |
+| 10 | [`10-strings.hc`](https://github.com/cladam/hica/blob/main/learn/10-strings.hc) | Strings | `+` concat, `"{}"` interpolation, `s[i]` indexing, `s[1:3]` slicing, utility functions |
 | 11 | [`11-pipe.hc`](https://github.com/cladam/hica/blob/main/learn/11-pipe.hc) | The pipe operator | `&#124;>` to chain functions left to right |
 | 12 | [`12-floats.hc`](https://github.com/cladam/hica/blob/main/learn/12-floats.hc) | Floating-point numbers | Float literals (`3.14`), float arithmetic |
 | 13 | [`13-tuples.hc`](https://github.com/cladam/hica/blob/main/learn/13-tuples.hc) | Tuples | `(a, b)` literals, `.0`/`.1`, destructuring |
@@ -50,6 +50,8 @@ A progressive set of 20 lessons that teach hica one concept at a time. Each less
 | `&&` boolean operators | `07-logic.hc` |
 | `repeat(n) { }` | `09-repeat.hc` |
 | String interpolation | `10-strings.hc` |
+| String indexing & slicing | `10-strings.hc` |
+| String utility functions | `10-strings.hc` |
 | Pipe `&#124;>` operator | `11-pipe.hc` |
 | Float arithmetic | `12-floats.hc` |
 | Tuples and destructuring | `13-tuples.hc` |

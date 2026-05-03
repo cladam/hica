@@ -164,6 +164,19 @@ fun main() {
 }
 ```
 
+### Indexing & slicing
+
+| Python | hica | Result |
+|--------|------|--------|
+| `s[0]` | `s[0]` | First character (hica returns `char`) |
+| `s[-1]` | `s[-1]` | Last character |
+| `s[1:4]` | `s[1:4]` | Substring (same syntax!) |
+| `s[:3]` | `s[:3]` | First 3 characters |
+| `s[2:]` | `s[2:]` | From index 2 to end |
+| `s.capitalize()` | `capitalize(s)` | `"hello"` → `"Hello"` |
+| `s.removeprefix("v")` | `removeprefix(s, "v")` | Strip prefix |
+| `s.removesuffix(".txt")` | `removesuffix(s, ".txt")` | Strip suffix |
+
 Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`). Both are readable; hica's style plays well with the pipe operator: `msg |> trim |> to_upper`.
 
 ## Pattern Matching

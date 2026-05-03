@@ -167,7 +167,7 @@ let greeting = "Hello, " + name;
 let msg = "2 + 2 = {2 + 2}";
 ```
 
-String utility functions are built in — no imports needed:
+String utility functions are built in using hica's prelude library:
 
 ```rust
 fun main() {
