@@ -3,6 +3,6 @@
 fun abs(x) => if x < 0 { 0 - x } else { x }
 
 fun main() {
-  let result = abs(0 - 42);
+  let result = abs(0 - 42)
   result
 }

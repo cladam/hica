@@ -34,23 +34,23 @@
 
 fun main() {
   // Create a list
-  let nums = [10, 20, 30];
+  let nums = [10, 20, 30]
   println(nums)
 
   // Lists can hold strings too
-  let greetings = ["hello", "hej", "hola"];
+  let greetings = ["hello", "hej", "hola"]
   println(greetings)
 
   // map — transform every element
-  let doubled = map(nums, (x) => x * 2);
+  let doubled = map(nums, (x) => x * 2)
   println(doubled)
 
   // filter — keep only elements that pass a test
-  let big = filter(nums, (x) => x > 15);
+  let big = filter(nums, (x) => x > 15)
   println(big)
 
   // fold — combine all elements into one value
-  let total = fold(nums, 0, (acc, x) => acc + x);
+  let total = fold(nums, 0, (acc, x) => acc + x)
   println(total)
 
   // length — how many elements?
@@ -89,10 +89,10 @@ fun main() {
   println(nums[-1])
 
   // prepend — add to the front (fast!)
-  println(cons(0, nums));
+  println(cons(0, nums))
 
   // append — add to the end
-  println(nums + [40]);
+  println(nums + [40])
 
   // concatenation with +
   println(nums + [40, 50])

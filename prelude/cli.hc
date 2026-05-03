@@ -83,15 +83,15 @@ fun format_option_usage(o: CliOption) =>
   else { pad_right("  -" + o.opt_short + ", --" + o.opt_name + " VALUE", 24, " ") + o.opt_help }
 
 fun cli_help(spec: CliSpec) {
-  let header = spec.app_name + " " + spec.app_version + " — " + spec.app_about;
-  let usage_line = "USAGE: " + spec.app_name + " [OPTIONS] [ARGS...]";
-  let flag_lines = map(spec.app_flags, (f) => format_flag_usage(f));
-  let opt_lines = map(spec.app_options, (o) => format_option_usage(o));
+  let header = spec.app_name + " " + spec.app_version + " — " + spec.app_about
+  let usage_line = "USAGE: " + spec.app_name + " [OPTIONS] [ARGS...]"
+  let flag_lines = map(spec.app_flags, (f) => format_flag_usage(f))
+  let opt_lines = map(spec.app_options, (o) => format_option_usage(o))
   let builtin = [
     pad_right("  -h, --help", 24, " ") + "Show this help",
     pad_right("      --version", 24, " ") + "Show version"
-  ];
-  let all_opts = flag_lines + opt_lines + builtin;
+  ]
+  let all_opts = flag_lines + opt_lines + builtin
   header + "\n\n" + usage_line + "\n\nOPTIONS:\n" + join(all_opts, "\n")
 }
 
@@ -179,10 +179,10 @@ fun do_parse_long(spec: CliSpec, name: string, rest: list<string>, acc: CliResul
   }
 
 fun do_parse_long_eq(spec: CliSpec, arg: string, rest: list<string>, acc: CliResult, cont) {
-  let clean = removeprefix(arg, "--");
-  let parts = split(clean, "=");
-  let name = parts[0];
-  let v = join(drop(parts, 1), "=");
+  let clean = removeprefix(arg, "--")
+  let parts = split(clean, "=")
+  let name = parts[0]
+  let v = join(drop(parts, 1), "=")
   match find_opt_long(spec.app_options, name) {
     Some(_) => cont(spec, rest, add_opt_result(acc, name, v)),
     None    => Err("unknown option: --{name}")

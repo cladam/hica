@@ -22,7 +22,7 @@ fun describe(x) => match x {
 }
 
 fun main() {
-  let label = describe(1);
+  let label = describe(1)
   println(label)
 }
 

@@ -31,19 +31,19 @@ fun main() {
   match safe_divide(10, 3) {
     Ok(n)  => println("10 / 3 = {n}"),
     Err(e) => println("error: {e}")
-  };
+  }
 
   // Err case
   match safe_divide(10, 0) {
     Ok(n)  => println("10 / 0 = {n}"),
     Err(e) => println("error: {e}")
-  };
+  }
 
   // Grading
   match grade(85) {
     Ok(g)  => println("grade: {g}"),
     Err(e) => println("invalid: {e}")
-  };
+  }
 
   match grade(-5) {
     Ok(g)  => println("grade: {g}"),

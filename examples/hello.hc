@@ -11,13 +11,13 @@
 //
 // 4. Let binding + implicit return
 //    fun main() {
-//      let msg = "Hello, world!";
+//      let msg = "Hello, world!"
 //      msg
 //    }
 //
 // 5. Let binding + println
 //    fun main() {
-//      let msg = "Hello, world!";
+//      let msg = "Hello, world!"
 //      println(msg)
 //    }
 //

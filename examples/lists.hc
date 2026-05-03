@@ -1,21 +1,21 @@
 // Hica — list literals and operations
 fun main() {
-  let nums = [1, 2, 3, 4, 5];
+  let nums = [1, 2, 3, 4, 5]
   println(nums)
 
-  let words = ["hello", "world"];
+  let words = ["hello", "world"]
   println(words)
 
   // map — transform every element
-  let doubled = map(nums, (x) => x * 2);
+  let doubled = map(nums, (x) => x * 2)
   println(doubled)
 
   // filter — keep elements that pass a test
-  let big = filter(nums, (x) => x > 3);
+  let big = filter(nums, (x) => x > 3)
   println(big)
 
   // fold — reduce a list to a single value
-  let total = fold(nums, 0, (acc, x) => acc + x);
+  let total = fold(nums, 0, (acc, x) => acc + x)
   println(total)
 
   // length — how many elements?
@@ -29,12 +29,12 @@ fun main() {
   println(drop(nums, 3))
 
   // zip — pair up two lists
-  let names = ["Kalle", "Lisa", "Olle"];
-  let ages  = [30, 25, 35];
+  let names = ["Kalle", "Lisa", "Olle"]
+  let ages  = [30, 25, 35]
   println(zip(names, ages))
 
   // concat — flatten a list of lists
-  let nested = [[1, 2], [3, 4], [5]];
+  let nested = [[1, 2], [3, 4], [5]]
   println(concat(nested))
 
   // any / all — test elements
@@ -61,7 +61,7 @@ fun main() {
   println(cons(0, nums))
 
   // list concatenation with +
-  let more = nums + [6, 7, 8];
+  let more = nums + [6, 7, 8]
   println(more)
 
   // in operator — membership test

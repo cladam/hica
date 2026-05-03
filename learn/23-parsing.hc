@@ -23,34 +23,34 @@
 
 fun main() {
   // 1. parse_int — returns maybe<int>
-  println(parse_int("123"));
-  println(parse_int("-45"));
-  println(parse_int("abc"));
+  println(parse_int("123"))
+  println(parse_int("-45"))
+  println(parse_int("abc"))
 
   // 2. parse_float — returns maybe<float>
-  println(parse_float("3.14"));
-  println(parse_float("-0.5"));
-  println(parse_float("xyz"));
+  println(parse_float("3.14"))
+  println(parse_float("-0.5"))
+  println(parse_float("xyz"))
 
   // 3. Match on the result for safe handling
   match parse_int("100") {
     Some(n) => println("Got number: {n}"),
     None    => println("Not a valid integer!")
-  };
+  }
 
   match parse_float("2.718") {
     Some(f) => println("Got float: {f}"),
     None    => println("Not a valid float!")
-  };
+  }
 
   // 4. Handling bad input gracefully
   match parse_int("hello") {
     Some(n) => println("Parsed: {n}"),
     None    => println("Could not parse 'hello' as int")
-  };
+  }
 
   // 5. Compare with to_int (returns -1 on failure)
-  println(to_int("42"));
+  println(to_int("42"))
   println(to_int("abc"))
 }
 

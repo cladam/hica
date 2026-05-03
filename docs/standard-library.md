@@ -81,9 +81,9 @@ Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
 
 ```rust
 fun main() {
-  println("apple" < "banana");   // true
-  println("zoo" > "abc");        // true
-  println("abc" <= "abc")        // true
+  println("apple" < "banana")   // true
+  println("zoo" > "abc")        // true
+  println("abc" <= "abc")       // true
 }
 ```
 
@@ -101,11 +101,11 @@ Strings support the same `[]` syntax as lists:
 
 ```rust
 fun main() {
-  let s = "hello";
-  println(s[0]);      // 'h'
-  println(s[1:4]);    // "ell"
-  println(s[:3]);     // "hel"
-  println(s[-1])      // 'o'
+  let s = "hello"
+  println(s[0])      // 'h'
+  println(s[1:4])    // "ell"
+  println(s[:3])     // "hel"
+  println(s[-1])     // 'o'
 }
 ```
 
@@ -138,10 +138,10 @@ Written in hica itself:
 
 ```rust
 fun main() {
-  let nums = [1, 2, 3, 4, 5];
-  let evens = filter(nums, (x) => x % 2 == 0);
-  let doubled = map(nums, (x) => x * 2);
-  println(evens);
+  let nums = [1, 2, 3, 4, 5]
+  let evens = filter(nums, (x) => x % 2 == 0)
+  let doubled = map(nums, (x) => x * 2)
+  println(evens)
   println(doubled)
 }
 ```
@@ -150,8 +150,8 @@ fun main() {
 
 ```rust
 fun main() {
-  let nums = [1, 2, 3, 4, 5];
-  let total = fold(nums, 0, (acc, x) => acc + x);
+  let nums = [1, 2, 3, 4, 5]
+  let total = fold(nums, 0, (acc, x) => acc + x)
   println(total)
 }
 ```
@@ -163,7 +163,7 @@ fun main() {
   let result = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
-    |> fold(0, (acc, x) => acc + x);
+    |> fold(0, (acc, x) => acc + x)
   println(result)
 }
 ```
@@ -172,14 +172,14 @@ fun main() {
 
 ```rust
 fun main() {
-  let msg = "  Hello, World!  ";
-  println(trim(msg));
-  println(to_upper(trim(msg)));
-  println(contains(msg, "World"));
+  let msg = "  Hello, World!  "
+  println(trim(msg))
+  println(to_upper(trim(msg)))
+  println(contains(msg, "World"))
 
-  let csv = "kalle,lisa,olle";
-  println(split(csv, ","));
-  println(join(split(csv, ","), " & "));
+  let csv = "kalle,lisa,olle"
+  println(split(csv, ","))
+  println(join(split(csv, ","), " & "))
   println(replace(csv, ",", " | "))
 }
 ```
@@ -188,8 +188,8 @@ fun main() {
 
 ```rust
 fun main() {
-  println(words("the  quick   fox"));
-  println(pad_left("42", 6, "0"));
+  println(words("the  quick   fox"))
+  println(pad_left("42", 6, "0"))
   println(surround("hello", "**"))
 }
 ```

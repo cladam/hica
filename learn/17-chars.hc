@@ -14,21 +14,21 @@
 fun spell() => ['h', 'i', 'c', 'a']
 
 fun main() {
-  let grade = 'A';
-  println(grade);
+  let grade = 'A'
+  println(grade)
 
-  println("your grade is {grade}");
+  println("your grade is {grade}")
 
-  let letters = spell();
-  println(letters);
+  let letters = spell()
+  println(letters)
 
   // Comparing characters
-  println('x' == 'x');
-  println('x' == 'y');
+  println('x' == 'x')
+  println('x' == 'y')
 
   // Membership
-  let vowels = ['a', 'e', 'i', 'o', 'u'];
-  println('e' in vowels);
+  let vowels = ['a', 'e', 'i', 'o', 'u']
+  println('e' in vowels)
   println('z' in vowels)
 }
 

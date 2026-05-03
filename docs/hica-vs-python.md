@@ -61,7 +61,7 @@ print(result)
 fun double(x) => x * 2
 
 fun main() {
-  let result = double(21);
+  let result = double(21)
   println(result)
 }
 ```
@@ -81,9 +81,9 @@ scores[0] = 100         # changes in place
 **hica** is immutable by design. You create new values instead of mutating:
 
 ```rust
-let scores = [85, 92, 78];
-let updated = scores + [95];
-let doubled = map(scores, (x) => x * 2);
+let scores = [85, 92, 78]
+let updated = scores + [95]
+let doubled = map(scores, (x) => x * 2)
 ```
 
 This avoids accidental side effects, but requires a different way of thinking about state.
@@ -100,8 +100,8 @@ scores = list(map(double, [1, 2, 3, 4, 5]))
 **hica** has `fun` and full closures with the pipe operator:
 
 ```rust
-let double = (x) => x * 2;
-let scores = [1, 2, 3, 4, 5] |> map((x) => x * 2);
+let double = (x) => x * 2
+let scores = [1, 2, 3, 4, 5] |> map((x) => x * 2)
 ```
 
 ## Error Handling
@@ -155,12 +155,12 @@ print(msg.replace("World", "Python"))  # "  Hello, Python!  "
 
 ```rust
 fun main() {
-  let msg = "  Hello, World!  ";
-  println(trim(msg));
-  println(to_upper(msg));
-  println(contains(msg, "World"));
-  println(split("a,b,c", ","));
-  println(join(["a", "b"], ", "));
+  let msg = "  Hello, World!  "
+  println(trim(msg))
+  println(to_upper(msg))
+  println(contains(msg, "World"))
+  println(split("a,b,c", ","))
+  println(join(["a", "b"], ", "))
   println(replace(msg, "World", "hica"))
 }
 ```
@@ -194,10 +194,10 @@ int("abc")          # ValueError at runtime
 
 ```rust
 fun main() {
-  println(parse_int("42"));     // Some(42)
-  println(parse_int("abc"));    // None
-  println(parse_float("3.14")); // Some(3.14)
-  println(parse_float("xyz"));  // None
+  println(parse_int("42"))     // Some(42)
+  println(parse_int("abc"))    // None
+  println(parse_float("3.14")) // Some(3.14)
+  println(parse_float("xyz"))  // None
 
   match parse_int("100") {
     Some(n) => println("Got: {n}"),
@@ -222,7 +222,7 @@ class Point:
 
 p = Point(3, 4)
 print(p.x)       # 3
-print(p)          # Point(x=3, y=4)
+print(p)         # Point(x=3, y=4)
 ```
 
 **hica** uses `struct`:
@@ -231,7 +231,7 @@ print(p)          # Point(x=3, y=4)
 struct Point { x: int, y: int }
 
 fun main() {
-  let p = Point { x: 3, y: 4 };
+  let p = Point { x: 3, y: 4 }
   println(p.x)    // 3
   println(p)      // Point(x: 3, y: 4)
 }

@@ -25,15 +25,15 @@ fun add_one(n) => n + 1
 
 fun main() {
   // Without pipe - nested, inside-out
-  let a = square(double(3));
-  println(a);
+  let a = square(double(3))
+  println(a)
 
   // With pipe - left-to-right
-  let b = 3 |> double |> square;
-  println(b);
+  let b = 3 |> double |> square
+  println(b)
 
   // Chain three functions
-  let c = 4 |> add_one |> double |> square;
+  let c = 4 |> add_one |> double |> square
   println(c)
 }
 

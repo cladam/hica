@@ -74,7 +74,7 @@ chmod +x hica
 fun double(x) => x * 2
 
 fun main() {
-  let result = double(21);
+  let result = double(21)
   result
 }
 ```
@@ -105,7 +105,7 @@ fun describe(x) => match x {
 fun apply(f, x) => f(x)
 
 fun main() {
-  let sq = (n) => n * n;
+  let sq = (n) => n * n
   apply(sq, 5)
 }
 ```

@@ -952,6 +952,42 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => to_int(\"42\")")
       assert/is-true(code.contains(".parse-int"))
 
+    // --- parse_int ---
+
+    dtest("parse_int type-checks")
+      val ds = check-diagnostics("fun main() => parse_int(\"42\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("parse_int returns maybe<int>")
+      val ds = check-diagnostics("fun main() { match parse_int(\"42\") { Some(n) => println(n), None => println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("parse_int emits parse-int")
+      val code = emit-typed-program("fun main() => parse_int(\"42\")")
+      assert/is-true(code.contains(".parse-int"))
+
+    // --- parse_float ---
+
+    dtest("parse_float type-checks")
+      val ds = check-diagnostics("fun main() => parse_float(\"3.14\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("parse_float returns maybe<float>")
+      val ds = check-diagnostics("fun main() { match parse_float(\"3.14\") { Some(f) => println(f), None => println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("parse_float emits parse-float64")
+      val code = emit-typed-program("fun main() => parse_float(\"3.14\")")
+      assert/is-true(code.contains(".parse-float64"))
+
+    dtest("parse_float triggers float64 import")
+      val code = emit-typed-program("fun main() => parse_float(\"3.14\")")
+      assert/is-true(code.contains("import std/num/float64"))
+
     // --- Prelude string functions (inline definitions since check-diagnostics skips prelude files) ---
 
     dtest("unwords joins with space")

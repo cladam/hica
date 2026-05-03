@@ -21,8 +21,8 @@ fun sum_to(n) => if n <= 0 { 0 } else { n + sum_to(n - 1) }
 fun my_gcd(a, b) => if b == 0 { a } else { my_gcd(b, a % b) }
 
 fun main() {
-  println(factorial(5));
-  println(sum_to(100));
+  println(factorial(5))
+  println(sum_to(100))
   println(my_gcd(12, 8))
 }
 

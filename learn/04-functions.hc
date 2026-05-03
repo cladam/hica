@@ -8,8 +8,8 @@
 //   fun double(n) => n * 2
 //   fun square(n) => n * n
 //
-//   let a = double(3);     // a = 6
-//   let b = square(a);     // b = 36
+//   let a = double(3)     // a = 6
+//   let b = square(a)     // b = 36
 //
 // ============================================================
 
@@ -18,8 +18,8 @@ fun double(n) => n * 2
 fun square(n) => n * n
 
 fun main() {
-  let a = double(3);
-  let b = square(a);
+  let a = double(3)
+  let b = square(a)
   println(b)
 }
 

@@ -51,9 +51,9 @@ Variables are immutable bindings created with `let`:
 
 ```rust
 fun main() {
-  let name = "Alicia";
-  let age = 15;
-  let pi = 3.14;
+  let name = "Alicia"
+  let age = 15
+  let pi = 3.14
   println("name={name}, age={age}, pi={pi}")
 }
 ```
@@ -108,8 +108,8 @@ fun is_even(n: int) : bool => n % 2 == 0
 ### Lambdas and closures
 
 ```rust
-let sq = (n) => n * n;
-let add = (a, b) => a + b;
+let sq = (n) => n * n
+let add = (a, b) => a + b
 ```
 
 Closures capture variables from their enclosing scope:
@@ -118,8 +118,8 @@ Closures capture variables from their enclosing scope:
 fun make_adder(n) => (x) => x + n
 
 fun main() {
-  let add5 = make_adder(5);
-  println(add5(10));
+  let add5 = make_adder(5)
+  println(add5(10))
   println(add5(20))
 }
 ```
@@ -134,7 +134,7 @@ fun main() {
 fun abs(x) => if x < 0 { -x } else { x }
 
 fun main() {
-  let sign = if 42 > 0 { "positive" } else { "non-positive" };
+  let sign = if 42 > 0 { "positive" } else { "non-positive" }
   println(sign)
 }
 ```
@@ -161,8 +161,8 @@ fun describe(x) => match x {
 }
 
 fun main() {
-  println(describe(0));
-  println(describe(1));
+  println(describe(0))
+  println(describe(1))
   println(describe(99))
 }
 ```
@@ -183,7 +183,7 @@ fun main() {
 
 ```rust
 fun main() {
-  let names = ["Kalle", "Olle", "Lisa"];
+  let names = ["Kalle", "Olle", "Lisa"]
   for name in names {
     println("Hello, " + name)
   }
@@ -208,15 +208,15 @@ Homogeneous, immutable lists with standard library operations:
 
 ```rust
 fun main() {
-  let nums = [1, 2, 3, 4, 5];
+  let nums = [1, 2, 3, 4, 5]
 
-  let doubled = map(nums, (x) => x * 2);
-  println(doubled);
+  let doubled = map(nums, (x) => x * 2)
+  println(doubled)
 
-  let evens = filter(nums, (x) => x % 2 == 0);
-  println(evens);
+  let evens = filter(nums, (x) => x % 2 == 0)
+  println(evens)
 
-  let total = fold(nums, 0, (acc, x) => acc + x);
+  let total = fold(nums, 0, (acc, x) => acc + x)
   println(total)
 }
 ```
@@ -227,11 +227,11 @@ Fixed-size, heterogeneous containers:
 
 ```rust
 fun main() {
-  let pair = (1, "hello");
-  println(pair.0);
-  println(pair.1);
+  let pair = (1, "hello")
+  println(pair.0)
+  println(pair.1)
 
-  let (a, b) = (10, 20);
+  let (a, b) = (10, 20)
   println(a + b)
 }
 ```
@@ -246,9 +246,9 @@ struct Point { x: int, y: int }
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
 
 fun main() {
-  let p = Point { x: 3, y: 4 };
-  println(p.x);              // 3
-  println(distance_sq(p));   // 25
+  let p = Point { x: 3, y: 4 }
+  println(p.x)               // 3
+  println(distance_sq(p))    // 25
   println(p)                 // Point(x: 3, y: 4)
 }
 ```
@@ -267,7 +267,7 @@ fun double(x) => x * 2
 fun add_one(x) => x + 1
 
 fun main() {
-  let result = 5 |> double |> add_one;
+  let result = 5 |> double |> add_one
   println(result)
 }
 ```
@@ -279,7 +279,7 @@ fun main() {
   let result = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
-    |> fold(0, (acc, x) => acc + x);
+    |> fold(0, (acc, x) => acc + x)
   println(result)
 }
 ```
@@ -337,8 +337,8 @@ fun main() {
 If you just need a quick conversion and don't mind getting `-1` on failure, use `to_int`:
 
 ```rust
-let n = to_int("42");    // 42
-let bad = to_int("abc"); // -1
+let n = to_int("42")    // 42
+let bad = to_int("abc") // -1
 ```
 
 ## Strings
@@ -347,21 +347,21 @@ Concatenation with `+`, interpolation with `{expr}`, and indexing/slicing with `
 
 ```rust
 fun main() {
-  let name = "world";
-  let greeting = "Hello, " + name;
-  let math = "2 + 2 = {2 + 2}";
-  println(greeting);
-  println(math);
+  let name = "world"
+  let greeting = "Hello, " + name
+  let math = "2 + 2 = {2 + 2}"
+  println(greeting)
+  println(math)
 
   // Indexing returns a char, slicing returns a string
-  let s = "hello";
-  println(s[0]);      // 'h'
-  println(s[1:4]);    // "ell"
-  println(s[-1]);     // 'o'
+  let s = "hello"
+  println(s[0])       // 'h'
+  println(s[1:4])     // "ell"
+  println(s[-1])      // 'o'
 
   // Utility functions
-  println(trim("  hi  "));
-  println(capitalize("hello"));
+  println(trim("  hi  "))
+  println(capitalize("hello"))
   println(removeprefix("v1.2.3", "v"))
 }
 ```

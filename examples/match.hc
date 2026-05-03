@@ -13,6 +13,6 @@ fun respond(msg) => match msg {
 }
 
 fun main() {
-  println(describe(1));
+  println(describe(1))
   println(respond("hello"))
 }

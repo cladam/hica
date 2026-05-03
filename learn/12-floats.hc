@@ -16,10 +16,10 @@ fun circle_area(r) => 3.14159 * r * r
 fun to_fahrenheit(celsius) => celsius * 1.8 + 32.0
 
 fun main() {
-  let area = circle_area(5.0);
-  println("{area}");
+  let area = circle_area(5.0)
+  println("{area}")
 
-  let temp = to_fahrenheit(100.0);
+  let temp = to_fahrenheit(100.0)
   println("{temp}")
 }
 

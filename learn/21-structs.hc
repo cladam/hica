@@ -5,7 +5,7 @@
 // A struct defines a named record with typed fields:
 //
 //   struct Point { x: int, y: int }
-//   let p = Point { x: 3, y: 4 };
+//   let p = Point { x: 3, y: 4 }
 //   p.x   // 3
 //
 // Functions that operate on structs are regular free functions:
@@ -18,11 +18,11 @@
 //
 // Use a tuple for quick, temporary grouping:
 //
-//   let pair = (3, 4);       // anonymous — what do 3 and 4 mean?
+//   let pair = (3, 4)       // anonymous — what do 3 and 4 mean?
 //
 // Use a struct when the data has a clear identity:
 //
-//   let p = Point { x: 3, y: 4 };  // self-documenting
+//   let p = Point { x: 3, y: 4 }  // self-documenting
 //
 // Rule of thumb:
 //   • Tuple  → throwaway pairs, returning two values from a function

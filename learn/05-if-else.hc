@@ -10,15 +10,15 @@
 //
 // You can use if/else to bind a variable:
 //
-//   let bigger = if a > b { a } else { b };
+//   let bigger = if a > b { a } else { b }
 //
 // ============================================================
 
 fun negate(x) => if x < 0 { -x } else { x }
 
 fun main() {
-  let a = if 10 > 5 { 10 } else { 5 };
-  let b = negate(-3);
+  let a = if 10 > 5 { 10 } else { 5 }
+  let b = negate(-3)
   println(b)
 }
 

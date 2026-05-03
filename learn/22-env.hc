@@ -14,14 +14,14 @@
 
 fun main() {
   // Command-line arguments
-  let args = get_args();
-  println("arguments: {args}");
+  let args = get_args()
+  println("arguments: {args}")
 
   // Look up an environment variable
   match get_env("HOME") {
     Some(dir) => println("HOME = {dir}"),
     None      => println("HOME is not set")
-  };
+  }
 
   // eprintln writes to stderr (useful for error messages)
   eprintln("this goes to stderr, not stdout")

@@ -44,7 +44,7 @@ Closures capture variables from their enclosing scope:
 fun make_adder(n) => (x) => x + n
 
 fun main() {
-  let add5 = make_adder(5);
+  let add5 = make_adder(5)
   println(add5(10))
 }
 ```
@@ -131,7 +131,7 @@ for i in 0..10 {
 ### For-in collection loops
 
 ```rust
-let names = ["Kalle", "Lisa", "Olle"];
+let names = ["Kalle", "Lisa", "Olle"]
 for name in names {
   println(name)
 }
@@ -304,7 +304,7 @@ fun double(x) => x * 2
 fun add_one(x) => x + 1
 
 fun main() {
-  let result = 5 |> double |> add_one;
+  let result = 5 |> double |> add_one
   println(result)
 }
 ```

@@ -68,9 +68,9 @@ hica has no ownership system. Koka's Perceus reference counting handles memory a
 
 ```rust
 fun main() {
-  let s1 = "hello";
-  let s2 = s1;
-  println(s1);
+  let s1 = "hello"
+  let s2 = s1
+  println(s1)
   println(s2)
 }
 ```
@@ -96,8 +96,8 @@ hica has one closure type. Closures capture values implicitly, without exposing 
 fun make_adder(n) => (x) => x + n
 
 fun main() {
-  let add5 = make_adder(5);
-  println(add5(10));
+  let add5 = make_adder(5)
+  println(add5(10))
   println(add5(20))
 }
 ```
@@ -151,12 +151,12 @@ hica has one string type and free functions:
 
 ```rust
 fun main() {
-  let msg = "  Hello, World!  ";
-  println(trim(msg));
-  println(to_upper(msg));
-  println(contains(msg, "World"));
-  println(split("a,b,c", ","));
-  println(join(["a", "b"], ", "));
+  let msg = "  Hello, World!  "
+  println(trim(msg))
+  println(to_upper(msg))
+  println(contains(msg, "World"))
+  println(split("a,b,c", ","))
+  println(join(["a", "b"], ", "))
   println(replace(msg, "World", "hica"))
 }
 ```
@@ -187,10 +187,10 @@ hica uses `parse_int` and `parse_float`, returning `maybe`:
 
 ```rust
 fun main() {
-  println(parse_int("42"));     // Some(42)
-  println(parse_int("abc"));    // None
-  println(parse_float("3.14")); // Some(3.14)
-  println(parse_float("xyz"));  // None
+  println(parse_int("42"))     // Some(42)
+  println(parse_int("abc"))    // None
+  println(parse_float("3.14")) // Some(3.14)
+  println(parse_float("xyz"))  // None
 
   match parse_int("100") {
     Some(n) => println("Got: {n}"),
@@ -252,7 +252,7 @@ impl Point {
 
 fn main() {
     let p = Point { x: 3, y: 4 };
-    println!("{}", p.distance_sq()); // 25
+    println!("{}", p.distance_sq());  // 25
     println!("{:?}", p);              // Point { x: 3, y: 4 }
 }
 ```
@@ -265,7 +265,7 @@ struct Point { x: int, y: int }
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
 
 fun main() {
-  let p = Point { x: 3, y: 4 };
+  let p = Point { x: 3, y: 4 }
   println(distance_sq(p))   // 25
   println(p)                 // Point(x: 3, y: 4)
 }
@@ -287,8 +287,8 @@ hica has no `mut`. All bindings are immutable. State changes are expressed by cr
 
 ```rust
 fun main() {
-  let nums = [1, 2, 3];
-  let doubled = map(nums, (x) => x * 2);
+  let nums = [1, 2, 3]
+  let doubled = map(nums, (x) => x * 2)
   println(doubled)
 }
 ```
@@ -312,7 +312,7 @@ fun main() {
   let result = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
-    |> fold(0, (acc, x) => acc + x);
+    |> fold(0, (acc, x) => acc + x)
   println(result)
 }
 ```

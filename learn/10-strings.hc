@@ -39,40 +39,40 @@ fun greet(name) => "hello, {name}!"
 
 fun main() {
   // --- Building strings ---
-  println(yell("wow"));
-  println(greet("hica"));
-  let apples = 5;
-  println("{apples} apples");
+  println(yell("wow"))
+  println(greet("hica"))
+  let apples = 5
+  println("{apples} apples")
 
   // --- Indexing & slicing ---
-  let s = "hello";
-  println(s[0]);         // 'h'
-  println(s[-1]);        // 'o'
-  println(s[1:4]);       // "ell"
-  println(s[:3]);        // "hel"
-  println(s[2:]);        // "llo"
+  let s = "hello"
+  println(s[0])         // 'h'
+  println(s[-1])        // 'o'
+  println(s[1:4])       // "ell"
+  println(s[:3])        // "hel"
+  println(s[2:])        // "llo"
 
   // --- Utility functions ---
-  let msg = "  Hello, World!  ";
-  println(trim(msg));
-  println(to_upper(trim(msg)));
-  println(contains(msg, "World"));
-  println(split("a,b,c", ","));
-  println(join(["x", "y", "z"], "-"));
-  println(replace("banana", "a", "o"));
+  let msg = "  Hello, World!  "
+  println(trim(msg))
+  println(to_upper(trim(msg)))
+  println(contains(msg, "World"))
+  println(split("a,b,c", ","))
+  println(join(["x", "y", "z"], "-"))
+  println(replace("banana", "a", "o"))
 
   // --- Prelude helpers (written in hica) ---
-  println(capitalize("hello"));
-  println(capwords("hello WORLD"));
-  println(removeprefix("v1.2.3", "v"));
-  println(removesuffix("file.txt", ".txt"));
-  println(words("the  quick   fox"));
-  println(pad_left("42", 6, "0"));
+  println(capitalize("hello"))
+  println(capwords("hello WORLD"))
+  println(removeprefix("v1.2.3", "v"))
+  println(removesuffix("file.txt", ".txt"))
+  println(words("the  quick   fox"))
+  println(pad_left("42", 6, "0"))
   println(center("hi", 10, "-"))
 
   // --- Comparison (lexicographic) ---
-  println("apple" < "banana");   // true
-  println("zoo" > "abc");        // true
+  println("apple" < "banana")   // true
+  println("zoo" > "abc")        // true
   println("abc" <= "abc")        // true
 }
 

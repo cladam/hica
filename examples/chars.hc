@@ -12,21 +12,21 @@ fun vowels() => ['a', 'e', 'i', 'o', 'u']
 fun is_vowel(c) => c in vowels()
 
 fun main() {
-  let letter = 'h';
-  println(letter);
+  let letter = 'h'
+  println(letter)
 
   // Chars in string interpolation
-  println("the letter is: {letter}");
+  println("the letter is: {letter}")
 
   // A list of characters
-  let letters = ['h', 'i', 'c', 'a'];
-  println(letters);
+  let letters = ['h', 'i', 'c', 'a']
+  println(letters)
 
   // Check equality
-  println('a' == 'a');
-  println('a' == 'b');
+  println('a' == 'a')
+  println('a' == 'b')
 
   // Check membership
-  println(is_vowel('e'));
+  println(is_vowel('e'))
   println(is_vowel('z'))
 }

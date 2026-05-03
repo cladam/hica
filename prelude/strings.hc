@@ -37,9 +37,9 @@ fun pad_left(s: string, width: int, ch: string) => repeat_str(ch, max(0, width -
 fun pad_right(s: string, width: int, ch: string) => s + repeat_str(ch, max(0, width - str_length(s)))
 
 fun center(s: string, width: int, ch: string) {
-  let total = max(0, width - str_length(s));
-  let left = total / 2;
-  let right = total - left;
+  let total = max(0, width - str_length(s))
+  let left = total / 2
+  let right = total - left
   repeat_str(ch, left) + s + repeat_str(ch, right)
 }
 

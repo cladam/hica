@@ -4,6 +4,6 @@ fun classify(n) =>
   else { "out of range" }
 
 fun main() {
-  let result = classify(42);
+  let result = classify(42)
   result
 }

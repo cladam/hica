@@ -4,8 +4,8 @@
 //
 // Variables are immutable bindings created with `let`.
 //
-//   let age = 30;
-//   let name = "Alex";
+//   let age = 30
+//   let name = "Alex"
 //
 // Naming rules:
 //   - Start with a letter or _
@@ -19,9 +19,9 @@
 // ============================================================
 
 fun main() {
-  let a = 10;
-  let b = 20;
-  let c = a + b;
+  let a = 10
+  let b = 20
+  let c = a + b
   println(c)              // Prints 30
 }
 

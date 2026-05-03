@@ -18,29 +18,29 @@ fun find_positive(n) =>
 
 fun main() {
   // Create a maybe value
-  let a = Some(42);
-  println(a);
+  let a = Some(42)
+  println(a)
 
   // Match on a maybe — get the value out safely
   match a {
     Some(n) => println("found: {n}"),
     None    => println("nothing found")
-  };
+  }
 
   // None — nothing here
   match find_positive(-5) {
     Some(n) => println("positive: {n}"),
     None    => println("not positive")
-  };
+  }
 
   // Using maybe from a function
   match find_positive(10) {
     Some(n) => println("positive: {n}"),
     None    => println("not positive")
-  };
+  }
 
   // Some wraps any value
-  let name = Some("Alicia");
+  let name = Some("Alicia")
   match name {
     Some(n) => println("hello, {n}!"),
     None    => println("hello, stranger!")
