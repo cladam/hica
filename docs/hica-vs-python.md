@@ -209,7 +209,7 @@ fun main() {
 }
 ```
 
-Python has classes with inheritance, methods, and dunder protocols. hica has simple immutable structs with free functions — no `self`, no `__init__`, no inheritance. Functions that operate on structs are just regular functions:
+Python has classes with inheritance, methods, and dunder protocols. hica has simple immutable structs with free functions, no `self`, `__init__` or inheritance. Functions that operate on structs are just regular functions:
 
 ```rust
 struct Point { x: int, y: int }
