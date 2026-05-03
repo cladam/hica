@@ -45,4 +45,10 @@ fun main() {
   println("capwords:       " + capwords("hello WORLD foo"))
   println("removeprefix:   " + removeprefix("v1.2.3", "v"))
   println("removesuffix:   " + removesuffix("file.txt", ".txt"))
+
+  // --- Comparison (lexicographic) ---
+  println("apple < banana: " + show("apple" < "banana"))
+  println("zoo > abc:      " + show("zoo" > "abc"))
+  println("abc <= abc:     " + show("abc" <= "abc"))
+  println("b >= a:         " + show("b" >= "a"))
 }

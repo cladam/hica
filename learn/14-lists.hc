@@ -28,6 +28,7 @@
 //   foreach(list, fn)    - run fn on each element
 //   cons(x, list)        - prepend x to the front
 //   enumerate(list)      - pair elements with their index
+//   find(list, fn)        - first element matching fn (returns maybe)
 //
 // ============================================================
 
@@ -102,6 +103,10 @@ fun main() {
 
   // enumerate — pair elements with their index
   println(enumerate(greetings))
+
+  // find — first element matching a predicate
+  println(find(nums, (x) => x > 15))
+  println(find(nums, (x) => x > 100))
 }
 
 // ============================================================

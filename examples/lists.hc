@@ -70,4 +70,8 @@ fun main() {
 
   // enumerate — pair each element with its index
   println(enumerate(words))
+
+  // find — first element matching a predicate
+  println(find(nums, (x) => x > 3))
+  println(find(nums, (x) => x > 99))
 }

@@ -20,7 +20,7 @@ Legend: **done** = shipped, **—** = not started
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
 | String utility functions | **done** | Low | `str_length`, `contains`, `trim`, `trim_start`, `trim_end`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`. Extern sigs backed by Koka `std/core/string` + higher-level helpers written in hica (`prelude/strings.hc`): `is_empty`, `is_blank`, `words`, `lines`, `unwords`, `unlines`, `count_substr`, `repeat_str`, `pad_left`, `pad_right`, `center`, `surround`, `capitalize`, `capwords`, `removeprefix`, `removesuffix`. Remaining: `index_of(str, substr)` → `maybe<int>` |
 | String indexing & slicing (`s[0]`, `s[1:]`) | **done** | Low | Reuses `ListIndex`/`ListSlice` AST; checker branches on `TString` (returns `char` for index, `string` for slice); codegen emits `.list[i].unjust` / `.list.drop().take().string`. Enabled new prelude functions: `capitalize`, `capwords`, `removeprefix`, `removesuffix` |
-| String comparison (`<`, `>`, `<=`, `>=`) | — | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
+| String comparison (`<`, `>`, `<=`, `>=`) | **done** | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
 | Type annotations in syntax (`: int`) | **done** | Medium | Escape hatch when inference fails. Parser + AST + checker unification. Supports `let x: int`, `fun f(a: int) : int`, all types |
 
 ### Pattern Matching
@@ -54,7 +54,7 @@ Legend: **done** = shipped, **—** = not started
 | List concat with `+` | **done** | Low | Checker allows `+` on lists; codegen emits `++` |
 | `in` operator (`x in list`) | **done** | Medium | New binop; emits `list.any(fn(el) el == x)` |
 | `enumerate(list)` | **done** | Low | Prelude sig; emits Koka `map-indexed` |
-| `find(list, fn)` | — | Low | Prelude sig; return `maybe<a>`; emits Koka `list.find(fn)` |
+| `find(list, fn)` | **done** | Low | Prelude sig; return `maybe<a>`; emits Koka `list.find(fn)` |
 | `all(list, fn)` | **done** | Low | Prelude sig; emits Koka `list.all(fn)` |
 | Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |

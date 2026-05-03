@@ -31,6 +31,7 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | `all(xs, f)` | `(list<a>, (a) -> bool) -> bool` | True if `f` holds for all elements |
 | `foreach(xs, f)` | `(list<a>, (a) -> ()) -> ()` | Call `f` on each element for side effects |
 | `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
+| `find(xs, f)` | `(list<a>, (a) -> bool) -> maybe<a>` | First element where `f` returns true, or `None` |
 
 ## Math (`prelude/math.hc`)
 
@@ -61,6 +62,18 @@ Primitive string functions backed by Koka's string library:
 | `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator |
 | `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
 | `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
+
+### String Comparison
+
+Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
+
+```rust
+fun main() {
+  println("apple" < "banana");   // true
+  println("zoo" > "abc");        // true
+  println("abc" <= "abc")        // true
+}
+```
 
 ### String Indexing & Slicing
 

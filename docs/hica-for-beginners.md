@@ -269,14 +269,8 @@ fun main() {
 Use `Some` and `None` to represent values that might not exist:
 
 ```rust
-fun find_first_even(xs) =>
-  match filter(xs, (x) => x % 2 == 0) {
-    Cons(h, _) => Some(h),
-    Nil        => None
-  }
-
 fun main() {
-  match find_first_even([1, 3, 4, 7]) {
+  match find([1, 3, 4, 7], (x) => x % 2 == 0) {
     Some(n) => println("Found: {n}"),
     None    => println("No even number")
   }

@@ -167,6 +167,13 @@ let greeting = "Hello, " + name;
 let msg = "2 + 2 = {2 + 2}";
 ```
 
+Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
+
+```rust
+println("apple" < "banana");   // true
+println("abc" <= "abc")        // true
+```
+
 String utility functions are built in using hica's prelude library:
 
 ```rust
@@ -247,6 +254,8 @@ fun safe_divide(a, b) =>
 | `>` | Greater than |
 | `<=` | Less than or equal |
 | `>=` | Greater than or equal |
+
+Comparison operators work on `int`, `float`, and `string` (lexicographic ordering).
 
 ### Logical
 

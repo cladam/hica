@@ -25,17 +25,21 @@
 //      contains, starts_with, ends_with, replace,
 //      capitalize, capwords, removeprefix, removesuffix, ...
 //
+// 6. Comparison operators (lexicographic):
+//      "apple" < "banana"   =>  true
+//      "abc" <= "abc"       =>  true
+//
 // ============================================================
 
 // Concatenation: join strings with +
-fun shout(word) => word + "!"
+fun yell(word) => word + "!"
 
 // Interpolation: embed values directly in a string
 fun greet(name) => "hello, {name}!"
 
 fun main() {
   // --- Building strings ---
-  println(shout("wow"));
+  println(yell("wow"));
   println(greet("hica"));
   let apples = 5;
   println("{apples} apples");
@@ -65,6 +69,11 @@ fun main() {
   println(words("the  quick   fox"));
   println(pad_left("42", 6, "0"));
   println(center("hi", 10, "-"))
+
+  // --- Comparison (lexicographic) ---
+  println("apple" < "banana");   // true
+  println("zoo" > "abc");        // true
+  println("abc" <= "abc")        // true
 }
 
 // ============================================================
