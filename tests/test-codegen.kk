@@ -938,3 +938,49 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun max(a, b) => if a > b { a } else { b }\nfun repeat_str(s: string, n: int) : string => if n <= 0 { \"\" } else { s + repeat_str(s, n - 1) }\nfun center(s: string, width: int, ch: string) { let total = max(0, width - str_length(s)); let left = total / 2; let right = total - left; repeat_str(ch, left) + s + repeat_str(ch, right) }\nfun main() => println(center(\"hi\", 10, \"-\"))")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
+
+    // --- String indexing & slicing ---
+
+    dtest("string index returns char")
+      val ds = check-diagnostics("fun main() { let c = \"hello\"[0]; println(c) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("string index emits .list[i].unjust")
+      val code = emit-typed-program("fun main() => \"hello\"[0]")
+      assert/is-true(code.contains(".list["))
+      assert/is-true(code.contains("].unjust"))
+
+    dtest("string negative index emits .list.length")
+      val code = emit-typed-program("fun main() => \"hello\"[-1]")
+      assert/is-true(code.contains(".list.length"))
+
+    dtest("string slice returns string")
+      val ds = check-diagnostics("fun main() { let s = \"hello\"[1:3]; println(s + \"!\") }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("string slice emits .list.drop.take.string")
+      val code = emit-typed-program("fun main() => \"hello\"[1:3]")
+      assert/is-true(code.contains(".list.drop("))
+      assert/is-true(code.contains(".string"))
+
+    dtest("string slice start-only emits .list.drop.string")
+      val code = emit-typed-program("fun main() => \"hello\"[2:]")
+      assert/is-true(code.contains(".list.drop("))
+      assert/is-true(code.contains(".string"))
+
+    dtest("string slice end-only emits .list.take.string")
+      val code = emit-typed-program("fun main() => \"hello\"[:3]")
+      assert/is-true(code.contains(".list.take("))
+      assert/is-true(code.contains(".string"))
+
+    dtest("list indexing still works")
+      val ds = check-diagnostics("fun main() { let xs = [1,2,3]; println(show(xs[0])) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("list slicing still works")
+      val ds = check-diagnostics("fun main() { let xs = [1,2,3]; println(show(length(xs[1:]))) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)

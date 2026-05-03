@@ -62,6 +62,28 @@ Primitive string functions backed by Koka's string library:
 | `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
 | `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
 
+### String Indexing & Slicing
+
+Strings support the same `[]` syntax as lists:
+
+| Syntax | Returns | Description |
+|--------|---------|-------------|
+| `s[i]` | `char` | Character at index `i` |
+| `s[i:j]` | `string` | Substring from `i` to `j` (exclusive) |
+| `s[:j]` | `string` | First `j` characters |
+| `s[i:]` | `string` | From index `i` to end |
+| `s[-1]` | `char` | Last character (negative indexing) |
+
+```rust
+fun main() {
+  let s = "hello";
+  println(s[0]);      // 'h'
+  println(s[1:4]);    // "ell"
+  println(s[:3]);     // "hel"
+  println(s[-1])      // 'o'
+}
+```
+
 ## String Helpers (`prelude/strings.hc`)
 
 Written in hica itself:
@@ -80,6 +102,10 @@ Written in hica itself:
 | `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
 | `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
 | `count_substr(s, sub)` | `(string, string) -> int` | Count occurrences of `sub` in `s` |
+| `capitalize(s)` | `(string) -> string` | Uppercase first letter, lowercase rest |
+| `capwords(s)` | `(string) -> string` | Capitalize each word |
+| `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
+| `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
 ## Examples
 

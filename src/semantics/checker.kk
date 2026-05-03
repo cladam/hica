@@ -480,20 +480,30 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val body-type = get-type(body')
       (s3, Node(n.span, LetTuple(names, init', body'), Just(body-type)))
 
-    // --- List indexing ---
+    // --- List/string indexing ---
     ListIndex(lst, idx) ->
       val (s1, lst') = infer(env, s, lst)
       val (s2, idx') = infer(env, s1, idx)
-      val elem-var = fresh-tvar()
-      val s3 = compose-subst(unify(apply-subst(s2, get-type(lst')), TList(elem-var), n.span), s2)
-      val s4 = compose-subst(unify(apply-subst(s3, get-type(idx')), TInt, n.span), s3)
-      (s4, Node(n.span, ListIndex(lst', idx'), Just(apply-subst(s4, elem-var))))
+      val s3 = compose-subst(unify(apply-subst(s2, get-type(idx')), TInt, n.span), s2)
+      val lst-type = apply-subst(s3, get-type(lst'))
+      match lst-type
+        TString ->
+          (s3, Node(n.span, ListIndex(lst', idx'), Just(TChar)))
+        _ ->
+          val elem-var = fresh-tvar()
+          val s4 = compose-subst(unify(lst-type, TList(elem-var), n.span), s3)
+          (s4, Node(n.span, ListIndex(lst', idx'), Just(apply-subst(s4, elem-var))))
 
-    // --- List slicing ---
+    // --- List/string slicing ---
     ListSlice(lst, start-m, end-m) ->
       val (s1, lst') = infer(env, s, lst)
-      val elem-var = fresh-tvar()
-      val s2 = compose-subst(unify(apply-subst(s1, get-type(lst')), TList(elem-var), n.span), s1)
+      val lst-type = apply-subst(s1, get-type(lst'))
+      val (s2, result-type) = match lst-type
+        TString -> (s1, TString)
+        _ ->
+          val elem-var = fresh-tvar()
+          val s' = compose-subst(unify(lst-type, TList(elem-var), n.span), s1)
+          (s', TList(apply-subst(s', elem-var)))
       val (s3, start-m') = match start-m
         Just(se) ->
           val (si, se') = infer(env, s2, se)
@@ -506,7 +516,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
           val si2 = compose-subst(unify(apply-subst(si, get-type(ee')), TInt, n.span), si)
           (si2, Just(ee'))
         Nothing -> (s3, Nothing)
-      (s4, Node(n.span, ListSlice(lst', start-m', end-m'), Just(TList(apply-subst(s4, elem-var)))))
+      (s4, Node(n.span, ListSlice(lst', start-m', end-m'), Just(apply-subst(s4, result-type))))
 
     // --- Maybe constructors ---
     ESome(value) ->

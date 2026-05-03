@@ -140,6 +140,10 @@ Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
 | `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
 | `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
 | `count_substr(s, sub)` | `(string, string) -> int` | Count occurrences of `sub` in `s` |
+| `capitalize(s)` | `(string) -> string` | Uppercase first letter, lowercase rest |
+| `capwords(s)` | `(string) -> string` | Capitalize each word |
+| `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
+| `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
 ## How to add a prelude function
 

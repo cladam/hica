@@ -44,3 +44,22 @@ fun center(s: string, width: int, ch: string) {
 }
 
 fun surround(s: string, wrap: string) => wrap + s + wrap
+
+// --- Case helpers (require slicing) ---
+
+fun capitalize(s: string) : string =>
+  if str_length(s) == 0 { "" }
+  else { to_upper(s[:1]) + to_lower(s[1:]) }
+
+fun capwords(s: string) : string =>
+  join(map(words(s), (w) => capitalize(w)), " ")
+
+// --- Prefix / suffix removal (require slicing) ---
+
+fun removeprefix(s: string, pre: string) : string =>
+  if starts_with(s, pre) { s[str_length(pre):] }
+  else { s }
+
+fun removesuffix(s: string, suf: string) : string =>
+  if ends_with(s, suf) { s[:str_length(s) - str_length(suf)] }
+  else { s }

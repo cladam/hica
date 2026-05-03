@@ -31,4 +31,18 @@ fun main() {
   println("unwords:        " + unwords(["one", "two", "three"]))
   println("unlines:        " + unlines(["a", "b", "c"]))
   println("count_substr:   " + show(count_substr("banana", "an")))
+
+  // --- Indexing & slicing ---
+  let name = "Hello"
+  println("index [0]:      " + show(name[0]))
+  println("slice [1:4]:    " + name[1:4])
+  println("slice [:3]:     " + name[:3])
+  println("slice [2:]:     " + name[2:])
+  println("slice [-2:]:    " + name[-2:])
+
+  // --- Case & prefix/suffix ---
+  println("capitalize:     " + capitalize("hello"))
+  println("capwords:       " + capwords("hello WORLD foo"))
+  println("removeprefix:   " + removeprefix("v1.2.3", "v"))
+  println("removesuffix:   " + removesuffix("file.txt", ".txt"))
 }

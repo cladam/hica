@@ -256,26 +256,49 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     ListIndex(lst, idx) ->
       val lst-code = emit-expr(lst, declared)
       val idx-code = emit-expr(idx, declared)
-      match idx.expr
-        Unary(Neg, _) ->
-          // Negative index: count from end
-          lst-code ++ "[" ++ lst-code ++ ".length + " ++ idx-code ++ "].unjust"
+      match lst.typ
+        Just(TString) ->
+          match idx.expr
+            Unary(Neg, _) ->
+              lst-code ++ ".list[" ++ lst-code ++ ".list.length + " ++ idx-code ++ "].unjust"
+            _ ->
+              lst-code ++ ".list[" ++ idx-code ++ "].unjust"
         _ ->
-          lst-code ++ "[" ++ idx-code ++ "].unjust"
+          match idx.expr
+            Unary(Neg, _) ->
+              lst-code ++ "[" ++ lst-code ++ ".length + " ++ idx-code ++ "].unjust"
+            _ ->
+              lst-code ++ "[" ++ idx-code ++ "].unjust"
     ListSlice(lst, start-m, end-m) ->
       val lst-code = emit-expr(lst, declared)
-      fun adj(n)  // adjust negative index: lst.list/length + idx
-        val code = emit-expr(n, declared)
-        match n.expr
-          Unary(Neg, _) -> "(" ++ lst-code ++ ".list/length + " ++ code ++ ")"
-          _             -> code
-      match start-m
-        Just(s) -> match end-m
-          Just(e) -> lst-code ++ ".drop(" ++ adj(s) ++ ").take((" ++ adj(e) ++ ") - (" ++ adj(s) ++ "))"
-          Nothing -> lst-code ++ ".drop(" ++ adj(s) ++ ")"
-        Nothing -> match end-m
-          Just(e) -> lst-code ++ ".take(" ++ adj(e) ++ ")"
-          Nothing -> lst-code  // list[:] — identity
+      match lst.typ
+        Just(TString) ->
+          val l = lst-code ++ ".list"
+          fun adj(n)
+            val code = emit-expr(n, declared)
+            match n.expr
+              Unary(Neg, _) -> "(" ++ l ++ ".list/length + " ++ code ++ ")"
+              _             -> code
+          match start-m
+            Just(s) -> match end-m
+              Just(e) -> l ++ ".drop(" ++ adj(s) ++ ").take((" ++ adj(e) ++ ") - (" ++ adj(s) ++ ")).string"
+              Nothing -> l ++ ".drop(" ++ adj(s) ++ ").string"
+            Nothing -> match end-m
+              Just(e) -> l ++ ".take(" ++ adj(e) ++ ").string"
+              Nothing -> lst-code  // s[:] — identity
+        _ ->
+          fun adj(n)
+            val code = emit-expr(n, declared)
+            match n.expr
+              Unary(Neg, _) -> "(" ++ lst-code ++ ".list/length + " ++ code ++ ")"
+              _             -> code
+          match start-m
+            Just(s) -> match end-m
+              Just(e) -> lst-code ++ ".drop(" ++ adj(s) ++ ").take((" ++ adj(e) ++ ") - (" ++ adj(s) ++ "))"
+              Nothing -> lst-code ++ ".drop(" ++ adj(s) ++ ")"
+            Nothing -> match end-m
+              Just(e) -> lst-code ++ ".take(" ++ adj(e) ++ ")"
+              Nothing -> lst-code  // list[:] — identity
     TupleIndex(tup, idx) ->
       emit-expr(tup, declared) ++ "." ++ tuple-field-name(idx)
     LetTuple(names, init, body) ->
