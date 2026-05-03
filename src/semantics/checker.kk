@@ -29,6 +29,20 @@ pub fun run-fresh( action : () -> <fresh|e> a ) : e a
   action()
 
 // ---------------------------------------------------------------------------
+// Struct registry: look up struct definitions by name
+// ---------------------------------------------------------------------------
+
+pub alias struct-registry = list<struct-def>
+
+fun struct-find( reg : struct-registry, sname : string ) : maybe<struct-def>
+  match reg
+    Nil -> Nothing
+    Cons(sd, rest) -> if sd.name == sname then Just(sd) else struct-find(rest, sname)
+
+pub effect struct-reg
+  fun get-structs() : struct-registry
+
+// ---------------------------------------------------------------------------
 // Substitution: mapping from type-variable names to concrete types
 // ---------------------------------------------------------------------------
 
@@ -59,6 +73,7 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
       TMaybe(apply-subst(s, elem))
     TResult(ok, err) ->
       TResult(apply-subst(s, ok), apply-subst(s, err))
+    TStruct(_) -> t
     _ -> t
 
 // Check if a name is bound in a substitution.
@@ -99,6 +114,7 @@ fun occurs-in( name : string, t : hica-type ) : div bool
     TList(elem)      -> occurs-in(name, elem)
     TMaybe(elem)     -> occurs-in(name, elem)
     TResult(ok, err) -> occurs-in(name, ok) || occurs-in(name, err)
+    TStruct(_)       -> False
     _                -> False
 
 // ---------------------------------------------------------------------------
@@ -144,6 +160,11 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
         val r2' = apply-subst(param-subst, r2)
         val ret-subst = unify(r1', r2', sp)
         compose-subst(ret-subst, param-subst)
+    (TStruct(a), TStruct(b)) ->
+      if a == b then empty-subst
+      else
+        emit-error(sp, "type mismatch: expected " ++ a ++ ", got " ++ b)
+        empty-subst
     _ ->
       emit-error(sp, "type mismatch: expected " ++ t1.show ++ ", got " ++ t2.show)
       empty-subst
@@ -236,7 +257,7 @@ fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div
 
 // Infer the type of a node, returning the updated substitution and a
 // node annotated with its inferred type.
-pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, node)
+pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg> (subst, node)
   match n.expr
     // --- Literals: known concrete types ---
     Literal(LitInt(_)) ->
@@ -541,10 +562,71 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh> (subst, 
       val ok-var = fresh-tvar()
       (s1, Node(n.span, EErr(value'), Just(TResult(ok-var, val-type))))
 
+    // --- Struct literal ---
+    StructLit(sname, lit-fields) ->
+      val reg = get-structs()
+      match struct-find(reg, sname)
+        Nothing ->
+          emit-error(n.span, "unknown struct: " ++ sname)
+          (s, n(typ = Just(fresh-tvar())))
+        Just(sd) ->
+          // Check that all fields are provided and no extras
+          val def-names = sd.fields.map(fn((nm, _t)) nm)
+          val lit-names = lit-fields.map(fn((nm, _v)) nm)
+          // Check for missing fields
+          def-names.foreach fn(dn)
+            if !lit-names.any(fn(ln) ln == dn) then
+              emit-error(n.span, "missing field '" ++ dn ++ "' in " ++ sname ++ " literal")
+          // Check for extra fields
+          lit-names.foreach fn(ln)
+            if !def-names.any(fn(dn) dn == ln) then
+              emit-error(n.span, "unknown field '" ++ ln ++ "' in " ++ sname)
+          // Infer field values and unify with declared types
+          val (s1, fields') = infer-struct-fields(env, s, sd.fields, lit-fields, n.span)
+          (s1, Node(n.span, StructLit(sname, fields'), Just(TStruct(sname))))
+
+    // --- Field access ---
+    FieldAccess(obj, fname) ->
+      val (s1, obj') = infer(env, s, obj)
+      val obj-type = apply-subst(s1, get-type(obj'))
+      match obj-type
+        TStruct(sname) ->
+          val reg = get-structs()
+          match struct-find(reg, sname)
+            Just(sd) ->
+              match sd.fields.find(fn((nm, _t)) nm == fname)
+                Just((_, ft)) -> (s1, Node(n.span, FieldAccess(obj', fname), Just(ft)))
+                Nothing ->
+                  emit-error(n.span, "struct " ++ sname ++ " has no field '" ++ fname ++ "'")
+                  (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
+            Nothing ->
+              emit-error(n.span, "unknown struct: " ++ sname)
+              (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
+        TVar(_) ->
+          // Type not yet known — return a fresh var
+          (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
+        _ ->
+          emit-error(n.span, "cannot access field '" ++ fname ++ "' on non-struct type " ++ obj-type.show)
+          (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
+
+// Infer types for struct literal fields and unify with declared types.
+fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg> (subst, list<(string, node)>)
+  match lit-fields
+    Nil -> (s, [])
+    Cons((fname, fval), rest) ->
+      val (s1, fval') = infer(env, s, fval)
+      val fval-type = apply-subst(s1, get-type(fval'))
+      // Find the declared type for this field
+      val s2 = match def-fields.find(fn((nm, _t)) nm == fname)
+        Just((_, ft)) -> compose-subst(unify(fval-type, ft, sp), s1)
+        Nothing -> s1  // already reported as unknown field
+      val (s3, rest') = infer-struct-fields(env, s2, def-fields, rest, sp)
+      (s3, Cons((fname, fval'), rest'))
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
-fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh> (subst, list<node>, hica-type)
+fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>, hica-type)
   match stmts
     Nil -> (s, [], TUnit)
     Cons(stmt, Nil) ->
@@ -572,7 +654,7 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
     _ -> env
 
 // Infer types for a list of call arguments.
-fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh> (subst, list<node>)
+fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>)
   match args
     Nil -> (s, [])
     Cons(arg, rest) ->
@@ -583,7 +665,7 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
 // Infer types for string interpolation parts.
 // Each part is inferred independently — string segments stay TString,
 // expression parts can be any type (they get .show in codegen).
-fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh> (subst, list<node>)
+fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>)
   match parts
     Nil -> (s, [])
     Cons(part, rest) ->
@@ -594,7 +676,7 @@ fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,d
 // Infer types for match arms.
 // Each arm's pattern constrains the scrutinee type, and each arm's body
 // must unify with the result type variable.
-fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh> (subst, list<match-arm>)
+fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg> (subst, list<match-arm>)
   match arms
     Nil -> (s, [])
     Cons(arm, rest) ->
@@ -680,7 +762,7 @@ fun get-type( n : node ) : hica-type
 // Infer a top-level function declaration.
 // Supports self-recursion: the function's own name is pre-seeded in the
 // environment with a fresh type so recursive calls can resolve.
-fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (subst, type-env, fun-decl)
+fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg> (subst, type-env, fun-decl)
   // Assign types to each parameter: use annotation if provided, otherwise fresh type variable
   val param-types = zip-with-anns(d.params, d.param-anns)
   val ret-var = match d.ret-ann
@@ -708,10 +790,12 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh> (su
 
 // Check an entire program: infer all declarations in order.
 pub fun check-program( p : program ) : <div,diag,fresh> program
+  with handler
+    fun get-structs() p.structs
   val (_, _, decls') = infer-decls(extern-env(), empty-subst, p.decls)
-  Program(decls')
+  Program(p.structs, decls')
 
-fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh> (subst, type-env, list<fun-decl>)
+fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg> (subst, type-env, list<fun-decl>)
   match ds
     Nil -> (s, env, [])
     Cons(d, rest) ->
@@ -753,4 +837,6 @@ fun body-calls-name( n : node, name : string ) : div bool
     ESome(v)                -> body-calls-name(v, name)
     EOk(v)                  -> body-calls-name(v, name)
     EErr(v)                 -> body-calls-name(v, name)
+    StructLit(_, fs)        -> fs.any(fn((_, v)) body-calls-name(v, name))
+    FieldAccess(o, _)       -> body-calls-name(o, name)
     _                       -> False

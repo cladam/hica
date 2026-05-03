@@ -44,6 +44,7 @@ pub type hica-type
   TMaybe( elem : hica-type )
   TResult( ok-type : hica-type, err-type : hica-type )
   TFun( params : list<hica-type>, result : hica-type )
+  TStruct( name : string )
   TVar( name : string )
 
 pub fun hica-type/show( t : hica-type ) : div string
@@ -59,6 +60,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TMaybe(e)   -> "maybe<" ++ e.show ++ ">"
     TResult(o, e) -> "result<" ++ o.show ++ ", " ++ e.show ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
+    TStruct(n)  -> n
     TVar(n)     -> n
 
 pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
@@ -75,6 +77,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TMaybe(a), TMaybe(b)) -> a == b
     (TResult(o1, e1), TResult(o2, e2)) -> o1 == o2 && e1 == e2
     (TVar(a), TVar(b)) -> a == b
+    (TStruct(a), TStruct(b)) -> a == b
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
     _ -> False
@@ -199,6 +202,12 @@ pub type expr
   // let (a, b) = init; body — tuple destructuring
   LetTuple( names : list<string>, init : node, body : node )
 
+  // Point { x: 10, y: 20 } — struct literal
+  StructLit( struct-name : string, fields : list<(string, node)> )
+
+  // expr.field — struct field access
+  FieldAccess( obj : node, field-name : string )
+
   // Some(x) — wrap value in maybe
   ESome( value : node )
 
@@ -266,7 +275,9 @@ pub fun expr/show( e : expr ) : div string
     ESome(v)         -> "Some(" ++ v.show ++ ")"
     ENone            -> "None"
     EOk(v)           -> "Ok(" ++ v.show ++ ")"
-    EErr(v)          -> "Err(" ++ v.show ++ ")"
+    StructLit(nm, fs) -> nm ++ " { " ++ fs.map(fn((f, v)) f ++ ": " ++ v.show).join(", ") ++ " }"
+    FieldAccess(o, f)  -> o.show ++ "." ++ f
+    EErr(v)            -> "Err(" ++ v.show ++ ")"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations
@@ -286,11 +297,22 @@ pub struct fun-decl
 pub fun fun-decl/show( d : fun-decl ) : div string
   "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show
 
+pub struct struct-def
+  span   : span
+  name   : string
+  fields : list<(string, hica-type)>
+
+pub fun struct-def/show( d : struct-def ) : div string
+  "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
+
 pub struct program
-  decls : list<fun-decl>
+  structs : list<struct-def>
+  decls   : list<fun-decl>
 
 pub fun program/show( p : program ) : div string
-  p.decls.map(show).join("\n\n")
+  val struct-strs = p.structs.map(show)
+  val decl-strs = p.decls.map(show)
+  (struct-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------
 // Type environment

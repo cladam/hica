@@ -83,7 +83,15 @@ fun parse-prefix() : <div,parser> node
           Node(Span(t.span.start, end-tok.span.end), EErr(inner))
         _ ->
           val t = advance()
-          Node(t.span, Var(name))
+          // Check for struct literal: Name { field: value, ... }
+          match peek()
+            TkLBrace | name.is-upper-start ->
+              advance() // consume {
+              val fields = parse-struct-lit-fields()
+              val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+              Node(Span(t.span.start, end-tok.span.end), StructLit(name, fields))
+            _ ->
+              Node(t.span, Var(name))
     TkLParen ->
       val start-tok = advance()
       match peek()
@@ -200,8 +208,11 @@ fun parse-postfix() : <div,parser> node
           TkInt(idx) ->
             val t = advance()
             result := Node(Span(result.span.start, t.span.end), TupleIndex(result, idx))
+          TkIdent(field) ->
+            val t = advance()
+            result := Node(Span(result.span.start, t.span.end), FieldAccess(result, field))
           _ ->
-            parse-error("expected tuple index (0, 1, ...) after '.'")
+            parse-error("expected field name or tuple index after '.'")
             ()
       TkLBracket ->
         advance()
@@ -413,8 +424,11 @@ fun parse-type() : <div,parser> hica-type
           expect(">", fn(k) match k { TkGt -> True; _ -> False })
           TResult(ok-t, err-t)
         _ ->
-          parse-error("unknown type: " ++ name)
-          TUnit
+          // User-defined struct type
+          if name.is-upper-start then TStruct(name)
+          else
+            parse-error("unknown type: " ++ name)
+            TUnit
     _ ->
       parse-error("expected type")
       TUnit
@@ -601,6 +615,61 @@ fun parse-interp-parts() : <div,parser> list<node>
       []
 
 // ---------------------------------------------------------------------------
+// Struct helpers
+// ---------------------------------------------------------------------------
+
+// Check whether a string starts with an uppercase letter.
+fun is-upper-start( s : string ) : bool
+  match s.list
+    Cons(c, _) -> c.is-upper
+    _          -> False
+
+// Parse struct literal fields: field: expr, ...
+fun parse-struct-lit-fields() : <div,parser> list<(string, node)>
+  match peek()
+    TkRBrace -> []
+    TkIdent(name) ->
+      advance()
+      expect(":", fn(k) match k { TkColon -> True; _ -> False })
+      val value = parse-expr()
+      match peek()
+        TkComma ->
+          advance()
+          Cons((name, value), parse-struct-lit-fields())
+        _ -> [(name, value)]
+    _ ->
+      parse-error("expected field name in struct literal")
+      []
+
+// Parse a struct declaration: struct Name { field: type, ... }
+fun parse-struct-decl() : <div,parser> struct-def
+  val t = expect("struct", fn(k) match k { TkStruct -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected struct name"); "_" }
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  val fields = parse-struct-def-fields()
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Struct-def(Span(t.span.start, end-tok.span.end), name, fields)
+
+// Parse struct definition fields: name: type, ...
+fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
+  match peek()
+    TkRBrace -> []
+    TkIdent(name) ->
+      advance()
+      expect(":", fn(k) match k { TkColon -> True; _ -> False })
+      val ftype = parse-type()
+      match peek()
+        TkComma ->
+          advance()
+          Cons((name, ftype), parse-struct-def-fields())
+        _ -> [(name, ftype)]
+    _ ->
+      parse-error("expected field name in struct definition")
+      []
+
+// ---------------------------------------------------------------------------
 // Top-level declarations: fun name(params) { body } or fun name(params) => expr
 // ---------------------------------------------------------------------------
 
@@ -625,9 +694,12 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
 
 pub fun parse-program() : <div,parser> program
   var decls := []
+  var structs := []
   while { match peek() { TkEof -> False; _ -> True } }
-    decls := Cons(parse-fun-decl(), decls)
-  Program(decls.reverse)
+    match peek()
+      TkStruct -> structs := Cons(parse-struct-decl(), structs)
+      _        -> decls := Cons(parse-fun-decl(), decls)
+  Program(structs.reverse, decls.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

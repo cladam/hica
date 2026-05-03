@@ -1054,3 +1054,52 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { match find([1, 2, 3], (x) => x > 2) { Some(v) => println(v), None => println(0) } }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
+
+    // --- Structs ---
+    dtest("struct emits Koka struct definition")
+      val code = emit-typed-program("struct Point { x: int, y: int } fun main() => 0")
+      assert/is-true(code.contains("struct point"))
+      assert/is-true(code.contains("x : int"))
+      assert/is-true(code.contains("y : int"))
+
+    dtest("struct construction emits Koka constructor")
+      val code = emit-typed-program("struct Point { x: int, y: int } fun main() => Point { x: 1, y: 2 }")
+      assert/is-true(code.contains("Point(1, 2)"))
+
+    dtest("struct field access emits dot accessor")
+      val code = emit-typed-program("struct Point { x: int, y: int } fun main() { let p = Point { x: 3, y: 4 }; p.x }")
+      assert/is-true(code.contains("p.x"))
+
+    dtest("struct type-checks field types")
+      val ds = check-diagnostics("struct Point { x: int, y: int } fun main() => Point { x: 1, y: 2 }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("struct rejects wrong field type")
+      val ds = check-diagnostics("struct Point { x: int, y: int } fun main() => Point { x: true, y: 2 }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
+    dtest("struct rejects unknown field")
+      val ds = check-diagnostics("struct Point { x: int, y: int } fun main() => Point { x: 1, z: 2 }")
+      val errors = ds.filter(fn(d) d.message.contains("unknown field") || d.message.contains("missing field"))
+      assert/is-true(errors.length > 0)
+
+    dtest("struct rejects missing field")
+      val ds = check-diagnostics("struct Point { x: int, y: int } fun main() => Point { x: 1 }")
+      val errors = ds.filter(fn(d) d.message.contains("missing field"))
+      assert/is-true(errors.length > 0)
+
+    dtest("struct emits show function")
+      val code = emit-typed-program("struct Point { x: int, y: int } fun main() => 0")
+      assert/is-true(code.contains("fun point/show"))
+
+    dtest("struct field access type-checks")
+      val ds = check-diagnostics("struct Point { x: int, y: int } fun main() { let p = Point { x: 3, y: 4 }; p.x + p.y }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("struct can be used as function parameter")
+      val code = emit-typed-program("struct Point { x: int, y: int } fun dist(p: Point) : int => p.x * p.x + p.y * p.y fun main() => dist(Point { x: 3, y: 4 })")
+      assert/is-true(code.contains("p : point"))
+      assert/is-true(code.contains("p.x"))

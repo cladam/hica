@@ -152,7 +152,7 @@ Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
 Use any Hica feature that the compiler already supports. Prelude files go
 through the same pipeline as user code: lex → parse → check → emit.
 
-```hica
+```rust
 // prelude/math.hc
 fun square(n) => n * n
 ```

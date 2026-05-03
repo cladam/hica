@@ -59,7 +59,7 @@ Legend: **done** = shipped, **—** = not started
 | Character literals (`'c'`) | **done** | Low | Koka `char`; single-quote syntax |
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
 | Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
-| Structs (`struct Point { x: int, y: int }`) | — | Medium | Emit Koka `struct`. Sub-tasks: construction, field access, update syntax (`{ ...old, x: 5 }` — good fit for immutable lang). No `impl` blocks — use qualified free functions (`point_area(p)`) + module system instead. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
+| Structs (`struct Point { x: int, y: int }`) | **done** | Medium | Emit Koka `struct`. Sub-tasks: construction (`Point { x: 1, y: 2 }`), field access (`p.x`), auto-generated `show`. Update syntax: `{ ...old, x: 5 }` not yet implemented. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
 | User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |

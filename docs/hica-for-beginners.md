@@ -236,6 +236,25 @@ fun main() {
 }
 ```
 
+### Structs
+
+Named records with typed fields. Use these when tuples become unwieldy or when you want self-documenting field names:
+
+```rust
+struct Point { x: int, y: int }
+
+fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
+
+fun main() {
+  let p = Point { x: 3, y: 4 };
+  println(p.x);              // 3
+  println(distance_sq(p));   // 25
+  println(p)                  // Point(x: 3, y: 4)
+}
+```
+
+Struct names must start with an uppercase letter. Fields are accessed with dot notation (`p.x`). Functions that operate on structs are regular free functions.
+
 ## The Pipe Operator
 
 The pipe `|>` passes the left-hand value as the first argument to the right-hand function. It lets you write data transformations as a readable pipeline:
@@ -339,6 +358,6 @@ fun main() {
 
 ## What's Next?
 
-- Work through the [Learn hica](/hica/docs/learn) lessons, 20 programs that teach you one concept at a time
+- Work through the [Learn hica](/hica/docs/learn) lessons, 21 programs that teach you one concept at a time
 - Browse the [Language Reference](/hica/docs/language-reference) for full syntax details
 - Check the [Standard Library](/hica/docs/standard-library) for available functions

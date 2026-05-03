@@ -205,6 +205,33 @@ let y = pair.1;    // "hello"
 let (a, b) = (10, 20);
 ```
 
+### Structs
+
+Named records with typed fields:
+
+```rust
+struct Point { x: int, y: int }
+
+fun main() {
+  let p = Point { x: 3, y: 4 };
+  println(p.x)     // 3
+  println(p.y)     // 4
+  println(p)        // Point(x: 3, y: 4)
+}
+```
+
+Structs work as function parameters and return types:
+
+```rust
+struct Point { x: int, y: int }
+
+fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
+
+fun origin() : Point => Point { x: 0, y: 0 }
+```
+
+Struct names must start with an uppercase letter. Fields are accessed with dot notation.
+
 ### Lists
 
 Homogeneous, immutable lists:

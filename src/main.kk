@@ -105,7 +105,7 @@ fun cmd-check( file : string )
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
   val prelude-decls = load-prelude-decls()
-  val merged = Program(prelude-decls ++ prog.decls)
+  val merged = Program(prog.structs, prelude-decls ++ prog.decls)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
@@ -236,7 +236,7 @@ fun build( file : string )
   val prog   = run-parser-program(tokens)
   // Load prelude .hc files and merge with user program
   val prelude-decls = load-prelude-decls()
-  val merged = Program(prelude-decls ++ prog.decls)
+  val merged = Program(prog.structs, prelude-decls ++ prog.decls)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh

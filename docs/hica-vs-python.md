@@ -16,6 +16,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Mutability | Mutable by default | Immutable by design |
 | Functions | `def` + simple lambdas (single-expression only) | `fun` + full closures + `|>` pipe |
 | Error handling | Exceptions (implicit flow) | Result types (explicit handling) |
+| Data structures | Classes / dataclasses | Structs |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
 | Performance | Interpreted (generally slower) | Compiled to C (generally faster) |
@@ -178,6 +179,43 @@ fun main() {
 | `s.removesuffix(".txt")` | `removesuffix(s, ".txt")` | Strip suffix |
 
 Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`). Both are readable; hica's style plays well with the pipe operator: `msg |> trim |> to_upper`.
+
+## Custom Data Types
+
+**Python** uses classes or `dataclass` to define custom types:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
+p = Point(3, 4)
+print(p.x)       # 3
+print(p)          # Point(x=3, y=4)
+```
+
+**hica** uses `struct`:
+
+```rust
+struct Point { x: int, y: int }
+
+fun main() {
+  let p = Point { x: 3, y: 4 };
+  println(p.x)    // 3
+  println(p)       // Point(x: 3, y: 4)
+}
+```
+
+Python has classes with inheritance, methods, and dunder protocols. hica has simple immutable structs with free functions — no `self`, no `__init__`, no inheritance. Functions that operate on structs are just regular functions:
+
+```rust
+struct Point { x: int, y: int }
+
+fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
+```
 
 ## Pattern Matching
 

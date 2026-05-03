@@ -151,3 +151,10 @@ pub fun main() : io ()
 
     dtest("lex char in list")
       assert/is-true(token-string("['a', 'b']") == "[ 'a' , 'b' ] <eof>")
+
+    // --- Structs ---
+    dtest("lex struct keyword")
+      assert/is-true(token-string("struct") == "struct <eof>")
+
+    dtest("lex struct declaration")
+      assert/is-true(token-string("struct Point { x: int }") == "struct Point { x : int } <eof>")

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Build (debug) ==="
-koka -ilib/klap -isrc -v0 src/main.kk -o hica
+echo "=== Build (Optimised) ==="
+koka -O2 -ilib/klap -isrc -v0 src/main.kk -o hica
 chmod +x hica
 
 echo ""

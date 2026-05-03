@@ -17,6 +17,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Error handling | `Result<T, E>` + `?` operator | `Result` + `match` |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
 | Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result), not deeply nested |
+| Custom types | `struct` + `impl` + `derive` | `struct` (simple, no `impl` blocks) |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
 | Learning curve | Steep (ownership, lifetimes, traits) | Gentle (write, run, iterate) |
@@ -203,6 +204,46 @@ fun main() {
 ```
 
 Rust's pattern matching is more powerful. hica covers the common cases with fewer constructs and edge cases to learn.
+
+## Custom Data Types
+
+Rust uses `struct` with `impl` blocks and `derive` macros:
+
+```rust
+#[derive(Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Point {
+    fn distance_sq(&self) -> i32 {
+        self.x * self.x + self.y * self.y
+    }
+}
+
+fn main() {
+    let p = Point { x: 3, y: 4 };
+    println!("{}", p.distance_sq()); // 25
+    println!("{:?}", p);              // Point { x: 3, y: 4 }
+}
+```
+
+hica uses `struct` without `impl` blocks. Functions that operate on structs are regular free functions:
+
+```rust
+struct Point { x: int, y: int }
+
+fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
+
+fun main() {
+  let p = Point { x: 3, y: 4 };
+  println(distance_sq(p))   // 25
+  println(p)                 // Point(x: 3, y: 4)
+}
+```
+
+Rust's `impl` blocks group methods on a type with `self` access, `derive` generates common trait implementations, and traits provide polymorphism. hica keeps it simple: structs hold data, free functions operate on them, and `show` is auto-generated.
 
 ## Immutability
 

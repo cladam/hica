@@ -389,3 +389,16 @@ pub fun main() : io ()
       val result = parse-show("match x { Ok(n) => n, Err(e) => 0 }")
       assert/is-true(result.contains("Ok(n)"))
       assert/is-true(result.contains("Err(e)"))
+
+    // --- Structs ---
+    itest("parse struct declaration")
+      val result = parse-program-show("struct Point { x: int, y: int } fun main() => 0")
+      assert/is-true(result.contains("struct Point"))
+
+    itest("parse struct literal")
+      val result = parse-program-show("struct Point { x: int, y: int } fun main() => Point { x: 1, y: 2 }")
+      assert/is-true(result.contains("Point"))
+
+    itest("parse field access")
+      val result = parse-program-show("struct Point { x: int, y: int } fun main() { let p = Point { x: 1, y: 2 }; p.x }")
+      assert/is-true(result.contains(".x"))
