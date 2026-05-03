@@ -180,6 +180,34 @@ fun main() {
 
 Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`). Both are readable; hica's style plays well with the pipe operator: `msg |> trim |> to_upper`.
 
+## Parsing & Type Conversion
+
+**Python** uses built-in constructors that raise exceptions on bad input:
+
+```python
+n = int("42")       # 42
+f = float("3.14")   # 3.14
+int("abc")          # ValueError at runtime
+```
+
+**hica** has safe parse functions that return `maybe` instead of crashing:
+
+```rust
+fun main() {
+  println(parse_int("42"));     // Some(42)
+  println(parse_int("abc"));    // None
+  println(parse_float("3.14")); // Some(3.14)
+  println(parse_float("xyz"));  // None
+
+  match parse_int("100") {
+    Some(n) => println("Got: {n}"),
+    None    => println("Not a number")
+  }
+}
+```
+
+Python's `int()` / `float()` are concise but require `try`/`except` for safety. hica's `parse_int` / `parse_float` make the failure case explicit through `maybe`, so invalid input can never crash.
+
 ## Custom Data Types
 
 **Python** uses classes or `dataclass` to define custom types:

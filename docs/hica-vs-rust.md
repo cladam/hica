@@ -173,6 +173,34 @@ fun main() {
 
 Rust requires understanding `String` vs `&str` ownership and byte vs char indexing. hica has a single immutable `string` type with char-based indexing that is simpler to learn, although without Rust's fine-grained control over allocation.
 
+## Parsing & Type Conversion
+
+Rust uses `parse()` with turbofish syntax and returns `Result`:
+
+```rust
+let n: i32 = "42".parse().unwrap();        // 42
+let bad: Result<i32, _> = "abc".parse();   // Err(...)
+let f: f64 = "3.14".parse().unwrap();      // 3.14
+```
+
+hica uses `parse_int` and `parse_float`, returning `maybe`:
+
+```rust
+fun main() {
+  println(parse_int("42"));     // Some(42)
+  println(parse_int("abc"));    // None
+  println(parse_float("3.14")); // Some(3.14)
+  println(parse_float("xyz"));  // None
+
+  match parse_int("100") {
+    Some(n) => println("Got: {n}"),
+    None    => println("Not a number")
+  }
+}
+```
+
+Rust's `parse()` is generic over the target type and returns `Result`. hica uses separate named functions and returns `maybe`, trading generality for simplicity.
+
 ## Pattern Matching
 
 Rust has deep, exhaustive pattern matching with guards, nested destructuring, and `if let`:

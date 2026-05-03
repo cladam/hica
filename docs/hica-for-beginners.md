@@ -316,6 +316,31 @@ fun main() {
 }
 ```
 
+### Parsing strings to numbers
+
+Use `parse_int` and `parse_float` to safely convert strings to numbers. They return `maybe` so you always know whether the conversion succeeded:
+
+```rust
+fun main() {
+  match parse_int("42") {
+    Some(n) => println("Got: {n}"),
+    None    => println("Not a number")
+  };
+
+  match parse_float("3.14") {
+    Some(f) => println("Got: {f}"),
+    None    => println("Not a float")
+  }
+}
+```
+
+If you just need a quick conversion and don't mind getting `-1` on failure, use `to_int`:
+
+```rust
+let n = to_int("42");    // 42
+let bad = to_int("abc"); // -1
+```
+
 ## Strings
 
 Concatenation with `+`, interpolation with `{expr}`, and indexing/slicing with `[]`:
@@ -361,6 +386,6 @@ fun main() {
 
 ## What's Next?
 
-- Work through the [Learn hica](/hica/docs/learn) lessons, 22 programs that teach you one concept at a time
+- Work through the [Learn hica](/hica/docs/learn) lessons, 23 programs that teach you one concept at a time
 - Browse the [Language Reference](/hica/docs/language-reference) for full syntax details
 - Check the [Standard Library](/hica/docs/standard-library) for available functions
