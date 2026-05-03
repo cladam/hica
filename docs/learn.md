@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 20 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 21 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -36,6 +36,7 @@ A progressive set of 20 lessons that teach hica one concept at a time. Each less
 | 18 | [`18-maybe.hc`](https://github.com/cladam/hica/blob/main/learn/18-maybe.hc) | Maybe | `Some(x)`, `None`, matching on optional values |
 | 19 | [`19-result.hc`](https://github.com/cladam/hica/blob/main/learn/19-result.hc) | Result | `Ok(x)`, `Err(e)`, handling success and failure |
 | 20 | [`20-closures.hc`](https://github.com/cladam/hica/blob/main/learn/20-closures.hc) | Closures | Capturing variables, returning functions, HOFs |
+| 21 | [`21-structs.hc`](https://github.com/cladam/hica/blob/main/learn/21-structs.hc) | Structs | `struct` definitions, construction, field access |
 
 ## Feature Index
 
@@ -62,6 +63,7 @@ A progressive set of 20 lessons that teach hica one concept at a time. Each less
 | `Some`/`None` | `18-maybe.hc` |
 | `Ok`/`Err` | `19-result.hc` |
 | Closures and HOFs | `20-closures.hc` |
+| Structs and field access | `21-structs.hc` |
 
 ## Getting Started
 

@@ -34,6 +34,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 18 | `18-maybe.hc`         | Maybe                            | `Some(x)`, `None`, matching on optional values  |
 | 19 | `19-result.hc`        | Result                           | `Ok(x)`, `Err(e)`, handling success and failure |
 | 20 | `20-closures.hc`      | Closures                         | Capturing variables, returning functions, HOFs  |
+| 21 | `21-structs.hc`       | Structs                          | `struct` definitions, construction, field access |
 
 ## Language features shown
 
@@ -69,6 +70,9 @@ Each lesson is a standalone `.hc` file you can run:
 | Closures / capturing variables | `20-closures.hc`                      |
 | Returning functions            | `20-closures.hc`                      |
 | Higher-order functions (custom)| `20-closures.hc`                      |
+| Struct definitions             | `21-structs.hc`                       |
+| Struct construction            | `21-structs.hc`                       |
+| Field access (`.field`)        | `21-structs.hc`                       |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
@@ -81,7 +85,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 20 lessons, try these challenges:
+Once you finish all 21 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers
