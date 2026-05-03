@@ -214,6 +214,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           emit-expr(s, declared) ++ ".replace-all(" ++ emit-expr(old, declared) ++ ", " ++ emit-expr(new_, declared) ++ ")"
         (Var("join"), [xs, sep]) ->
           emit-expr(xs, declared) ++ ".join(" ++ emit-expr(sep, declared) ++ ")"
+        (Var("index_of"), [s, sub]) ->
+          "match " ++ emit-expr(s, declared) ++ ".find(" ++ emit-expr(sub, declared) ++ ") { Just(hc__ss) -> Just(hc__ss.before.count); Nothing -> Nothing }"
+        (Var("to_int"), [s]) ->
+          "match " ++ emit-expr(s, declared) ++ ".parse-int { Just(hc__n) -> hc__n; Nothing -> -1 }"
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"

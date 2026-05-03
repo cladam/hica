@@ -1,13 +1,13 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
-// Requires: split, find, starts_with, trim, to_int, slice
+// Requires: split, index_of, starts_with, trim, to_int, slice
 
 fun parse(s) {
   let v = if starts_with(s, "v") { s[1:] } else { s };
-  let (v2, build) = match find(v, "+") {
+  let (v2, build) = match index_of(v, "+") {
     Some(i) => (v[:i], v[i + 1:]),
     None    => (v, "")
   };
-  let (v3, pre) = match find(v2, "-") {
+  let (v3, pre) = match index_of(v2, "-") {
     Some(i) => (v2[:i], v2[i + 1:]),
     None    => (v2, "")
   };

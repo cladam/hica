@@ -62,6 +62,8 @@ Primitive string functions backed by Koka's string library:
 | `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator |
 | `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
 | `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
+| `index_of(s, sub)` | `(string, string) -> maybe<int>` | Index of first occurrence of `sub`, or `None` |
+| `to_int(s)` | `(string) -> int` | Parse string as integer (-1 if invalid) |
 
 ### String Comparison
 

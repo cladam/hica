@@ -186,7 +186,9 @@ fun main() {
   println(starts_with(trim(s), "Hello"));
   println(split("a,b,c", ","));
   println(join(["a", "b", "c"], "-"));
-  println(replace("hello", "l", "r"))
+  println(replace("hello", "l", "r"));
+  println(index_of("hello-world", "-"));
+  println(to_int("42"))
 }
 ```
 

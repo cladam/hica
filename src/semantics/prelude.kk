@@ -50,4 +50,6 @@ pub fun extern-env() : type-env
     ("to_lower",    TFun([TString], TString)),
     ("split",       TFun([TString, TString], TList(TString))),
     ("replace",     TFun([TString, TString, TString], TString)),
-    ("join",        TFun([TList(TString), TString], TString)) ]
+    ("join",        TFun([TList(TString), TString], TString)),
+    ("index_of",    TFun([TString, TString], TMaybe(TInt))),
+    ("to_int",      TFun([TString], TInt)) ]

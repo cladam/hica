@@ -54,7 +54,7 @@ fun capitalize(s: string) : string =>
 fun capwords(s: string) : string =>
   join(map(words(s), (w) => capitalize(w)), " ")
 
-fun shout(s: string) : string => s + "!"
+fun shout(s: string) : string => to_upper(s) + "!"
 
 // --- Prefix / suffix removal ---
 

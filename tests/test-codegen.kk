@@ -917,6 +917,39 @@ pub fun main() : io ()
       assert/is-true(code.contains("show("))
       assert/is-true(!code.contains("hc_show"))
 
+    // --- index_of ---
+
+    dtest("index_of type-checks")
+      val ds = check-diagnostics("fun main() => index_of(\"hello-world\", \"-\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("index_of returns maybe")
+      val ds = check-diagnostics("fun main() { match index_of(\"hello\", \"l\") { Some(i) => println(i), None => println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("index_of emits find pattern")
+      val code = emit-typed-program("fun main() => index_of(\"hello\", \"l\")")
+      assert/is-true(code.contains(".find("))
+      assert/is-true(code.contains(".before.count"))
+
+    // --- to_int ---
+
+    dtest("to_int type-checks")
+      val ds = check-diagnostics("fun main() => to_int(\"42\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("to_int returns int")
+      val ds = check-diagnostics("fun main() { let n = to_int(\"42\"); println(n + 1) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("to_int emits parse-int pattern")
+      val code = emit-typed-program("fun main() => to_int(\"42\")")
+      assert/is-true(code.contains(".parse-int"))
+
     // --- Prelude string functions (inline definitions since check-diagnostics skips prelude files) ---
 
     dtest("unwords joins with space")

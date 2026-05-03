@@ -19,6 +19,7 @@ fun main() {
   println("replace: " + replace(csv, ",", " | "))
 
   // --- Prelude (written in hica) ---
+  println("shout           " + shout("wow"))
   println("is_empty '':    " + show(is_empty("")))
   println("is_blank '  ':  " + show(is_blank("  ")))
   println("words:          " + show(words("the  quick   fox")))
@@ -45,6 +46,12 @@ fun main() {
   println("capwords:       " + capwords("hello WORLD foo"))
   println("removeprefix:   " + removeprefix("v1.2.3", "v"))
   println("removesuffix:   " + removesuffix("file.txt", ".txt"))
+
+  // --- Search & parse ---
+  println("index_of:       " + show(index_of("hello-world", "-")))
+  println("index_of none:  " + show(index_of("hello", "z")))
+  println("to_int:         " + show(to_int("42")))
+  println("to_int bad:     " + show(to_int("abc")))
 
   // --- Comparison (lexicographic) ---
   println("apple < banana: " + show("apple" < "banana"))
