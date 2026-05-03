@@ -109,11 +109,13 @@ fun cmd-check( file : string )
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
+  val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
   if errors.is-empty then
     println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors)")
   else
-    errors.foreach(fn(d) println(d.show))
+    errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
 
 fun cmd-clean( file : string )
@@ -241,9 +243,11 @@ fun build( file : string )
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
+  val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
   if !errors.is-empty then
-    errors.foreach(fn(d) println(d.show))
+    errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
   val koka-code = emit-program(typed-prog, mod-name)
   val out-kk  = dir.path / (mod-name ++ ".kk").path

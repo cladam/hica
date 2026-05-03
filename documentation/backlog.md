@@ -117,7 +117,7 @@ Legend: **done** = shipped, **—** = not started
 | Codegen (type annotations) | **done** | — | Phase 5 |
 | Name resolution | **done** | — | Phase 6; only declared names get `hc_` |
 | Module keyword clash fix | **done** | — | `match.hc` → `hc-match.kk` |
-| Structured error output with source snippets | — | Medium | Show line + caret |
+| Structured error output with source snippets | **done** | Medium | Line:col + source line + caret underline |
 | Desugaring pass | — | Medium | Separate pass for complex transforms |
 
 ---

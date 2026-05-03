@@ -1179,3 +1179,33 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { match \"hello\" { \"yes\" => 1, s => 0 } }")
       val warns = ds.filter(fn(d) d.message.contains("non-exhaustive"))
       assert/is-true(warns.length == 0)
+
+    // --- Structured diagnostic rendering ---
+    dtest("render-diagnostic shows line and column")
+      val src = "fun main() => 42 + \"hello\""
+      val d = Diagnostic(Error, Span(15, 26), "type mismatch: expected int, got string")
+      val out = render-diagnostic(src, "test.hc", d)
+      assert/is-true(out.contains("error[test.hc:1:16]"))
+      assert/is-true(out.contains("type mismatch"))
+      assert/is-true(out.contains("1 |"))
+      assert/is-true(out.contains("^^^^^^^^^^^"))
+
+    dtest("render-diagnostic multiline source")
+      val src = "fun add(a, b) => a + b\n\nfun main() {\n  add(1, \"two\")\n}"
+      val d = Diagnostic(Error, Span(39, 52), "type mismatch")
+      val out = render-diagnostic(src, "test.hc", d)
+      assert/is-true(out.contains("error[test.hc:4:"))
+      assert/is-true(out.contains("4 |"))
+
+    dtest("render-diagnostic warning format")
+      val src = "fun main() { match Some(1) { Some(n) => n } }"
+      val d = Diagnostic(Warning, Span(13, 44), "non-exhaustive match: missing None")
+      val out = render-diagnostic(src, "test.hc", d)
+      assert/is-true(out.contains("warning[test.hc:1:"))
+      assert/is-true(out.contains("non-exhaustive"))
+
+    dtest("render-diagnostic no-span fallback")
+      val d = Diagnostic(Error, Span(0, 0), "unknown error")
+      val out = render-diagnostic("anything", "test.hc", d)
+      assert/is-true(out.contains("error[test.hc]"))
+      assert/is-true(!out.contains("|"))
