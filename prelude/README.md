@@ -38,6 +38,23 @@ Hica. Their type signatures are declared in the compiler
 | `foreach(xs, f)` | `(list<a>, (a) -> ()) -> ()` | Call `f` on each element for side effects |
 | `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
 
+#### String operations
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `str_length(s)` | `(string) -> int` | Number of characters in a string |
+| `contains(s, sub)` | `(string, string) -> bool` | True if `s` contains `sub` |
+| `starts_with(s, pre)` | `(string, string) -> bool` | True if `s` starts with `pre` |
+| `ends_with(s, suf)` | `(string, string) -> bool` | True if `s` ends with `suf` |
+| `trim(s)` | `(string) -> string` | Remove leading and trailing whitespace |
+| `trim_start(s)` | `(string) -> string` | Remove leading whitespace |
+| `trim_end(s)` | `(string) -> string` | Remove trailing whitespace |
+| `to_upper(s)` | `(string) -> string` | Convert to uppercase |
+| `to_lower(s)` | `(string) -> string` | Convert to lowercase |
+| `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator |
+| `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
+| `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
+
 ### `math.hc` — numeric helpers
 
 Written in Hica. Source: [`prelude/math.hc`](math.hc)
@@ -102,6 +119,23 @@ Written in Hica. Source: [`prelude/operators.hc`](operators.hc)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `identity(x)` | `(a) -> a` | Return the value unchanged |
+
+### `strings.hc` — string helpers
+
+Higher-level string functions built on top of the string primitives.
+
+Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_empty(s)` | `(string) -> bool` | True if the string has zero length |
+| `is_blank(s)` | `(string) -> bool` | True if the string is empty after trimming |
+| `words(s)` | `(string) -> list<string>` | Split on spaces, removing empty parts |
+| `lines(s)` | `(string) -> list<string>` | Split on newlines |
+| `repeat_str(s, n)` | `(string, int) -> string` | Repeat a string `n` times |
+| `pad_left(s, width, ch)` | `(string, int, string) -> string` | Pad on the left to `width` |
+| `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
+| `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
 
 ## How to add a prelude function
 

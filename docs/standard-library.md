@@ -43,6 +43,40 @@ Written in hica itself:
 | `max(a, b)` | `(int, int) -> int` | Larger of two values |
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
 
+## String Operations
+
+Primitive string functions backed by Koka's string library:
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `str_length(s)` | `(string) -> int` | Number of characters in a string |
+| `contains(s, sub)` | `(string, string) -> bool` | True if `s` contains `sub` |
+| `starts_with(s, pre)` | `(string, string) -> bool` | True if `s` starts with `pre` |
+| `ends_with(s, suf)` | `(string, string) -> bool` | True if `s` ends with `suf` |
+| `trim(s)` | `(string) -> string` | Remove leading and trailing whitespace |
+| `trim_start(s)` | `(string) -> string` | Remove leading whitespace |
+| `trim_end(s)` | `(string) -> string` | Remove trailing whitespace |
+| `to_upper(s)` | `(string) -> string` | Convert to uppercase |
+| `to_lower(s)` | `(string) -> string` | Convert to lowercase |
+| `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator |
+| `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
+| `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
+
+## String Helpers (`prelude/strings.hc`)
+
+Written in hica itself:
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_empty(s)` | `(string) -> bool` | True if the string has zero length |
+| `is_blank(s)` | `(string) -> bool` | True if the string is empty after trimming |
+| `words(s)` | `(string) -> list<string>` | Split on spaces, removing empty parts |
+| `lines(s)` | `(string) -> list<string>` | Split on newlines |
+| `repeat_str(s, n)` | `(string, int) -> string` | Repeat a string `n` times |
+| `pad_left(s, width, ch)` | `(string, int, string) -> string` | Pad on the left to `width` |
+| `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
+| `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
+
 ## Examples
 
 ### Map and filter
@@ -76,5 +110,31 @@ fun main() {
     |> map((x) => x * 10)
     |> fold(0, (acc, x) => acc + x);
   println(result)
+}
+```
+
+### String operations
+
+```rust
+fun main() {
+  let msg = "  Hello, World!  ";
+  println(trim(msg));
+  println(to_upper(trim(msg)));
+  println(contains(msg, "World"));
+
+  let csv = "alice,bob,charlie";
+  println(split(csv, ","));
+  println(join(split(csv, ","), " & "));
+  println(replace(csv, ",", " | "))
+}
+```
+
+### String helpers from prelude
+
+```rust
+fun main() {
+  println(words("the  quick   fox"));
+  println(pad_left("42", 6, "0"));
+  println(surround("hello", "**"))
 }
 ```

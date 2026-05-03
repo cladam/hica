@@ -18,7 +18,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| String utility functions | — | Low | `str_length`, `contains`, `trim`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`, `index_of(str, substr)` → `maybe<int>`. Preferably written in hica (like `operators.hc`) once extern/FFI support exists; backed by Koka `std/core/string` |
+| String utility functions | **done** | Low | `str_length`, `contains`, `trim`, `trim_start`, `trim_end`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`. Extern sigs backed by Koka `std/core/string` + higher-level helpers written in hica (`prelude/strings.hc`): `is_empty`, `is_blank`, `words`, `lines`, `repeat_str`, `pad_left`, `pad_right`, `surround`. Remaining: `index_of(str, substr)` → `maybe<int>` |
 | String indexing & slicing (`s[0]`, `s[1:]`) | — | Low | Same syntax as list indexing/slicing but on strings. Emit Koka `string/slice`. Needed by hica-semver to strip `v` prefix, extract substrings |
 | String comparison (`<`, `>`, `<=`, `>=`) | — | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
 | Type annotations in syntax (`: int`) | **done** | Medium | Escape hatch when inference fails. Parser + AST + checker unification. Supports `let x: int`, `fun f(a: int) : int`, all types |
@@ -152,11 +152,9 @@ Issues that exist today but are not yet fixed:
   The generated Koka code omits annotations, but Koka can't always resolve
   `.fst`/`.snd` without them. **Workaround:** use type annotations:
   `fun swap(p: (int, int)) : (int, int) => (p.1, p.0)`.
-- **`show` gets marshalled to `hc_show` in user functions** — name resolution
-  prefixes `show` with `hc_` when it appears inside a user-declared function,
-  because the declared-names list includes the enclosing function name.
-  Koka has no `hc_show`, so compilation fails. **Workaround:** use string
-  interpolation (`"{n}"`) instead of `show(n)`.
+- **~~`show` gets marshalled to `hc_show` in user functions~~** — Fixed.
+  `show` is now mapped directly to Koka's `show` in codegen, bypassing the
+  `hc_` prefix. Both `show(42)` and `"{n}"` work correctly.
 - **Tuples limited to 5 elements** — Koka defines tuple types up to `tuple5`.
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred

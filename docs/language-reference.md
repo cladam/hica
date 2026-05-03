@@ -167,6 +167,24 @@ let greeting = "Hello, " + name;
 let msg = "2 + 2 = {2 + 2}";
 ```
 
+String utility functions are built in — no imports needed:
+
+```rust
+fun main() {
+  let s = "  Hello, World!  ";
+  println(str_length(s));
+  println(trim(s));
+  println(to_upper(trim(s)));
+  println(contains(s, "World"));
+  println(starts_with(trim(s), "Hello"));
+  println(split("a,b,c", ","));
+  println(join(["a", "b", "c"], "-"));
+  println(replace("hello", "l", "r"))
+}
+```
+
+See the [Standard Library](standard-library.md) for the full list.
+
 ### Tuples
 
 ```rust
