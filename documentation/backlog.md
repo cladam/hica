@@ -32,7 +32,7 @@ Legend: **done** = shipped, **—** = not started
 | Variable patterns | **done** | — | `n => ...` |
 | String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
 | Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
-| Match exhaustiveness checking | — | Medium | Warn/error on missing cases (e.g. unhandled `None`); key safety feature for a functional language |
+| Match exhaustiveness checking | **done** | Medium | Warns on missing cases for Maybe, Result, Bool, and literal types |
 | Destructuring patterns (tuples/structs) | — | Medium | Depends on tuple/struct types |
 | Or-patterns (`1 \| 2 \| 3 => ...`) | — | Medium | Multiple patterns per arm; desugar to repeated arms or Koka `\|\|` guard |
 | Match guards (`n if n > 5 => ...`) | — | Medium | Koka supports guards natively (`\| cond ->`); add `if` after pattern in parser |

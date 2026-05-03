@@ -408,6 +408,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val scrut-type = apply-subst(s1, get-type(scrut'))
       val result-var = fresh-tvar()
       val (s2, arms') = infer-arms(env, s1, scrut-type, result-var, arms)
+      val resolved-scrut = apply-subst(s2, scrut-type)
+      check-exhaustive(resolved-scrut, arms', n.span)
       val result-type = apply-subst(s2, result-var)
       (s2, Node(n.span, Match(scrut', arms'), Just(result-type)))
 
@@ -689,6 +691,59 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
       val s3 = compose-subst(unify(body-type, apply-subst(s2, result-var), arm.body.span), s2)
       val (s4, rest') = infer-arms(env, s3, scrut-type, result-var, rest)
       (s4, Cons(Match-arm(arm.pattern, body'), rest'))
+
+// ---------------------------------------------------------------------------
+// Exhaustiveness checking
+// ---------------------------------------------------------------------------
+
+// Check whether a list of patterns has a catch-all (wildcard or variable).
+fun has-catch-all( pats : list<pattern> ) : bool
+  match pats
+    Nil -> False
+    Cons(PWild, _)   -> True
+    Cons(PVar(_), _) -> True
+    Cons(_, rest)    -> has-catch-all(rest)
+
+// Check whether a specific constructor pattern appears in the list.
+fun has-constructor( pats : list<pattern>, pred : pattern -> bool ) : bool
+  match pats
+    Nil -> False
+    Cons(p, rest) -> if pred(p) then True else has-constructor(rest, pred)
+
+fun is-plit-bool( p : pattern, v : bool ) : bool
+  match p
+    PLit(LitBool(b)) -> b == v
+    _                 -> False
+
+// Compute missing case names for a given scrutinee type and pattern list.
+fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : list<string>
+  if has-catch-all(pats) then []
+  else match scrut-type
+    TMaybe(_) ->
+      val missing-some = if has-constructor(pats, syntax/ast/is-psome) then [] else ["Some(_)"]
+      val missing-none = if has-constructor(pats, syntax/ast/is-pnone) then [] else ["None"]
+      missing-some ++ missing-none
+    TResult(_, _) ->
+      val missing-ok  = if has-constructor(pats, syntax/ast/is-pok)  then [] else ["Ok(_)"]
+      val missing-err = if has-constructor(pats, syntax/ast/is-perr) then [] else ["Err(_)"]
+      missing-ok ++ missing-err
+    TBool ->
+      val missing-true  = if has-constructor(pats, fn(p) is-plit-bool(p, True))  then [] else ["true"]
+      val missing-false = if has-constructor(pats, fn(p) is-plit-bool(p, False)) then [] else ["false"]
+      missing-true ++ missing-false
+    TInt    -> ["_ (wildcard)"]
+    TFloat  -> ["_ (wildcard)"]
+    TString -> ["_ (wildcard)"]
+    TChar   -> ["_ (wildcard)"]
+    _       -> []  // unknown type or type variable — skip
+
+// Emit a warning if the match is not exhaustive.
+fun check-exhaustive( scrut-type : hica-type, arms : list<match-arm>, sp : span ) : diag ()
+  val pats = arms.map(fn(a) a.pattern)
+  val missing = missing-cases(scrut-type, pats)
+  match missing
+    Nil -> ()
+    _   -> emit-warning(sp, "non-exhaustive match: missing " ++ missing.join(", "))
 
 // Infer a numeric binary operator (-, *, /): works on int or float.
 fun infer-numeric-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node, n : node, s : subst ) : <div,diag,fresh> (subst, hica-type)
