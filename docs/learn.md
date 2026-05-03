@@ -52,7 +52,7 @@ A progressive set of 20 lessons that teach hica one concept at a time. Each less
 | String interpolation | `10-strings.hc` |
 | String indexing & slicing | `10-strings.hc` |
 | String utility functions | `10-strings.hc` |
-| Pipe `&#124;>` operator | `11-pipe.hc` |
+| Pipe `|>` operator | `11-pipe.hc` |
 | Float arithmetic | `12-floats.hc` |
 | Tuples and destructuring | `13-tuples.hc` |
 | Lists and `map`/`filter` | `14-lists.hc` |
