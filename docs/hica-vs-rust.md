@@ -132,6 +132,36 @@ fun main() {
 
 Rust's `?` is more ergonomic for chaining fallible operations. hica favours explicit control flow via `match` rather than implicit propagation. This keeps behaviour visible but can be more verbose for deeply chained operations.
 
+## String Operations
+
+Rust distinguishes `String` (owned, heap-allocated) from `&str` (borrowed slice), and string methods live on these types:
+
+```rust
+let msg = "  Hello, World!  ";
+println!("{}", msg.trim());
+println!("{}", msg.to_uppercase());
+println!("{}", msg.contains("World"));
+let parts: Vec<&str> = "a,b,c".split(',').collect();
+let joined = ["a", "b"].join(", ");
+println!("{}", msg.replace("World", "Rust"));
+```
+
+hica has one string type and free functions:
+
+```rust
+fun main() {
+  let msg = "  Hello, World!  ";
+  println(trim(msg));
+  println(to_upper(msg));
+  println(contains(msg, "World"));
+  println(split("a,b,c", ","));
+  println(join(["a", "b"], ", "));
+  println(replace(msg, "World", "hica"))
+}
+```
+
+Rust requires understanding `String` vs `&str` ownership. hica has a single immutable `string` type — simpler to learn, though without Rust's fine-grained control over allocation.
+
 ## Pattern Matching
 
 Rust has deep, exhaustive pattern matching with guards, nested destructuring, and `if let`:

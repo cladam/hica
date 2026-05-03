@@ -136,6 +136,36 @@ fun main() {
 
 This makes error paths explicit, but can feel more verbose than Python's exception model.
 
+## String Operations
+
+**Python** has extensive string methods built into the `str` type:
+
+```python
+msg = "  Hello, World!  "
+print(msg.strip())              # "Hello, World!"
+print(msg.upper())              # "  HELLO, WORLD!  "
+print("World" in msg)           # True
+print("a,b,c".split(","))       # ['a', 'b', 'c']
+print(", ".join(["a", "b"]))    # "a, b"
+print(msg.replace("World", "Python"))  # "  Hello, Python!  "
+```
+
+**hica** has the same operations as free functions:
+
+```rust
+fun main() {
+  let msg = "  Hello, World!  ";
+  println(trim(msg));
+  println(to_upper(msg));
+  println(contains(msg, "World"));
+  println(split("a,b,c", ","));
+  println(join(["a", "b"], ", "));
+  println(replace(msg, "World", "hica"))
+}
+```
+
+Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`). Both are readable; hica's style plays well with the pipe operator: `msg |> trim |> to_upper`.
+
 ## Pattern Matching
 
 **Python** added `match` in 3.10, but it's optional:
