@@ -75,7 +75,11 @@ Written in hica itself:
 | `repeat_str(s, n)` | `(string, int) -> string` | Repeat a string `n` times |
 | `pad_left(s, width, ch)` | `(string, int, string) -> string` | Pad on the left to `width` |
 | `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
+| `center(s, width, ch)` | `(string, int, string) -> string` | Center `s` in `width`, padding with `ch` |
 | `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
+| `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
+| `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
+| `count_substr(s, sub)` | `(string, string) -> int` | Count occurrences of `sub` in `s` |
 
 ## Examples
 

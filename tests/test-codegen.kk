@@ -916,3 +916,25 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => show(42)")
       assert/is-true(code.contains("show("))
       assert/is-true(!code.contains("hc_show"))
+
+    // --- Prelude string functions (inline definitions since check-diagnostics skips prelude files) ---
+
+    dtest("unwords joins with space")
+      val ds = check-diagnostics("fun unwords(ws) => join(ws, \" \")\nfun main() => println(unwords([\"a\", \"b\"]))")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("unlines joins with newline")
+      val ds = check-diagnostics("fun unlines(ls) => join(ls, \"\\n\")\nfun main() => println(unlines([\"a\", \"b\"]))")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("count_substr type-checks")
+      val ds = check-diagnostics("fun count_substr(s: string, sub: string) => length(split(s, sub)) - 1\nfun main() => println(show(count_substr(\"banana\", \"an\")))")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("center type-checks")
+      val ds = check-diagnostics("fun max(a, b) => if a > b { a } else { b }\nfun repeat_str(s: string, n: int) : string => if n <= 0 { \"\" } else { s + repeat_str(s, n - 1) }\nfun center(s: string, width: int, ch: string) { let total = max(0, width - str_length(s)); let left = total / 2; let right = total - left; repeat_str(ch, left) + s + repeat_str(ch, right) }\nfun main() => println(center(\"hi\", 10, \"-\"))")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)

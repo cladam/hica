@@ -26,5 +26,9 @@ fun main() {
   println("repeat_str:     " + repeat_str("ha", 3))
   println("pad_left:       '" + pad_left("42", 6, "0") + "'")
   println("pad_right:      '" + pad_right("hi", 6, ".") + "'")
+  println("center:         '" + center("hi", 10, "-") + "'")
   println("surround:       " + surround("hello", "**"))
+  println("unwords:        " + unwords(["one", "two", "three"]))
+  println("unlines:        " + unlines(["a", "b", "c"]))
+  println("count_substr:   " + show(count_substr("banana", "an")))
 }

@@ -20,6 +20,14 @@ fun words(s: string) => filter(split(s, " "), (w) => not_(is_empty(w)))
 
 fun lines(s) => split(s, "\n")
 
+fun unwords(ws) => join(ws, " ")
+
+fun unlines(ls) => join(ls, "\n")
+
+// --- Counting ---
+
+fun count_substr(s: string, sub: string) => length(split(s, sub)) - 1
+
 // --- Building ---
 
 fun repeat_str(s: string, n: int) : string => if n <= 0 { "" } else { s + repeat_str(s, n - 1) }
@@ -27,5 +35,12 @@ fun repeat_str(s: string, n: int) : string => if n <= 0 { "" } else { s + repeat
 fun pad_left(s: string, width: int, ch: string) => repeat_str(ch, max(0, width - str_length(s))) + s
 
 fun pad_right(s: string, width: int, ch: string) => s + repeat_str(ch, max(0, width - str_length(s)))
+
+fun center(s: string, width: int, ch: string) {
+  let total = max(0, width - str_length(s));
+  let left = total / 2;
+  let right = total - left;
+  repeat_str(ch, left) + s + repeat_str(ch, right)
+}
 
 fun surround(s: string, wrap: string) => wrap + s + wrap
