@@ -53,6 +53,9 @@ pub fun extern-env() : type-env
     ("join",        TFun([TList(TString), TString], TString)),
     ("index_of",    TFun([TString, TString], TMaybe(TInt))),
     ("to_int",      TFun([TString], TInt)),
+    ("parse_int",   TFun([TString], TMaybe(TInt))),
+    ("parse_float", TFun([TString], TMaybe(TFloat))),
+
     // Environment helpers
     ("get_args",    TFun([], TList(TString))),
     ("get_env",     TFun([TString], TMaybe(TString))),

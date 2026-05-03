@@ -11,7 +11,10 @@
 // Or build and run directly:
 //   ./hica build examples/cli.hc && ./examples/cli greet Claudio
 
-struct Config { command: string, rest: list<string> }
+struct Config { 
+    command: string, 
+    rest: list<string> 
+}
 
 fun parse_config(input: list<string>) =>
   if length(input) == 0 { Err("no command given. try: greet, upper, count, calc, env") }

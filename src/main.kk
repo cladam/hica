@@ -223,7 +223,7 @@ fun cmd-help( sub : maybe<string> )
 // Prelude: load .hc library files written in Hica
 // ---------------------------------------------------------------------------
 
-val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings.hc", "prelude/cli.hc"]
+val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings.hc"]
 
 fun load-prelude()
   var decl-result : list<fun-decl> := []
@@ -275,7 +275,7 @@ fun compile-koka( file : string, mod-name : string )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / mod-name.path).show
-  val exit-code = run-system("koka -o " ++ out-bin ++ " " ++ kk-file)
+  val exit-code = run-system("koka -o2 " ++ out-bin ++ " " ++ kk-file)
   if exit-code != 0 then
     println("error: koka failed with exit code " ++ exit-code.show)
   else

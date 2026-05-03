@@ -72,6 +72,8 @@ Primitive string functions backed by Koka's string library:
 | `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
 | `index_of(s, sub)` | `(string, string) -> maybe<int>` | Index of first occurrence of `sub`, or `None` |
 | `to_int(s)` | `(string) -> int` | Parse string as integer (-1 if invalid) |
+| `parse_int(s)` | `(string) -> maybe<int>` | Parse string as integer, returning `None` if invalid |
+| `parse_float(s)` | `(string) -> maybe<float>` | Parse string as float, returning `None` if invalid |
 
 ### String Comparison
 

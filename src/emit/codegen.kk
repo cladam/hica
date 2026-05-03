@@ -255,9 +255,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("join"), [xs, sep]) ->
           emit-expr(xs, declared) ++ ".join(" ++ emit-expr(sep, declared) ++ ")"
         (Var("index_of"), [s, sub]) ->
-          "match " ++ emit-expr(s, declared) ++ ".find(" ++ emit-expr(sub, declared) ++ ") { Just(hc__ss) -> Just(hc__ss.before.count); Nothing -> Nothing }"
+          "(match " ++ emit-expr(s, declared) ++ ".find(" ++ emit-expr(sub, declared) ++ ") { Just(hc__ss) -> Just(hc__ss.before.count); Nothing -> Nothing })"
         (Var("to_int"), [s]) ->
-          "match " ++ emit-expr(s, declared) ++ ".parse-int { Just(hc__n) -> hc__n; Nothing -> -1 }"
+          "(match " ++ emit-expr(s, declared) ++ ".parse-int { Just(hc__n) -> hc__n; Nothing -> -1 })"
+        (Var("parse_int"), [s]) ->
+          emit-expr(s, declared) ++ ".parse-int"
+        (Var("parse_float"), [s]) ->
+          emit-expr(s, declared) ++ ".parse-float64"
+
         // Environment helpers
         (Var("get_args"), []) ->
           "get-args()"
@@ -435,9 +440,15 @@ fun needs-block( e : expr ) : bool
 fun program-has-float( p : program ) : div bool
   p.decls.any(fn(d) node-has-float(d.body))
 
+fun is-parse-float( e : expr ) : bool
+  match e
+    Var("parse_float") -> True
+    _                  -> False
+
 fun node-has-float( n : node ) : div bool
   match n.expr
     Literal(LitFloat(_)) -> True
+    Call(callee, _) | callee.expr.is-parse-float -> True
     Let(_, _, init, body) -> node-has-float(init) || node-has-float(body)
     Fun(_, body)          -> node-has-float(body)
     Call(callee, args)    -> node-has-float(callee) || args.any(fn(a) node-has-float(a))

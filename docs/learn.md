@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 22 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 23 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -38,6 +38,7 @@ A progressive set of 22 lessons that teach hica one concept at a time. Each less
 | 20 | [`20-closures.hc`](https://github.com/cladam/hica/blob/main/learn/20-closures.hc) | Closures | Capturing variables, returning functions, HOFs |
 | 21 | [`21-structs.hc`](https://github.com/cladam/hica/blob/main/learn/21-structs.hc) | Structs | `struct` definitions, construction, field access |
 | 22 | [`22-env.hc`](https://github.com/cladam/hica/blob/main/learn/22-env.hc) | Environment | `get_args()`, `get_env(key)`, `eprintln` |
+| 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc) | Parsing | `parse_int`, `parse_float`, safe string-to-number |
 
 ## Feature Index
 
@@ -67,6 +68,7 @@ A progressive set of 22 lessons that teach hica one concept at a time. Each less
 | Structs and field access | `21-structs.hc` |
 | `get_args()`, `get_env()` | `22-env.hc` |
 | `eprintln` (stderr) | `22-env.hc` |
+| `parse_int`, `parse_float` | `23-parsing.hc` |
 
 ## Getting Started
 

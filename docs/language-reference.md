@@ -34,8 +34,8 @@ Type annotations are optional. Hindley-Milner inference handles most cases.
 ### Lambdas / closures
 
 ```rust
-let sq = (n) => n * n;
-let add = (a, b) => a + b;
+let sq = (n) => n * n
+let add = (a, b) => a + b
 ```
 
 Closures capture variables from their enclosing scope:
@@ -54,9 +54,9 @@ fun main() {
 Variables are bound with `let` and are immutable:
 
 ```rust
-let x = 42;
-let name = "Alicia";
-let pi = 3.14;
+let x = 42
+let name = "Alicia"
+let pi = 3.14
 ```
 
 ### The last-line rule
@@ -65,9 +65,9 @@ The last expression in a { } block is its return value. No need to write "return
 
 ```rust
 fun main() {
-  let a = 10;
-  let b = 20;
-  let c = a + b;
+  let a = 10
+  let b = 20
+  let c = a + b
   println(c)
 }
 ```
@@ -79,7 +79,7 @@ fun main() {
 `if`/`else` are expressions that return values:
 
 ```rust
-let sign = if x < 0 { "negative" } else { "non-negative" };
+let sign = if x < 0 { "negative" } else { "non-negative" }
 ```
 
 ### Else-if chains
@@ -162,15 +162,15 @@ repeat(5) {
 Concatenation with `+` and interpolation with `"{expr}"`:
 
 ```rust
-let name = "world";
-let greeting = "Hello, " + name;
-let msg = "2 + 2 = {2 + 2}";
+let name = "world"
+let greeting = "Hello, " + name
+let msg = "2 + 2 = {2 + 2}"
 ```
 
 Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
 
 ```rust
-println("apple" < "banana");   // true
+println("apple" < "banana")    // true
 println("abc" <= "abc")        // true
 ```
 
@@ -178,17 +178,19 @@ String utility functions are built in using hica's prelude library:
 
 ```rust
 fun main() {
-  let s = "  Hello, World!  ";
-  println(str_length(s));
-  println(trim(s));
-  println(to_upper(trim(s)));
-  println(contains(s, "World"));
-  println(starts_with(trim(s), "Hello"));
-  println(split("a,b,c", ","));
-  println(join(["a", "b", "c"], "-"));
-  println(replace("hello", "l", "r"));
-  println(index_of("hello-world", "-"));
+  let s = "  Hello, World!  "
+  println(str_length(s))
+  println(trim(s))
+  println(to_upper(trim(s)))
+  println(contains(s, "World"))
+  println(starts_with(trim(s), "Hello"))
+  println(split("a,b,c", ","))
+  println(join(["a", "b", "c"], "-"))
+  println(replace("hello", "l", "r"))
+  println(index_of("hello-world", "-"))
   println(to_int("42"))
+  println(parse_int("42"))
+  println(parse_float("3.14"))
 }
 ```
 
@@ -197,12 +199,12 @@ See the [Standard Library](standard-library.md) for the full list.
 ### Tuples
 
 ```rust
-let pair = (1, "hello");
-let x = pair.0;    // 1
-let y = pair.1;    // "hello"
+let pair = (1, "hello")
+let x = pair.0    // 1
+let y = pair.1    // "hello"
 
 // Destructuring
-let (a, b) = (10, 20);
+let (a, b) = (10, 20)
 ```
 
 ### Structs
@@ -213,7 +215,7 @@ Named records with typed fields:
 struct Point { x: int, y: int }
 
 fun main() {
-  let p = Point { x: 3, y: 4 };
+  let p = Point { x: 3, y: 4 }
   println(p.x)     // 3
   println(p.y)     // 4
   println(p)        // Point(x: 3, y: 4)
@@ -237,9 +239,9 @@ Struct names must start with an uppercase letter. Fields are accessed with dot n
 Homogeneous, immutable lists:
 
 ```rust
-let nums = [1, 2, 3, 4, 5];
-let empty = [];
-let words = ["hello", "world"];
+let nums = [1, 2, 3, 4, 5]
+let empty = []
+let words = ["hello", "world"]
 ```
 
 ### Maybe
@@ -247,8 +249,8 @@ let words = ["hello", "world"];
 Optional values:
 
 ```rust
-let x = Some(42);
-let y = None;
+let x = Some(42)
+let y = None
 ```
 
 ### Result

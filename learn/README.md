@@ -36,6 +36,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 20 | `20-closures.hc`      | Closures                         | Capturing variables, returning functions, HOFs  |
 | 21 | `21-structs.hc`       | Structs                          | `struct` definitions, construction, field access |
 | 22 | `22-env.hc`           | Environment                      | `get_args()`, `get_env(key)`, `eprintln`         |
+| 23 | `23-parsing.hc`       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
 
 ## Language features shown
 
@@ -77,6 +78,7 @@ Each lesson is a standalone `.hc` file you can run:
 | `get_args()`                   | `22-env.hc`                           |
 | `get_env(key)`                 | `22-env.hc`                           |
 | `eprintln` (stderr output)     | `22-env.hc`                           |
+| `parse_int`, `parse_float`     | `23-parsing.hc`                       |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 

@@ -205,7 +205,7 @@ struct Point { x: int, y: int }
 fun main() {
   let p = Point { x: 3, y: 4 };
   println(p.x)    // 3
-  println(p)       // Point(x: 3, y: 4)
+  println(p)      // Point(x: 3, y: 4)
 }
 ```
 
