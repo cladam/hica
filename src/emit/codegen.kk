@@ -377,9 +377,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       match lst.typ
         Just(TString) ->
           val l = lst-code ++ ".list"
-          fun adj(n)
-            val code = emit-expr(n, declared)
-            match n.expr
+          fun adj(nd)
+            val code = emit-expr(nd, declared)
+            match nd.expr
               Unary(Neg, _) -> "(" ++ l ++ ".list/length + " ++ code ++ ")"
               _             -> code
           match start-m
@@ -390,9 +390,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
               Just(e) -> l ++ ".take(" ++ adj(e) ++ ").string"
               Nothing -> lst-code  // s[:] — identity
         _ ->
-          fun adj(n)
-            val code = emit-expr(n, declared)
-            match n.expr
+          fun adj(nd)
+            val code = emit-expr(nd, declared)
+            match nd.expr
               Unary(Neg, _) -> "(" ++ lst-code ++ ".list/length + " ++ code ++ ")"
               _             -> code
           match start-m

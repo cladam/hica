@@ -282,26 +282,28 @@ fun compile-koka( file : string, mod-name : string )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / mod-name.path).show
-  val exit-code = run-system("koka -O2 -o " ++ out-bin ++ " " ++ kk-file)
+  val exit-code = run-system("koka -O2 -v0 -o " ++ out-bin ++ " " ++ kk-file ++ " >/dev/null 2>&1")
   if exit-code != 0 then
+    // Re-run with output visible so the user sees the error
+    val _ = run-system("koka -O2 -v0 -o " ++ out-bin ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
   else
     val _ = run-system("chmod 0755 " ++ out-bin)
     ()
 
 // ---------------------------------------------------------------------------
-// Run: compile and execute via koka, suppressing compilation output
+// Run: execute the compiled binary
 // ---------------------------------------------------------------------------
 
 fun run-koka( file : string, user-args : list<string> = [] )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
-  val kk-file = (dir.path / (mod-name ++ ".kk").path).show
-  val args-str = if user-args.is-nil then "" else " -- " ++ user-args.map(shell-escape).join(" ")
-  val exit-code = run-system("koka -e -v0 " ++ kk-file ++ args-str ++ " 2>/dev/null")
+  val bin-file = (dir.path / mod-name.path).show
+  val args-str = if user-args.is-nil then "" else " " ++ user-args.map(shell-escape).join(" ")
+  val exit-code = run-system(bin-file ++ args-str)
   if exit-code != 0 then
-    println("error: koka failed with exit code " ++ exit-code.show)
+    println("error: process exited with code " ++ exit-code.show)
 
 // Escape a shell argument: wrap in single quotes, escaping any inner single quotes.
 fun shell-escape( s : string ) : string
