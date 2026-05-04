@@ -69,7 +69,7 @@ fun double(x) => x * 2
 fun greet(name) => "Hello, " + name
 ```
 
-You don't need to write types; hica figures them out. But you *can* add annotations when it makes things clearer:
+You don't need to write types; hica's Hindley-Milner type system infers them for you, including function arguments and return types. But you *can* add annotations when it makes things clearer or when you want the compiler to double-check your intent:
 
 ```rust
 fun add(a: int, b: int) : int => a + b
@@ -105,7 +105,23 @@ fun describe(x) => match x {
 }
 ```
 
-The `_` is a wildcard: it catches everything else. Always include one so no case is missed.
+The `_` is a wildcard: it catches everything else. Always include one so no case is missed. If you forget, the compiler tells you exactly what's missing. For example, matching on a `Maybe` without handling `Some`:
+
+```rust
+fun main() {
+  match Some(1) {
+    None => "nothing"
+  }
+}
+```
+
+```
+warning[example.hc:2:3]: non-exhaustive match: missing Some(_)
+ 2 |   match Some(1) {
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+This acts as a safety net. The compiler checks that you've covered every possible case for `Maybe`, `Result`, `bool`, and other types, so bugs from unhandled branches are caught before your code runs.
 
 ### Adding conditions with guards
 
