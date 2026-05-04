@@ -149,13 +149,13 @@ Options:
       --version              output version information and exit
 
 Commands:
-    build, b    Compile a .hc file to Koka and build a binary
-    run, r      Compile and run a .hc file
-    check, c    Analyse a .hc file and report errors
-    clean       Remove generated build artifacts
-    new         Create a new hica project
-    init        Initialise a project in the current directory
-    help        Print this message
+  build, b               Compile a .hc file to Koka and build a binary
+  run, r                 Compile and run a .hc file
+  check, c               Analyse a .hc file and report errors
+  clean                  Remove generated build artifacts
+  new                    Create a new hica project
+  init                   Initialise a hica project in the current directory
+  help                   Show help for a command
 
 See 'hica help <command>' for more information on a specific command.
 ```

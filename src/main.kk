@@ -28,8 +28,15 @@ fun hica-cli() : command
   command("hica")
     .version(version)
     .about("The hica compiler")
-    .arg(positional("COMMAND").help("Command to run (build, run, check, clean, new, init, help)").required)
+    .arg(positional("COMMAND").help("Command to run").required)
     .arg(positional("FILE").help("Source .hc file"))
+    .subcommand("build, b", "Compile a .hc file to Koka and build a binary")
+    .subcommand("run, r", "Compile and run a .hc file")
+    .subcommand("check, c", "Analyse a .hc file and report errors")
+    .subcommand("clean", "Remove generated build artifacts")
+    .subcommand("new", "Create a new hica project")
+    .subcommand("init", "Initialise a hica project in the current directory")
+    .subcommand("help", "Show help for a command")
 
 fun build-cli() : command
   command("hica build")
