@@ -90,9 +90,22 @@ fun emit-struct-def( sd : struct-def ) : div string
   // Emit a show function for the struct
   val show-parts = sd.fields.map fn((fname, ftype))
     "\"" ++ fname ++ ": \" ++ " ++ emit-show-call(ftype, "p." ++ fname)
-  val show-fn = "fun " ++ tname ++ "/show(p : " ++ tname ++ ") : string\n" ++
+  // Recursive structs need the `div` effect on show
+  val is-rec = sd.fields.any(fn((_, ft)) ft.references-struct(sd.name))
+  val effect-ann = if is-rec then " : div string" else " : string"
+  val show-fn = "fun " ++ tname ++ "/show(p : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  \"" ++ sd.name ++ "(\" ++ " ++ show-parts.join(" ++ \", \" ++ ") ++ " ++ \")\""
   struct-str ++ "\n\n" ++ show-fn
+
+// Check if a type references a struct by name (for recursion detection)
+fun references-struct( t : hica-type, name : string ) : div bool
+  match t
+    TStruct(sn) -> sn == name
+    TMaybe(inner) -> inner.references-struct(name)
+    TList(inner) -> inner.references-struct(name)
+    TTuple(ts) -> ts.any(fn(tt) tt.references-struct(name))
+    TFun(params, ret) -> params.any(fn(p) p.references-struct(name)) || ret.references-struct(name)
+    _ -> False
 
 // Emit a show call for a specific type
 fun emit-show-call( t : hica-type, expr-str : string ) : div string
@@ -292,13 +305,19 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             _             -> emit-expr(callee, declared)
           callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
-      if then-e.expr.needs-block || else-e.expr.needs-block then
-        "if " ++ emit-expr(cond, declared) ++ " then\n" ++
-        emit-branch(then-e, declared) ++ "\n" ++
-        "else\n" ++
-        emit-branch(else-e, declared)
-      else
-        "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
+      match else-e.expr
+        Block([]) ->
+          // No else branch — emit statement-level if
+          "if " ++ emit-expr(cond, declared) ++ " then\n" ++
+          emit-branch(then-e, declared)
+        _ ->
+          if then-e.expr.needs-block || else-e.expr.needs-block then
+            "if " ++ emit-expr(cond, declared) ++ " then\n" ++
+            emit-branch(then-e, declared) ++ "\n" ++
+            "else\n" ++
+            emit-branch(else-e, declared)
+          else
+            "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
     Block(stmts) ->
       stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->

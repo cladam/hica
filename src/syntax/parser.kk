@@ -17,6 +17,7 @@ import syntax/lexer
 
 pub effect parser
   fun peek() : token-kind
+  fun peek-newline() : bool  // True if next token is on a new line
   fun advance() : token
   fun current-span() : span
   fun parse-error( msg : string ) : node
@@ -168,11 +169,11 @@ fun parse-prefix() : <div,parser> node
       parse-string-interp()
     TkMinus ->
       val t = advance()
-      val operand = parse-prefix()
+      val operand = parse-postfix()
       Node(Span(t.span.start, operand.span.end), Unary(Neg, operand))
     TkBang ->
       val t = advance()
-      val operand = parse-prefix()
+      val operand = parse-postfix()
       Node(Span(t.span.start, operand.span.end), Unary(Not, operand))
     _ ->
       parse-error("unexpected token: " ++ tk.show)
@@ -200,6 +201,21 @@ fun parse-binary( min-bp : int ) : <div,parser> node
   val lhs = parse-postfix()
   parse-binary-loop(lhs, min-bp)
 
+// Statement-level expressions should not have postfix ( applied.
+fun is-statement-expr( e : expr ) : bool
+  match e
+    While(_, _)        -> True
+    Repeat(_, _)       -> True
+    ForIn(_, _, _, _)  -> True
+    ForEach(_, _, _)   -> True
+    If(_, _, _)        -> True
+    Block(_)           -> True
+    Let(_, _, _, _)    -> True
+    LetTuple(_, _, _)  -> True
+    VarDecl(_, _, _, _) -> True
+    Assign(_, _)       -> True
+    _                  -> False
+
 // Parse postfix operations: function calls f(args) and tuple index expr.N
 fun parse-postfix() : <div,parser> node
   var result := parse-prefix()
@@ -207,10 +223,12 @@ fun parse-postfix() : <div,parser> node
   while { cont }
     match peek()
       TkLParen ->
-        advance()
-        val args = parse-args()
-        val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-        result := Node(Span(result.span.start, end-tok.span.end), Call(result, args))
+        if result.expr.is-statement-expr || peek-newline() then cont := False
+        else
+          advance()
+          val args = parse-args()
+          val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          result := Node(Span(result.span.start, end-tok.span.end), Call(result, args))
       TkDot ->
         advance()
         match peek()
@@ -767,6 +785,10 @@ pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> no
       match toks
         Cons(t, _) -> t.kind
         Nil        -> TkEof
+    fun peek-newline()
+      match toks
+        Cons(t, _) -> t.newline-before
+        Nil        -> False
     fun advance()
       match toks
         Cons(t, rest) -> { toks := rest; t }
@@ -790,6 +812,10 @@ pub fun run-parser-program( tokens : list<token> ) : <div,console> program
       match toks
         Cons(t, _) -> t.kind
         Nil        -> TkEof
+    fun peek-newline()
+      match toks
+        Cons(t, _) -> t.newline-before
+        Nil        -> False
     fun advance()
       match toks
         Cons(t, rest) -> { toks := rest; t }

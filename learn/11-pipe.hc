@@ -17,9 +17,11 @@
 //
 // ============================================================
 
-fun double(n) => n * 2
+// double is in the prelude already
+//fun double(n) => n * 2
 
-fun square(n) => n * n
+// square is in the prelude already
+//fun square(n) => n * n
 
 fun add_one(n) => n + 1
 

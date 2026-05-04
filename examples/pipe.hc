@@ -1,8 +1,11 @@
 // Hica — pipe operator
 // a |> f desugars to f(a)
-fun double(n) => n * 2
 
-fun square(n) => n * n
+// double is in the prelude already
+//fun double(n) => n * 2
+
+// square is in the prelude already
+//fun square(n) => n * n
 
 fun main() {
   // Chain transformations with |>

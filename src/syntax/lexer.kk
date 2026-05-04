@@ -80,6 +80,7 @@ pub type token-kind
 pub struct token
   kind : token-kind
   span : span
+  newline-before : bool = False
 
 pub fun token/show( t : token ) : string
   t.kind.show
@@ -146,19 +147,26 @@ pub fun token-kind/show( tk : token-kind ) : string
 // ---------------------------------------------------------------------------
 
 pub fun lex( source : string ) : div list<token>
-  lex-from(source.list, 0)
+  lex-from(source.list, 0, False)
 
-fun lex-from( cs : list<char>, pos : int ) : div list<token>
+// Set newline-before on the first token in a list.
+fun mark-first-nl( tokens : list<token>, nl : bool ) : list<token>
+  match tokens
+    Cons(t, rest) -> Cons(t(newline-before = nl), rest)
+    Nil           -> Nil
+
+fun lex-from( cs : list<char>, pos : int, nl : bool = False ) : div list<token>
   match cs
-    Nil -> [Token(TkEof, Span(pos, pos))]
+    Nil -> [Token(TkEof, Span(pos, pos), nl)]
     Cons(c, rest) ->
-      if c.is-white then lex-from(rest, pos + 1)
+      if c == '\n' then lex-from(rest, pos + 1, True)
+      elif c.is-white then lex-from(rest, pos + 1, nl)
       elif c == '/' && rest.head-is('/') then skip-line-comment(rest.tail, pos)
-      elif c.is-digit then lex-number(cs, pos)
-      elif c.is-alpha || c == '_' then lex-ident(cs, pos)
-      elif c == '"' then lex-string(rest, pos, pos + 1)
-      elif c == '\'' then lex-char(rest, pos, pos + 1)
-      else lex-punct(cs, pos)
+      elif c.is-digit then mark-first-nl(lex-number(cs, pos), nl)
+      elif c.is-alpha || c == '_' then mark-first-nl(lex-ident(cs, pos), nl)
+      elif c == '"' then mark-first-nl(lex-string(rest, pos, pos + 1), nl)
+      elif c == '\'' then mark-first-nl(lex-char(rest, pos, pos + 1), nl)
+      else mark-first-nl(lex-punct(cs, pos), nl)
 
 fun head-is( cs : list<char>, ch : char ) : bool
   match cs
@@ -168,7 +176,7 @@ fun head-is( cs : list<char>, ch : char ) : bool
 fun skip-line-comment( cs : list<char>, pos : int ) : div list<token>
   match cs
     Nil             -> [Token(TkEof, Span(pos, pos))]
-    Cons('\n', rest) -> lex-from(rest, pos + 1)
+    Cons('\n', rest) -> lex-from(rest, pos + 1, True)
     Cons(_, rest)   -> skip-line-comment(rest, pos + 1)
 
 fun lex-number( cs : list<char>, start : int ) : div list<token>
