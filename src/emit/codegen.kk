@@ -286,7 +286,13 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
-      arms.map(fn(a) "  " ++ emit-pattern(a.pattern, declared) ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")).join("\n")
+      arms.map(fn(a)
+        val pat-str = emit-pattern(a.pattern, declared)
+        val guard-str = match a.guard
+          Just(g) -> " | " ++ emit-expr(g, declared)
+          Nothing -> ""
+        "  " ++ pat-str ++ guard-str ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")
+      ).join("\n")
     Repeat(count, body) ->
       "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
@@ -456,7 +462,7 @@ fun node-has-float( n : node ) : div bool
     Unary(_, operand)     -> node-has-float(operand)
     If(c, t, e)           -> node-has-float(c) || node-has-float(t) || node-has-float(e)
     Block(stmts)          -> stmts.any(fn(s) node-has-float(s))
-    Match(scrut, arms)    -> node-has-float(scrut) || arms.any(fn(a) node-has-float(a.body))
+    Match(scrut, arms)    -> node-has-float(scrut) || arms.any(fn(a) node-has-float(a.body) || a.guard.map(node-has-float).default(False))
     Repeat(count, body)   -> node-has-float(count) || node-has-float(body)
     ForIn(_, start-e, end-e, body) -> node-has-float(start-e) || node-has-float(end-e) || node-has-float(body)
     ForEach(_, coll, body) -> node-has-float(coll) || node-has-float(body)
@@ -493,7 +499,7 @@ fun node-uses-env( n : node ) : div bool
     Unary(_, operand)     -> node-uses-env(operand)
     If(c, t, e)           -> node-uses-env(c) || node-uses-env(t) || node-uses-env(e)
     Block(stmts)          -> stmts.any(fn(s) node-uses-env(s))
-    Match(scrut, arms)    -> node-uses-env(scrut) || arms.any(fn(a) node-uses-env(a.body))
+    Match(scrut, arms)    -> node-uses-env(scrut) || arms.any(fn(a) node-uses-env(a.body) || a.guard.map(node-uses-env).default(False))
     Repeat(count, body)   -> node-uses-env(count) || node-uses-env(body)
     ForIn(_, s, e, body)  -> node-uses-env(s) || node-uses-env(e) || node-uses-env(body)
     ForEach(_, coll, body) -> node-uses-env(coll) || node-uses-env(body)

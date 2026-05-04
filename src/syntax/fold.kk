@@ -30,7 +30,7 @@ pub fun walk( n : node, f : transform ) : node
     Block(stmts) ->
       Block(stmts.map(fn(s) walk(s, f)))
     Match(scrut, arms) ->
-      Match(walk(scrut, f), arms.map(fn(a) Match-arm(a.pattern, walk(a.body, f))))
+      Match(walk(scrut, f), arms.map(fn(a) Match-arm(a.pattern, a.guard.map(fn(g) walk(g, f)), walk(a.body, f))))
     Repeat(count, body) ->
       Repeat(walk(count, f), walk(body, f))
     ForIn(name, start-e, end-e, body) ->

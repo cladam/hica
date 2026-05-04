@@ -534,13 +534,17 @@ fun parse-match-arms() : <div,parser> list<match-arm>
     TkRBrace -> []
     _ ->
       val pat = parse-pattern()
+      // optional guard: pattern if condition => body
+      val guard = match peek()
+        TkIf -> { advance(); Just(parse-expr()) }
+        _    -> Nothing
       expect("=>", fn(k) match k { TkArrow -> True; _ -> False })
       val body = parse-expr()
       // optional comma between arms
       match peek()
         TkComma -> { advance(); () }
         _       -> ()
-      Cons(Match-arm(pat, body), parse-match-arms())
+      Cons(Match-arm(pat, guard, body), parse-match-arms())
 
 fun parse-pattern() : <div,parser> pattern
   match peek()

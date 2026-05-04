@@ -222,6 +222,7 @@ pub type expr
 
 pub struct match-arm
   pattern : pattern
+  guard   : maybe<node>
   body    : node
 
 pub type pattern
@@ -258,7 +259,7 @@ pub fun expr/show( e : expr ) : div string
     Unary(op, o)     -> op.show ++ o.show
     If(c, t, e')     -> "if " ++ c.show ++ " { " ++ t.show ++ " } else { " ++ e'.show ++ " }"
     Block(ss)        -> "{ " ++ ss.map(show).join("; ") ++ " }"
-    Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ " => " ++ a.body.show).join(", ") ++ " }"
+    Match(s, arms)   -> "match " ++ s.show ++ " { " ++ arms.map(fn(a) a.pattern.show ++ a.guard.map(fn(g) " if " ++ g.show).default("") ++ " => " ++ a.body.show).join(", ") ++ " }"
     Repeat(c, b)     -> "repeat(" ++ c.show ++ ") " ++ b.show
     ForIn(nm, s, e, b) -> "for " ++ nm ++ " in " ++ s.show ++ ".." ++ e.show ++ " " ++ b.show
     ForEach(nm, coll, b) -> "for " ++ nm ++ " in " ++ coll.show ++ " " ++ b.show

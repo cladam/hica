@@ -684,13 +684,21 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
     Cons(arm, rest) ->
       // Constrain scrutinee type from pattern
       val (s1, pat-env) = infer-pattern(env, s, scrut-type, arm.pattern)
+      // Type-check optional guard (must be bool) in pattern environment
+      val (s2, guard') = match arm.guard
+        Just(g) ->
+          val (sg, g') = infer(pat-env, s1, g)
+          val guard-type = apply-subst(sg, get-type(g'))
+          val sg2 = compose-subst(unify(guard-type, TBool, g.span), sg)
+          (sg2, Just(g'))
+        Nothing -> (s1, Nothing)
       // Infer arm body in extended environment
-      val (s2, body') = infer(pat-env, s1, arm.body)
-      val body-type = apply-subst(s2, get-type(body'))
+      val (s3, body') = infer(pat-env, s2, arm.body)
+      val body-type = apply-subst(s3, get-type(body'))
       // Unify with result type so all arms agree
-      val s3 = compose-subst(unify(body-type, apply-subst(s2, result-var), arm.body.span), s2)
-      val (s4, rest') = infer-arms(env, s3, scrut-type, result-var, rest)
-      (s4, Cons(Match-arm(arm.pattern, body'), rest'))
+      val s4 = compose-subst(unify(body-type, apply-subst(s3, result-var), arm.body.span), s3)
+      val (s5, rest') = infer-arms(env, s4, scrut-type, result-var, rest)
+      (s5, Cons(Match-arm(arm.pattern, guard', body'), rest'))
 
 // ---------------------------------------------------------------------------
 // Exhaustiveness checking
@@ -738,8 +746,10 @@ fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : list<string>
     _       -> []  // unknown type or type variable — skip
 
 // Emit a warning if the match is not exhaustive.
+// Guarded arms don't count as catch-alls since the guard may fail.
 fun check-exhaustive( scrut-type : hica-type, arms : list<match-arm>, sp : span ) : diag ()
-  val pats = arms.map(fn(a) a.pattern)
+  val unguarded = arms.filter(fn(a) a.guard.is-nothing)
+  val pats = unguarded.map(fn(a) a.pattern)
   val missing = missing-cases(scrut-type, pats)
   match missing
     Nil -> ()

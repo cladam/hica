@@ -1,7 +1,13 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
 // Uses: struct, split, index_of, removeprefix, parse_int, string slicing
 
-struct SemVer { major: int, minor: int, patch: int, pre: string, build: string }
+struct SemVer {
+  major: int, 
+  minor: int, 
+  patch: int, 
+  pre: string, 
+  build: string
+}
 
 fun parse(s) {
   let v = removeprefix(s, "v")
