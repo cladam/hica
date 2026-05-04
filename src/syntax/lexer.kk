@@ -37,6 +37,7 @@ pub type token-kind
   TkFor
   TkIn
   TkRepeat
+  TkWhile
   TkStruct
   TkTrue
   TkFalse
@@ -102,6 +103,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkIn         -> "in"
     TkMatch      -> "match"
     TkRepeat     -> "repeat"
+    TkWhile      -> "while"
     TkStruct     -> "struct"
     TkTrue       -> "true"
     TkFalse      -> "false"
@@ -191,6 +193,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "else"  -> TkElse
     "match"  -> TkMatch
     "repeat" -> TkRepeat
+    "while"  -> TkWhile
     "for"    -> TkFor
     "in"     -> TkIn
     "struct" -> TkStruct
@@ -317,6 +320,7 @@ fun lex-one-interp( cs : list<char>, str-start : int, pos : int, depth : int ) :
           "else"   -> TkElse
           "match"  -> TkMatch
           "repeat" -> TkRepeat
+          "while"  -> TkWhile
           "true"   -> TkBool(True)
           "false"  -> TkBool(False)
           _        -> TkIdent(word)

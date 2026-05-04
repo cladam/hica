@@ -359,6 +359,16 @@ pub fun main() : io ()
       val result = parse-show("for x in 1..n { x }")
       assert/is-true(result == "for x in 1..n { x }")
 
+    // --- While loop ---
+    itest("parse while loop")
+      val result = parse-show("while true { 42 }")
+      assert/is-true(result == "while True { 42 }")
+
+    itest("parse while with comparison")
+      val result = parse-show("while x > 0 { x }")
+      assert/is-true(result.contains("while"))
+      assert/is-true(result.contains(">"))
+
     // --- In operator ---
     itest("parse in operator")
       assert/is-true(parse-show("3 in xs") == "(3 in xs)")

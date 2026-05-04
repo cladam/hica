@@ -444,6 +444,14 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val (s3, body') = infer(env', s2, body)
       (s3, Node(n.span, ForEach(name, coll', body'), Just(TUnit)))
 
+    // --- While expressions ---
+    While(cond, body) ->
+      val (s1, cond') = infer(env, s, cond)
+      val cond-type = apply-subst(s1, get-type(cond'))
+      val s2 = compose-subst(unify(cond-type, TBool, cond.span), s1)
+      val (s3, body') = infer(env, s2, body)
+      (s3, Node(n.span, While(cond', body'), Just(TUnit)))
+
     // --- String interpolation ---
     StringInterp(parts) ->
       val (s1, parts') = infer-interp-parts(env, s, parts)
@@ -897,6 +905,7 @@ fun body-calls-name( n : node, name : string ) : div bool
     Fun(_, body)            -> body-calls-name(body, name)
     Repeat(count, body)     -> body-calls-name(count, name) || body-calls-name(body, name)
     ForIn(_, s, e, body)    -> body-calls-name(s, name) || body-calls-name(e, name) || body-calls-name(body, name)
+    While(cond, body)       -> body-calls-name(cond, name) || body-calls-name(body, name)
     StringInterp(parts)     -> parts.any(fn(p) body-calls-name(p, name))
     Tuple(elems)            -> elems.any(fn(e) body-calls-name(e, name))
     EList(elems)            -> elems.any(fn(e) body-calls-name(e, name))

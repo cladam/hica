@@ -440,6 +440,21 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
+    // --- While loop ---
+    dtest("while emits Koka while")
+      val code = emit-typed-program("fun main() { while true { println(42) } }")
+      assert/is-true(code.contains("while"))
+
+    dtest("while condition must be bool")
+      val ds = check-diagnostics("fun main() { while 42 { println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
+    dtest("while with bool condition type-checks")
+      val ds = check-diagnostics("fun main() { while true { println(0) } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
     // --- length / reverse / take / drop / zip / concat / any / all / foreach ---
     dtest("length type-checks")
       val ds = check-diagnostics("fun main() => length([1, 2, 3])")

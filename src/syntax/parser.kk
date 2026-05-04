@@ -155,6 +155,8 @@ fun parse-prefix() : <div,parser> node
       parse-repeat()
     TkFor ->
       parse-for-in()
+    TkWhile ->
+      parse-while()
     TkInterpStart ->
       parse-string-interp()
     TkMinus ->
@@ -613,6 +615,12 @@ fun parse-for-in() : <div,parser> node
       // for name in collection { body }
       val body = parse-block()
       Node(Span(t.span.start, body.span.end), ForEach(name, collection-expr, body))
+
+fun parse-while() : <div,parser> node
+  val t = expect("while", fn(k) match k { TkWhile -> True; _ -> False })
+  val cond = parse-expr()
+  val body = parse-block()
+  Node(Span(t.span.start, body.span.end), While(cond, body))
 
 // ---------------------------------------------------------------------------
 // String interpolation: "hello {expr}!"

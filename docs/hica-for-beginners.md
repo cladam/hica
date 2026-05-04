@@ -129,9 +129,9 @@ Sometimes the pattern alone isn't enough. Add `if` after a pattern to refine it:
 
 ```rust
 fun classify(n) => match n {
-  x if x < 0   => "negative",
+  x if x < 0    => "negative",
   0             => "zero",
-  x if x > 100 => "big",
+  x if x > 100  => "big",
   _             => "small positive"
 }
 ```

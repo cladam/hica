@@ -302,6 +302,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     ForEach(name, coll, body) ->
       emit-expr(coll, declared) ++ ".foreach fn(" ++ marshal-name(name, declared) ++ ")\n" ++
       body.expr.repeat-body(declared)
+    While(cond, body) ->
+      "while { " ++ emit-expr(cond, declared) ++ " }\n" ++
+      body.expr.repeat-body(declared)
     StringInterp(parts) ->
       val emitted = parts.map(fn(p) emit-interp-part(p, declared))
       "(" ++ emitted.join(" ++ ") ++ ")"
@@ -467,6 +470,7 @@ fun node-has-float( n : node ) : div bool
     Repeat(count, body)   -> node-has-float(count) || node-has-float(body)
     ForIn(_, start-e, end-e, body) -> node-has-float(start-e) || node-has-float(end-e) || node-has-float(body)
     ForEach(_, coll, body) -> node-has-float(coll) || node-has-float(body)
+    While(cond, body)      -> node-has-float(cond) || node-has-float(body)
     StringInterp(parts)   -> parts.any(fn(p) node-has-float(p))
     Tuple(elems)           -> elems.any(fn(e) node-has-float(e))
     EList(elems)            -> elems.any(fn(e) node-has-float(e))
@@ -504,6 +508,7 @@ fun node-uses-env( n : node ) : div bool
     Repeat(count, body)   -> node-uses-env(count) || node-uses-env(body)
     ForIn(_, s, e, body)  -> node-uses-env(s) || node-uses-env(e) || node-uses-env(body)
     ForEach(_, coll, body) -> node-uses-env(coll) || node-uses-env(body)
+    While(cond, body)      -> node-uses-env(cond) || node-uses-env(body)
     StringInterp(parts)   -> parts.any(fn(p) node-uses-env(p))
     LetTuple(_, init, body) -> node-uses-env(init) || node-uses-env(body)
     _                     -> False

@@ -77,7 +77,7 @@ Legend: **done** = shipped, **—** = not started
 | `if` / `else if` / `else` | **done** | — | Expression-valued |
 | `match` | **done** | — | Int + wildcard + var patterns |
 | `repeat(n) { ... }` | **done** | – | Emit Koka `repeat` |
-| `while condition { ... }` | — | Medium | Emit Koka `while { condition } { body }` |
+| `while condition { ... }` | **done** | Medium | Emit Koka `while { condition } { body }` |
 | `for i in 0..n` (range loop) | **done** | Medium | Emit Koka `for(0, n) fn(i)` |
 | `for x in list` (collection loop) | **done** | Medium | Emit Koka `list.foreach(fn(x) { body })` |
 | `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
