@@ -317,12 +317,17 @@ fun parse-list-rest() : <div,parser> list<node>
 
 fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
   val tk = peek()
-  // Pipe operator |> desugars: a |> f  →  f(a)
+  // Pipe operator |> desugars: a |> f(b, c)  →  f(a, b, c)
+  //                            a |> f        →  f(a)
   match tk
     TkPipeGt | min-bp <= 0 ->
       advance()
       val rhs = parse-binary(1)
-      val desugared = Node(Span(lhs.span.start, rhs.span.end), Call(rhs, [lhs]))
+      val desugared = match rhs.expr
+        Call(callee, args) ->
+          Node(Span(lhs.span.start, rhs.span.end), Call(callee, Cons(lhs, args)))
+        _ ->
+          Node(Span(lhs.span.start, rhs.span.end), Call(rhs, [lhs]))
       parse-binary-loop(desugared, min-bp)
     _ ->
       match infix-bp(tk)

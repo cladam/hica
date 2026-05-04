@@ -77,8 +77,8 @@ fun cli(name: string, version: string, about: string) =>
     app_commands: []
   }
 
-fun flag(name: string, short: string, help_text: string) =>
-  (spec) => CliSpec {
+fun flag(spec: CliSpec, name: string, short: string, help_text: string) =>
+  CliSpec {
     app_name: spec.app_name,
     app_version: spec.app_version,
     app_about: spec.app_about,
@@ -88,8 +88,8 @@ fun flag(name: string, short: string, help_text: string) =>
     app_commands: spec.app_commands
   }
 
-fun option(name: string, short: string, help_text: string) =>
-  (spec) => CliSpec {
+fun option(spec: CliSpec, name: string, short: string, help_text: string) =>
+  CliSpec {
     app_name: spec.app_name,
     app_version: spec.app_version,
     app_about: spec.app_about,
@@ -99,8 +99,8 @@ fun option(name: string, short: string, help_text: string) =>
     app_commands: spec.app_commands
   }
 
-fun option_default(name: string, short: string, help_text: string, default: string) =>
-  (spec) => CliSpec {
+fun option_default(spec: CliSpec, name: string, short: string, help_text: string, default: string) =>
+  CliSpec {
     app_name: spec.app_name,
     app_version: spec.app_version,
     app_about: spec.app_about,
@@ -110,8 +110,8 @@ fun option_default(name: string, short: string, help_text: string, default: stri
     app_commands: spec.app_commands
   }
 
-fun arg(name: string, help_text: string, required: bool) =>
-  (spec) => CliSpec {
+fun arg(spec: CliSpec, name: string, help_text: string, required: bool) =>
+  CliSpec {
     app_name: spec.app_name,
     app_version: spec.app_version,
     app_about: spec.app_about,
@@ -121,8 +121,8 @@ fun arg(name: string, help_text: string, required: bool) =>
     app_commands: spec.app_commands
   }
 
-fun command(name: string, sub: CliSpec) =>
-  (spec) => CliSpec {
+fun command(spec: CliSpec, name: string, sub: CliSpec) =>
+  CliSpec {
     app_name: spec.app_name,
     app_version: spec.app_version,
     app_about: spec.app_about,
