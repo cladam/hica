@@ -233,8 +233,9 @@ pub type pattern
   PNone
   POk( inner : pattern )
   PErr( inner : pattern )
+  PTuple( elems : list<pattern> )
 
-pub fun pattern/show( p : pattern ) : string
+pub fun pattern/show( p : pattern ) : div string
   match p
     PWild    -> "_"
     PVar(n)  -> n
@@ -243,6 +244,7 @@ pub fun pattern/show( p : pattern ) : string
     PNone    -> "None"
     POk(i)   -> "Ok(" ++ i.show ++ ")"
     PErr(i)  -> "Err(" ++ i.show ++ ")"
+    PTuple(es) -> "(" ++ es.map(show).join(", ") ++ ")"
 
 // ---------------------------------------------------------------------------
 // Pretty printing

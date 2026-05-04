@@ -813,6 +813,12 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
       val s1 = compose-subst(unify(scrut-type, TResult(ok-var, err-var), no-span), s)
       val inner-type = apply-subst(s1, err-var)
       infer-pattern(env, s1, inner-type, inner)
+    PTuple(elems) ->
+      val elem-vars = elems.map(fn(_) fresh-tvar())
+      val s1 = compose-subst(unify(scrut-type, TTuple(elem-vars), no-span), s)
+      elems.zip(elem-vars).foldl((s1, env)) fn((sa, ea), (pat, tv))
+        val resolved = apply-subst(sa, tv)
+        infer-pattern(ea, sa, resolved, pat)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type

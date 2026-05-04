@@ -546,6 +546,12 @@ fun parse-match-arms() : <div,parser> list<match-arm>
         _       -> ()
       Cons(Match-arm(pat, guard, body), parse-match-arms())
 
+fun parse-pattern-list() : <div,parser> list<pattern>
+  val p = parse-pattern()
+  match peek()
+    TkComma -> { advance(); Cons(p, parse-pattern-list()) }
+    _       -> [p]
+
 fun parse-pattern() : <div,parser> pattern
   match peek()
     TkIdent("_") -> { advance(); PWild }
@@ -568,6 +574,13 @@ fun parse-pattern() : <div,parser> pattern
       val inner = parse-pattern()
       expect(")", fn(k) match k { TkRParen -> True; _ -> False })
       PErr(inner)
+    TkLParen ->
+      advance()
+      val first = parse-pattern()
+      expect(",", fn(k) match k { TkComma -> True; _ -> False })
+      val rest = parse-pattern-list()
+      expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+      PTuple(Cons(first, rest))
     TkIdent(n)   -> { advance(); PVar(n) }
     TkInt(i)     -> { advance(); PLit(LitInt(i)) }
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }

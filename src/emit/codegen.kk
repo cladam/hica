@@ -390,7 +390,7 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TStruct(sn)) -> sn.struct-type-name ++ "/show(" ++ inner ++ ")"
         _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
 
-fun emit-pattern( p : pattern, declared : list<string> ) : string
+fun emit-pattern( p : pattern, declared : list<string> ) : div string
   match p
     PWild    -> "_"
     PVar(n)  -> marshal-name(n, declared)
@@ -399,6 +399,7 @@ fun emit-pattern( p : pattern, declared : list<string> ) : string
     PNone    -> "Nothing"
     POk(i)   -> "Right(" ++ emit-pattern(i, declared) ++ ")"
     PErr(i)  -> "Left(" ++ emit-pattern(i, declared) ++ ")"
+    PTuple(es) -> "(" ++ es.map(fn(e) emit-pattern(e, declared)).join(", ") ++ ")"
 
 fun emit-binop( op : binop ) : string
   match op

@@ -293,6 +293,18 @@ pub fun main() : io ()
       val tuple-errors = ds.filter(fn(d) d.message.contains("at most 5"))
       assert/is-true(tuple-errors.length == 0)
 
+    dtest("emit tuple pattern in match")
+      val code = emit-typed-program("fun main() { let t = (1, 2); match t { (a, b) => a } }")
+      assert/is-true(code.contains("(a, b)"))
+
+    dtest("emit tuple pattern with wildcard")
+      val code = emit-typed-program("fun main() { let t = (1, 2); match t { (_, b) => b } }")
+      assert/is-true(code.contains("(_, b)"))
+
+    dtest("emit triple pattern in match")
+      val code = emit-typed-program("fun main() { let t = (1, 2, 3); match t { (a, b, c) => a } }")
+      assert/is-true(code.contains("(a, b, c)"))
+
     // --- Prelude: built-in stdlib functions ---
     dtest("println no undefined variable error")
       val ds = check-diagnostics("fun main() { println(\"hello\") }")

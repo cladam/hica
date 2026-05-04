@@ -304,6 +304,19 @@ pub fun main() : io ()
       val result = parse-show("(42)")
       assert/is-true(result == "42")
 
+    // --- Tuple patterns in match ---
+    itest("parse match with tuple pattern")
+      val result = parse-show("match t { (a, b) => a }")
+      assert/is-true(result.contains("(a, b)"))
+
+    itest("parse match with triple pattern")
+      val result = parse-show("match t { (a, b, c) => a }")
+      assert/is-true(result.contains("(a, b, c)"))
+
+    itest("parse match with tuple wildcard")
+      val result = parse-show("match t { (_, b) => b }")
+      assert/is-true(result.contains("(_, b)"))
+
     // --- Lists ---
     itest("parse empty list")
       assert/is-true(parse-show("[]") == "[]")
