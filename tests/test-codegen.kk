@@ -142,6 +142,26 @@ pub fun main() : io ()
       assert/is-true(code.contains("_ ->"))
       assert/is-true(code.contains("0"))
 
+    // --- Match guards ---
+    dtest("emit match guard")
+      val code = emit-typed-program("fun classify(n) => match n { x if x < 0 => -1, _ => 1 }")
+      assert/is-true(code.contains("|"))
+      assert/is-true(code.contains("->"))
+
+    dtest("emit match guard with constructor")
+      val code = emit-typed-program("fun test(v) { match parse_int(v) { Some(n) if n < 0 => 0, Some(n) => n, None => -1 } }")
+      assert/is-true(code.contains("|"))
+      assert/is-true(code.contains("Just"))
+
+    dtest("emit match without guard no pipe")
+      val code = emit-typed-program("fun test(x) => match x { 0 => 1, _ => 2 }")
+      assert/is-true(!code.contains("|"))
+
+    dtest("match guard type-checks as bool")
+      val ds = check-diagnostics("fun test(n) => match n { x if x + 1 => x, _ => 0 }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
     // --- Program emission (new, inspired by lisette) ---
     dtest("emit simple program")
       val code = emit-program-show("fun main() { 42 }")

@@ -104,6 +104,27 @@ fun describe(x) => match x {
 }
 ```
 
+Match guards add conditions to patterns with `if`:
+
+```rust
+fun classify(n) => match n {
+  x if x < 0   => "negative",
+  0             => "zero",
+  x if x > 100 => "big",
+  _             => "small positive"
+}
+```
+
+Guards work with all pattern types, including constructors:
+
+```rust
+match parse_int(input) {
+  Some(n) if n < 0 => "negative",
+  Some(n)          => "valid: {n}",
+  None             => "not a number"
+}
+```
+
 Works with `Maybe` and `Result` types:
 
 ```rust

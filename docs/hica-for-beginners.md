@@ -5,37 +5,30 @@ title: Hica for Beginners - hica
 
 # Hica for Beginners
 
-A practical introduction to hica for programmers new to the language. If you already know Python, JavaScript, or Rust, you'll feel at home quickly.
+Welcome! This guide walks you through hica by building small programs, one concept at a time. By the end you'll have written functions, used pattern matching, worked with lists, and combined everything into a real program.
 
-## What is hica?
+If you already know Python, JavaScript, or Rust, you'll feel at home quickly. If this is your first language — even better, hica was designed to be clear from the start.
 
-hica is a statically typed, expression-oriented language. The compiler is built in [Koka](https://koka-lang.github.io) and emits Koka code, which compiles to C, giving you native performance with minimal boilerplate.
+## Getting started
 
-| Feature | Details |
-|---------|---------|
-| **Type inference** | Hindley-Milner; types are inferred, annotations are optional |
-| **Expression-oriented** | `if`, `match`, and blocks all return values |
-| **Compiled** | `.hc` -> Koka -> C -> native executable |
-| **Memory management** | Perceus reference counting, no GC pauses |
-| **Functional core** | First-class functions, closures, pipe operator |
-
-## Setup
-
-1. Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) (version 3.2 or newer).
-2. Build the compiler:
+You'll need [Koka](https://koka-lang.github.io/koka/doc/book.html#install) (version 3.2+) installed. Then build the compiler:
 
 ```sh
 koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
 ```
 
-3. Run a program:
+Create a file called `hello.hc` and run it:
 
 ```sh
 ./hica run hello.hc
 ```
 
-## Hello, World
+That's all. No project setup, no config files. One file, one command.
+
+---
+
+## Your first program
 
 ```rust
 fun main() {
@@ -43,44 +36,25 @@ fun main() {
 }
 ```
 
-Every hica program starts at `fun main()`. The last expression in a block is its return value, so no `return` keyword is needed.
+Every hica program starts at `main`. The last expression in a block is its return value — there's no `return` keyword. That simple rule carries you a long way.
 
-## Variables
+## Giving things names
 
-Variables are immutable bindings created with `let`:
+Use `let` to create a variable. All variables are immutable — once set, they don't change:
 
 ```rust
 fun main() {
   let name = "Alicia"
   let age = 15
-  let pi = 3.14
-  println("name={name}, age={age}, pi={pi}")
+  println("{name} is {age} years old")
 }
 ```
 
-### Optional type annotations
+Notice the `{name}` inside the string? That's **string interpolation**. Any expression works inside the braces — `"{2 + 2}"` prints `4`.
 
-Type annotations use `: type` after the name. They're optional (the compiler infers types) but useful for documentation:
+## Writing functions
 
-```rust
-let count: int = 42
-let label: string = "total"
-let ratio: float = 0.75
-```
-
-## Data Types
-
-| Type | Example | Description |
-|------|---------|-------------|
-| `int` | `42`, `-7` | Integer numbers |
-| `float` | `3.14`, `-0.5` | Floating-point numbers |
-| `string` | `"hello"` | Text strings (interpolation with `"{expr}"`) |
-| `char` | `'A'`, `'!'` | Single characters |
-| `bool` | `true`, `false` | Boolean values |
-
-## Functions
-
-### Named functions
+Functions look like this:
 
 ```rust
 fun add(a, b) {
@@ -88,70 +62,40 @@ fun add(a, b) {
 }
 ```
 
-### Arrow syntax
-
-When the body is a single expression, use `=>`:
+When the body is just a single expression, you can use the arrow shorthand:
 
 ```rust
 fun double(x) => x * 2
-fun square(x) => x * n
 fun greet(name) => "Hello, " + name
 ```
 
-### With type annotations
+You don't need to write types — hica figures them out. But you *can* add annotations when it makes things clearer:
 
 ```rust
 fun add(a: int, b: int) : int => a + b
-fun is_even(n: int) : bool => n % 2 == 0
 ```
 
-### Lambdas and closures
+## Making decisions
 
-```rust
-let sq = (n) => n * n
-let add = (a, b) => a + b
-```
-
-Closures capture variables from their enclosing scope:
-
-```rust
-fun make_adder(n) => (x) => x + n
-
-fun main() {
-  let add5 = make_adder(5)
-  println(add5(10))
-  println(add5(20))
-}
-```
-
-## Control Flow
-
-### If / else
-
-`if`/`else` are expressions that return values:
+`if`/`else` is an expression, meaning it produces a value:
 
 ```rust
 fun abs(x) => if x < 0 { -x } else { x }
-
-fun main() {
-  let sign = if 42 > 0 { "positive" } else { "non-positive" }
-  println(sign)
-}
 ```
 
-### Else-if chains
+For longer chains, use `else if`:
 
 ```rust
-fun classify(n) =>
+fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
   else if n % 5 == 0 { "buzz" }
   else { "{n}" }
 ```
 
-### Match expressions
+## Pattern matching
 
-Pattern matching with integer, string, and wildcard patterns:
+When you have several cases to check, `match` is cleaner than nested `if`/`else`:
 
 ```rust
 fun describe(x) => match x {
@@ -159,52 +103,50 @@ fun describe(x) => match x {
   1 => "one",
   _ => "many"
 }
+```
 
-fun main() {
-  println(describe(0))
-  println(describe(1))
-  println(describe(99))
+The `_` is a wildcard — it catches everything else. Always include one so no case is missed.
+
+### Adding conditions with guards
+
+Sometimes the pattern alone isn't enough. Add `if` after a pattern to refine it:
+
+```rust
+fun classify(n) => match n {
+  x if x < 0   => "negative",
+  0             => "zero",
+  x if x > 100 => "big",
+  _             => "small positive"
 }
 ```
+
+The variable `x` is bound by the pattern and available in the guard. This is much cleaner than nested `if`/`else` chains.
 
 ## Loops
 
-### For-range
+hica has three ways to repeat things:
 
 ```rust
-fun main() {
-  for i in 0..5 {
-    println(i)
-  }
+// Count from 0 to 4
+for i in 0..5 {
+  println(i)
+}
+
+// Walk through a list
+let names = ["Kalle", "Olle", "Lisa"]
+for name in names {
+  println("Hello, " + name)
+}
+
+// Do something N times
+repeat(3) {
+  println("tick")
 }
 ```
 
-### For-in (collection)
+## Working with lists
 
-```rust
-fun main() {
-  let names = ["Kalle", "Olle", "Lisa"]
-  for name in names {
-    println("Hello, " + name)
-  }
-}
-```
-
-### Repeat
-
-```rust
-fun main() {
-  repeat(3) {
-    println("tick")
-  }
-}
-```
-
-## Collections
-
-### Lists
-
-Homogeneous, immutable lists with standard library operations:
+Lists are ordered, homogeneous collections. The standard library gives you the usual toolkit:
 
 ```rust
 fun main() {
@@ -221,58 +163,9 @@ fun main() {
 }
 ```
 
-### Tuples
+### The pipe operator
 
-Fixed-size, heterogeneous containers:
-
-```rust
-fun main() {
-  let pair = (1, "hello")
-  println(pair.0)
-  println(pair.1)
-
-  let (a, b) = (10, 20)
-  println(a + b)
-}
-```
-
-### Structs
-
-Named records with typed fields. Use these when tuples become unwieldy or when you want self-documenting field names:
-
-```rust
-struct Point { x: int, y: int }
-
-fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
-
-fun main() {
-  let p = Point { x: 3, y: 4 }
-  println(p.x)               // 3
-  println(distance_sq(p))    // 25
-  println(p)                 // Point(x: 3, y: 4)
-}
-```
-
-Struct names must start with an uppercase letter. Fields are accessed with dot notation (`p.x`). Functions that operate on structs are regular free functions.
-
-> **Struct vs. Tuple — when to use which?**
-> Use a tuple for quick, throwaway grouping (returning two values, a temporary pair). Use a struct when the data has a clear identity. If you'd write a comment to explain what `.0` and `.1` mean, reach for a struct instead.
-
-## The Pipe Operator
-
-The pipe `|>` passes the left-hand value as the first argument to the right-hand function. It lets you write data transformations as a readable pipeline:
-
-```rust
-fun double(x) => x * 2
-fun add_one(x) => x + 1
-
-fun main() {
-  let result = 5 |> double |> add_one
-  println(result)
-}
-```
-
-Pipes work well with the standard library:
+Chaining operations with pipes reads left to right, like a pipeline:
 
 ```rust
 fun main() {
@@ -284,24 +177,54 @@ fun main() {
 }
 ```
 
-## Error Handling
+`a |> f` is just `f(a)`. The pipe doesn't do anything magical — it just reorders so the data flows left to right.
 
-### Maybe - optional values
+## Tuples — quick grouping
 
-Use `Some` and `None` to represent values that might not exist:
+When you need to bundle two or three values together, use a tuple:
+
+```rust
+let pair = (1, "hello")
+println(pair.0)   // 1
+println(pair.1)   // "hello"
+
+let (x, y) = (10, 20)
+println(x + y)    // 30
+```
+
+## Structs — when tuples aren't enough
+
+If you'd need a comment to explain what `.0` and `.1` mean, it's time for a struct:
+
+```rust
+struct Point { x: int, y: int }
+
+fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
+
+fun main() {
+  let p = Point { x: 3, y: 4 }
+  println("distance² = {distance_sq(p)}")
+}
+```
+
+Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions — no methods or `self`.
+
+## Handling missing values
+
+Not every operation succeeds. hica has two types for this.
+
+### Maybe — it might not be there
 
 ```rust
 fun main() {
   match find([1, 3, 4, 7], (x) => x % 2 == 0) {
-    Some(n) => println("Found: {n}"),
+    Some(n) => println("Found even: {n}"),
     None    => println("No even number")
   }
 }
 ```
 
-### Result - success or failure
-
-Use `Ok` and `Err` for operations that can fail:
+### Result — it worked, or here's why it didn't
 
 ```rust
 fun safe_divide(a, b) =>
@@ -316,66 +239,67 @@ fun main() {
 }
 ```
 
-### Parsing strings to numbers
+### Parsing strings safely
 
-Use `parse_int` and `parse_float` to safely convert strings to numbers. They return `maybe` so you always know whether the conversion succeeded:
+`parse_int` and `parse_float` return `Maybe`, so you always know whether the conversion worked:
 
 ```rust
-fun main() {
-  match parse_int("42") {
-    Some(n) => println("Got: {n}"),
-    None    => println("Not a number")
-  };
-
-  match parse_float("3.14") {
-    Some(f) => println("Got: {f}"),
-    None    => println("Not a float")
-  }
+match parse_int("42") {
+  Some(n) => println("Got: {n}"),
+  None    => println("Not a number")
 }
 ```
 
-If you just need a quick conversion and don't mind getting `-1` on failure, use `to_int`:
+Guards combine naturally with parsing:
 
 ```rust
-let n = to_int("42")    // 42
-let bad = to_int("abc") // -1
+match parse_int(input) {
+  Some(n) if n < 0 => println("negative"),
+  Some(n)          => println("valid: {n}"),
+  None             => println("not a number")
+}
 ```
 
 ## Strings
 
-Concatenation with `+`, interpolation with `{expr}`, and indexing/slicing with `[]`:
+Strings support concatenation (`+`), interpolation (`{expr}`), indexing, and slicing:
 
 ```rust
+let s = "hello"
+s[0]      // 'h' (a char)
+s[1:4]    // "ell" (a string)
+s[-1]     // 'o' (negative indexing)
+```
+
+There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`, `starts_with`, `capitalize`, `removeprefix`, and more. See the [Standard Library](/hica/docs/standard-library) for the complete list.
+
+## Closures
+
+Functions are values. You can store them, pass them around, and return them:
+
+```rust
+fun make_adder(n) => (x) => x + n
+
 fun main() {
-  let name = "world"
-  let greeting = "Hello, " + name
-  let math = "2 + 2 = {2 + 2}"
-  println(greeting)
-  println(math)
-
-  // Indexing returns a char, slicing returns a string
-  let s = "hello"
-  println(s[0])       // 'h'
-  println(s[1:4])     // "ell"
-  println(s[-1])      // 'o'
-
-  // Utility functions
-  println(trim("  hi  "))
-  println(capitalize("hello"))
-  println(removeprefix("v1.2.3", "v"))
+  let add5 = make_adder(5)
+  println(add5(10))   // 15
+  println(add5(20))   // 25
 }
 ```
 
-## Putting It Together
+The inner function `(x) => x + n` captures `n` from the enclosing scope. This is how `map`, `filter`, and `fold` work — you pass them a function and they call it for you.
 
-A slightly larger example combining several features:
+## Putting it all together
+
+Here's a complete program that uses most of what you've learned:
 
 ```rust
-fun fizzbuzz(n) =>
-  if n % 15 == 0 { "fizzbuzz" }
-  else if n % 3 == 0 { "fizz" }
-  else if n % 5 == 0 { "buzz" }
-  else { "{n}" }
+fun fizzbuzz(n) => match n {
+  n if n % 15 == 0 => "fizzbuzz",
+  n if n % 3 == 0  => "fizz",
+  n if n % 5 == 0  => "buzz",
+  _                => "{n}"
+}
 
 fun main() {
   for i in 1..21 {
@@ -384,8 +308,10 @@ fun main() {
 }
 ```
 
-## What's Next?
+Functions, match guards, string interpolation, and a loop — all in a few lines. That's hica.
 
-- Work through the [Learn hica](/hica/docs/learn) lessons, 23 programs that teach you one concept at a time
-- Browse the [Language Reference](/hica/docs/language-reference) for full syntax details
-- Check the [Standard Library](/hica/docs/standard-library) for available functions
+## Where to go next
+
+- **[Learn hica](/hica/docs/learn)** — 23 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Language Reference](/hica/docs/language-reference)** — Every syntax detail, for when you need the precise rules.
+- **[Standard Library](/hica/docs/standard-library)** — All built-in functions: strings, lists, math, and more.

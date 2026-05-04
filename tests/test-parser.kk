@@ -395,6 +395,21 @@ pub fun main() : io ()
       val result = parse-program-show("struct Point { x: int, y: int } fun main() => 0")
       assert/is-true(result.contains("struct Point"))
 
+    // --- Match guards ---
+    itest("parse match guard")
+      val result = parse-show("match n { x if x > 0 => x, _ => 0 }")
+      assert/is-true(result.contains("if"))
+      assert/is-true(result.contains("x"))
+
+    itest("parse match guard with constructor")
+      val result = parse-show("match v { Some(n) if n < 0 => 0, _ => 1 }")
+      assert/is-true(result.contains("Some(n)"))
+      assert/is-true(result.contains("if"))
+
+    itest("parse match without guard unchanged")
+      val result = parse-show("match x { 0 => 1, _ => 2 }")
+      assert/is-true(!result.contains("if"))
+
     itest("parse struct literal")
       val result = parse-program-show("struct Point { x: int, y: int } fun main() => Point { x: 1, y: 2 }")
       assert/is-true(result.contains("Point"))
