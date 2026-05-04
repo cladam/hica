@@ -40,7 +40,7 @@ Every hica program starts at `main`. The last expression in a block is its retur
 
 ## Giving things names
 
-Use `let` to create a variable. All variables are immutable: once set, they don't change:
+Use `let` to create a variable. Variables declared with `let` are immutable: once set, they don't change:
 
 ```rust
 fun main() {
@@ -49,6 +49,18 @@ fun main() {
   println("{name} is {age} years old")
 }
 ```
+
+When you need a variable that changes, use `var`:
+
+```rust
+fun main() {
+  var count = 0
+  count = count + 1
+  println(count)
+}
+```
+
+`let` for values that stay fixed, `var` for values that change. Both are locally scoped.
 
 Notice the `{name}` inside the string? That's **string interpolation**. Any expression works inside the braces, so `"{2 + 2}"` prints `4`.
 
@@ -140,7 +152,7 @@ The variable `x` is bound by the pattern and available in the guard. This is muc
 
 ## Loops
 
-hica has three ways to repeat things:
+hica has four ways to repeat things:
 
 ```rust
 // Count from 0 to 4
@@ -157,6 +169,13 @@ for name in names {
 // Do something N times
 repeat(3) {
   println("tick")
+}
+
+// Loop while a condition is true
+var x = 5
+while x > 0 {
+  println(x)
+  x = x - 1
 }
 ```
 

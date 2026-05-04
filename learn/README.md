@@ -37,6 +37,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 21 | `21-structs.hc`       | Structs                          | `struct` definitions, construction, field access |
 | 22 | `22-env.hc`           | Environment                      | `get_args()`, `get_env(key)`, `eprintln`         |
 | 23 | `23-parsing.hc`       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
+| 24 | `24-while.hc`         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
 
 ## Language features shown
 
@@ -80,6 +81,9 @@ Each lesson is a standalone `.hc` file you can run:
 | `get_env(key)`                 | `22-env.hc`                           |
 | `eprintln` (stderr output)     | `22-env.hc`                           |
 | `parse_int`, `parse_float`     | `23-parsing.hc`                       |
+| `var` mutable variables        | `24-while.hc`                         |
+| `while` loops                  | `24-while.hc`                         |
+| Reassignment (`x = expr`)     | `24-while.hc`                         |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
@@ -92,7 +96,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 22 lessons, try these challenges:
+Once you finish all 24 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers

@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 23 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 24 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -39,6 +39,7 @@ A progressive set of 23 lessons that teach hica one concept at a time. Each less
 | 21 | [`21-structs.hc`](https://github.com/cladam/hica/blob/main/learn/21-structs.hc) | Structs | `struct` definitions, construction, field access |
 | 22 | [`22-env.hc`](https://github.com/cladam/hica/blob/main/learn/22-env.hc) | Environment | `get_args()`, `get_env(key)`, `eprintln` |
 | 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc) | Parsing | `parse_int`, `parse_float`, safe string-to-number |
+| 24 | [`24-while.hc`](https://github.com/cladam/hica/blob/main/learn/24-while.hc) | While loops & var | `var` mutable variables, `while` loops, reassignment |
 
 ## Feature Index
 
@@ -69,6 +70,9 @@ A progressive set of 23 lessons that teach hica one concept at a time. Each less
 | `get_args()`, `get_env()` | `22-env.hc` |
 | `eprintln` (stderr) | `22-env.hc` |
 | `parse_int`, `parse_float` | `23-parsing.hc` |
+| `var` mutable variables | `24-while.hc` |
+| `while` loops | `24-while.hc` |
+| Reassignment (`x = expr`) | `24-while.hc` |
 
 ## Getting Started
 

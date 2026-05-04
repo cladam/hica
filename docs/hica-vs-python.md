@@ -78,7 +78,7 @@ scores.append(95)       # mutates the original list
 scores[0] = 100         # changes in place
 ```
 
-**hica** is immutable by design. You create new values instead of mutating:
+**hica** defaults to immutable with `let`. You create new values instead of mutating:
 
 ```rust
 let scores = [85, 92, 78]
@@ -86,7 +86,17 @@ let updated = scores + [95]
 let doubled = map(scores, (x) => x * 2)
 ```
 
-This avoids accidental side effects, but requires a different way of thinking about state.
+When you need mutation, use `var`:
+
+```rust
+var count = 0
+while count < 10 {
+  println(count)
+  count = count + 1
+}
+```
+
+`var` is locally scoped and effect-safe — the mutable state can't leak outside the function. This gives you the convenience of mutation when you need it, without the risks of shared mutable state.
 
 ## Functions and Closures
 

@@ -59,6 +59,18 @@ let name = "Alicia"
 let pi = 3.14
 ```
 
+### Mutable variables
+
+Use `var` to declare a mutable variable. Reassign it with `=`:
+
+```rust
+var count = 0
+count = count + 1
+println(count)
+```
+
+`var` is locally scoped and effect-safe — mutable variables cannot leak out of the function they're declared in.
+
 ### The last-line rule
 
 The last expression in a { } block is its return value. No need to write "return". Use println() to see output.
@@ -176,6 +188,18 @@ repeat(5) {
   println("hello")
 }
 ```
+
+### While loops
+
+```rust
+var x = 5
+while x > 0 {
+  println(x)
+  x = x - 1
+}
+```
+
+The condition must be a `bool`. The body runs until the condition becomes `false`.
 
 ## Data Types
 
