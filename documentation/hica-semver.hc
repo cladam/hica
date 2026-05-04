@@ -1,8 +1,10 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
-// Uses: split, index_of, starts_with, parse_int, string slicing
+// Uses: struct, split, index_of, removeprefix, parse_int, string slicing
+
+struct SemVer { major: int, minor: int, patch: int, pre: string, build: string }
 
 fun parse(s) {
-  let v = if starts_with(s, "v") { s[1:] } else { s }
+  let v = removeprefix(s, "v")
   let (v2, build) = match index_of(v, "+") {
     Some(i) => (v[:i], v[i + 1:]),
     None    => (v, "")
@@ -15,7 +17,8 @@ fun parse(s) {
   if length(parts) != 3 { None }
   else {
     match (parse_int(parts[0]), parse_int(parts[1]), parse_int(parts[2])) {
-      (Some(maj), Some(min), Some(pat)) => Some((maj, min, pat, pre, build)),
+      (Some(maj), Some(min), Some(pat)) =>
+        Some(SemVer { major: maj, minor: min, patch: pat, pre: pre, build: build }),
       _ => None
     }
   }
@@ -37,15 +40,13 @@ fun compare(a_str, b_str) {
   }
 }
 
-fun cmp_versions(a, b) {
-  let (amaj, amin, apat, apre, _) = a
-  let (bmaj, bmin, bpat, bpre, _) = b
-  if amaj != bmaj { if amaj < bmaj { -1 } else { 1 } }
-  else if amin != bmin { if amin < bmin { -1 } else { 1 } }
-  else if apat != bpat { if apat < bpat { -1 } else { 1 } }
-  else if apre == "" && bpre != "" { 1 }
-  else if apre != "" && bpre == "" { -1 }
-  else { cmp_pre(split(apre, "."), split(bpre, ".")) }
+fun cmp_versions(a: SemVer, b: SemVer) {
+  if a.major != b.major { if a.major < b.major { -1 } else { 1 } }
+  else if a.minor != b.minor { if a.minor < b.minor { -1 } else { 1 } }
+  else if a.patch != b.patch { if a.patch < b.patch { -1 } else { 1 } }
+  else if a.pre == "" && b.pre != "" { 1 }
+  else if a.pre != "" && b.pre == "" { -1 }
+  else { cmp_pre(split(a.pre, "."), split(b.pre, ".")) }
 }
 
 fun cmp_pre(ap, bp) {
