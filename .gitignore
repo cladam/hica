@@ -10,6 +10,7 @@ documentation/operators.hc
 documentation/review.md
 documentation/diff.h
 documentation/diff.c
+documentation/lib.xs
 
 .koka/
 .DS_Store

@@ -7,7 +7,7 @@ title: Hica for Beginners - hica
 
 Welcome! This guide walks you through hica by building small programs, one concept at a time. By the end you'll have written functions, used pattern matching, worked with lists, and combined everything into a real program.
 
-If you already know Python, JavaScript, or Rust, you'll feel at home quickly. If this is your first language — even better, hica was designed to be clear from the start.
+If you already know Python, JavaScript, or Rust, you'll feel at home quickly. If this is your first language, even better: hica was designed to be clear from the start.
 
 ## Getting started
 
@@ -36,11 +36,11 @@ fun main() {
 }
 ```
 
-Every hica program starts at `main`. The last expression in a block is its return value — there's no `return` keyword. That simple rule carries you a long way.
+Every hica program starts at `main`. The last expression in a block is its return value, so there's no `return` keyword. That simple rule carries you a long way.
 
 ## Giving things names
 
-Use `let` to create a variable. All variables are immutable — once set, they don't change:
+Use `let` to create a variable. All variables are immutable: once set, they don't change:
 
 ```rust
 fun main() {
@@ -50,7 +50,7 @@ fun main() {
 }
 ```
 
-Notice the `{name}` inside the string? That's **string interpolation**. Any expression works inside the braces — `"{2 + 2}"` prints `4`.
+Notice the `{name}` inside the string? That's **string interpolation**. Any expression works inside the braces, so `"{2 + 2}"` prints `4`.
 
 ## Writing functions
 
@@ -69,7 +69,7 @@ fun double(x) => x * 2
 fun greet(name) => "Hello, " + name
 ```
 
-You don't need to write types — hica figures them out. But you *can* add annotations when it makes things clearer:
+You don't need to write types; hica figures them out. But you *can* add annotations when it makes things clearer:
 
 ```rust
 fun add(a: int, b: int) : int => a + b
@@ -105,7 +105,7 @@ fun describe(x) => match x {
 }
 ```
 
-The `_` is a wildcard — it catches everything else. Always include one so no case is missed.
+The `_` is a wildcard: it catches everything else. Always include one so no case is missed.
 
 ### Adding conditions with guards
 
@@ -177,9 +177,9 @@ fun main() {
 }
 ```
 
-`a |> f` is just `f(a)`. The pipe doesn't do anything magical — it just reorders so the data flows left to right.
+`a |> f` is just `f(a)`. The pipe doesn't do anything magical; it just reorders so the data flows left to right.
 
-## Tuples — quick grouping
+## Tuples: quick grouping
 
 When you need to bundle two or three values together, use a tuple:
 
@@ -192,7 +192,7 @@ let (x, y) = (10, 20)
 println(x + y)    // 30
 ```
 
-## Structs — when tuples aren't enough
+## Structs: when tuples aren't enough
 
 If you'd need a comment to explain what `.0` and `.1` mean, it's time for a struct:
 
@@ -207,13 +207,13 @@ fun main() {
 }
 ```
 
-Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions — no methods or `self`.
+Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions, with no methods or `self`.
 
 ## Handling missing values
 
 Not every operation succeeds. hica has two types for this.
 
-### Maybe — it might not be there
+### Maybe: it might not be there
 
 ```rust
 fun main() {
@@ -224,7 +224,7 @@ fun main() {
 }
 ```
 
-### Result — it worked, or here's why it didn't
+### Result: it worked, or here's why it didn't
 
 ```rust
 fun safe_divide(a, b) =>
@@ -287,7 +287,7 @@ fun main() {
 }
 ```
 
-The inner function `(x) => x + n` captures `n` from the enclosing scope. This is how `map`, `filter`, and `fold` work — you pass them a function and they call it for you.
+The inner function `(x) => x + n` captures `n` from the enclosing scope. This is how `map`, `filter`, and `fold` work: you pass them a function and they call it for you.
 
 ## Putting it all together
 
@@ -308,10 +308,10 @@ fun main() {
 }
 ```
 
-Functions, match guards, string interpolation, and a loop — all in a few lines. That's hica.
+Functions, match guards, string interpolation, and a loop, all in a few lines. That's hica.
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)** — 23 standalone programs, each teaching one concept. Run them, modify them, break them.
-- **[Language Reference](/hica/docs/language-reference)** — Every syntax detail, for when you need the precise rules.
-- **[Standard Library](/hica/docs/standard-library)** — All built-in functions: strings, lists, math, and more.
+- **[Learn hica](/hica/docs/learn)**: 23 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
+- **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.
