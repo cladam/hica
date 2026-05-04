@@ -15,8 +15,8 @@ fun respond(msg) => match msg {
 // Match on tuples
 fun locate(point) => match point {
   (0, 0) => "origin",
-  (x, 0) => "x-axis at {x.show}",
-  (0, y) => "y-axis at {y.show}",
+  (x, 0) => "x-axis at {x}",
+  (0, y) => "y-axis at {y}",
   (_, _) => "elsewhere"
 }
 

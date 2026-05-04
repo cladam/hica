@@ -683,7 +683,8 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
     Nil -> (s, [])
     Cons(arm, rest) ->
       // Constrain scrutinee type from pattern
-      val (s1, pat-env) = infer-pattern(env, s, scrut-type, arm.pattern)
+      val resolved-scrut = apply-subst(s, scrut-type)
+      val (s1, pat-env) = infer-pattern(env, s, resolved-scrut, arm.pattern)
       // Type-check optional guard (must be bool) in pattern environment
       val (s2, guard') = match arm.guard
         Just(g) ->

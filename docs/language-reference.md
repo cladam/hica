@@ -144,9 +144,9 @@ Tuple destructuring patterns:
 ```rust
 fun describe(point) => match point {
   (0, 0) => "origin",
-  (x, 0) => "on x-axis at {x.show}",
-  (0, y) => "on y-axis at {y.show}",
-  (x, y) => "({x.show}, {y.show})"
+  (x, 0) => "on x-axis at {x}",
+  (0, y) => "on y-axis at {y}",
+  (x, y) => "({x}, {y})"
 }
 ```
 

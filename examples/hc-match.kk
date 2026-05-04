@@ -148,14 +148,14 @@ fun hc_respond(msg : string)
     _ ->
       "huh?"
 
-fun hc_locate(point)
+fun hc_locate(point : (int, int))
   match point
     (0, 0) ->
       "origin"
     (x, 0) ->
-      ("x-axis at " ++ x)
+      ("x-axis at " ++ int/show(x))
     (0, y) ->
-      ("y-axis at " ++ y.show)
+      ("y-axis at " ++ int/show(y))
     (_, _) ->
       "elsewhere"
 
