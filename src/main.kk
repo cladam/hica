@@ -275,7 +275,7 @@ fun compile-koka( file : string, mod-name : string )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / mod-name.path).show
-  val exit-code = run-system("koka -o2 " ++ out-bin ++ " " ++ kk-file)
+  val exit-code = run-system("koka -O2 -o " ++ out-bin ++ " " ++ kk-file)
   if exit-code != 0 then
     println("error: koka failed with exit code " ++ exit-code.show)
   else
