@@ -1,5 +1,5 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
-// Uses: struct, split, index_of, removeprefix, parse_int, string slicing
+// Uses: struct, split, index_of, removeprefix, parse_int, string slicing, var, while
 
 struct SemVer {
   major: int, 
@@ -39,11 +39,38 @@ fun cmp_ids(a, b) {
   }
 }
 
-fun compare(a_str, b_str) {
-  match (parse(a_str), parse(b_str)) {
-    (Some(av), Some(bv)) => Ok(cmp_versions(av, bv)),
-    _                    => Err("bad semver")
+// Compare prerelease identifier lists using while + var
+fun cmp_pre(a_ids, b_ids) {
+  var ap = a_ids
+  var bp = b_ids
+  var result = 0
+  var done = false
+  while !done {
+    if length(ap) == 0 && length(bp) == 0 {
+      result = 0
+      done = true
+    }
+    else if length(ap) == 0 {
+      result = -1
+      done = true
+    }
+    else if length(bp) == 0 {
+      result = 1
+      done = true
+    }
+    else {
+      let c = cmp_ids(ap[0], bp[0])
+      if c != 0 {
+        result = c
+        done = true
+      }
+      else {
+        ap = drop(ap, 1)
+        bp = drop(bp, 1)
+      }
+    }
   }
+  result
 }
 
 fun cmp_versions(a: SemVer, b: SemVer) {
@@ -55,14 +82,10 @@ fun cmp_versions(a: SemVer, b: SemVer) {
   else { cmp_pre(split(a.pre, "."), split(b.pre, ".")) }
 }
 
-fun cmp_pre(ap, bp) {
-  if length(ap) == 0 && length(bp) == 0 { 0 }
-  else if length(ap) == 0 { -1 }
-  else if length(bp) == 0 { 1 }
-  else {
-    let c = cmp_ids(ap[0], bp[0])
-    if c != 0 { c }
-    else { cmp_pre(drop(ap, 1), drop(bp, 1)) }
+fun compare(a_str, b_str) {
+  match (parse(a_str), parse(b_str)) {
+    (Some(av), Some(bv)) => Ok(cmp_versions(av, bv)),
+    _                    => Err("bad semver")
   }
 }
 

@@ -2,19 +2,31 @@
 module while
 
 fun hc_abs(n : int)
-  if (n < 0) then (0 - n) else n
+  if (n < 0) then
+    (0 - n)
+  else
+    n
 
 fun hc_min(a : int, b : int)
-  if (a < b) then a else b
+  if (a < b) then
+    a
+  else
+    b
 
 fun hc_max(a : int, b : int)
-  if (a > b) then a else b
+  if (a > b) then
+    a
+  else
+    b
 
 fun hc_clamp(v : int, lo : int, hi : int)
   hc_min(hc_max(v, lo), hi)
 
 fun hc_gcd(a : int, b : int)
-  if (b == 0) then a else hc_gcd(b, (a % b))
+  if (b == 0) then
+    a
+  else
+    hc_gcd(b, (a % b))
 
 fun hc_add(a : int, b : int)
   (a + b)
@@ -98,7 +110,10 @@ fun hc_count_substr(s : string, hc_sub : string)
   (list/length(s.split(hc_sub)) - 1)
 
 fun hc_repeat_str(s : string, n : int)
-  if (n <= 0) then "" else (s ++ hc_repeat_str(s, (n - 1)))
+  if (n <= 0) then
+    ""
+  else
+    (s ++ hc_repeat_str(s, (n - 1)))
 
 fun hc_pad_left(s : string, width : int, ch : string)
   (hc_repeat_str(ch, hc_max(0, (width - s.count))) ++ s)
@@ -116,7 +131,10 @@ fun hc_surround(s : string, wrap : string)
   ((wrap ++ s) ++ wrap)
 
 fun hc_capitalize(s : string) : string
-  if (s.count == 0) then "" else (s.list.take(1).string.to-upper ++ s.list.drop(1).string.to-lower)
+  if (s.count == 0) then
+    ""
+  else
+    (s.list.take(1).string.to-upper ++ s.list.drop(1).string.to-lower)
 
 fun hc_capwords(s : string) : string
   map(hc_words(s), fn(w) hc_capitalize(w)).join(" ")
@@ -125,10 +143,16 @@ fun hc_shout(s : string) : string
   (s.to-upper ++ "!")
 
 fun hc_removeprefix(s : string, pre : string) : string
-  if s.starts-with(pre).is-just then s.list.drop(pre.count).string else s
+  if s.starts-with(pre).is-just then
+    s.list.drop(pre.count).string
+  else
+    s
 
 fun hc_removesuffix(s : string, suf : string) : string
-  if s.ends-with(suf).is-just then s.list.take((s.count - suf.count)).string else s
+  if s.ends-with(suf).is-just then
+    s.list.take((s.count - suf.count)).string
+  else
+    s
 
 fun main()
   var x : int := 5

@@ -292,7 +292,13 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             _             -> emit-expr(callee, declared)
           callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
-      "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
+      if then-e.expr.needs-block || else-e.expr.needs-block then
+        "if " ++ emit-expr(cond, declared) ++ " then\n" ++
+        emit-branch(then-e, declared) ++ "\n" ++
+        "else\n" ++
+        emit-branch(else-e, declared)
+      else
+        "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
     Block(stmts) ->
       stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->
@@ -434,8 +440,12 @@ fun emit-binop( op : binop ) : string
 
 fun repeat-body( e : expr, declared : list<string> ) : div string
   match e
-    Block(stmts) -> stmts.map(fn(s) "  " ++ emit-expr(s, declared)).join("\n")
-    _            -> "  " ++ emit-expr(Node(no-span, e), declared)
+    Block(stmts) -> stmts.map(fn(s) indent-all(emit-stmt(s, declared))).join("\n")
+    _            -> indent-all(emit-stmt(Node(no-span, e), declared))
+
+// Indent all lines of a string by 2 spaces.
+fun indent-all( s : string ) : string
+  s.split("\n").map(fn(line) "  " ++ line).join("\n")
 
 // Map a 0-based tuple index to Koka's named accessor.
 fun tuple-field-name( idx : int ) : string
@@ -454,10 +464,17 @@ fun needs-block( e : expr ) : bool
   match e
     Let(_, _, _, _)     -> True
     VarDecl(_, _, _, _) -> True
+    Assign(_, _)        -> True
     LetTuple(_, _, _)   -> True
     Match(_, _)         -> True
     Block(_)            -> True
     _                   -> False
+
+// Emit an if-branch as an indented block.
+fun emit-branch( n : node, declared : list<string> ) : div string
+  match n.expr
+    Block(stmts) -> stmts.map(fn(s) indent-all(emit-stmt(s, declared))).join("\n")
+    _            -> indent-all(emit-stmt(n, declared))
 
 fun program-has-float( p : program ) : div bool
   p.decls.any(fn(d) node-has-float(d.body))
