@@ -30,6 +30,7 @@ pub type token-kind
   // Identifiers and keywords
   TkIdent( name : string )
   TkLet
+  TkVar
   TkFun
   TkIf
   TkElse
@@ -96,6 +97,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkInterpEnd     -> "<interp-end>"
     TkIdent(n)   -> n
     TkLet        -> "let"
+    TkVar        -> "var"
     TkFun        -> "fun"
     TkIf         -> "if"
     TkElse       -> "else"
@@ -188,6 +190,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
   val end = start + chars.length
   val kind = match word
     "let"   -> TkLet
+    "var"   -> TkVar
     "fun"   -> TkFun
     "if"    -> TkIf
     "else"  -> TkElse
@@ -315,6 +318,7 @@ fun lex-one-interp( cs : list<char>, str-start : int, pos : int, depth : int ) :
         val end = pos + chars.length
         val kind = match word
           "let"    -> TkLet
+          "var"    -> TkVar
           "fun"    -> TkFun
           "if"     -> TkIf
           "else"   -> TkElse

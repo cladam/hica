@@ -455,6 +455,26 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
 
+    // --- Var declarations and assignment ---
+    dtest("var emits Koka var")
+      val code = emit-typed-program("fun main() { var x = 10; println(x) }")
+      assert/is-true(code.contains("var x"))
+      assert/is-true(code.contains(":="))
+
+    dtest("var type-checks correctly")
+      val ds = check-diagnostics("fun main() { var x = 10; println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("assignment emits :=")
+      val code = emit-typed-program("fun main() { var x = 10; x = 5; println(x) }")
+      assert/is-true(code.contains("x := 5"))
+
+    dtest("var with while loop type-checks")
+      val ds = check-diagnostics("fun main() { var x = 5; while x > 0 { println(x); x = x - 1 } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
     // --- length / reverse / take / drop / zip / concat / any / all / foreach ---
     dtest("length type-checks")
       val ds = check-diagnostics("fun main() => length([1, 2, 3])")

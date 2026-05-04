@@ -169,6 +169,13 @@ fun emit-stmt( n : node, declared : list<string> ) : div string
           if ts == "" then "" else " : " ++ ts
         Nothing -> ""
       "val " ++ marshal-name(name, declared) ++ ann ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
+    VarDecl(name, _, init, body) ->
+      val ann = match init.typ
+        Just(t) ->
+          val ts = emit-type(t)
+          if ts == "" then "" else " : " ++ ts
+        Nothing -> ""
+      "var " ++ marshal-name(name, declared) ++ ann ++ " := " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
     LetTuple(names, init, body) ->
       "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
     _ -> emit-expr(n, declared)
@@ -211,6 +218,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->
       "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
+    VarDecl(name, _, init, body) ->
+      "var " ++ marshal-name(name, declared) ++ " := " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
+    Assign(name, value) ->
+      marshal-name(name, declared) ++ " := " ++ emit-expr(value, declared)
     Fun(params, body) ->
       "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ") " ++ emit-expr(body, declared)
     Call(callee, args) ->
@@ -442,6 +453,7 @@ fun tuple-field-name( idx : int ) : string
 fun needs-block( e : expr ) : bool
   match e
     Let(_, _, _, _)     -> True
+    VarDecl(_, _, _, _) -> True
     LetTuple(_, _, _)   -> True
     Match(_, _)         -> True
     Block(_)            -> True
@@ -460,6 +472,8 @@ fun node-has-float( n : node ) : div bool
     Literal(LitFloat(_)) -> True
     Call(callee, _) | callee.expr.is-parse-float -> True
     Let(_, _, init, body) -> node-has-float(init) || node-has-float(body)
+    VarDecl(_, _, init, body) -> node-has-float(init) || node-has-float(body)
+    Assign(_, value)      -> node-has-float(value)
     Fun(_, body)          -> node-has-float(body)
     Call(callee, args)    -> node-has-float(callee) || args.any(fn(a) node-has-float(a))
     Binary(_, lhs, rhs)   -> node-has-float(lhs) || node-has-float(rhs)
@@ -499,6 +513,8 @@ fun node-uses-env( n : node ) : div bool
         _               -> False
       is-env-fn || node-uses-env(callee) || args.any(fn(a) node-uses-env(a))
     Let(_, _, init, body) -> node-uses-env(init) || node-uses-env(body)
+    VarDecl(_, _, init, body) -> node-uses-env(init) || node-uses-env(body)
+    Assign(_, value)      -> node-uses-env(value)
     Fun(_, body)          -> node-uses-env(body)
     Binary(_, lhs, rhs)   -> node-uses-env(lhs) || node-uses-env(rhs)
     Unary(_, operand)     -> node-uses-env(operand)

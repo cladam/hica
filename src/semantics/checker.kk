@@ -291,6 +291,27 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val body-type = get-type(body')
       (s3, Node(n.span, Let(name, ann, init', body'), Just(body-type)))
 
+    // --- Var bindings: like let but mutable ---
+    VarDecl(name, ann, init, body) ->
+      val (s1, init') = infer(env, s, init)
+      val init-type = get-type(init')
+      val s2 = match ann
+        Just(declared) -> compose-subst(unify(init-type, declared, init.span), s1)
+        Nothing        -> s1
+      val bound-type = apply-subst(s2, init-type)
+      val env' = env.extend(name, bound-type)
+      val (s3, body') = infer(env', s2, body)
+      val body-type = get-type(body')
+      (s3, Node(n.span, VarDecl(name, ann, init', body'), Just(body-type)))
+
+    // --- Assignment: infer value, unify with existing type ---
+    Assign(name, value) ->
+      val var-type = env.lookup(name, n.span)
+      val (s1, value') = infer(env, s, value)
+      val value-type = apply-subst(s1, get-type(value'))
+      val s2 = compose-subst(unify(var-type, value-type, value.span), s1)
+      (s2, Node(n.span, Assign(name, value'), Just(TUnit)))
+
     // --- Blocks: infer each statement, type is the last ---
     Block(stmts) ->
       val (s', stmts', last-type) = infer-stmts(env, s, stmts)
@@ -661,6 +682,9 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
         TTuple(ts) -> zip(names, ts).foldl(env, fn(e, entry) match entry { (nm, t) -> e.extend(nm, t) })
         _ -> env
       extend-let-chain(env', s, body)
+    VarDecl(name, _, init', body) ->
+      val env' = env.extend(name, apply-subst(s, get-type(init')))
+      extend-let-chain(env', s, body)
     _ -> env
 
 // Infer types for a list of call arguments.
@@ -898,6 +922,8 @@ fun body-calls-name( n : node, name : string ) : div bool
     Binary(_, l, r)         -> body-calls-name(l, name) || body-calls-name(r, name)
     Unary(_, o)             -> body-calls-name(o, name)
     Let(_, _, init, body)   -> body-calls-name(init, name) || body-calls-name(body, name)
+    VarDecl(_, _, init, body) -> body-calls-name(init, name) || body-calls-name(body, name)
+    Assign(_, value)        -> body-calls-name(value, name)
     LetTuple(_, init, body) -> body-calls-name(init, name) || body-calls-name(body, name)
     Block(stmts)            -> stmts.any(fn(st) body-calls-name(st, name))
     If(cond, th, el)        -> body-calls-name(cond, name) || body-calls-name(th, name) || body-calls-name(el, name)

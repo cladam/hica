@@ -369,6 +369,16 @@ pub fun main() : io ()
       assert/is-true(result.contains("while"))
       assert/is-true(result.contains(">"))
 
+    // --- Var declarations and assignment ---
+    itest("parse var declaration")
+      val result = parse-show("var x = 10; x")
+      assert/is-true(result.contains("var"))
+      assert/is-true(result.contains("10"))
+
+    itest("parse assignment")
+      val result = parse-show("x = 5")
+      assert/is-true(result == "x = 5")
+
     // --- In operator ---
     itest("parse in operator")
       assert/is-true(parse-show("3 in xs") == "(3 in xs)")

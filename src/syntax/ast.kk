@@ -153,6 +153,12 @@ pub type expr
   // let name : type = init; body
   Let( name : string, type-ann : maybe<hica-type>, init : node, body : node )
 
+  // var name : type = init; body
+  VarDecl( name : string, type-ann : maybe<hica-type>, init : node, body : node )
+
+  // name = value (reassignment of var)
+  Assign( name : string, value : node )
+
   // fn(params) { body }  or  fn(params) => body
   Fun( params : list<string>, body : node )
 
@@ -258,6 +264,8 @@ pub fun expr/show( e : expr ) : div string
     Literal(l)       -> l.show
     Var(n)           -> n
     Let(n, _, i, b)  -> "let " ++ n ++ " = " ++ i.show ++ "; " ++ b.show
+    VarDecl(n, _, i, b) -> "var " ++ n ++ " = " ++ i.show ++ "; " ++ b.show
+    Assign(n, v)     -> n ++ " = " ++ v.show
     Fun(ps, b)       -> "fun(" ++ ps.join(", ") ++ ") => " ++ b.show
     Call(f, args)    -> f.show ++ "(" ++ args.map(show).join(", ") ++ ")"
     Binary(op, l, r) -> "(" ++ l.show ++ " " ++ op.show ++ " " ++ r.show ++ ")"

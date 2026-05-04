@@ -69,6 +69,7 @@ Legend: **done** = shipped, **—** = not started
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | — | Medium | Prelude fns operating on `maybe`/`result`; needs user-defined higher-order fns working first |
 | `?` operator (early return on Err/None) | — | High | Needs a return/early-exit mechanism; Koka uses effects for this |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
+| Mutable variables (`var x = 10; x = 5`) | **done** | Medium | `var` declares mutable local; `x = expr` reassigns. Emits Koka `var x := 10` / `x := 5`. Effect-safe via Koka's algebraic `local-var` — can't leak scope |
 
 ### Control Flow
 

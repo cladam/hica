@@ -1,12 +1,11 @@
-// Hica — while loops
-// Loop while a condition is true.
-// Note: most useful with mutable state (future feature).
+// Hica — while loops with mutable variables
+// var declares a mutable variable, while loops until condition is false.
 
 fun main() {
-  // Simple while loop — condition checked before each iteration
-  while false {
-    println("this never runs")
+  var x = 5
+  while x > 0 {
+    println(x)
+    x = x - 1
   }
-
-  println("while loops work!")
+  println("liftoff!")
 }

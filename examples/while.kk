@@ -131,6 +131,8 @@ fun hc_removesuffix(s : string, suf : string) : string
   if s.ends-with(suf).is-just then s.list.take((s.count - suf.count)).string else s
 
 fun main()
-  while { False }
-    println("this never runs")
-  println("while loops work!")
+  var x : int := 5
+  while { (x > 0) }
+    println(x.show)
+    x := (x - 1)
+  println("liftoff!")

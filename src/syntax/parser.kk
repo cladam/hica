@@ -90,6 +90,11 @@ fun parse-prefix() : <div,parser> node
               val fields = parse-struct-lit-fields()
               val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
               Node(Span(t.span.start, end-tok.span.end), StructLit(name, fields))
+            TkEq ->
+              // x = expr — reassignment (only valid for var-declared names)
+              advance()
+              val value = parse-expr()
+              Node(Span(t.span.start, value.span.end), Assign(name, value))
             _ ->
               Node(t.span, Var(name))
     TkLParen ->
@@ -149,6 +154,8 @@ fun parse-prefix() : <div,parser> node
       parse-if()
     TkLet ->
       parse-let()
+    TkVar ->
+      parse-var()
     TkMatch ->
       parse-match()
     TkRepeat ->
@@ -503,6 +510,20 @@ fun parse-let() : <div,parser> node
         _           -> ()
       val body = parse-let-body(init.span.end)
       Node(Span(t.span.start, body.span.end), Let(name, ann, init, body))
+
+fun parse-var() : <div,parser> node
+  val t = expect("var", fn(k) match k { TkVar -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected identifier after 'var'"); "_" }
+  val ann = parse-optional-type-ann()
+  expect("=", fn(k) match k { TkEq -> True; _ -> False })
+  val init = parse-expr()
+  match peek()
+    TkSemicolon -> { advance(); () }
+    _           -> ()
+  val body = parse-let-body(init.span.end)
+  Node(Span(t.span.start, body.span.end), VarDecl(name, ann, init, body))
 
 // Parse the body of a let binding. If we're at the end of a block (}) or
 // end of file, synthesize a unit value — this allows trailing lets like
