@@ -486,7 +486,7 @@ fun parse-let() : <div,parser> node
       match peek()
         TkSemicolon -> { advance(); () }
         _           -> ()
-      val body = parse-expr()
+      val body = parse-let-body(init.span.end)
       Node(Span(t.span.start, body.span.end), LetTuple(names, init, body))
     _ ->
       val name = match peek()
@@ -499,8 +499,17 @@ fun parse-let() : <div,parser> node
       match peek()
         TkSemicolon -> { advance(); () }
         _           -> ()
-      val body = parse-expr()
+      val body = parse-let-body(init.span.end)
       Node(Span(t.span.start, body.span.end), Let(name, ann, init, body))
+
+// Parse the body of a let binding. If we're at the end of a block (}) or
+// end of file, synthesize a unit value — this allows trailing lets like
+// `let x = 42` as the last statement without requiring a continuation.
+fun parse-let-body( fallback-pos : int ) : <div,parser> node
+  match peek()
+    TkRBrace -> Node(Span(fallback-pos, fallback-pos), Tuple([]))
+    TkEof    -> Node(Span(fallback-pos, fallback-pos), Tuple([]))
+    _        -> parse-expr()
 
 fun parse-let-tuple-names() : <div,parser> list<string>
   match peek()
