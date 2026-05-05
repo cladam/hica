@@ -47,12 +47,12 @@ fun surround(s: string, wrap: string) => wrap + s + wrap
 
 // --- Case helpers ---
 
-fun capitalize(s: string) : string =>
+fun capitalise(s: string) : string =>
   if str_length(s) == 0 { "" }
   else { to_upper(s[:1]) + to_lower(s[1:]) }
 
 fun capwords(s: string) : string =>
-  join(map(words(s), (w) => capitalize(w)), " ")
+  join(map(words(s), (w) => capitalise(w)), " ")
 
 fun shout(s: string) : string => to_upper(s) + "!"
 

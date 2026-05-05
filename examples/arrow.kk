@@ -3,6 +3,9 @@ module arrow
 
 import std/os/env
 
+effect hica-brk
+  ctl hica-break() : a
+
 struct cliflag
   flag_name : string
   flag_short : string
@@ -193,14 +196,14 @@ fun hc_center(s : string, width : int, ch : string)
 fun hc_surround(s : string, wrap : string)
   ((wrap ++ s) ++ wrap)
 
-fun hc_capitalize(s : string) : string
+fun hc_capitalise(s : string) : string
   if (s.count == 0) then
     ""
   else
     (s.list.take(1).string.to-upper ++ s.list.drop(1).string.to-lower)
 
 fun hc_capwords(s : string) : string
-  map(hc_words(s), fn(w) hc_capitalize(w)).join(" ")
+  map(hc_words(s), fn(w) hc_capitalise(w)).join(" ")
 
 fun hc_shout(s : string) : string
   (s.to-upper ++ "!")
@@ -365,69 +368,74 @@ fun hc_parse_loop(spec : clispec, args : list<string>)
   var sub_args := []
   var remaining : list<string> := args
   var error : string := ""
-  while { (hc_is_empty(error) && (list/length(remaining) > 0)) }
-    val a : string = remaining[0].unjust
-    remaining := drop(remaining, 1)
-    if ((a == "--help") || (a == "-h")) then
-      error := "__help__"
-    else
-      if (a == "--version") then
-        error := "__version__"
+  val _ =
+    with handler
+      ctl hica-break() -> ()
+    while { (hc_is_empty(error) && (list/length(remaining) > 0)) }
+      val a : string = remaining[0].unjust
+      remaining := drop(remaining, 1)
+      if ((a == "--help") || (a == "-h")) then
+        error := "__help__"
+        hica-break()
       else
-        if (a == "--") then
-          positionals := (positionals ++ remaining)
-          remaining := []
+        if (a == "--version") then
+          error := "__version__"
+          hica-break()
         else
-          if (a.starts-with("--").is-just && a.contains("=")) then
-            val clean : string = hc_removeprefix(a, "--")
-            val parts : list<string> = clean.split("=")
-            val name : string = parts[0].unjust
-            val v : string = drop(parts, 1).join("=")
-            match hc_find_opt_long(spec.app_options, name)
-              Just(_) ->
-                options := (options ++ [(name, v)])
-              Nothing ->
-                error := ("unknown option: --" ++ name)
+          if (a == "--") then
+            positionals := (positionals ++ remaining)
+            hica-break()
           else
-            if a.starts-with("--").is-just then
-              val name : string = hc_removeprefix(a, "--")
-              match hc_find_flag_long(spec.app_flags, name)
+            if (a.starts-with("--").is-just && a.contains("=")) then
+              val clean : string = hc_removeprefix(a, "--")
+              val parts : list<string> = clean.split("=")
+              val name : string = parts[0].unjust
+              val v : string = drop(parts, 1).join("=")
+              match hc_find_opt_long(spec.app_options, name)
                 Just(_) ->
-                  flags := (flags ++ [name])
+                  options := (options ++ [(name, v)])
                 Nothing ->
-                  match hc_find_opt_long(spec.app_options, name)
-                    Just(_) ->
-                      if (list/length(remaining) == 0) then
-                        error := ("option --" ++ name ++ " requires a value")
-                      else
-                        options := (options ++ [(name, remaining[0].unjust)])
-                        remaining := drop(remaining, 1)
-                    Nothing ->
-                      error := ("unknown option: --" ++ name)
+                  error := ("unknown option: --" ++ name)
             else
-              if a.starts-with("-").is-just then
-                val s : string = hc_removeprefix(a, "-")
-                match hc_find_flag_short(spec.app_flags, s)
-                  Just(f) ->
-                    flags := (flags ++ [f.flag_name])
+              if a.starts-with("--").is-just then
+                val name : string = hc_removeprefix(a, "--")
+                match hc_find_flag_long(spec.app_flags, name)
+                  Just(_) ->
+                    flags := (flags ++ [name])
                   Nothing ->
-                    match hc_find_opt_short(spec.app_options, s)
-                      Just(o) ->
+                    match hc_find_opt_long(spec.app_options, name)
+                      Just(_) ->
                         if (list/length(remaining) == 0) then
-                          error := ("option -" ++ s ++ " requires a value")
+                          error := ("option --" ++ name ++ " requires a value")
                         else
-                          options := (options ++ [(o.opt_name, remaining[0].unjust)])
+                          options := (options ++ [(name, remaining[0].unjust)])
                           remaining := drop(remaining, 1)
                       Nothing ->
-                        error := ("unknown option: -" ++ s)
+                        error := ("unknown option: --" ++ name)
               else
-                match hc_find_command(spec.app_commands, a)
-                  Just(_) ->
-                    subcmd := a
-                    sub_args := remaining
-                    remaining := []
-                  Nothing ->
-                    positionals := (positionals ++ [a])
+                if a.starts-with("-").is-just then
+                  val s : string = hc_removeprefix(a, "-")
+                  match hc_find_flag_short(spec.app_flags, s)
+                    Just(f) ->
+                      flags := (flags ++ [f.flag_name])
+                    Nothing ->
+                      match hc_find_opt_short(spec.app_options, s)
+                        Just(o) ->
+                          if (list/length(remaining) == 0) then
+                            error := ("option -" ++ s ++ " requires a value")
+                          else
+                            options := (options ++ [(o.opt_name, remaining[0].unjust)])
+                            remaining := drop(remaining, 1)
+                        Nothing ->
+                          error := ("unknown option: -" ++ s)
+                else
+                  match hc_find_command(spec.app_commands, a)
+                    Just(_) ->
+                      subcmd := a
+                      sub_args := remaining
+                      hica-break()
+                    Nothing ->
+                      positionals := (positionals ++ [a])
   ParseRaw(error, flags, options, positionals, subcmd, sub_args)
 
 fun hc_cli_parse_args(spec : clispec, args : list<string>)

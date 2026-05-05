@@ -280,11 +280,11 @@ fun parse_loop(spec: CliSpec, args: list<string>) {
     let a = remaining[0]
     remaining = drop(remaining, 1)
 
-    if a == "--help" || a == "-h" { error = "__help__" }
-    else if a == "--version" { error = "__version__" }
+    if a == "--help" || a == "-h" { error = "__help__"; break }
+    else if a == "--version" { error = "__version__"; break }
     else if a == "--" {
       positionals = positionals + remaining
-      remaining = []
+      break
     }
     else if starts_with(a, "--") && contains(a, "=") {
       let clean = removeprefix(a, "--")
@@ -320,7 +320,7 @@ fun parse_loop(spec: CliSpec, args: list<string>) {
     }
     else {
       match find_command(spec.app_commands, a) {
-        Some(_) => { subcmd = a; sub_args = remaining; remaining = [] },
+        Some(_) => { subcmd = a; sub_args = remaining; break },
         None    => { positionals = positionals + [a] }
       }
     }

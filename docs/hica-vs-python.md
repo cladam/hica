@@ -185,7 +185,7 @@ fun main() {
 | `s[1:4]` | `s[1:4]` | Substring (same syntax!) |
 | `s[:3]` | `s[:3]` | First 3 characters |
 | `s[2:]` | `s[2:]` | From index 2 to end |
-| `s.capitalize()` | `capitalize(s)` | `"hello"` → `"Hello"` |
+| `s.capitalise()` | `capitalise(s)` | `"hello"` → `"Hello"` |
 | `s.removeprefix("v")` | `removeprefix(s, "v")` | Strip prefix |
 | `s.removesuffix(".txt")` | `removesuffix(s, ".txt")` | Strip suffix |
 

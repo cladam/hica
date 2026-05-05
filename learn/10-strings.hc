@@ -23,7 +23,7 @@
 // 5. Utility functions — available everywhere:
 //      str_length, trim, to_upper, to_lower, split, join,
 //      contains, starts_with, ends_with, replace,
-//      capitalize, capwords, removeprefix, removesuffix, ...
+//      capitalise, capwords, removeprefix, removesuffix, ...
 //
 // 6. Comparison operators (lexicographic):
 //      "apple" < "banana"   =>  true
@@ -62,7 +62,7 @@ fun main() {
   println(replace("banana", "a", "o"))
 
   // --- Prelude helpers (written in hica) ---
-  println(capitalize("hello"))
+  println(capitalise("hello"))
   println(capwords("hello WORLD"))
   println(removeprefix("v1.2.3", "v"))
   println(removesuffix("file.txt", ".txt"))

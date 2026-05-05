@@ -323,7 +323,7 @@ s[1:4]    // "ell" (a string)
 s[-1]     // 'o' (negative indexing)
 ```
 
-There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`, `starts_with`, `capitalize`, `removeprefix`, and more. See the [Standard Library](/hica/docs/standard-library) for the complete list.
+There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`, `starts_with`, `capitalise`, `removeprefix`, and more. See the [Standard Library](/hica/docs/standard-library) for the complete list.
 
 ## Closures
 

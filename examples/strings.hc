@@ -42,7 +42,7 @@ fun main() {
   println("slice [-2:]:    " + name[-2:])
 
   // --- Case & prefix/suffix ---
-  println("capitalize:     " + capitalize("hello"))
+  println("capitalise:     " + capitalise("hello"))
   println("capwords:       " + capwords("hello WORLD foo"))
   println("removeprefix:   " + removeprefix("v1.2.3", "v"))
   println("removesuffix:   " + removesuffix("file.txt", ".txt"))

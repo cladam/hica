@@ -1,5 +1,5 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
-// Uses: struct, split, index_of, removeprefix, parse_int, string slicing, var, while
+// Uses: struct, split, index_of, removeprefix, parse_int, string slicing, var, loop, break
 
 struct SemVer {
   major: int, 
@@ -39,35 +39,31 @@ fun cmp_ids(a, b) {
   }
 }
 
-// Compare prerelease identifier lists using while + var
+// Compare prerelease identifier lists using loop + break
 fun cmp_pre(a_ids, b_ids) {
   var ap = a_ids
   var bp = b_ids
   var result = 0
-  var done = false
-  while !done {
+  loop {
     if length(ap) == 0 && length(bp) == 0 {
-      result = 0
-      done = true
+      break
     }
     else if length(ap) == 0 {
       result = -1
-      done = true
+      break
     }
     else if length(bp) == 0 {
       result = 1
-      done = true
+      break
     }
     else {
       let c = cmp_ids(ap[0], bp[0])
       if c != 0 {
         result = c
-        done = true
+        break
       }
-      else {
-        ap = drop(ap, 1)
-        bp = drop(bp, 1)
-      }
+      ap = drop(ap, 1)
+      bp = drop(bp, 1)
     }
   }
   result
