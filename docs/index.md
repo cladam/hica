@@ -1,25 +1,48 @@
 ---
 layout: default
-title: hica - A Modern Systems Language
+title: Introduction - hica
 ---
 
-# What is hica?
+# Introduction
 
 **hica** is a high-performance, expression-oriented programming language built in [Koka](https://koka-lang.github.io/) that also transpiles to Koka. It blends Rust-like syntax and safety with a pragmatic, approachable design, powered by Koka's algebraic effect system and Perceus reference counting.
 
-Because the target is Koka itself, hica programs can be compiled onward to **C**, **JavaScript**, or **WASM**.
+> **hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
-> **hica** - **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+## Why hica?
 
-## Design Goals
+Most programming languages force you to choose: easy to learn **or** safe and fast. hica gives you both.
 
-- **Expression-oriented**: everything returns a value: `if`, `match`, and blocks are all expressions.
+- **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
+- **Everything is an expression**: `if`, `match`, and blocks all return values. No surprise `void` returns.
+- **Compile-time safety**: Hindley-Milner type inference catches bugs before your program runs, without requiring type annotations everywhere.
+- **No garbage collector**: memory safety via Koka's Perceus (Functional But In-Place) reference counting.
 - **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
-- **No garbage collector**: memory safety via Koka's Perceus reference counting, inherited from the Koka target.
-- **Strong inference**: Hindley-Milner type inference with row polymorphism; type annotations are rarely required but fully supported.
-- **Familiar syntax**: curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 
-## A Quick Taste
+## How It Works
+
+hica compiles through a multi-stage pipeline:
+
+```
+.hc source -> Lex -> Parse -> Type Check -> Emit Koka (.kk) -> Koka -> C / JS / WASM
+```
+
+Each phase is implemented as a Koka module using algebraic effects for compiler state; diagnostics, fresh type variables, and symbol scopes.
+
+Because the final target is Koka, hica programs inherit the full Koka runtime: its standard library, Perceus memory management, and the ability to compile to C (native), JavaScript (browser/Node), or WASM.
+
+## What You Get for Free
+
+By targeting Koka, hica doesn't need to reinvent:
+
+- Memory management (Perceus reference counting)
+- Backend codegen (C, JS, WASM, all handled by Koka)
+- Standard library (strings, lists, I/O, concurrency)
+- Optimisation passes (tail-call, FBIP in-place reuse)
+- Platform support and ABI concerns
+- Effect runtime (handlers, resumptions)
+
+## A Quick Example
 
 ```rust
 fun fizzbuzz(n) =>
@@ -35,14 +58,6 @@ fun main() {
 }
 ```
 
-## Compilation Pipeline
-
-```
-.hc source → Lex → Parse → Type Check → Emit Koka (.kk) → Koka → C / JS / WASM
-```
-
-Each phase is implemented as a Koka module using algebraic effects for compiler state (diagnostics, fresh type variables, symbol scopes).
-
 ## Technical Stack
 
 | Component             | Approach                                        |
@@ -55,4 +70,15 @@ Each phase is implemented as a Koka module using algebraic effects for compiler 
 | Memory management     | Perceus (inherited from Koka target)            |
 | Backend target        | Koka (.kk) -> C / JS / WASM via Koka            |
 
-Ready to get started? Check the [Quick Start](/hica/docs/quick-start) guide, or dive into [Learn hica](/hica/docs/learn) for a step-by-step tutorial.
+## Inspirations
+
+- [Koka](https://koka-lang.github.io/) - language with algebraic effects and Perceus memory management
+- [Lisette](https://lisette.run/) - Rust-inspired language that compiles to Go
+- C# - the `=>` operator and query expression syntax
+- Python - easy and powerful lists
+
+## Next Steps
+
+- [Quick Start](/hica/docs/quick-start) - install and run your first program
+- [Learn hica](/hica/docs/learn) - 20 progressive lessons, one concept at a time
+- [Language Reference](/hica/docs/language-reference) - the full syntax and semantics
