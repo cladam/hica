@@ -214,12 +214,12 @@ match point {
 }
 ```
 
-hica supports integer, string, wildcard, and `Maybe`/`Result` patterns:
+hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, and or-patterns:
 
 ```rust
 fun describe(x) => match x {
   0 => "zero",
-  1 => "one",
+  1 | 2 | 3 => "low",
   _ => "many"
 }
 
@@ -231,7 +231,7 @@ fun main() {
 }
 ```
 
-Rust's pattern matching is more powerful. hica covers the common cases with fewer constructs and edge cases to learn.
+Rust's pattern matching is more powerful (nested destructuring, `if let`, `@` bindings). hica covers the common cases — including or-patterns and guards — with fewer constructs and edge cases to learn.
 
 ## Custom Data Types
 

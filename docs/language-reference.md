@@ -151,6 +151,21 @@ match find_user(id) {
 }
 ```
 
+Or-patterns match multiple values in one arm with `|`:
+
+```rust
+fun day_type(day) => match day {
+  "Saturday" | "Sunday" => "weekend",
+  _                     => "weekday"
+}
+
+fun classify(n) => match n {
+  1 | 2 | 3 => "low",
+  4 | 5 | 6 => "mid",
+  _         => "high"
+}
+```
+
 Tuple destructuring patterns:
 
 ```rust

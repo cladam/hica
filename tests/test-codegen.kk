@@ -1358,11 +1358,14 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => println(42)")
       assert/is-true(!code.contains("std/os/env"))
 
-    // --- Or-patterns ---
+    // --- Or-patterns (desugared to repeated arms) ---
     dtest("emit or-pattern with literals")
       val code = emit-typed-program("fun classify(x: int) => match x { 1 | 2 | 3 => true, _ => false }")
-      assert/is-true(code.contains("1 | 2 | 3 ->"))
+      assert/is-true(code.contains("1 ->"))
+      assert/is-true(code.contains("2 ->"))
+      assert/is-true(code.contains("3 ->"))
 
     dtest("emit or-pattern with two alternatives")
       val code = emit-typed-program("fun test(x: int) => match x { 0 | 1 => true, _ => false }")
-      assert/is-true(code.contains("0 | 1 ->"))
+      assert/is-true(code.contains("0 ->"))
+      assert/is-true(code.contains("1 ->"))

@@ -19,7 +19,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 03 | `03-variables.hc`     | Variables and `let`              | `let` bindings, the last-line rule              |
 | 04 | `04-functions.hc`     | Functions and chaining           | Multiple functions, calling one from another    |
 | 05 | `05-if-else.hc`       | Conditional expressions          | `if`/`else` as expressions, setting variables   |
-| 06 | `06-match.hc`         | Pattern matching                 | `match` with integer patterns, wildcards `_`, match guards `if` |
+| 06 | `06-match.hc`         | Pattern matching                 | `match` with integer patterns, wildcards `_`, match guards `if`, or-patterns `\|` |
 | 07 | `07-logic.hc`         | Boolean logic                    | `&&`, comparisons, combining conditions         |
 | 08 | `08-fizzbuzz.hc`      | Putting it all together          | `else if` chains, multi-step logic              |
 | 09 | `09-repeat.hc`        | Repeating things                 | `repeat(n) { body }`, running code n times      |
@@ -50,6 +50,7 @@ Each lesson is a standalone `.hc` file you can run:
 | `else if` chains               | `08-fizzbuzz.hc`                      |
 | `match` + wildcards            | `06-match.hc`                         |
 | Match guards (`if`)            | `06-match.hc`                         |
+| Or-patterns (`\|`)             | `06-match.hc`                         |
 | `&&` boolean operators         | `07-logic.hc`                         |
 | Nested conditionals            | `08-fizzbuzz.hc`                      |
 | Unary negation (`-x`)          | `05-if-else.hc`                       |

@@ -267,13 +267,13 @@ match command:
         print("Unknown")
 ```
 
-**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, and wildcards:
+**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, and or-patterns:
 
 ```rust
 fun describe(x) => match x {
-  0 => "nothing",
-  1 => "one",
-  _ => "many"
+  0       => "nothing",
+  1 | 2   => "few",
+  _       => "many"
 }
 ```
 

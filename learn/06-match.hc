@@ -48,6 +48,18 @@ fun classify(n) => match n {
 //     (x, y) => "{x}, {y}"
 //   }
 //
+// ── Or-patterns ─────────────────────────────────────────────
+//
+// Match several values in one arm with `|`:
+//
+//   match day {
+//     "Saturday" | "Sunday" => "weekend",
+//     _                     => "weekday"
+//   }
+//
+// Each alternative must be a literal or wildcard (no variable
+// bindings in or-patterns).
+//
 // ============================================================
 
 fun locate(point) => match point {
@@ -55,6 +67,17 @@ fun locate(point) => match point {
   (x, 0) => "x-axis at {x}",
   (0, y) => "y-axis at {y}",
   (_, _) => "elsewhere"
+}
+
+fun day_type(day) => match day {
+  "Saturday" | "Sunday" => "weekend",
+  _                     => "weekday"
+}
+
+fun bucket(n) => match n {
+  1 | 2 | 3 => "low",
+  4 | 5 | 6 => "mid",
+  _         => "high"
 }
 
 fun main() {
@@ -67,6 +90,11 @@ fun main() {
   println(locate((3, 0)))
   println(locate((0, 7)))
   println(locate((1, 2)))
+  println(day_type("Saturday"))
+  println(day_type("Monday"))
+  println(bucket(2))
+  println(bucket(5))
+  println(bucket(9))
 }
 
 // ============================================================

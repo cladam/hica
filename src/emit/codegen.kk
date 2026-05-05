@@ -321,8 +321,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Block(stmts) ->
       stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->
+      val expanded = arms.flatmap(fn(a) expand-or-arm(a))
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
-      arms.map(fn(a)
+      expanded.map(fn(a)
         val pat-str = emit-pattern(a.pattern, declared)
         val guard-str = match a.guard
           Just(g) -> " | " ++ emit-expr(g, declared)
@@ -428,6 +429,12 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TResult(_, _)) -> inner ++ ".show"
         Just(TStruct(sn)) -> sn.struct-type-name ++ "/show(" ++ inner ++ ")"
         _             -> inner  // TVar or unknown — emit directly, Koka infers string from ++
+
+// Expand or-patterns: POr([p1, p2, p3]) becomes three separate arms
+fun expand-or-arm( a : match-arm ) : list<match-arm>
+  match a.pattern
+    POr(alts) -> alts.map(fn(p) Match-arm(p, a.guard, a.body))
+    _         -> [a]
 
 fun emit-pattern( p : pattern, declared : list<string> ) : div string
   match p
