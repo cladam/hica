@@ -152,7 +152,7 @@ The variable `x` is bound by the pattern and available in the guard. This is muc
 
 ## Loops
 
-hica has four ways to repeat things:
+hica has five ways to repeat things:
 
 ```rust
 // Count from 0 to 4
@@ -176,6 +176,23 @@ var x = 5
 while x > 0 {
   println(x)
   x = x - 1
+}
+
+// Loop forever until you break
+var i = 1
+loop {
+  if i > 1000 { break }
+  i = i * 2
+}
+println(i)  // 1024
+```
+
+All loops support `break` to exit early and `continue` to skip to the next iteration:
+
+```rust
+for n in [1, -2, 3, -4, 5] {
+  if n < 0 { continue }  // skip negatives
+  println(n)
 }
 ```
 

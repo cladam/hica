@@ -216,6 +216,29 @@ while x > 0 {
 
 The condition must be a `bool`. The body runs until the condition becomes `false`.
 
+### Loop (infinite)
+
+```rust
+loop {
+  println("running")
+  if done { break }
+}
+```
+
+Repeats forever until `break` is called.
+
+### Break and continue
+
+`break` exits the enclosing loop. `continue` skips to the next iteration. Both work in all loop types: `while`, `for`, `repeat`, and `loop`.
+
+```rust
+for i in 0..10 {
+  if i % 2 == 0 { continue }
+  if i > 7 { break }
+  println(i)
+}
+```
+
 ## Data Types
 
 ### Primitives

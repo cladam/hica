@@ -19,6 +19,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Data structures | Classes / dataclasses | Structs |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
+| Loops | `for`, `while`, `break`, `continue` | `for`, `while`, `repeat`, `loop`, `break`, `continue` |
 | Performance | Interpreted (generally slower) | Compiled to C (generally faster) |
 | Ecosystem | Massive | Small but growing |
 
@@ -276,6 +277,42 @@ fun describe(x) => match x {
   _       => "many"
 }
 ```
+
+## Loops
+
+**Python** has `for`, `while`, `break`, and `continue`:
+
+```python
+for x in [1, -2, 3]:
+    if x < 0:
+        continue
+    print(x)
+
+while True:
+    line = input()
+    if line == "quit":
+        break
+```
+
+**hica** has the same constructs plus `repeat` and `loop`:
+
+```rust
+for x in [1, -2, 3] {
+  if x < 0 { continue }
+  println(x)
+}
+
+loop {
+  // runs forever until break
+  break
+}
+
+repeat(3) {
+  println("tick")
+}
+```
+
+`break` and `continue` work in all loop types: `while`, `for`, `repeat`, and `loop`. Python's `for/else` and `while/else` have no equivalent in hica.
 
 ## Performance
 

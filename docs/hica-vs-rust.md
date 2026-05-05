@@ -20,6 +20,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Custom types | `struct` + `impl` + `derive` | `struct` (simple, no `impl` blocks) |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
+| Loops | `loop`, `while`, `for`, `break`/`continue`, labeled breaks | `loop`, `while`, `for`, `repeat`, `break`/`continue` |
 | Learning curve | Steep (ownership, lifetimes, traits) | Gentle (write, run, iterate) |
 | Ecosystem | Massive (crates.io) | Small, growing |
 
@@ -316,6 +317,38 @@ fun main() {
   println(result)
 }
 ```
+
+## Loops
+
+Rust has `loop`, `while`, and `for` with `break`/`continue`:
+
+```rust
+for x in &[1, -2, 3] {
+    if *x < 0 { continue; }
+    println!("{}", x);
+}
+
+let result = loop {
+    break 42;
+};
+```
+
+Rust's `loop` can return a value via `break expr`. Labeled breaks (`'outer: loop { break 'outer; }`) allow breaking from nested loops.
+
+hica has the same set: `while`, `for`, `repeat`, `loop`, `break`, and `continue`:
+
+```rust
+for x in [1, -2, 3] {
+  if x < 0 { continue }
+  println(x)
+}
+
+loop {
+  break
+}
+```
+
+hica's `break` cannot return a value and there are no labeled breaks. `break`/`continue` always apply to the innermost loop.
 
 ## Compilation and Performance
 

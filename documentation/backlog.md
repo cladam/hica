@@ -81,8 +81,8 @@ Legend: **done** = shipped, **—** = not started
 | `while condition { ... }` | **done** | Medium | Emit Koka `while { condition } { body }` |
 | `for i in 0..n` (range loop) | **done** | Medium | Emit Koka `for(0, n) fn(i)` |
 | `for x in list` (collection loop) | **done** | Medium | Emit Koka `list.foreach(fn(x) { body })` |
-| `loop { ... }` (infinite loop) | — | Low | Emit Koka `while { True }`, requires `break` |
-| `break` / `continue` | — | Medium | Needs Koka effect-based control flow |
+| `loop { ... }` (infinite loop) | **done** | Low | Emit Koka `while { True }` with break handler |
+| `break` / `continue` | **done** | Medium | Koka effect-based control flow: `hica-brk`/`hica-cont` effects with `ctl` handlers; works in all loop types (`while`, `for`, `repeat`, `loop`) |
 
 ### Functions
 

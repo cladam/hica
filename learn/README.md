@@ -38,6 +38,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 22 | `22-env.hc`           | Environment                      | `get_args()`, `get_env(key)`, `eprintln`         |
 | 23 | `23-parsing.hc`       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
 | 24 | `24-while.hc`         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
+| 25 | `25-break-continue.hc`| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
 
 ## Language features shown
 
@@ -84,7 +85,10 @@ Each lesson is a standalone `.hc` file you can run:
 | `parse_int`, `parse_float`     | `23-parsing.hc`                       |
 | `var` mutable variables        | `24-while.hc`                         |
 | `while` loops                  | `24-while.hc`                         |
-| Reassignment (`x = expr`)     | `24-while.hc`                         |
+| Reassignment (`x = expr`)      | `24-while.hc`                         |
+| `break`                        | `25-break-continue.hc`                |
+| `continue`                     | `25-break-continue.hc`                |
+| `loop { ... }`                 | `25-break-continue.hc`                |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
@@ -97,7 +101,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 24 lessons, try these challenges:
+Once you finish all 25 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers
