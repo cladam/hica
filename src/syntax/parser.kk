@@ -579,7 +579,7 @@ fun parse-match-arms() : <div,parser> list<match-arm>
   match peek()
     TkRBrace -> []
     _ ->
-      val pat = parse-pattern()
+      val pat = parse-or-pattern()
       // optional guard: pattern if condition => body
       val guard = match peek()
         TkIf -> { advance(); Just(parse-expr()) }
@@ -591,6 +591,23 @@ fun parse-match-arms() : <div,parser> list<match-arm>
         TkComma -> { advance(); () }
         _       -> ()
       Cons(Match-arm(pat, guard, body), parse-match-arms())
+
+// Parse a pattern, possibly with or-alternatives: pat1 | pat2 | pat3
+fun parse-or-pattern() : <div,parser> pattern
+  val first = parse-pattern()
+  match peek()
+    TkPipe ->
+      val alts = parse-or-rest()
+      POr(Cons(first, alts))
+    _ -> first
+
+fun parse-or-rest() : <div,parser> list<pattern>
+  match peek()
+    TkPipe ->
+      advance()
+      val p = parse-pattern()
+      Cons(p, parse-or-rest())
+    _ -> []
 
 fun parse-pattern-list() : <div,parser> list<pattern>
   val p = parse-pattern()

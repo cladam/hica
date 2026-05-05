@@ -243,6 +243,7 @@ pub type pattern
   POk( inner : pattern )
   PErr( inner : pattern )
   PTuple( elems : list<pattern> )
+  POr( alts : list<pattern> )
 
 pub fun pattern/show( p : pattern ) : div string
   match p
@@ -254,6 +255,7 @@ pub fun pattern/show( p : pattern ) : div string
     POk(i)   -> "Ok(" ++ i.show ++ ")"
     PErr(i)  -> "Err(" ++ i.show ++ ")"
     PTuple(es) -> "(" ++ es.map(show).join(", ") ++ ")"
+    POr(alts)  -> alts.map(show).join(" | ")
 
 // ---------------------------------------------------------------------------
 // Pretty printing

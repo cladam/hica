@@ -158,3 +158,10 @@ pub fun main() : io ()
 
     dtest("lex struct declaration")
       assert/is-true(token-string("struct Point { x: int }") == "struct Point { x : int } <eof>")
+
+    // --- Pipe token ---
+    dtest("lex bare pipe")
+      assert/is-true(token-string("1 | 2") == "1 | 2 <eof>")
+
+    dtest("lex pipe vs pipe-pipe")
+      assert/is-true(token-string("a || b | c") == "a || b | c <eof>")

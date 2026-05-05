@@ -439,6 +439,7 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
     POk(i)   -> "Right(" ++ emit-pattern(i, declared) ++ ")"
     PErr(i)  -> "Left(" ++ emit-pattern(i, declared) ++ ")"
     PTuple(es) -> "(" ++ es.map(fn(e) emit-pattern(e, declared)).join(", ") ++ ")"
+    POr(alts)  -> alts.map(fn(a) emit-pattern(a, declared)).join(" | ")
 
 fun emit-binop( op : binop ) : string
   match op

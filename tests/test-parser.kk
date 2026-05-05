@@ -450,3 +450,20 @@ pub fun main() : io ()
     itest("parse field access")
       val result = parse-program-show("struct Point { x: int, y: int } fun main() { let p = Point { x: 1, y: 2 }; p.x }")
       assert/is-true(result.contains(".x"))
+
+    // --- Or-patterns ---
+    itest("parse or-pattern with literals")
+      val result = parse-show("match x { 1 | 2 | 3 => true, _ => false }")
+      assert/is-true(result.contains("1 | 2 | 3"))
+
+    itest("parse or-pattern with two alternatives")
+      val result = parse-show("match x { 0 | 1 => true, _ => false }")
+      assert/is-true(result.contains("0 | 1"))
+
+    itest("parse or-pattern with wildcards")
+      val result = parse-show("match x { None | Some(_) => true }")
+      assert/is-true(result.contains("None | Some(_)"))
+
+    itest("parse or-pattern with strings")
+      val result = parse-show("match x { \"yes\" | \"y\" => true, _ => false }")
+      assert/is-true(result.contains("|"))

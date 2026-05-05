@@ -1357,3 +1357,12 @@ pub fun main() : io ()
     dtest("no env import when not using env functions")
       val code = emit-typed-program("fun main() => println(42)")
       assert/is-true(!code.contains("std/os/env"))
+
+    // --- Or-patterns ---
+    dtest("emit or-pattern with literals")
+      val code = emit-typed-program("fun classify(x: int) => match x { 1 | 2 | 3 => true, _ => false }")
+      assert/is-true(code.contains("1 | 2 | 3 ->"))
+
+    dtest("emit or-pattern with two alternatives")
+      val code = emit-typed-program("fun test(x: int) => match x { 0 | 1 => true, _ => false }")
+      assert/is-true(code.contains("0 | 1 ->"))

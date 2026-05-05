@@ -743,12 +743,14 @@ fun has-catch-all( pats : list<pattern> ) : bool
     Nil -> False
     Cons(PWild, _)   -> True
     Cons(PVar(_), _) -> True
+    Cons(POr(alts), rest) -> has-catch-all(alts) || has-catch-all(rest)
     Cons(_, rest)    -> has-catch-all(rest)
 
 // Check whether a specific constructor pattern appears in the list.
 fun has-constructor( pats : list<pattern>, pred : pattern -> bool ) : bool
   match pats
     Nil -> False
+    Cons(POr(alts), rest) -> has-constructor(alts, pred) || has-constructor(rest, pred)
     Cons(p, rest) -> if pred(p) then True else has-constructor(rest, pred)
 
 fun is-plit-bool( p : pattern, v : bool ) : bool
@@ -852,6 +854,10 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
       elems.zip(elem-vars).foldl((s1, env)) fn((sa, ea), (pat, tv))
         val resolved = apply-subst(sa, tv)
         infer-pattern(ea, sa, resolved, pat)
+    POr(alts) ->
+      // Each alternative must unify with the scrutinee; no bindings (or-patterns can't bind)
+      alts.foldl((s, env)) fn((sa, ea), alt)
+        infer-pattern(ea, sa, scrut-type, alt)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type
