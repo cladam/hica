@@ -12,7 +12,7 @@ is Koka itself, hica programs can be compiled onward to C, JavaScript, or WASM.
 
 hica is a good name for this language and it can stand for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
-Visit 
+Visit hica's [website](https://cladam.github.io/hica/) for a tour of the language.
 
 ## Design Goals
 
