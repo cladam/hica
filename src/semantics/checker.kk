@@ -43,6 +43,13 @@ pub effect struct-reg
   fun get-structs() : struct-registry
 
 // ---------------------------------------------------------------------------
+// Loop context: track whether we are inside a loop body
+// ---------------------------------------------------------------------------
+
+pub effect loop-ctx
+  fun in-loop() : bool
+
+// ---------------------------------------------------------------------------
 // Substitution: mapping from type-variable names to concrete types
 // ---------------------------------------------------------------------------
 
@@ -255,9 +262,15 @@ fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div
 // Type inference
 // ---------------------------------------------------------------------------
 
+// Infer a node inside a loop body context (sets in-loop to True).
+fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, node)
+  with override
+    fun in-loop() True
+  infer(env, s, n)
+
 // Infer the type of a node, returning the updated substitution and a
 // node annotated with its inferred type.
-pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg> (subst, node)
+pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, node)
   match n.expr
     // --- Literals: known concrete types ---
     Literal(LitInt(_)) ->
@@ -439,7 +452,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val (s1, count') = infer(env, s, count)
       val count-type = apply-subst(s1, get-type(count'))
       val s2 = compose-subst(unify(count-type, TInt, count.span), s1)
-      val (s3, body') = infer(env, s2, body)
+      val (s3, body') = infer-loop-body(env, s2, body)
       (s3, Node(n.span, Repeat(count', body'), Just(TUnit)))
 
     // --- For-in expressions ---
@@ -451,7 +464,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val end-type = apply-subst(s3, get-type(end'))
       val s4 = compose-subst(unify(end-type, TInt, end-e.span), s3)
       val env' = env.extend(name, TInt)
-      val (s5, body') = infer(env', s4, body)
+      val (s5, body') = infer-loop-body(env', s4, body)
       (s5, Node(n.span, ForIn(name, start', end', body'), Just(TUnit)))
 
     // --- For-each over collections ---
@@ -462,7 +475,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val s2 = compose-subst(unify(coll-type, TList(elem-type), coll.span), s1)
       val resolved-elem = apply-subst(s2, elem-type)
       val env' = env.extend(name, resolved-elem)
-      val (s3, body') = infer(env', s2, body)
+      val (s3, body') = infer-loop-body(env', s2, body)
       (s3, Node(n.span, ForEach(name, coll', body'), Just(TUnit)))
 
     // --- While expressions ---
@@ -470,8 +483,24 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val (s1, cond') = infer(env, s, cond)
       val cond-type = apply-subst(s1, get-type(cond'))
       val s2 = compose-subst(unify(cond-type, TBool, cond.span), s1)
-      val (s3, body') = infer(env, s2, body)
+      val (s3, body') = infer-loop-body(env, s2, body)
       (s3, Node(n.span, While(cond', body'), Just(TUnit)))
+
+    // --- Loop expressions ---
+    Loop(body) ->
+      val (s1, body') = infer-loop-body(env, s, body)
+      (s1, Node(n.span, Loop(body'), Just(TUnit)))
+
+    // --- Break / Continue ---
+    Break ->
+      if !in-loop() then
+        emit-error(n.span, "'break' can only be used inside a loop")
+      (s, Node(n.span, Break, Just(TUnit)))
+
+    Continue ->
+      if !in-loop() then
+        emit-error(n.span, "'continue' can only be used inside a loop")
+      (s, Node(n.span, Continue, Just(TUnit)))
 
     // --- String interpolation ---
     StringInterp(parts) ->
@@ -641,7 +670,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
 
 // Infer types for struct literal fields and unify with declared types.
-fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg> (subst, list<(string, node)>)
+fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<(string, node)>)
   match lit-fields
     Nil -> (s, [])
     Cons((fname, fval), rest) ->
@@ -657,7 +686,7 @@ fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, h
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
-fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>, hica-type)
+fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>, hica-type)
   match stmts
     Nil -> (s, [], TUnit)
     Cons(stmt, Nil) ->
@@ -688,7 +717,7 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
     _ -> env
 
 // Infer types for a list of call arguments.
-fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>)
+fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>)
   match args
     Nil -> (s, [])
     Cons(arg, rest) ->
@@ -699,7 +728,7 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
 // Infer types for string interpolation parts.
 // Each part is inferred independently — string segments stay TString,
 // expression parts can be any type (they get .show in codegen).
-fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg> (subst, list<node>)
+fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>)
   match parts
     Nil -> (s, [])
     Cons(part, rest) ->
@@ -710,7 +739,7 @@ fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,d
 // Infer types for match arms.
 // Each arm's pattern constrains the scrutinee type, and each arm's body
 // must unify with the result type variable.
-fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg> (subst, list<match-arm>)
+fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<match-arm>)
   match arms
     Nil -> (s, [])
     Cons(arm, rest) ->
@@ -872,7 +901,7 @@ fun get-type( n : node ) : hica-type
 // Infer a top-level function declaration.
 // Supports self-recursion: the function's own name is pre-seeded in the
 // environment with a fresh type so recursive calls can resolve.
-fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg> (subst, type-env, fun-decl)
+fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, type-env, fun-decl)
   // Assign types to each parameter: use annotation if provided, otherwise fresh type variable
   val param-types = zip-with-anns(d.params, d.param-anns)
   val ret-var = match d.ret-ann
@@ -902,10 +931,12 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 pub fun check-program( p : program ) : <div,diag,fresh> program
   with handler
     fun get-structs() p.structs
+  with handler
+    fun in-loop() False
   val (_, _, decls') = infer-decls(extern-env(), empty-subst, p.decls)
   Program(p.structs, decls')
 
-fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg> (subst, type-env, list<fun-decl>)
+fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, type-env, list<fun-decl>)
   match ds
     Nil -> (s, env, [])
     Cons(d, rest) ->
@@ -938,6 +969,8 @@ fun body-calls-name( n : node, name : string ) : div bool
     Repeat(count, body)     -> body-calls-name(count, name) || body-calls-name(body, name)
     ForIn(_, s, e, body)    -> body-calls-name(s, name) || body-calls-name(e, name) || body-calls-name(body, name)
     While(cond, body)       -> body-calls-name(cond, name) || body-calls-name(body, name)
+    Loop(body)              -> body-calls-name(body, name)
+    ForEach(_, coll, body)  -> body-calls-name(coll, name) || body-calls-name(body, name)
     StringInterp(parts)     -> parts.any(fn(p) body-calls-name(p, name))
     Tuple(elems)            -> elems.any(fn(e) body-calls-name(e, name))
     EList(elems)            -> elems.any(fn(e) body-calls-name(e, name))

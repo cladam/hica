@@ -190,6 +190,15 @@ pub type expr
   // while condition { body }
   While( condition : node, body : node )
 
+  // loop { body } — infinite loop, must use break
+  Loop( body : node )
+
+  // break — exit the enclosing loop
+  Break
+
+  // continue — skip to next iteration
+  Continue
+
   // "hello {expr}!" — parts alternate between LitString segments and expressions
   StringInterp( parts : list<node> )
 
@@ -279,6 +288,9 @@ pub fun expr/show( e : expr ) : div string
     ForIn(nm, s, e, b) -> "for " ++ nm ++ " in " ++ s.show ++ ".." ++ e.show ++ " " ++ b.show
     ForEach(nm, coll, b) -> "for " ++ nm ++ " in " ++ coll.show ++ " " ++ b.show
     While(cond, b) -> "while " ++ cond.show ++ " " ++ b.show
+    Loop(b) -> "loop " ++ b.show
+    Break -> "break"
+    Continue -> "continue"
     StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
     Tuple(es)        -> "(" ++ es.map(show).join(", ") ++ ")"
     EList(es)        -> "[" ++ es.map(show).join(", ") ++ "]"

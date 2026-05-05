@@ -39,6 +39,9 @@ pub type token-kind
   TkIn
   TkRepeat
   TkWhile
+  TkLoop
+  TkBreak
+  TkContinue
   TkStruct
   TkTrue
   TkFalse
@@ -108,6 +111,9 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkMatch      -> "match"
     TkRepeat     -> "repeat"
     TkWhile      -> "while"
+    TkLoop       -> "loop"
+    TkBreak      -> "break"
+    TkContinue   -> "continue"
     TkStruct     -> "struct"
     TkTrue       -> "true"
     TkFalse      -> "false"
@@ -207,6 +213,9 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "match"  -> TkMatch
     "repeat" -> TkRepeat
     "while"  -> TkWhile
+    "loop"   -> TkLoop
+    "break"  -> TkBreak
+    "continue" -> TkContinue
     "for"    -> TkFor
     "in"     -> TkIn
     "struct" -> TkStruct

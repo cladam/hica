@@ -35,6 +35,12 @@ pub fun walk( n : node, f : transform ) : node
       Repeat(walk(count, f), walk(body, f))
     ForIn(name, start-e, end-e, body) ->
       ForIn(name, walk(start-e, f), walk(end-e, f), walk(body, f))
+    ForEach(name, coll, body) ->
+      ForEach(name, walk(coll, f), walk(body, f))
+    While(cond, body) ->
+      While(walk(cond, f), walk(body, f))
+    Loop(body) ->
+      Loop(walk(body, f))
     StringInterp(parts) ->
       StringInterp(parts.map(fn(p) walk(p, f)))
     Tuple(elems) ->

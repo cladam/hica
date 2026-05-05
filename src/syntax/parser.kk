@@ -165,6 +165,14 @@ fun parse-prefix() : <div,parser> node
       parse-for-in()
     TkWhile ->
       parse-while()
+    TkLoop ->
+      parse-loop()
+    TkBreak ->
+      val t = advance()
+      Node(t.span, Break)
+    TkContinue ->
+      val t = advance()
+      Node(t.span, Continue)
     TkInterpStart ->
       parse-string-interp()
     TkMinus ->
@@ -205,6 +213,7 @@ fun parse-binary( min-bp : int ) : <div,parser> node
 fun is-statement-expr( e : expr ) : bool
   match e
     While(_, _)        -> True
+    Loop(_)            -> True
     Repeat(_, _)       -> True
     ForIn(_, _, _, _)  -> True
     ForEach(_, _, _)   -> True
@@ -214,6 +223,8 @@ fun is-statement-expr( e : expr ) : bool
     LetTuple(_, _, _)  -> True
     VarDecl(_, _, _, _) -> True
     Assign(_, _)       -> True
+    Break              -> True
+    Continue           -> True
     _                  -> False
 
 // Parse postfix operations: function calls f(args) and tuple index expr.N
@@ -682,6 +693,11 @@ fun parse-while() : <div,parser> node
   val cond = parse-expr()
   val body = parse-block()
   Node(Span(t.span.start, body.span.end), While(cond, body))
+
+fun parse-loop() : <div,parser> node
+  val t = expect("loop", fn(k) match k { TkLoop -> True; _ -> False })
+  val body = parse-block()
+  Node(Span(t.span.start, body.span.end), Loop(body))
 
 // ---------------------------------------------------------------------------
 // String interpolation: "hello {expr}!"

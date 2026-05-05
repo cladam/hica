@@ -11,6 +11,7 @@ documentation/review.md
 documentation/diff.h
 documentation/diff.c
 documentation/lib.xs
+documentation/positioning-genai-era.md
 
 .koka/
 .DS_Store
