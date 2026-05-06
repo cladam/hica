@@ -1,11 +1,20 @@
 // hica-diff: line diff via LCS, unified-diff format
 // Uses: struct, split, var, loop, break, continue, for, string interpolation
 
-struct DiffOp { kind: string, line: string }
+// Command-line handling, similar to GNU diff
+fun make_cli() =>
+  cli("diff", "0.1.0", "hica diff utility")
+
+struct DiffOp { 
+  kind: string, 
+  line: string 
+}
 
 struct Hunk {
-  a_start: int, a_count: int,
-  b_start: int, b_count: int,
+  a_start: int, 
+  a_count: int,
+  b_start: int, 
+  b_count: int,
   lines: list<string>
 }
 

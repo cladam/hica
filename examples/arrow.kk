@@ -3,6 +3,9 @@ module arrow
 
 import std/os/env
 
+import std/os/file
+import std/os/path
+
 effect hica-brk
   ctl hica-break() : a
 
@@ -484,6 +487,12 @@ fun hc_cli_parse_or_exit(spec : clispec)
       trace(("error: " ++ msg))
       trace("try --help for usage")
       hc_cli_empty()
+
+fun hc_read_lines(file_path : string)
+  hc_lines(read-text-file(file_path.path))
+
+fun hc_write_lines(file_path : string, xs : list<string>)
+  write-text-file(file_path.path, hc_unlines(xs))
 
 fun hc_double(x : int)
   (x * 2)

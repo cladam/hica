@@ -1369,3 +1369,64 @@ pub fun main() : io ()
       val code = emit-typed-program("fun test(x: int) => match x { 0 | 1 => true, _ => false }")
       assert/is-true(code.contains("0 ->"))
       assert/is-true(code.contains("1 ->"))
+
+    // --- File I/O ---
+    dtest("read_file emits read-text-file with .path")
+      val code = emit-typed-program("fun main() => read_file(\"test.txt\")")
+      assert/is-true(code.contains("read-text-file("))
+      assert/is-true(code.contains(".path)"))
+
+    dtest("write_file emits write-text-file with .path")
+      val code = emit-typed-program("fun main() => write_file(\"out.txt\", \"hello\")")
+      assert/is-true(code.contains("write-text-file("))
+      assert/is-true(code.contains(".path"))
+
+    dtest("try_read_file emits try with match")
+      val code = emit-typed-program("fun main() => try_read_file(\"test.txt\")")
+      assert/is-true(code.contains("try("))
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
+
+    dtest("read_file imports std/os/file")
+      val code = emit-typed-program("fun main() => read_file(\"test.txt\")")
+      assert/is-true(code.contains("import std/os/file"))
+      assert/is-true(code.contains("import std/os/path"))
+
+    dtest("write_file imports std/os/file")
+      val code = emit-typed-program("fun main() => write_file(\"out.txt\", \"hello\")")
+      assert/is-true(code.contains("import std/os/file"))
+
+    dtest("try_read_file imports std/os/file")
+      val code = emit-typed-program("fun main() => try_read_file(\"test.txt\")")
+      assert/is-true(code.contains("import std/os/file"))
+
+    dtest("no file import when not using file I/O")
+      val code = emit-typed-program("fun main() => println(42)")
+      assert/is-true(!code.contains("std/os/file"))
+
+    dtest("read_file type-checks without error")
+      val ds = check-diagnostics("fun main() => read_file(\"test.txt\")")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("write_file type-checks without error")
+      val ds = check-diagnostics("fun main() => write_file(\"out.txt\", \"hi\")")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("try_read_file type-checks without error")
+      val ds = check-diagnostics("fun main() => try_read_file(\"test.txt\")")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("try_read_file returns result type")
+      val code = emit-typed-program("fun check() => try_read_file(\"x.txt\")")
+      assert/is-true(code.contains("Right(") || code.contains("Left("))
+
+    dtest("read_lines emits read_file call")
+      val code = emit-typed-program("fun read_lines(p: string) => read_file(p)\nfun main() => read_lines(\"test.txt\")")
+      assert/is-true(code.contains("read-text-file("))
+
+    dtest("path variable is marshalled to avoid koka clash")
+      val code = emit-typed-program("fun main() { let path = \"test.txt\"\nread_file(path) }")
+      assert/is-true(code.contains("hc-path") || code.contains("hc_path"))

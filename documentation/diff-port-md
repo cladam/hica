@@ -1,0 +1,28 @@
+**hica-diff improvement plan — from demo to real tool**
+
+The current hica-diff is a self-contained ~200-line demo with hardcoded test data. GNU diff.c is ~900 lines of option parsing, file handling, and output formatting. We don't need all of that, but we can close the gap incrementally:
+
+### Phase 1: Make it a real CLI tool
+1. **Read files from disk** — `hica run hica-diff.hc -- file_a file_b` using `read_file` + `split` from the standard library
+2. **CLI argument parsing** — use the CLI prelude for `--help`, `--context N` (`-U N`), and positional args
+3. **Exit code** — 0 = identical, 1 = differences found, 2 = error (matches GNU diff convention)
+
+### Phase 2: Output format parity
+4. **Normal diff format** — the default GNU diff format (`1,2c3,4` style), not just unified
+5. **Context diff** (`-c`) — the other classic format
+6. **Color output** — `+` lines green, `-` lines red, `@@` cyan (like `diff --color`)
+7. **No-newline-at-end marker** — `\ No newline at end of file`
+
+### Phase 3: Robustness
+8. **Handle empty files** — one or both files empty
+9. **Handle missing files** — file not found error with exit code 2
+10. **Handle identical files** — produce no output (or `-s` flag to report)
+11. **Large file performance** — the LCS DP table is $O(mn)$; not fixable without a different algorithm, but note the limitation
+
+### Phase 4: Feature flags (nice-to-have)
+12. **`-q` (brief)** — just report "Files differ"
+13. **`-i` (ignore case)** — case-insensitive comparison
+14. **`-w` (ignore whitespace)** — ignore all whitespace differences
+15. **`-r` (recursive)** — directory diff (would require directory listing support in hica)
+
+**Suggested order**: Phase 1 (items 1–3) first — that turns it into a usable tool. Then Phase 2 for output parity. Phases 3 and 4 as stretch goals.

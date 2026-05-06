@@ -19,7 +19,7 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
   "raw", "inline", "include", "co", "rec", "open", "extend", "behind",
   "linear", "value", "reference", "named", "scoped", "context", "initially",
-  "finally", "override"]
+  "finally", "override", "path"]
 
 pub fun safe-module-name( name : string ) : string
   if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
@@ -127,6 +127,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main")
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
+  val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
@@ -137,6 +138,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   "module " ++ mod-name ++ "\n\n" ++
   float-import ++
   env-import ++
+  file-import ++
   break-effect ++
   cont-effect ++
   struct-defs ++ struct-sep ++
@@ -303,6 +305,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           match arg.typ
             Just(TString) -> "trace(" ++ emit-expr(arg, declared) ++ ")"
             _             -> "trace(" ++ emit-expr(arg, declared) ++ ".show)"
+
+        // File I/O
+        (Var("read_file"), [p]) ->
+          "read-text-file(" ++ emit-expr(p, declared) ++ ".path)"
+        (Var("write_file"), [p, content]) ->
+          "write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ")"
+        (Var("try_read_file"), [p]) ->
+          "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
@@ -602,6 +612,38 @@ fun node-uses-env( n : node ) : div bool
     Loop(body)             -> node-uses-env(body)
     StringInterp(parts)   -> parts.any(fn(p) node-uses-env(p))
     LetTuple(_, init, body) -> node-uses-env(init) || node-uses-env(body)
+    _                     -> False
+
+// Check whether the program uses file I/O functions (read_file, write_file)
+// that require `import std/os/file` and `import std/os/path`.
+fun program-uses-file-io( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-file-io(d.body))
+
+fun node-uses-file-io( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-io-fn = match callee.expr
+        Var("read_file")      -> True
+        Var("write_file")     -> True
+        Var("try_read_file")  -> True
+        _                     -> False
+      is-io-fn || node-uses-file-io(callee) || args.any(fn(a) node-uses-file-io(a))
+    Let(_, _, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
+    VarDecl(_, _, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
+    Assign(_, value)      -> node-uses-file-io(value)
+    Fun(_, body)          -> node-uses-file-io(body)
+    Binary(_, lhs, rhs)   -> node-uses-file-io(lhs) || node-uses-file-io(rhs)
+    Unary(_, operand)     -> node-uses-file-io(operand)
+    If(c, t, e)           -> node-uses-file-io(c) || node-uses-file-io(t) || node-uses-file-io(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-file-io(s))
+    Match(scrut, arms)    -> node-uses-file-io(scrut) || arms.any(fn(a) node-uses-file-io(a.body) || a.guard.map(node-uses-file-io).default(False))
+    Repeat(count, body)   -> node-uses-file-io(count) || node-uses-file-io(body)
+    ForIn(_, s, e, body)  -> node-uses-file-io(s) || node-uses-file-io(e) || node-uses-file-io(body)
+    ForEach(_, coll, body) -> node-uses-file-io(coll) || node-uses-file-io(body)
+    While(cond, body)      -> node-uses-file-io(cond) || node-uses-file-io(body)
+    Loop(body)             -> node-uses-file-io(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-file-io(p))
+    LetTuple(_, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
     _                     -> False
 
 // ---------------------------------------------------------------------------
