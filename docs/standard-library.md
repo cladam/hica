@@ -54,7 +54,7 @@ fun main() {
   }
 
   // Safe reading with try_read_file
-  match read_missing_file("missing.txt") {
+  match try_read_file("missing.txt") {
     Ok(text) => println(text),
     Err(msg) => println("Could not read: {msg}")
   }
