@@ -16,7 +16,7 @@ fun main() {
   println(content)
 
   // --- Line-oriented I/O ---
-  write_lines("names.txt", ["Alice", "Bob", "Charlie"])
+  write_lines("names.txt", ["Kalle", "Olle", "Lisa"])
   let names = read_lines("names.txt")
   for name in names {
     if not_(is_empty(name)) {
@@ -43,9 +43,9 @@ fun main() {
 // Hello from hica!
 // Second line.
 //
-// Hi, Alice!
-// Hi, Bob!
-// Hi, Charlie!
+// Hi, Kalle!
+// Hi, Olle!
+// Hi, Lisa!
 // Could not read: unable to read text file "missing.txt": No such file or directory
 // Got 3 lines
 

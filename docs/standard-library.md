@@ -47,14 +47,14 @@ fun main() {
   println(content)
 
   // Line-oriented I/O
-  write_lines("names.txt", ["Alice", "Bob", "Charlie"])
+  write_lines("names.txt", ["Kalle", "Olle", "Lisa"])
   let names = read_lines("names.txt")
   for name in names {
     println("Hi, {name}!")
   }
 
   // Safe reading with try_read_file
-  match try_read_file("missing.txt") {
+  match read_missing_file("missing.txt") {
     Ok(text) => println(text),
     Err(msg) => println("Could not read: {msg}")
   }
@@ -216,7 +216,7 @@ fun main() {
   println(to_upper(trim(msg)))
   println(contains(msg, "World"))
 
-  let csv = "kalle,lisa,olle"
+  let csv = "kalle,olle,lisa"
   println(split(csv, ","))
   println(join(split(csv, ","), " & "))
   println(replace(csv, ",", " | "))

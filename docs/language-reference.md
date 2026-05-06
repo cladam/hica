@@ -190,7 +190,7 @@ for i in 0..10 {
 ### For-in collection loops
 
 ```rust
-let names = ["Kalle", "Lisa", "Olle"]
+let names = ["Kalle", "Olle", "Lisa"]
 for name in names {
   println(name)
 }

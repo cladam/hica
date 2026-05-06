@@ -29,7 +29,7 @@ fun main() {
   println(drop(nums, 3))
 
   // zip — pair up two lists
-  let names = ["Kalle", "Lisa", "Olle"]
+  let names = ["Kalle", "Olle", "Lisa"]
   let ages  = [30, 25, 35]
   println(zip(names, ages))
 
