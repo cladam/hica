@@ -39,6 +39,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 23 | `23-parsing.hc`       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
 | 24 | `24-while.hc`         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
 | 25 | `25-break-continue.hc`| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
+| 26 | `26-file-io.hc`       | File I/O                         | `read_file`, `write_file`, `try_read_file`, `read_lines`, `write_lines` |
 
 ## Language features shown
 
@@ -89,6 +90,9 @@ Each lesson is a standalone `.hc` file you can run:
 | `break`                        | `25-break-continue.hc`                |
 | `continue`                     | `25-break-continue.hc`                |
 | `loop { ... }`                 | `25-break-continue.hc`                |
+| `read_file`, `write_file`      | `26-file-io.hc`                       |
+| `try_read_file`                | `26-file-io.hc`                       |
+| `read_lines`, `write_lines`    | `26-file-io.hc`                       |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 

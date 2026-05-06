@@ -20,6 +20,14 @@ Hica. Their type signatures are declared in the compiler
 | `println(s)` | `(a) -> ()` | Print a value to stdout with a newline |
 | `show(n)` | `(a) -> string` | Convert a value to its string representation |
 
+#### File I/O
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `read_file(path)` | `(string) -> string` | Read entire file as a string (throws on error) |
+| `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
+| `try_read_file(path)` | `(string) -> result<string, string>` | Read a file safely; returns `Ok(content)` or `Err(message)` |
+
 #### List operations
 
 | Function | Signature | Description |
@@ -144,6 +152,17 @@ Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
 | `capwords(s)` | `(string) -> string` | Capitalise each word |
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
 | `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
+
+### `io.hc` — file I/O helpers
+
+Higher-level file I/O functions built on top of the extern primitives.
+
+Written in Hica. Source: [`prelude/io.hc`](io.hc)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines |
+| `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
 
 ## How to add a prelude function
 

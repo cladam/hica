@@ -22,6 +22,45 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
 | `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
 
+## File I/O
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `read_file(path)` | `(string) -> string` | Read entire file as a string (throws on error) |
+| `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
+| `try_read_file(path)` | `(string) -> result<string, string>` | Read a file; returns `Ok(content)` or `Err(message)` |
+
+### File Helpers (`prelude/io.hc`)
+
+Written in hica itself:
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines |
+| `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
+
+```rust
+fun main() {
+  // Write and read back
+  write_file("greeting.txt", "hello, world!\n")
+  let content = read_file("greeting.txt")
+  println(content)
+
+  // Line-oriented I/O
+  write_lines("names.txt", ["Alice", "Bob", "Charlie"])
+  let names = read_lines("names.txt")
+  for name in names {
+    println("Hi, {name}!")
+  }
+
+  // Safe reading with try_read_file
+  match try_read_file("missing.txt") {
+    Ok(text) => println(text),
+    Err(msg) => println("Could not read: {msg}")
+  }
+}
+```
+
 ## List Operations
 
 | Function | Signature | Description |

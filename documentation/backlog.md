@@ -63,7 +63,7 @@ Legend: **done** = shipped, **—** = not started
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
 | User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |
-| File I/O (`read_file`, `write_file`, `read_lines`) | — | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `result<(), string>`, `read_lines(path)` → `result<list<string>, string>`. Koka `std/os/file` has `read-text-file` / `write-text-file` |
+| File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `string`, `write_file(path, content)` → `()`, `try_read_file(path)` → `result<string, string>`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. Throwing versions for simplicity; `try_read_file` for safe error handling |
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
 | Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | — | Medium | Prelude fns operating on `maybe`/`result`; needs user-defined higher-order fns working first |
@@ -176,5 +176,4 @@ These are explicitly **not** in scope near-term:
 - **Row polymorphism / effect inference** — Koka handles this
 - **Generics / let-polymorphism** — add later when needed
 - **Sets** — Koka has no built-in set; use maps
-- **File I/O** — passthrough to Koka stdlib when needed
 - **Interfaces / traits** — Koka's effects cover many of the same use cases
