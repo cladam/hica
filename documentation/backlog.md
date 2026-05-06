@@ -63,10 +63,10 @@ Legend: **done** = shipped, **—** = not started
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
 | User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |
-| File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `string`, `write_file(path, content)` → `()`, `try_read_file(path)` → `result<string, string>`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. Throwing versions for simplicity; `try_read_file` for safe error handling |
+| File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `()`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. `read_file` returns result; use `unwrap` / `unwrap_or` / `match` |
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
 | Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
-| Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | — | Medium | Prelude fns operating on `maybe`/`result`; needs user-defined higher-order fns working first |
+| Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | `unwrap`/`unwrap_or` **done** | Medium | `unwrap(result)` → value or throw; `unwrap_or(result, default)` → value or default. Maybe combinators and `map`/`and_then` still needed |
 | `?` operator (early return on Err/None) | — | High | Needs a return/early-exit mechanism; Koka uses effects for this |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
 | Mutable variables (`var x = 10; x = 5`) | **done** | Medium | `var` declares mutable local; `x = expr` reassigns. Emits Koka `var x := 10` / `x := 5`. Effect-safe via Koka's algebraic `local-var` — can't leak scope |

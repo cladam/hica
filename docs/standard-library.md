@@ -26,9 +26,15 @@ The prelude is hica's built-in standard library. Every function defined here is 
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `read_file(path)` | `(string) -> string` | Read entire file as a string (throws on error) |
+| `read_file(path)` | `(string) -> result<string, string>` | Read entire file; returns `Ok(content)` or `Err(message)` |
 | `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
-| `try_read_file(path)` | `(string) -> result<string, string>` | Read a file; returns `Ok(content)` or `Err(message)` |
+
+## Result Combinators
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `unwrap(r)` | `(result<a, b>) -> a` | Extract the `Ok` value, or throw on `Err` |
+| `unwrap_or(r, default)` | `(result<a, b>, a) -> a` | Extract the `Ok` value, or return `default` |
 
 ### File Helpers (`prelude/io.hc`)
 
@@ -36,28 +42,33 @@ Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines |
+| `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines (throws on error) |
 | `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
 
 ```rust
 fun main() {
   // Write and read back
   write_file("greeting.txt", "hello, world!\n")
-  let content = read_file("greeting.txt")
+  let content = read_file("greeting.txt") |> unwrap
   println(content)
 
-  // Line-oriented I/O
+  // Line-oriented I/O (throws on error)
   write_lines("names.txt", ["Kalle", "Olle", "Lisa"])
   let names = read_lines("names.txt")
   for name in names {
     println("Hi, {name}!")
   }
 
-  // Safe reading with try_read_file
-  match try_read_file("missing.txt") {
+  // Handle errors explicitly
+  match read_file("missing.txt") {
     Ok(text) => println(text),
     Err(msg) => println("Could not read: {msg}")
   }
+
+  // Provide a fallback
+  let data = read_file("config.txt") |> unwrap_or("default")
+  println(data)
+}
 }
 ```
 

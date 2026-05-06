@@ -1371,21 +1371,17 @@ pub fun main() : io ()
       assert/is-true(code.contains("1 ->"))
 
     // --- File I/O ---
-    dtest("read_file emits read-text-file with .path")
+    dtest("read_file emits try with match for result")
       val code = emit-typed-program("fun main() => read_file(\"test.txt\")")
+      assert/is-true(code.contains("try("))
       assert/is-true(code.contains("read-text-file("))
-      assert/is-true(code.contains(".path)"))
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
 
     dtest("write_file emits write-text-file with .path")
       val code = emit-typed-program("fun main() => write_file(\"out.txt\", \"hello\")")
       assert/is-true(code.contains("write-text-file("))
       assert/is-true(code.contains(".path"))
-
-    dtest("try_read_file emits try with match")
-      val code = emit-typed-program("fun main() => try_read_file(\"test.txt\")")
-      assert/is-true(code.contains("try("))
-      assert/is-true(code.contains("Right("))
-      assert/is-true(code.contains("Left("))
 
     dtest("read_file imports std/os/file")
       val code = emit-typed-program("fun main() => read_file(\"test.txt\")")
@@ -1394,10 +1390,6 @@ pub fun main() : io ()
 
     dtest("write_file imports std/os/file")
       val code = emit-typed-program("fun main() => write_file(\"out.txt\", \"hello\")")
-      assert/is-true(code.contains("import std/os/file"))
-
-    dtest("try_read_file imports std/os/file")
-      val code = emit-typed-program("fun main() => try_read_file(\"test.txt\")")
       assert/is-true(code.contains("import std/os/file"))
 
     dtest("no file import when not using file I/O")
@@ -1414,14 +1406,26 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
-    dtest("try_read_file type-checks without error")
-      val ds = check-diagnostics("fun main() => try_read_file(\"test.txt\")")
+    // --- Result combinators ---
+    dtest("unwrap emits match with throw")
+      val code = emit-typed-program("fun main() => unwrap(Ok(42))")
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("throw("))
+
+    dtest("unwrap_or emits match with default")
+      val code = emit-typed-program("fun main() => unwrap_or(Ok(42), 0)")
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
+
+    dtest("unwrap type-checks without error")
+      val ds = check-diagnostics("fun main() => unwrap(Ok(42))")
       val errors = ds.filter(fn(d) d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
-    dtest("try_read_file returns result type")
-      val code = emit-typed-program("fun check() => try_read_file(\"x.txt\")")
-      assert/is-true(code.contains("Right(") || code.contains("Left("))
+    dtest("unwrap_or type-checks without error")
+      val ds = check-diagnostics("fun main() => unwrap_or(Ok(42), 0)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
 
     dtest("read_lines emits read_file call")
       val code = emit-typed-program("fun read_lines(p: string) => read_file(p)\nfun main() => read_lines(\"test.txt\")")

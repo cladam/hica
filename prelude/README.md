@@ -24,9 +24,15 @@ Hica. Their type signatures are declared in the compiler
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `read_file(path)` | `(string) -> string` | Read entire file as a string (throws on error) |
+| `read_file(path)` | `(string) -> result<string, string>` | Read entire file; returns `Ok(content)` or `Err(message)` |
 | `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
-| `try_read_file(path)` | `(string) -> result<string, string>` | Read a file safely; returns `Ok(content)` or `Err(message)` |
+
+#### Result combinators
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `unwrap(r)` | `(result<a, b>) -> a` | Extract the `Ok` value, or throw on `Err` |
+| `unwrap_or(r, default)` | `(result<a, b>, a) -> a` | Extract the `Ok` value, or return `default` |
 
 #### List operations
 

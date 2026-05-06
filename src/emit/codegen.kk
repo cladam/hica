@@ -308,11 +308,15 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 
         // File I/O
         (Var("read_file"), [p]) ->
-          "read-text-file(" ++ emit-expr(p, declared) ++ ".path)"
+          "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
         (Var("write_file"), [p, content]) ->
           "write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ")"
-        (Var("try_read_file"), [p]) ->
-          "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
+
+        // Result combinators
+        (Var("unwrap"), [r]) ->
+          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(hc__e) -> throw(\"unwrap: \" ++ hc__e.show) })"
+        (Var("unwrap_or"), [r, d]) ->
+          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(_) -> " ++ emit-expr(d, declared) ++ " })"
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
@@ -623,10 +627,9 @@ fun node-uses-file-io( n : node ) : div bool
   match n.expr
     Call(callee, args) ->
       val is-io-fn = match callee.expr
-        Var("read_file")      -> True
-        Var("write_file")     -> True
-        Var("try_read_file")  -> True
-        _                     -> False
+        Var("read_file")  -> True
+        Var("write_file") -> True
+        _                 -> False
       is-io-fn || node-uses-file-io(callee) || args.any(fn(a) node-uses-file-io(a))
     Let(_, _, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
     VarDecl(_, _, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)

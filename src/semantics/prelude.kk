@@ -62,6 +62,9 @@ pub fun extern-env() : type-env
     ("eprintln",    TFun([TVar("_a")], TUnit)),
 
     // File I/O
-    ("read_file",      TFun([TString], TString)),
-    ("write_file",     TFun([TString, TString], TUnit)),
-    ("try_read_file",  TFun([TString], TResult(TString, TString))) ]
+    ("read_file",   TFun([TString], TResult(TString, TString))),
+    ("write_file",  TFun([TString, TString], TUnit)),
+
+    // Result combinators
+    ("unwrap",     TFun([TResult(TVar("_a"), TVar("_b"))], TVar("_a"))),
+    ("unwrap_or",  TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))) ]

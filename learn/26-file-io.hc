@@ -3,6 +3,9 @@
 // hica can read and write files. The functions are available everywhere,
 // no imports needed.
 //
+// read_file returns a result — use unwrap for quick scripts,
+// or match on Ok/Err for proper error handling.
+//
 // Run: ./hica run learn/26-file-io.hc
 
 fun main() {
@@ -10,8 +13,9 @@ fun main() {
   write_file("hello.txt", "Hello from hica!\nSecond line.\n")
   println("Wrote hello.txt")
 
-  // --- Reading a file ---
-  let content = read_file("hello.txt")
+  // --- Reading a file with unwrap ---
+  // unwrap extracts the Ok value, or throws on Err
+  let content = read_file("hello.txt") |> unwrap
   println("Content:")
   println(content)
 
@@ -24,14 +28,18 @@ fun main() {
     }
   }
 
-  // --- Safe reading with try_read_file ---
-  // Returns Ok(content) or Err(message) instead of throwing
-  match try_read_file("missing.txt") {
+  // --- Error handling with match ---
+  match read_file("missing.txt") {
     Ok(text) => println(text),
     Err(msg) => println("Could not read: {msg}")
   }
 
-  match try_read_file("hello.txt") {
+  // --- Fallback with unwrap_or ---
+  let data = read_file("missing.txt") |> unwrap_or("fallback content")
+  println(data)
+
+  // --- Counting lines ---
+  match read_file("hello.txt") {
     Ok(text) => println("Got {length(lines(text))} lines"),
     Err(msg) => println("Error: {msg}")
   }
@@ -47,6 +55,7 @@ fun main() {
 // Hi, Olle!
 // Hi, Lisa!
 // Could not read: unable to read text file "missing.txt": No such file or directory
+// fallback content
 // Got 3 lines
 
 // Challenge: write a program that reads a file, counts the number of
