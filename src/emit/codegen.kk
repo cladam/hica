@@ -18,7 +18,8 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "then", "return", "with", "handle", "handler", "effect", "type", "struct",
   "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
   "raw", "inline", "include", "co", "rec", "open", "extend", "behind",
-  "linear", "value", "reference", "named", "scoped"]
+  "linear", "value", "reference", "named", "scoped", "context", "initially",
+  "finally", "override"]
 
 pub fun safe-module-name( name : string ) : string
   if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
