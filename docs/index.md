@@ -40,7 +40,7 @@ By targeting Koka, hica doesn't need to reinvent:
 - Memory management (Perceus reference counting)
 - Backend codegen (C, JS, WASM, all handled by Koka)
 - Standard library (strings, lists, I/O, concurrency)
-- Optimisation passes (tail-call, FBIP in-place reuse)
+- Optimisation passes(including in-place reuse optimisations)
 - Platform support and ABI concerns
 - Effect runtime (handlers, resumptions)
 
