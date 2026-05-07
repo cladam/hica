@@ -344,7 +344,7 @@ fun unquote( s : string ) : string
 fun print-usage()
   println(hica-cli().format-help)
   println("\nCommands:")
-  println("    build, b    Compile a .hc file to Koka and build a binary")
+  println("    build, b    Compile a .hc file and build a binary")
   println("    run, r      Compile and run a .hc file")
   println("    check, c    Analyse a .hc file and report errors")
   println("    clean       Remove generated build artifacts")

@@ -79,6 +79,6 @@ fun main() {
 
 ## Next Steps
 
-- [Quick Start](/hica/docs/quick-start) - install and run your first program
-- [Learn hica](/hica/docs/learn) - 20 progressive lessons, one concept at a time
-- [Language Reference](/hica/docs/language-reference) - the full syntax and semantics
+- **[Learn hica](/hica/docs/learn)**: 26 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
+- **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.
