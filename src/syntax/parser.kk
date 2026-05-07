@@ -656,7 +656,15 @@ fun parse-pattern() : <div,parser> pattern
       expect(")", fn(k) match k { TkRParen -> True; _ -> False })
       PTuple(Cons(first, rest))
     TkIdent(n)   -> { advance(); PVar(n) }
-    TkInt(i)     -> { advance(); PLit(LitInt(i)) }
+    TkInt(i)     ->
+      advance()
+      match peek()
+        TkDotDotEq ->
+          advance()
+          match peek()
+            TkInt(j) -> { advance(); PRange(i, j) }
+            _        -> { parse-error("expected integer after ..="); PLit(LitInt(i)) }
+        _ -> PLit(LitInt(i))
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }
     TkString(s)  -> { advance(); PLit(LitString(s)) }
     _ -> { parse-error("expected pattern"); PWild }

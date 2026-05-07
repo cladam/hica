@@ -253,6 +253,7 @@ pub type pattern
   PErr( inner : pattern )
   PTuple( elems : list<pattern> )
   POr( alts : list<pattern> )
+  PRange( lo : int, hi : int )
 
 pub fun pattern/show( p : pattern ) : div string
   match p
@@ -265,6 +266,7 @@ pub fun pattern/show( p : pattern ) : div string
     PErr(i)  -> "Err(" ++ i.show ++ ")"
     PTuple(es) -> "(" ++ es.map(show).join(", ") ++ ")"
     POr(alts)  -> alts.map(show).join(" | ")
+    PRange(lo, hi) -> lo.show ++ "..=" ++ hi.show
 
 // ---------------------------------------------------------------------------
 // Pretty printing

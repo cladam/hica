@@ -32,6 +32,16 @@ fun classify(n) => match n {
   _         => "high"
 }
 
+// Range patterns: match a range of values
+fun grade(score: int) => match score {
+  0..=59   => "F",
+  60..=69  => "D",
+  70..=79  => "C",
+  80..=89  => "B",
+  90..=100 => "A",
+  _        => "invalid"
+}
+
 fun main() {
   println(describe(1))
   println(respond("hello"))
@@ -44,4 +54,7 @@ fun main() {
   println(classify(2))
   println(classify(5))
   println(classify(9))
+  println(grade(95))
+  println(grade(72))
+  println(grade(55))
 }

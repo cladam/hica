@@ -1434,3 +1434,16 @@ pub fun main() : io ()
     dtest("path variable is marshalled to avoid koka clash")
       val code = emit-typed-program("fun main() { let path = \"test.txt\"\nread_file(path) }")
       assert/is-true(code.contains("hc-path") || code.contains("hc_path"))
+
+    // --- Range patterns ---
+    dtest("emit range pattern as guard")
+      val code = emit-typed-program("fun classify(n: int) => match n { 1..=5 => \"small\", _ => \"other\" }")
+      assert/is-true(code.contains("hc__rng"))
+      assert/is-true(code.contains(">= 1"))
+      assert/is-true(code.contains("<= 5"))
+
+    dtest("emit range pattern with existing guard")
+      val code = emit-typed-program("fun test(n: int) => match n { 1..=10 if n > 5 => \"high\", _ => \"low\" }")
+      assert/is-true(code.contains("hc__rng"))
+      assert/is-true(code.contains(">= 1"))
+      assert/is-true(code.contains("<= 10"))

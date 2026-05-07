@@ -887,6 +887,9 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
       // Each alternative must unify with the scrutinee; no bindings (or-patterns can't bind)
       alts.foldl((s, env)) fn((sa, ea), alt)
         infer-pattern(ea, sa, scrut-type, alt)
+    PRange(_, _) ->
+      // Range patterns work on ints; unify scrutinee with TInt
+      (compose-subst(unify(scrut-type, TInt, no-span), s), env)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type

@@ -467,3 +467,17 @@ pub fun main() : io ()
     itest("parse or-pattern with strings")
       val result = parse-show("match x { \"yes\" | \"y\" => true, _ => false }")
       assert/is-true(result.contains("|"))
+
+    // --- Range patterns ---
+    itest("parse range pattern")
+      val result = parse-show("match x { 1..=5 => true, _ => false }")
+      assert/is-true(result.contains("1..=5"))
+
+    itest("parse range pattern with other arms")
+      val result = parse-show("match x { 0 => \"zero\", 1..=9 => \"digit\", _ => \"big\" }")
+      assert/is-true(result.contains("1..=9"))
+
+    itest("parse range pattern in or-pattern")
+      val result = parse-show("match x { 1..=3 | 7..=9 => true, _ => false }")
+      assert/is-true(result.contains("1..=3"))
+      assert/is-true(result.contains("7..=9"))

@@ -47,10 +47,12 @@ By targeting Koka, hica doesn't need to reinvent:
 ## A Quick Example
 
 ```rust
+// filter keeps matching elements, map transforms each, fold reduces to a single value
 fun main() {
   let nums = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
+    |> fold(0, (sum, x) => sum + x)
 
   println(nums)
 }

@@ -345,10 +345,18 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       val expanded = arms.flatmap(fn(a) expand-or-arm(a))
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
       expanded.map(fn(a)
-        val pat-str = emit-pattern(a.pattern, declared)
-        val guard-str = match a.guard
-          Just(g) -> " | " ++ emit-expr(g, declared)
-          Nothing -> ""
+        val (pat-str, guard-str) = match a.pattern
+          PRange(lo, hi) ->
+            val rg = "hc__rng >= " ++ lo.show ++ " && hc__rng <= " ++ hi.show
+            val gs = match a.guard
+              Just(g) -> " | " ++ rg ++ " && " ++ emit-expr(g, declared)
+              Nothing -> " | " ++ rg
+            ("hc__rng", gs)
+          _ ->
+            val gs = match a.guard
+              Just(g) -> " | " ++ emit-expr(g, declared)
+              Nothing -> ""
+            (emit-pattern(a.pattern, declared), gs)
         "  " ++ pat-str ++ guard-str ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")
       ).join("\n")
     Repeat(count, body) ->
@@ -480,6 +488,7 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
     PErr(i)  -> "Left(" ++ emit-pattern(i, declared) ++ ")"
     PTuple(es) -> "(" ++ es.map(fn(e) emit-pattern(e, declared)).join(", ") ++ ")"
     POr(alts)  -> alts.map(fn(a) emit-pattern(a, declared)).join(" | ")
+    PRange(_, _) -> "hc__rng"  // handled at arm level with guard
 
 fun emit-binop( op : binop ) : string
   match op
