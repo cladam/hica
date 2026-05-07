@@ -5,19 +5,21 @@ title: Introduction - hica
 
 # Introduction
 
-**hica** is a high-performance, expression-oriented programming language built in [Koka](https://koka-lang.github.io/) that also transpiles to Koka. It blends Rust-like syntax and safety with a pragmatic, approachable design, powered by Koka's algebraic effect system and Perceus reference counting.
+**hica** is an expression-oriented programming language designed to feel approachable without giving up type safety or performance.
 
-> **hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+It is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka’s algebraic effect system and Perceus memory management.
 
 ## Why hica?
 
 Most programming languages force you to choose: easy to learn **or** safe and fast. hica gives you both.
 
 - **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
-- **Everything is an expression**: `if`, `match`, and blocks all return values. No surprise `void` returns.
-- **Compile-time safety**: Hindley-Milner type inference catches bugs before your program runs, without requiring type annotations everywhere.
+- **Everything is an expression**: `if`, `match`, and blocks compose naturally because they return values.
+- **Compile-time safety**: Strong static typing without pervasive annotations.
 - **No garbage collector**: memory safety via Koka's Perceus (Functional But In-Place) reference counting.
 - **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
+
+**hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
 ## How It Works
 
@@ -27,7 +29,7 @@ hica compiles through a multi-stage pipeline:
 .hc source -> Lex -> Parse -> Type Check -> Emit Koka (.kk) -> Koka -> C / JS / WASM
 ```
 
-Each phase is implemented as a Koka module using algebraic effects for compiler state; diagnostics, fresh type variables, and symbol scopes.
+The compiler itself is written in Koka and uses algebraic effects to manage compiler state and diagnostics.
 
 Because the final target is Koka, hica programs inherit the full Koka runtime: its standard library, Perceus memory management, and the ability to compile to C (native), JavaScript (browser/Node), or WASM.
 
@@ -45,16 +47,12 @@ By targeting Koka, hica doesn't need to reinvent:
 ## A Quick Example
 
 ```rust
-fun fizzbuzz(n) =>
-  if n % 15 == 0 { "fizzbuzz" }
-  else if n % 3 == 0 { "fizz" }
-  else if n % 5 == 0 { "buzz" }
-  else { "{n}" }
-
 fun main() {
-  for i in 0..20 {
-    println(fizzbuzz(i + 1))
-  }
+  let nums = [1, 2, 3, 4, 5]
+    |> filter((x) => x % 2 == 0)
+    |> map((x) => x * 10)
+
+  println(nums)
 }
 ```
 

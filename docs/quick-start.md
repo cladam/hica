@@ -20,7 +20,7 @@ git clone https://github.com/cladam/hica.git
 cd hica
 
 # Build the hica compiler
-## -i/--include klap library and src directory
+## -i includes klap library and src directory
 koka -O2 -ilib/klap -isrc src/main.kk -o hica
 ## make hica executable
 chmod +x hica
