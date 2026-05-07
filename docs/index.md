@@ -19,7 +19,7 @@ Most programming languages force you to choose: easy to learn **or** safe and fa
 - **No garbage collector**: memory safety via Koka's Perceus (Functional But In-Place) reference counting.
 - **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
 
-**hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+> **hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
 ## How It Works
 
