@@ -31,6 +31,16 @@ fun add(a: int, b: int) : int => a + b
 
 Type annotations are optional. Hindley-Milner inference handles most cases.
 
+### Visibility
+
+Mark a function as `pub` to make it public (exported from the module):
+
+```rust
+pub fun greet(name: string) : string => "Hello, " + name
+```
+
+Functions without `pub` are private to the module.
+
 ### Lambdas / closures
 
 ```rust
@@ -368,6 +378,29 @@ Success or failure:
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
+```
+
+### User Input
+
+Read a line from stdin with `input(prompt)`. The prompt is printed, and the user's response is returned as a `string`:
+
+```rust
+fun main() {
+  let name = input("What is your name? ")
+  println("Hello, " + name + "!")
+}
+```
+
+Combine with `parse_int` or `parse_float` to read numbers:
+
+```rust
+fun main() {
+  let age_str = input("How old are you? ")
+  match parse_int(age_str) {
+    Some(age) => println("In 10 years you'll be {age + 10}"),
+    None      => println("That's not a number!")
+  }
+}
 ```
 
 ## Operators

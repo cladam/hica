@@ -62,7 +62,7 @@ Legend: **done** = shipped, **—** = not started
 | Structs (`struct Point { x: int, y: int }`) | **done** | Medium | Emit Koka `struct`. Sub-tasks: construction (`Point { x: 1, y: 2 }`), field access (`p.x`), auto-generated `show`. Update syntax: `{ ...old, x: 5 }` not yet implemented. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
 | Algebraic types / enums | — | High | Emit Koka `type` with variants |
 | Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
-| User input (`input("prompt")`) | — | Medium | Koka `readline`; returns `string`, combine with parse fns |
+| User input (`input("prompt")`) | **done** | Medium | Koka `readline`; returns `string`, combine with parse fns |
 | File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `()`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. `read_file` returns result; use `unwrap` / `unwrap_or` / `match` |
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
 | Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
@@ -103,7 +103,7 @@ Legend: **done** = shipped, **—** = not started
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
 | Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | — | High | Multi-file compilation, module graph. Sub-tasks: file resolution, selective imports (`from "math" import { sin, cos }`), qualified names (`math.sin(x)`) |
-| `pub` visibility | — | Medium | Emit Koka `pub` |
+| `pub` visibility | **done** | Medium | Emit Koka `pub` |
 
 ### Bundled Libraries
 

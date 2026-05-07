@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 25 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 27 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -41,6 +41,8 @@ A progressive set of 25 lessons that teach hica one concept at a time. Each less
 | 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc) | Parsing | `parse_int`, `parse_float`, safe string-to-number |
 | 24 | [`24-while.hc`](https://github.com/cladam/hica/blob/main/learn/24-while.hc) | While loops & var | `var` mutable variables, `while` loops, reassignment |
 | 25 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc) | Break, continue, and loop | `break`, `continue`, `loop`, early exit from any loop |
+| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc) | File I/O | `read_file`, `write_file`, `read_lines`, `write_lines` |
+| 27 | [`27-input.hc`](https://github.com/cladam/hica/blob/main/learn/27-input.hc) | User input | `input(prompt)`, combining with `parse_int`, interactive programs |
 
 ## Feature Index
 
@@ -78,6 +80,8 @@ A progressive set of 25 lessons that teach hica one concept at a time. Each less
 | `break` | `25-break-continue.hc` |
 | `continue` | `25-break-continue.hc` |
 | `loop { ... }` | `25-break-continue.hc` |
+| `input(prompt)` | `27-input.hc` |
+| `pub` visibility | (module prep) |
 
 ## Getting Started
 

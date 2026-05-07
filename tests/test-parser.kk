@@ -481,3 +481,12 @@ pub fun main() : io ()
       val result = parse-show("match x { 1..=3 | 7..=9 => true, _ => false }")
       assert/is-true(result.contains("1..=3"))
       assert/is-true(result.contains("7..=9"))
+
+    // --- pub visibility ---
+    itest("parse pub fun declaration")
+      val result = parse-program-show("pub fun add(a, b) => a + b\nfun main() => add(1, 2)")
+      assert/is-true(result.contains("fun add(a, b)"))
+
+    itest("parse non-pub fun declaration")
+      val result = parse-program-show("fun add(a, b) => a + b\nfun main() => add(1, 2)")
+      assert/is-true(result.contains("fun add(a, b)"))

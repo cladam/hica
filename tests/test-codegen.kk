@@ -1447,3 +1447,31 @@ pub fun main() : io ()
       assert/is-true(code.contains("hc__rng"))
       assert/is-true(code.contains(">= 1"))
       assert/is-true(code.contains("<= 10"))
+
+    // --- pub visibility ---
+    dtest("emit pub function")
+      val code = emit-typed-program("pub fun add(a: int, b: int) : int => a + b\nfun main() => add(1, 2)")
+      assert/is-true(code.contains("pub fun"))
+
+    dtest("emit non-pub function has no pub prefix")
+      val code = emit-typed-program("fun add(a: int, b: int) : int => a + b\nfun main() => add(1, 2)")
+      assert/is-true(!code.contains("pub fun"))
+
+    // --- input() ---
+    dtest("input emits print and readline")
+      val code = emit-typed-program("fun main() { let name = input(\"Name: \")\nprintln(name) }")
+      assert/is-true(code.contains("print("))
+      assert/is-true(code.contains("readline()"))
+
+    dtest("input imports std/os/readline")
+      val code = emit-typed-program("fun main() { let x = input(\"hi\")\nprintln(x) }")
+      assert/is-true(code.contains("std/os/readline"))
+
+    dtest("no readline import without input")
+      val code = emit-typed-program("fun main() => println(42)")
+      assert/is-true(!code.contains("readline"))
+
+    dtest("input type-checks as string")
+      val ds = check-diagnostics("fun main() { let x = input(\"name: \")\nprintln(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

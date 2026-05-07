@@ -40,6 +40,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 24 | `24-while.hc`         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
 | 25 | `25-break-continue.hc`| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
 | 26 | `26-file-io.hc`       | File I/O                         | `read_file`, `write_file`, `unwrap`, `unwrap_or`, `read_lines`, `write_lines` |
+| 27 | `27-input.hc`         | User input                       | `input(prompt)`, combining with `parse_int`, interactive programs |
 
 ## Language features shown
 
@@ -94,6 +95,8 @@ Each lesson is a standalone `.hc` file you can run:
 | `read_file`, `write_file`      | `26-file-io.hc`                       |
 | `unwrap`, `unwrap_or`          | `26-file-io.hc`                       |
 | `read_lines`, `write_lines`    | `26-file-io.hc`                       |
+| `input(prompt)`                | `27-input.hc`                         |
+| `pub` visibility               | `examples/match.hc` (module prep)     |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 

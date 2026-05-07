@@ -793,6 +793,9 @@ fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
 // ---------------------------------------------------------------------------
 
 pub fun parse-fun-decl() : <div,parser> fun-decl
+  val is-pub = match peek()
+    TkPub -> { advance(); True }
+    _     -> False
   val t = expect("fun", fn(k) match k { TkFun -> True; _ -> False })
   val name = match peek()
     TkIdent(n) -> { advance(); n }
@@ -809,7 +812,7 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
       parse-expr()
     _ ->
       parse-block()
-  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann)
+  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub)
 
 pub fun parse-program() : <div,parser> program
   var decls := []
@@ -817,6 +820,7 @@ pub fun parse-program() : <div,parser> program
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
+      TkPub    -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
   Program(structs.reverse, decls.reverse)
 

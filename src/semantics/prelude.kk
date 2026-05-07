@@ -61,6 +61,9 @@ pub fun extern-env() : type-env
     ("get_env",     TFun([TString], TMaybe(TString))),
     ("eprintln",    TFun([TVar("_a")], TUnit)),
 
+    // User input
+    ("input",       TFun([TString], TString)),
+
     // File I/O
     ("read_file",   TFun([TString], TResult(TString, TString))),
     ("write_file",  TFun([TString, TString], TUnit)),

@@ -324,6 +324,7 @@ pub struct fun-decl
   param-types : list<hica-type> = []
   ret-type    : maybe<hica-type> = Nothing
   is-recursive : bool = False
+  is-pub       : bool = False
 
 pub fun fun-decl/show( d : fun-decl ) : div string
   "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show

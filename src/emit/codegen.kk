@@ -128,6 +128,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
+  val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
@@ -139,6 +140,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   float-import ++
   env-import ++
   file-import ++
+  readline-import ++
   break-effect ++
   cont-effect ++
   struct-defs ++ struct-sep ++
@@ -157,7 +159,8 @@ fun emit-decl( d : fun-decl, declared : list<string> ) : div string
       val ts = emit-type(t)
       if ts == "" then "" else " : " ++ ts
     Nothing -> ""
-  "fun " ++ marshal-name(d.name, declared) ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
+  val pub-prefix = if d.is-pub then "pub " else ""
+  pub-prefix ++ "fun " ++ marshal-name(d.name, declared) ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
   emit-body(d.body, declared).lines.map(fn(line) "  " ++ line).join("\n")
 
 // Emit parameter list with type annotations when available.
@@ -305,6 +308,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           match arg.typ
             Just(TString) -> "trace(" ++ emit-expr(arg, declared) ++ ")"
             _             -> "trace(" ++ emit-expr(arg, declared) ++ ".show)"
+
+        // User input
+        (Var("input"), [prompt]) ->
+          "{ val _ = print(" ++ emit-expr(prompt, declared) ++ "); readline() }"
 
         // File I/O
         (Var("read_file"), [p]) ->
@@ -656,6 +663,36 @@ fun node-uses-file-io( n : node ) : div bool
     Loop(body)             -> node-uses-file-io(body)
     StringInterp(parts)   -> parts.any(fn(p) node-uses-file-io(p))
     LetTuple(_, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
+    _                     -> False
+
+// Check whether the program uses the input() function
+// that requires `import std/os/readline`.
+fun program-uses-input( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-input(d.body))
+
+fun node-uses-input( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-input-fn = match callee.expr
+        Var("input") -> True
+        _            -> False
+      is-input-fn || node-uses-input(callee) || args.any(fn(a) node-uses-input(a))
+    Let(_, _, init, body) -> node-uses-input(init) || node-uses-input(body)
+    VarDecl(_, _, init, body) -> node-uses-input(init) || node-uses-input(body)
+    Assign(_, value)      -> node-uses-input(value)
+    Fun(_, body)          -> node-uses-input(body)
+    Binary(_, lhs, rhs)   -> node-uses-input(lhs) || node-uses-input(rhs)
+    Unary(_, operand)     -> node-uses-input(operand)
+    If(c, t, e)           -> node-uses-input(c) || node-uses-input(t) || node-uses-input(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-input(s))
+    Match(scrut, arms)    -> node-uses-input(scrut) || arms.any(fn(a) node-uses-input(a.body) || a.guard.map(node-uses-input).default(False))
+    Repeat(count, body)   -> node-uses-input(count) || node-uses-input(body)
+    ForIn(_, s, e, body)  -> node-uses-input(s) || node-uses-input(e) || node-uses-input(body)
+    ForEach(_, coll, body) -> node-uses-input(coll) || node-uses-input(body)
+    While(cond, body)      -> node-uses-input(cond) || node-uses-input(body)
+    Loop(body)             -> node-uses-input(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-input(p))
+    LetTuple(_, init, body) -> node-uses-input(init) || node-uses-input(body)
     _                     -> False
 
 // ---------------------------------------------------------------------------

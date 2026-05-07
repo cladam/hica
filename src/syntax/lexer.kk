@@ -43,6 +43,7 @@ pub type token-kind
   TkBreak
   TkContinue
   TkStruct
+  TkPub
   TkTrue
   TkFalse
   // Punctuation
@@ -116,6 +117,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkBreak      -> "break"
     TkContinue   -> "continue"
     TkStruct     -> "struct"
+    TkPub        -> "pub"
     TkTrue       -> "true"
     TkFalse      -> "false"
     TkLParen     -> "("
@@ -221,6 +223,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "for"    -> TkFor
     "in"     -> TkIn
     "struct" -> TkStruct
+    "pub"    -> TkPub
     "true"   -> TkBool(True)
     "false"  -> TkBool(False)
     _       -> TkIdent(word)
