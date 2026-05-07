@@ -166,6 +166,19 @@ fun classify(n) => match n {
 }
 ```
 
+Range patterns match a contiguous range of integers with `..=` (inclusive on both ends):
+
+```rust
+fun grade(score: int) => match score {
+  0..=59   => "F",
+  60..=69  => "D",
+  70..=79  => "C",
+  80..=89  => "B",
+  90..=100 => "A",
+  _        => "invalid"
+}
+```
+
 Tuple destructuring patterns:
 
 ```rust

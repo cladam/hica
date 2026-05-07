@@ -16,7 +16,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Mutability | Immutable by default, `mut` opt-in | Immutable, no `mut` |
 | Error handling | `Result<T, E>` + `?` operator | `Result` + `match` |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
-| Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result), not deeply nested |
+| Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result + ranges), not deeply nested |
 | Custom types | `struct` + `impl` + `derive` | `struct` (simple, no `impl` blocks) |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
@@ -204,7 +204,7 @@ Rust's `parse()` is generic over the target type and returns `Result`. hica uses
 
 ## Pattern Matching
 
-Rust has deep, exhaustive pattern matching with guards, nested destructuring, and `if let`:
+Rust has deep, exhaustive pattern matching with guards, nested destructuring, ranges, and `if let`:
 
 ```rust
 match point {
@@ -213,9 +213,15 @@ match point {
     (x, y) if x == y => println!("diagonal"),
     (x, y) => println!("({x}, {y})"),
 }
+
+match score {
+    0..=59 => println!("F"),
+    60..=69 => println!("D"),
+    _ => println!("C or above"),
+}
 ```
 
-hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, and or-patterns:
+hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, or-patterns, and range patterns:
 
 ```rust
 fun describe(x) => match x {
@@ -224,15 +230,15 @@ fun describe(x) => match x {
   _ => "many"
 }
 
-fun main() {
-  match Some(42) {
-    Some(n) => println(n),
-    None    => println("nothing")
-  }
+fun grade(score: int) => match score {
+  0..=59   => "F",
+  60..=69  => "D",
+  90..=100 => "A",
+  _        => "other"
 }
 ```
 
-Rust's pattern matching is more powerful (nested destructuring, `if let`, `@` bindings). hica covers the common cases — including or-patterns and guards — with fewer constructs and edge cases to learn.
+Both languages use `..=` for inclusive range patterns. Rust's pattern matching is more powerful (nested destructuring, `if let`, `@` bindings, exclusive ranges with `..`). hica covers the common cases — including or-patterns, guards, and ranges — with fewer constructs and edge cases to learn.
 
 ## Custom Data Types
 

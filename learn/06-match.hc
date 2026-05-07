@@ -60,6 +60,17 @@ fun classify(n) => match n {
 // Each alternative must be a literal or wildcard (no variable
 // bindings in or-patterns).
 //
+// ── Range patterns ──────────────────────────────────────────
+//
+// Match a contiguous range of integers with `..=` (inclusive):
+//
+//   match score {
+//     0..=59   => "F",
+//     60..=69  => "D",
+//     90..=100 => "A",
+//     _        => "other"
+//   }
+//
 // ============================================================
 
 fun locate(point) => match point {
@@ -80,6 +91,15 @@ fun bucket(n) => match n {
   _         => "high"
 }
 
+fun grade(score: int) => match score {
+  0..=59   => "F",
+  60..=69  => "D",
+  70..=79  => "C",
+  80..=89  => "B",
+  90..=100 => "A",
+  _        => "invalid"
+}
+
 fun main() {
   println(describe(1))
   println(classify(-5))
@@ -95,10 +115,15 @@ fun main() {
   println(bucket(2))
   println(bucket(5))
   println(bucket(9))
+  println(grade(95))
+  println(grade(72))
+  println(grade(55))
 }
 
 // ============================================================
-// Challenge: Write a function `grade(score)` that uses match
-// guards to return "A" (90+), "B" (80+), "C" (70+), "D" (60+),
-// or "F" (below 60).
+// Challenge: Write a function `http_status(code: int)` that
+// uses range patterns to return "info" (100..=199),
+// "success" (200..=299), "redirect" (300..=399),
+// "client error" (400..=499), "server error" (500..=599),
+// or "unknown" for anything else.
 // ============================================================

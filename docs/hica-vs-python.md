@@ -268,7 +268,7 @@ match command:
         print("Unknown")
 ```
 
-**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, and or-patterns:
+**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, or-patterns, and range patterns:
 
 ```rust
 fun describe(x) => match x {
@@ -276,7 +276,18 @@ fun describe(x) => match x {
   1 | 2   => "few",
   _       => "many"
 }
+
+fun grade(score: int) => match score {
+  0..=59   => "F",
+  60..=69  => "D",
+  70..=79  => "C",
+  80..=89  => "B",
+  90..=100 => "A",
+  _        => "invalid"
+}
 ```
+
+Python's `match` supports guards (`case x if x > 0`) but has no range pattern syntax. hica's `..=` makes numeric ranges concise and readable.
 
 ## Loops
 

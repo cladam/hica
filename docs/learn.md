@@ -21,7 +21,7 @@ A progressive set of 25 lessons that teach hica one concept at a time. Each less
 | 03 | [`03-variables.hc`](https://github.com/cladam/hica/blob/main/learn/03-variables.hc) | Variables and `let` | `let` bindings, the last-line rule |
 | 04 | [`04-functions.hc`](https://github.com/cladam/hica/blob/main/learn/04-functions.hc) | Functions and chaining | Multiple functions, calling one from another |
 | 05 | [`05-if-else.hc`](https://github.com/cladam/hica/blob/main/learn/05-if-else.hc) | Conditional expressions | `if`/`else` as expressions, setting variables |
-| 06 | [`06-match.hc`](https://github.com/cladam/hica/blob/main/learn/06-match.hc) | Pattern matching | `match` with integer patterns, wildcards `_` |
+| 06 | [`06-match.hc`](https://github.com/cladam/hica/blob/main/learn/06-match.hc) | Pattern matching | `match` with integer patterns, wildcards `_`, match guards, or-patterns, range patterns `..=` |
 | 07 | [`07-logic.hc`](https://github.com/cladam/hica/blob/main/learn/07-logic.hc) | Boolean logic | `&&`, comparisons, combining conditions |
 | 08 | [`08-fizzbuzz.hc`](https://github.com/cladam/hica/blob/main/learn/08-fizzbuzz.hc) | Putting it all together | `else if` chains, multi-step logic |
 | 09 | [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc) | Repeating things | `repeat(n) { body }`, running code n times |
@@ -52,6 +52,7 @@ A progressive set of 25 lessons that teach hica one concept at a time. Each less
 | `if`/`else` expressions | `05-if-else.hc`, `07-logic.hc` |
 | `else if` chains | `08-fizzbuzz.hc` |
 | `match` + wildcards | `06-match.hc` |
+| Range patterns (`..=`) | `06-match.hc` |
 | `&&` boolean operators | `07-logic.hc` |
 | `repeat(n) { }` | `09-repeat.hc` |
 | String interpolation | `10-strings.hc` |
