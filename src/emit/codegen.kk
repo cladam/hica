@@ -986,10 +986,10 @@ fun emit-test-main( tests : list<test-decl> ) : div string
     val escaped-name = t.name.replace-all("\"", "\\\"")
     "  val r" ++ i.show ++ " = match try({ hctest" ++ i.show ++ "() })\n" ++
     "    Ok(_) ->\n" ++
-    "      println(\"  \\x1b[32m\\x2713\\x1b[0m \" ++ \"" ++ escaped-name ++ "\")\n" ++
+    "      println(\"  \\x1b[32m\\u2713\\x1b[0m \" ++ \"" ++ escaped-name ++ "\")\n" ++
     "      True\n" ++
     "    Error(e) ->\n" ++
-    "      println(\"  \\x1b[31m\\x2717\\x1b[0m \" ++ \"" ++ escaped-name ++ "\")\n" ++
+    "      println(\"  \\x1b[31m\\u2717\\x1b[0m \" ++ \"" ++ escaped-name ++ "\")\n" ++
     "      println(\"    \" ++ e.message)\n" ++
     "      False"
   val result-vars = tests.map-indexed(fn(i, _) "r" ++ i.show)

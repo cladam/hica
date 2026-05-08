@@ -16,7 +16,7 @@ Options:
       --version              output version information and exit
 
 Commands:
-    build, b    Compile a .hc file to Koka and build a binary
+    build, b    Compile a .hc file and build a binary
     run, r      Compile and run a .hc file
     check, c    Analyse a .hc file and report errors
     clean       Remove generated build artifacts

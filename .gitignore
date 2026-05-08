@@ -23,11 +23,11 @@ hica
 # tbdflow intent log (local-only, never committed)
 .tbdflow-intent.json
 
+examples/*
 !examples/*.hc
-examples/*.kk
 
+exercises/*.*
 !exercises/*.hc
-exercises/*.kk
 
+learn/*.*
 !learn/*.hc
-learn/*.kk

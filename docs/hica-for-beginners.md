@@ -87,6 +87,61 @@ You don't need to write types; hica's Hindley-Milner type system infers them for
 fun add(a: int, b: int) : int => a + b
 ```
 
+## Testing your code
+
+Once you've written a function, how do you know it works? Use `test` blocks. They sit right next to your functions — no separate files, no imports:
+
+```rust
+fun double(x) => x * 2
+
+test "double works" {
+  assert(double(3) == 6)
+  assert_eq(double(0), 0)
+}
+```
+
+Run tests with `hica test`:
+
+```sh
+./hica test my_file.hc
+```
+
+```
+running 1 test(s)...
+
+  ✓ double works
+
+1 test(s) passed
+```
+
+When a test fails, you see exactly what went wrong:
+
+```rust
+test "oops" {
+  assert_eq(double(3), 5)
+}
+```
+
+```
+  ✗ oops
+    expected 6 but got 5
+```
+
+Here are the assertions you can use:
+
+| Function | What it checks |
+|----------|---------------|
+| `assert(cond)` | `cond` is `true` |
+| `assert_eq(a, b)` | `a` equals `b` |
+| `assert_ne(a, b)` | `a` does not equal `b` |
+| `assert_true(cond)` | same as `assert`, with a clearer failure message |
+| `assert_false(cond)` | `cond` is `false` |
+| `assert_contains(list, x)` | `list` contains `x` |
+| `assert_empty(list)` | `list` is empty |
+| `assert_not_empty(list)` | `list` has at least one element |
+
+Get in the habit of writing tests alongside your functions. When you come back to your code later, you'll thank yourself.
+
 ## Making decisions
 
 `if`/`else` is an expression, meaning it produces a value:

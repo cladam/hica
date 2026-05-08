@@ -30,3 +30,11 @@ fun main() {
   println(is_vowel('e'))
   println(is_vowel('z'))
 }
+
+test "test if e is_vowel" {
+  assert(is_vowel('e'))
+}
+
+test "vowels contains i" {
+  assert_contains(vowels(), 'i')
+}

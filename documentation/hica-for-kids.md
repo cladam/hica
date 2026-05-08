@@ -18,27 +18,28 @@ software.
 7. [Operators: The Math Toolkit](#7-operators-the-math-toolkit)
 8. [Functions: Little Machines](#8-functions-little-machines)
 9. [The Magic Arrow (`=>`)](#9-the-magic-arrow-)
-10. [Making Decisions (The Fork in the Road)](#10-making-decisions-the-fork-in-the-road)
-11. [The Match Game](#11-the-match-game)
-12. [Boolean Logic: True or False?](#12-boolean-logic-true-or-false)
-13. [Repeating Things](#13-repeating-things)
-14. [Counting Loops](#14-counting-loops)
-15. [While Loops: Keep Going Until...](#15-while-loops-keep-going-until)
-16. [Loop, Break, and Continue](#16-loop-break-and-continue)
-17. [Building Strings](#17-building-strings)
-18. [The Pipe: Connecting Machines](#18-the-pipe-connecting-machines)
-19. [Tuples: Bundling Values Together](#19-tuples-bundling-values-together)
-20. [Lists: Collections of Things](#20-lists-collections-of-things)
-21. [Maybe: Something or Nothing](#21-maybe-something-or-nothing)
-22. [Result: It Worked or It Didn't](#22-result-it-worked-or-it-didnt)
-23. [Recursion: The Russian Doll Trick](#23-recursion-the-russian-doll-trick)
-24. [Closures: Functions That Remember](#24-closures-functions-that-remember)
-25. [Structs: Build Your Own Types](#25-structs-build-your-own-types)
-26. [Asking for Input](#26-asking-for-input)
-27. [Random Numbers: Roll the Dice!](#27-random-numbers-roll-the-dice)
-28. [Under the Hood: The Translator](#28-under-the-hood-the-translator)
-29. [Projects](#29-projects)
-30. [Glossary](#30-glossary)
+10. [Testing: Did It Work?](#10-testing-did-it-work)
+11. [Making Decisions (The Fork in the Road)](#11-making-decisions-the-fork-in-the-road)
+12. [The Match Game](#12-the-match-game)
+13. [Boolean Logic: True or False?](#13-boolean-logic-true-or-false)
+14. [Repeating Things](#14-repeating-things)
+15. [Counting Loops](#15-counting-loops)
+16. [While Loops: Keep Going Until...](#16-while-loops-keep-going-until)
+17. [Loop, Break, and Continue](#17-loop-break-and-continue)
+18. [Building Strings](#18-building-strings)
+19. [The Pipe: Connecting Machines](#19-the-pipe-connecting-machines)
+20. [Tuples: Bundling Values Together](#20-tuples-bundling-values-together)
+21. [Lists: Collections of Things](#21-lists-collections-of-things)
+22. [Maybe: Something or Nothing](#22-maybe-something-or-nothing)
+23. [Result: It Worked or It Didn't](#23-result-it-worked-or-it-didnt)
+24. [Recursion: The Russian Doll Trick](#24-recursion-the-russian-doll-trick)
+25. [Closures: Functions That Remember](#25-closures-functions-that-remember)
+26. [Structs: Build Your Own Types](#26-structs-build-your-own-types)
+27. [Asking for Input](#27-asking-for-input)
+28. [Random Numbers: Roll the Dice!](#28-random-numbers-roll-the-dice)
+29. [Under the Hood: The Translator](#29-under-the-hood-the-translator)
+30. [Projects](#30-projects)
+31. [Glossary](#31-glossary)
 
 ---
 
@@ -418,7 +419,94 @@ fun add_ten(n) {
 
 ---
 
-## 10. Making Decisions (The Fork in the Road)
+## 10. Testing: Did It Work?
+
+You've built a little machine (a function). But how do you **know** it works?
+You test it! In Hica, you write `test` blocks right next to your functions.
+
+### Your first test
+
+```rust
+fun double(n) => n * 2
+
+test "double works" {
+  assert(double(3) == 6)
+  assert(double(0) == 0)
+}
+```
+
+Run it:
+
+```sh
+./hica test my_file.hc
+```
+
+```
+running 1 test(s)...
+
+  ✓ double works
+
+1 test(s) passed
+```
+
+The green ✓ means your function works! 🎉
+
+### What happens when a test fails?
+
+Try changing the test to something wrong on purpose:
+
+```rust
+test "this will fail" {
+  assert_eq(double(3), 5)
+}
+```
+
+```
+  ✗ this will fail
+    expected 6 but got 5
+```
+
+The red ✗ shows you exactly what went wrong. That's the magic of testing: you
+find bugs **before** they surprise you.
+
+### Testing tools
+
+Think of these as your detective kit:
+
+| Tool | What it checks | Example |
+| --- | --- | --- |
+| `assert(cond)` | Is this true? | `assert(1 + 1 == 2)` |
+| `assert_eq(a, b)` | Are these equal? | `assert_eq(double(5), 10)` |
+| `assert_ne(a, b)` | Are these different? | `assert_ne("cat", "dog")` |
+| `assert_true(cond)` | Is this true? (clearer message) | `assert_true(10 > 5)` |
+| `assert_false(cond)` | Is this false? | `assert_false(1 > 100)` |
+| `assert_contains(list, x)` | Is `x` in the list? | `assert_contains([1, 2, 3], 2)` |
+| `assert_empty(list)` | Is the list empty? | `assert_empty([])` |
+| `assert_not_empty(list)` | Does the list have items? | `assert_not_empty([1, 2])` |
+
+### Why test early?
+
+Imagine building a Lego spaceship. Would you rather find a missing piece now,
+or when the whole thing falls apart at launch? Tests let you check each piece
+as you build.
+
+**Golden rule:** Write a function, write a test. Always.
+
+**🎯 Try it:** Write a function `triple(n)` that multiplies by 3, then write a
+test for it:
+
+```rust
+fun triple(n) => n * 3
+
+test "triple works" {
+  assert_eq(triple(4), 12)
+  assert_eq(triple(0), 0)
+}
+```
+
+---
+
+## 11. Making Decisions (The Fork in the Road)
 
 In Hica, an `if` expression is like a fork in the road. You go left or right
 depending on a condition — and both paths must lead to a value.
@@ -465,7 +553,7 @@ It's like a chain of doors — you check each one until you find the right room.
 
 ---
 
-## 11. The Match Game
+## 12. The Match Game
 
 Sometimes you have many choices. Instead of nested `if` statements, Hica uses
 `match`. It's like a sorting machine — drop a value in, and it lands in the
@@ -590,7 +678,7 @@ and everything else is `"winter"`.
 
 ---
 
-## 12. Boolean Logic: True or False?
+## 13. Boolean Logic: True or False?
 
 You can combine questions with `&&` (AND) to check if *both* are true:
 
@@ -613,7 +701,7 @@ a ticket?" Both must be true to get in.
 
 ---
 
-## 13. Repeating Things
+## 14. Repeating Things
 
 Sometimes you want to do something more than once. Hica has `repeat` for that:
 
@@ -643,7 +731,7 @@ fun main() {
 
 ---
 
-## 14. Counting Loops
+## 15. Counting Loops
 
 What if you want to do something *and* know which round you're on?
 That's what `for` is for!
@@ -725,7 +813,7 @@ What numbers do you get?
 
 ---
 
-## 15. While Loops: Keep Going Until...
+## 16. While Loops: Keep Going Until...
 
 A `for` loop runs a set number of times. But sometimes you don't know *how
 many* times — you just want to keep going **until** something happens. That's
@@ -799,7 +887,7 @@ than 1000. Start with `var n = 1` and keep doubling: `n = n * 2`.
 
 ---
 
-## 16. Loop, Break, and Continue
+## 17. Loop, Break, and Continue
 
 ### The infinite loop
 
@@ -877,7 +965,7 @@ Hint: use `var i = 0`, increment it each time, and break when `i > 5`.
 
 ---
 
-## 17. Building Strings
+## 18. Building Strings
 
 Sometimes you want to build a message from pieces. Hica gives you two ways.
 
@@ -1018,7 +1106,7 @@ What about `word[-2]`?
 
 ---
 
-## 18. The Pipe: Connecting Machines
+## 19. The Pipe: Connecting Machines
 
 Remember how functions are like machines in a factory? The **pipe operator**
 `|>` is the conveyor belt that connects them!
@@ -1127,7 +1215,7 @@ fun main() {
 
 ---
 
-## 19. Tuples: Bundling Values Together
+## 20. Tuples: Bundling Values Together
 
 Sometimes you want to keep two (or more) values together — like an **x** and
 **y** position, or a name and an age. A **tuple** is a tiny bundle that holds
@@ -1179,7 +1267,7 @@ and `.1`.
 
 ---
 
-## 20. Lists: Collections of Things
+## 21. Lists: Collections of Things
 
 What if you have a whole bunch of values — not just two or three, but five,
 ten, or even a hundred? That's what **lists** are for.
@@ -1339,7 +1427,7 @@ multiplied by 5.
 
 ---
 
-## 21. Maybe: Something or Nothing
+## 22. Maybe: Something or Nothing
 
 Sometimes a value might exist, or it might not. Like looking for your keys —
 they're either in your pocket, or they're not!
@@ -1400,7 +1488,7 @@ fun main() {
 
 ---
 
-## 22. Result: It Worked or It Didn't
+## 23. Result: It Worked or It Didn't
 
 Sometimes things can go wrong. You try to divide by zero, open a file that
 doesn't exist, or parse a number from text that isn't a number.
@@ -1461,7 +1549,7 @@ if the list is not empty, or `Err("empty list")` if it is.
 
 ---
 
-## 23. Recursion: The Russian Doll Trick
+## 24. Recursion: The Russian Doll Trick
 
 Imagine a Russian doll (matryoshka). You open it, and there's a smaller
 identical doll inside. Open that one, and there's an even smaller one. You keep
@@ -1558,7 +1646,7 @@ Use recursion when a problem can be broken into **smaller copies of itself**:
 
 ---
 
-## 24. Closures: Functions That Remember
+## 25. Closures: Functions That Remember
 
 You've learned that functions are like little machines. But what if a machine
 could **build another machine**? And what if that new machine could
@@ -1651,7 +1739,7 @@ What does `twice(double, 5)` give you?
 
 ---
 
-## 25. Structs: Build Your Own Types
+## 26. Structs: Build Your Own Types
 
 Tuples are great for bundling a few values together, but what if you have three,
 four, or more fields? And what if you can't remember whether `.0` is the name or
@@ -1735,7 +1823,7 @@ Write a function `level_up(p: Player) : string` that prints
 
 ---
 
-## 26. Asking for Input
+## 27. Asking for Input
 
 So far, your programs have been one-way conversations — the computer talks,
 but you can't talk back. Let's change that! The `input` function prints a
@@ -1796,7 +1884,7 @@ operator string!
 
 ---
 
-## 27. Random Numbers: Roll the Dice!
+## 28. Random Numbers: Roll the Dice!
 
 What if your program could surprise you? With `random`, it can! The `random`
 function picks a number for you — a different one each time you run the
@@ -1899,7 +1987,7 @@ choice. Use `match` to decide who wins!
 
 ---
 
-## 28. Under the Hood: The Translator
+## 29. Under the Hood: The Translator
 
 This is the coolest part of Hica. When you run your program, three things
 happen behind the scenes:
@@ -1928,7 +2016,7 @@ anymore. No pauses, no slowdowns.
 
 ---
 
-## 29. Projects
+## 30. Projects
 
 Ready for something bigger? Try these!
 
@@ -2029,7 +2117,7 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 
 ---
 
-## 30. Glossary
+## 31. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2038,6 +2126,9 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 | `let` | Creates a named value (an immutable labelled box) |
 | `var` | Creates a changeable value (a box with a lid) |
 | `=>` | The magic arrow — shortcut for simple functions |
+| `test "name"` | Declares a test block — checks that your code works |
+| `assert(cond)` | Test tool — fails if condition is false |
+| `assert_eq(a, b)` | Test tool — fails if a and b are different |
 | `match` | A sorting machine that picks a path based on a value |
 | `_` | The wildcard — matches anything |
 | `x if cond` | A match guard — adds a condition to a pattern |
