@@ -1,54 +1,78 @@
 #!/bin/sh
 set -e
 
-TMP_DIR="\$(mktemp -d)"
+REPO="cladam/hica"
+INSTALL_DIR="${HICA_INSTALL_DIR:-$HOME/.local/bin}"
+TMP_DIR=""
 
 main() {
   need_cmd curl
+  need_cmd tar
   need_cmd uname
 
-  local os arch
-  os=\$(uname -s | tr '[:upper:]' '[:lower:]')
-  arch=\$(uname -m)
+  TMP_DIR="$(mktemp -d)"
 
-  case "\$os" in
-    linux)  os="linux" ;;
-    darwin) os="macos" ;;
-    *)      err "unsupported OS: \$os" ;;
+  local os arch artifact
+  os="$(uname -s)"
+  arch="$(uname -m)"
+
+  case "$os" in
+    Linux)  os="linux" ;;
+    Darwin) os="macos" ;;
+    *)      err "unsupported OS: $os" ;;
   esac
 
-  case "\$arch" in
+  case "$arch" in
     x86_64|amd64)  arch="x86_64" ;;
-    aarch64|arm64) arch="aarch64" ;;
-    *)             err "unsupported architecture: \$arch" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *)             err "unsupported architecture: $arch" ;;
   esac
 
-  local url="https://github.com/cladam/hica/releases/latest/download/hica-\$os-\$arch"
+  artifact="hica-${os}-${arch}"
+  local url="https://github.com/${REPO}/releases/latest/download/${artifact}.tar.gz"
 
-  echo "installing hica..."
-  echo "  os:   \$os"
-  echo "  arch: \$arch"
+  echo "Installing hica..."
+  echo "  os:      $os"
+  echo "  arch:    $arch"
+  echo "  install: $INSTALL_DIR"
   echo ""
 
-  curl -fsSL "\$url" -o "\$TMP_DIR/hica"
-  chmod +x "\$TMP_DIR/hica"
+  curl -fsSL "$url" -o "$TMP_DIR/${artifact}.tar.gz" \
+    || err "download failed — check that a release exists for ${artifact}"
 
-  rm -rf "\$TMP_DIR"
+  tar xzf "$TMP_DIR/${artifact}.tar.gz" -C "$TMP_DIR"
+
+  mkdir -p "$INSTALL_DIR"
+  mv "$TMP_DIR/hica" "$INSTALL_DIR/hica"
+  chmod +x "$INSTALL_DIR/hica"
+
+  echo "hica installed to $INSTALL_DIR/hica"
+
+  if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
+    echo ""
+    echo "Add hica to your PATH by adding this to your shell profile:"
+    echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
+  fi
+
+  echo ""
+  "$INSTALL_DIR/hica" --version
 }
 
 need_cmd() {
-  if ! command -v "\$1" > /dev/null 2>&1; then
-    err "need '\$1' (not found)"
+  if ! command -v "$1" > /dev/null 2>&1; then
+    err "need '$1' (not found)"
   fi
 }
 
 err() {
-  echo "error: \$1" >&2
+  echo "error: $1" >&2
   exit 1
 }
 
 cleanup() {
-  rm -rf "\$TMP_DIR" 2>/dev/null
+  if [ -n "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR" 2>/dev/null
+  fi
 }
 
 trap cleanup EXIT

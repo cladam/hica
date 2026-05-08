@@ -49,15 +49,32 @@ state (diagnostics, fresh type variables, symbol scopes).
 | Backend target        | Koka (.kk) → C / JS / WASM via Koka              |
 | Runtime               | Koka standard library and runtime                |
 
-## Quick Start
+## Install
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | sh
+```
+
+This installs the latest release binary to `~/.local/bin`. Override with `HICA_INSTALL_DIR`:
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+```
+
+### Build from source
 
 Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 
 ```sh
-# Build the compiler
-koka -ilib/klap -isrc src/main.kk -o hica
+git clone https://github.com/cladam/hica.git
+cd hica
+koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
+```
 
+## Quick Start
+
+```sh
 # Compile and run a Hica source file
 ./hica run examples/hello.hc
 

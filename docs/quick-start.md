@@ -13,19 +13,34 @@ Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3
 
 ## Install hica
 
+The quickest way to install hica:
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | sh
+```
+
+This downloads the latest release binary and installs it to `~/.local/bin`.
+Make sure that directory is on your `PATH`.
+
+To install elsewhere:
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+```
+
+Verify the installation:
+
+```sh
+hica --version
+```
+
 ### Build from source
 
 ```sh
 git clone https://github.com/cladam/hica.git
 cd hica
-
-# Build the hica compiler
-## -i includes klap library and src directory
 koka -O2 -ilib/klap -isrc src/main.kk -o hica
-## make hica executable
 chmod +x hica
-
-# Verify hica by checking the version
 ./hica --version
 ```
 
