@@ -127,6 +127,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main")
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
+  val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
@@ -140,6 +141,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   "module " ++ mod-name ++ "\n\n" ++
   float-import ++
   random-import ++
+  bitwise-import ++
   env-import ++
   file-import ++
   readline-import ++
@@ -334,6 +336,21 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(hc__e) -> throw(\"unwrap: \" ++ hc__e.show) })"
         (Var("unwrap_or"), [r, d]) ->
           "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(_) -> " ++ emit-expr(d, declared) ++ " })"
+
+        // Bitwise operations — convert to int32, apply op, convert back
+        (Var("bit_and"), [a, b]) ->
+          emit-expr(a, declared) ++ ".int32.and(" ++ emit-expr(b, declared) ++ ".int32).int"
+        (Var("bit_or"), [a, b]) ->
+          emit-expr(a, declared) ++ ".int32.or(" ++ emit-expr(b, declared) ++ ".int32).int"
+        (Var("bit_xor"), [a, b]) ->
+          emit-expr(a, declared) ++ ".int32.xor(" ++ emit-expr(b, declared) ++ ".int32).int"
+        (Var("bit_not"), [a]) ->
+          emit-expr(a, declared) ++ ".int32.not.int"
+        (Var("bit_shl"), [a, sh]) ->
+          emit-expr(a, declared) ++ ".int32.shl(" ++ emit-expr(sh, declared) ++ ").int"
+        (Var("bit_shr"), [a, sh]) ->
+          emit-expr(a, declared) ++ ".int32.shr(" ++ emit-expr(sh, declared) ++ ").int"
+
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
@@ -703,6 +720,39 @@ fun node-uses-random( n : node ) : div bool
     Loop(body)             -> node-uses-random(body)
     StringInterp(parts)   -> parts.any(fn(p) node-uses-random(p))
     LetTuple(_, init, body) -> node-uses-random(init) || node-uses-random(body)
+    _                     -> False
+
+fun program-uses-bitwise( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-bitwise(d.body))
+
+fun node-uses-bitwise( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-bitwise-fn = match callee.expr
+        Var("bit_and") -> True
+        Var("bit_or")  -> True
+        Var("bit_xor") -> True
+        Var("bit_not") -> True
+        Var("bit_shl") -> True
+        Var("bit_shr") -> True
+        _              -> False
+      is-bitwise-fn || node-uses-bitwise(callee) || args.any(fn(a) node-uses-bitwise(a))
+    Let(_, _, init, body) -> node-uses-bitwise(init) || node-uses-bitwise(body)
+    VarDecl(_, _, init, body) -> node-uses-bitwise(init) || node-uses-bitwise(body)
+    Assign(_, value)      -> node-uses-bitwise(value)
+    Fun(_, body)          -> node-uses-bitwise(body)
+    Binary(_, lhs, rhs)   -> node-uses-bitwise(lhs) || node-uses-bitwise(rhs)
+    Unary(_, operand)     -> node-uses-bitwise(operand)
+    If(c, t, e)           -> node-uses-bitwise(c) || node-uses-bitwise(t) || node-uses-bitwise(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-bitwise(s))
+    Match(scrut, arms)    -> node-uses-bitwise(scrut) || arms.any(fn(a) node-uses-bitwise(a.body) || a.guard.map(node-uses-bitwise).default(False))
+    Repeat(count, body)   -> node-uses-bitwise(count) || node-uses-bitwise(body)
+    ForIn(_, s, e, body)  -> node-uses-bitwise(s) || node-uses-bitwise(e) || node-uses-bitwise(body)
+    ForEach(_, coll, body) -> node-uses-bitwise(coll) || node-uses-bitwise(body)
+    While(cond, body)      -> node-uses-bitwise(cond) || node-uses-bitwise(body)
+    Loop(body)             -> node-uses-bitwise(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-bitwise(p))
+    LetTuple(_, init, body) -> node-uses-bitwise(init) || node-uses-bitwise(body)
     _                     -> False
 
 fun program-uses-input( p : program ) : div bool

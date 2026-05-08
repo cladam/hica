@@ -76,4 +76,12 @@ pub fun extern-env() : type-env
 
     // Result combinators
     ("unwrap",     TFun([TResult(TVar("_a"), TVar("_b"))], TVar("_a"))),
-    ("unwrap_or",  TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))) ]
+    ("unwrap_or",  TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))),
+
+    // Bitwise operations — backed by Koka std/num/int32
+    ("bit_and",  TFun([TInt, TInt], TInt)),
+    ("bit_or",   TFun([TInt, TInt], TInt)),
+    ("bit_xor",  TFun([TInt, TInt], TInt)),
+    ("bit_not",  TFun([TInt], TInt)),
+    ("bit_shl",  TFun([TInt, TInt], TInt)),
+    ("bit_shr",  TFun([TInt, TInt], TInt)) ]

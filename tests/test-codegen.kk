@@ -1475,3 +1475,47 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { let x = input(\"name: \")\nprintln(x) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- Bitwise operations ---
+    dtest("bit_and emits int32.and")
+      val code = emit-typed-program("fun main() => println(bit_and(255, 15))")
+      assert/is-true(code.contains(".int32.and("))
+      assert/is-true(code.contains(".int32).int"))
+
+    dtest("bit_or emits int32.or")
+      val code = emit-typed-program("fun main() => println(bit_or(255, 256))")
+      assert/is-true(code.contains(".int32.or("))
+
+    dtest("bit_xor emits int32.xor")
+      val code = emit-typed-program("fun main() => println(bit_xor(170, 255))")
+      assert/is-true(code.contains(".int32.xor("))
+
+    dtest("bit_not emits int32.not")
+      val code = emit-typed-program("fun main() => println(bit_not(0))")
+      assert/is-true(code.contains(".int32.not.int"))
+
+    dtest("bit_shl emits int32.shl")
+      val code = emit-typed-program("fun main() => println(bit_shl(1, 8))")
+      assert/is-true(code.contains(".int32.shl("))
+
+    dtest("bit_shr emits int32.shr")
+      val code = emit-typed-program("fun main() => println(bit_shr(256, 4))")
+      assert/is-true(code.contains(".int32.shr("))
+
+    dtest("bitwise imports std/num/int32")
+      val code = emit-typed-program("fun main() => println(bit_and(1, 2))")
+      assert/is-true(code.contains("std/num/int32"))
+
+    dtest("no int32 import without bitwise")
+      val code = emit-typed-program("fun main() => println(42)")
+      assert/is-true(!code.contains("std/num/int32"))
+
+    dtest("bitwise type-checks as int -> int")
+      val ds = check-diagnostics("fun main() { let x = bit_and(255, 15)\nprintln(x + 1) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("bit_not type-checks as (int) -> int")
+      val ds = check-diagnostics("fun main() { let x = bit_not(0)\nprintln(x + 1) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

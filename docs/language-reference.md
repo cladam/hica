@@ -505,3 +505,41 @@ fun main() {
 ```
 
 Note: `expr.name` without parentheses is struct field access (`p.x`). With parentheses, `expr.name(...)` is a function call.
+
+### Bitwise
+
+Bitwise operations are provided as built-in functions. They work on 32-bit integer values internally (hica's `int` is converted to a 32-bit integer, the operation is applied, and the result is converted back).
+
+| Function | Description |
+| -------- | ----------- |
+| `bit_and(a, b)` | Bitwise AND |
+| `bit_or(a, b)` | Bitwise OR |
+| `bit_xor(a, b)` | Bitwise XOR |
+| `bit_not(a)` | Bitwise complement (flip all bits) |
+| `bit_shl(a, n)` | Shift left by `n` bits |
+| `bit_shr(a, n)` | Logical shift right by `n` bits |
+
+```rust
+fun main() {
+  let flags = 255
+  let masked = bit_and(flags, 15)   // keep low nibble → 15
+  println(masked)
+
+  let shifted = bit_shr(flags, 4)   // shift right 4 → 15
+  println(shifted)
+
+  let combined = bit_or(flags, 256)  // set bit 8 → 511
+  println(combined)
+}
+```
+
+With UFCS (dot-call syntax), bitwise functions chain naturally:
+
+```rust
+fun main() {
+  let result = 255.bit_and(15).bit_shl(2)
+  println(result)   // 60
+}
+```
+
+**32-bit constraint:** Bitwise operations internally use 32-bit signed integers. Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). This is the same behaviour as C's `int` — suitable for flags, masks, and protocol work, but not for arbitrary-precision bit manipulation.

@@ -22,6 +22,7 @@ Legend: **done** = shipped, **—** = not started
 | String indexing & slicing (`s[0]`, `s[1:]`) | **done** | Low | Reuses `ListIndex`/`ListSlice` AST; checker branches on `TString` (returns `char` for index, `string` for slice); codegen emits `.list[i].unjust` / `.list.drop().take().string`. Enabled new prelude functions: `capitalise`, `capwords`, `removeprefix`, `removesuffix` |
 | String comparison (`<`, `>`, `<=`, `>=`) | **done** | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
 | Type annotations in syntax (`: int`) | **done** | Medium | Escape hatch when inference fails. Parser + AST + checker unification. Supports `let x: int`, `fun f(a: int) : int`, all types |
+| Bitwise operations (`bit_and`, `bit_or`, `bit_xor`, `bit_not`, `bit_shl`, `bit_shr`) | **done** | Low | Function-call API backed by Koka `std/num/int32`. Converts `int` → `int32`, applies op, converts back. Works with UFCS: `flags.bit_and(0x0F)`. 32-bit signed range; values clamped on conversion |
 
 ### Pattern Matching
 
