@@ -248,7 +248,15 @@ fun parse-postfix() : <div,parser> node
             result := Node(Span(result.span.start, t.span.end), TupleIndex(result, idx))
           TkIdent(field) ->
             val t = advance()
-            result := Node(Span(result.span.start, t.span.end), FieldAccess(result, field))
+            // UFCS: expr.f(args) desugars to f(expr, args)
+            match peek()
+              TkLParen ->
+                advance()
+                val args = parse-args()
+                val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+                result := Node(Span(result.span.start, end-tok.span.end), Call(Node(t.span, Var(field)), Cons(result, args)))
+              _ ->
+                result := Node(Span(result.span.start, t.span.end), FieldAccess(result, field))
           _ ->
             parse-error("expected field name or tuple index after '.'")
             ()

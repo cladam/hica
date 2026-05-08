@@ -261,6 +261,24 @@ fun main() {
 
 Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions, with no methods or `self`.
 
+## User Input
+
+`input(prompt)` prints the prompt and reads a line from your input. It returns a `string`.
+
+```rust
+let name = input("What is your name? ")
+println("Hello, " + name)
+```
+
+For numbers, combine input with `parse_int` or `parse_float`:
+
+```rust
+match parse_int(input("Age: ")) {
+  Some(n) => println("You are {n}"),
+  None    => println("Not a number!")
+}
+```
+
 ## Handling missing values
 
 Not every operation succeeds. hica has two types for this.
@@ -364,6 +382,6 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 26 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 27 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

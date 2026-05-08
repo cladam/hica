@@ -146,6 +146,17 @@ Legend: **done** = shipped, **—** = not started
 
 ---
 
+## Stand-Outs
+
+Tactical changes to differentiate hica from similar-looking languages.
+
+| Feature | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| Expose effect types in `hica check` | **done** | Medium | `hica check` now prints discovered effect types after successful analysis. Example: `check: main.hc — ok (2 declarations, 0 errors) [<console, fsys>]`. Pure programs show `[pure]`. Scans AST for calls to known effectful functions (println→console, read_file→fsys, input→io) and flags recursive functions as `div` |
+| UFCS support (`a.f(b)` → `f(a, b)`) | **done** | Low/Medium | Parser desugars `expr.f(args)` to `f(expr, args)` in the postfix loop. Struct field access (`p.x`) still works when no `(` follows. Users can write `5.triple().inc()`, `nums.map(fn).filter(fn)`, `s.trim().to_upper()`. Equivalent to pipe but reads left-to-right. See `examples/ufcs.hc` |
+
+---
+
 ## Known Limitations
 
 Issues that exist today but are not yet fixed:

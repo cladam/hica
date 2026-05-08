@@ -130,7 +130,10 @@ fun cmd-check( file : string )
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
   if errors.is-empty then
-    println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors)")
+    val effects = discover-effects(prog)
+    val effect-str = if effects.is-empty then "pure"
+                     else "<" ++ effects.join(", ") ++ ">"
+    println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors) [" ++ effect-str ++ "]")
   else
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
@@ -352,3 +355,72 @@ fun print-usage()
   println("    init        Initialise a project in the current directory")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
+
+// ---------------------------------------------------------------------------
+// Effect discovery: scan user program for effectful operations
+// ---------------------------------------------------------------------------
+
+// Known effectful function → effect name mapping.
+val console-fns = ["println", "eprintln"]
+val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
+val io-fns      = ["input", "get_args", "get_env"]
+
+fun discover-effects( prog : program ) : div list<string>
+  // Collect all called function names and recursion info
+  val info = prog.decls.map(fn(d) (collect-calls(d.body), d.is-recursive))
+  val all-calls = info.map(fst).concat
+  val any-recursive = info.any(fn((_, r)) r)
+  var effects : list<string> := []
+  if all-calls.any(fn(name) console-fns.any(fn(f) f == name)) then
+    effects := effects ++ ["console"]
+  if all-calls.any(fn(name) fsys-fns.any(fn(f) f == name)) then
+    effects := effects ++ ["fsys"]
+  if all-calls.any(fn(name) io-fns.any(fn(f) f == name)) then
+    effects := effects ++ ["io"]
+  if any-recursive then
+    effects := effects ++ ["div"]
+  effects
+
+// Collect all function names called in a node (recursively)
+fun collect-calls( n : node ) : div list<string>
+  match n.expr
+    Call(callee, args) ->
+      val callee-names = match callee.expr
+        Var(name) -> [name]
+        _         -> collect-calls(callee)
+      callee-names ++ args.map(fn(a) collect-calls(a)).concat
+    Let(_, _, init, body) -> collect-calls(init) ++ collect-calls(body)
+    VarDecl(_, _, init, body) -> collect-calls(init) ++ collect-calls(body)
+    Assign(_, v) -> collect-calls(v)
+    Fun(_, body) -> collect-calls(body)
+    Binary(_, lhs, rhs) -> collect-calls(lhs) ++ collect-calls(rhs)
+    Unary(_, operand) -> collect-calls(operand)
+    If(cond, then-e, else-e) -> collect-calls(cond) ++ collect-calls(then-e) ++ collect-calls(else-e)
+    Block(stmts) -> stmts.map(fn(s) collect-calls(s)).concat
+    Match(scrut, arms) ->
+      val guard-calls = arms.map fn(a)
+        match a.guard
+          Just(g) -> collect-calls(g)
+          Nothing -> []
+      collect-calls(scrut) ++ guard-calls.concat ++ arms.map(fn(a) collect-calls(a.body)).concat
+    Repeat(count, body) -> collect-calls(count) ++ collect-calls(body)
+    ForIn(_, start-e, end-e, body) -> collect-calls(start-e) ++ collect-calls(end-e) ++ collect-calls(body)
+    ForEach(_, coll, body) -> collect-calls(coll) ++ collect-calls(body)
+    While(cond, body) -> collect-calls(cond) ++ collect-calls(body)
+    Loop(body) -> collect-calls(body)
+    StringInterp(parts) -> parts.map(fn(p) collect-calls(p)).concat
+    Tuple(elems) -> elems.map(fn(e) collect-calls(e)).concat
+    EList(elems) -> elems.map(fn(e) collect-calls(e)).concat
+    ListIndex(lst, idx) -> collect-calls(lst) ++ collect-calls(idx)
+    ListSlice(lst, s, e) ->
+      val s-calls = match s { Just(n') -> collect-calls(n'); Nothing -> [] }
+      val e-calls = match e { Just(n') -> collect-calls(n'); Nothing -> [] }
+      collect-calls(lst) ++ s-calls ++ e-calls
+    TupleIndex(tup, _) -> collect-calls(tup)
+    LetTuple(_, init, body) -> collect-calls(init) ++ collect-calls(body)
+    ESome(v)  -> collect-calls(v)
+    EOk(v)    -> collect-calls(v)
+    EErr(v)   -> collect-calls(v)
+    FieldAccess(o, _) -> collect-calls(o)
+    StructLit(_, fields) -> fields.map(fn((_, v)) collect-calls(v)).concat
+    _ -> []
