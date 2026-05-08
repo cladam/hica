@@ -96,13 +96,13 @@ fun main() {
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max)` — min included, max excluded |
+| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max]` — both ends included |
 
 Using `random` gives your program the `ndet` (non-determinism) effect.
 
 ```rust
 fun main() {
-  let die = random(1, 7)
+  let die = random(1, 6)
   println("You rolled a {die}")
 }
 ```

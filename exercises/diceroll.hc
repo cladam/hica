@@ -18,7 +18,7 @@ fun roll_dice(n: int) {
   println(pad_left("--", 4, " ") + pad_left("---", 6, " "))
   var total = 0
   for i in 1..n {
-    let roll = random(1, 7)
+    let roll = random(1, 6)
     total = total + roll
     println(pad_left(show(i), 4, " ") + pad_left(show(roll), 6, " "))
   }

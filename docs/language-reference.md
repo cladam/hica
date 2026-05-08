@@ -405,12 +405,12 @@ fun main() {
 
 ### Random Numbers
 
-Generate random integers with `random(min, max)`. The result is in the range `[min, max)` — min is included, max is excluded:
+Generate random integers with `random(min, max)`. The result is in the range `[min, max]` — both ends included:
 
 ```rust
 fun main() {
-  let die = random(1, 7)     // 1–6
-  let coin = random(0, 2)    // 0 or 1
+  let die = random(1, 6)     // 1–6
+  let coin = random(0, 1)    // 0 or 1
   println("Die: {die}, Coin: {coin}")
 }
 ```

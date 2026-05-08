@@ -39,7 +39,7 @@ Hica. Their type signatures are declared in the compiler
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max)` — min included, max excluded |
+| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max]` — both ends included |
 
 #### Environment
 

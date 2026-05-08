@@ -3,10 +3,10 @@
 // ============================================================
 //
 // `random(min, max)` returns a random integer in the range
-// [min, max) — min is included, max is excluded.
+// [min, max] — both min and max are included.
 //
-//   let die = random(1, 7)    // 1, 2, 3, 4, 5, or 6
-//   let coin = random(0, 2)   // 0 or 1
+//   let die = random(1, 6)    // 1, 2, 3, 4, 5, or 6
+//   let coin = random(0, 1)   // 0 or 1
 //
 // Each call produces a different value (the effect is `ndet`,
 // non-determinism). No seeding needed — hica uses a strong
@@ -15,19 +15,19 @@
 // ============================================================
 
 fun roll_die() {
-  let roll = random(1, 7)
+  let roll = random(1, 6)
   println("You rolled a {roll}")
 }
 
 fun coin_flip() {
-  let side = random(0, 2)
+  let side = random(0, 1)
   if side == 0 { println("Heads!") }
   else { println("Tails!") }
 }
 
 fun random_list() {
   // Generate 5 random numbers between 1 and 100
-  let nums = [1, 2, 3, 4, 5].map((_) => random(1, 101))
+  let nums = [1, 2, 3, 4, 5].map((_) => random(1, 100))
   println("Random numbers: {nums}")
 }
 

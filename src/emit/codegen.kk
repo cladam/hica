@@ -321,9 +321,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("write_file"), [p, content]) ->
           "write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ")"
 
-        // Random numbers
+        // Random numbers — hica random(min, max) is inclusive on both ends
         (Var("random"), [lo, hi]) ->
-          "srandom-int32-range(" ++ emit-expr(lo, declared) ++ ".int32, " ++ emit-expr(hi, declared) ++ ".int32).int"
+          "srandom-int32-range(" ++ emit-expr(lo, declared) ++ ".int32, (" ++ emit-expr(hi, declared) ++ " + 1).int32).int"
 
         // Formatting
         (Var("show_fixed"), [f, prec]) ->
