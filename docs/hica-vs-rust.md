@@ -364,6 +364,44 @@ loop {
 
 hica's `break` cannot return a value and there are no labeled breaks. `break`/`continue` always apply to the innermost loop.
 
+## Bitwise Operations
+
+Rust uses infix operators and works across multiple integer types:
+
+```rust
+let flags: u8 = 0b1010_1100;
+let masked = flags & 0x0F;       // AND
+let shifted = flags >> 4;        // shift right
+let flipped = flags ^ 0xFF;      // XOR
+let complement = !flags;         // NOT
+```
+
+hica uses named functions. All operations work on 32-bit integers internally:
+
+```rust
+fun main() {
+  let flags = 0b1010_1100
+  let masked = bit_and(flags, 0x0F)
+  let shifted = bit_shr(flags, 4)
+  let flipped = bit_xor(flags, 0xFF)
+  let complement = bit_not(flags)
+}
+```
+
+Rust's operators are familiar to C programmers and work on every integer type (`u8`, `i32`, `u64`, etc.). hica has a single `int` type with named functions — less flexible, but no concerns about integer width mismatches.
+
+hica adds bit-level pattern matching with `?` wildcards, inspired by hardware description languages:
+
+```rust
+match opcode {
+  0b11??_???? => "category 3",
+  0b10??_???? => "category 2",
+  _           => "other"
+}
+```
+
+Rust has no direct equivalent — you'd write explicit mask-and-compare guards.
+
 ## Compilation and Performance
 
 Rust compiles through LLVM to native code with fine-grained control over performance, allocation, and inlining.

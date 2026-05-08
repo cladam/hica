@@ -107,6 +107,33 @@ fun main() {
 }
 ```
 
+## Bitwise Operations
+
+Bitwise functions operate on 32-bit integers internally. Values are converted from hica's arbitrary-precision `int` to `int32`, the operation is applied, and the result is converted back.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `bit_and(a, b)` | `(int, int) -> int` | Bitwise AND |
+| `bit_or(a, b)` | `(int, int) -> int` | Bitwise OR |
+| `bit_xor(a, b)` | `(int, int) -> int` | Bitwise XOR |
+| `bit_not(a)` | `(int) -> int` | Bitwise complement (flip all bits) |
+| `bit_shl(a, n)` | `(int, int) -> int` | Shift left by `n` bits |
+| `bit_shr(a, n)` | `(int, int) -> int` | Shift right by `n` bits |
+
+```rust
+fun main() {
+  let flags = 0b1010_1100
+  let masked = bit_and(flags, 0x0F)   // keep low nibble → 12
+  println(masked)
+
+  // UFCS / dot-call style
+  let shifted = flags.bit_shr(4)       // → 10
+  println(shifted)
+}
+```
+
+**32-bit constraint:** Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). Suitable for flags, masks, and protocol work.
+
 ## Formatting
 
 | Function | Signature | Description |

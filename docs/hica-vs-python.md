@@ -325,6 +325,41 @@ repeat(3) {
 
 `break` and `continue` work in all loop types: `while`, `for`, `repeat`, and `loop`. Python's `for/else` and `while/else` have no equivalent in hica.
 
+## Bitwise Operations
+
+**Python** uses infix operators for bitwise operations:
+
+```python
+flags = 0b1010_1100
+masked = flags & 0x0F         # AND
+shifted = flags >> 4          # shift right
+flipped = flags ^ 0xFF        # XOR
+complement = ~flags           # NOT
+```
+
+**hica** uses named functions instead of operators:
+
+```rust
+fun main() {
+  let flags = 0b1010_1100
+  let masked = bit_and(flags, 0x0F)
+  let shifted = bit_shr(flags, 4)
+  let flipped = bit_xor(flags, 0xFF)
+  let complement = bit_not(flags)
+}
+```
+
+Python's operators are concise; hica's named functions are explicit and self-documenting. Both support binary (`0b`) and hex (`0x`) literals with underscore separators (`0b1111_0000`).
+
+hica also supports bit-level pattern matching with `?` wildcards, which Python has no equivalent for:
+
+```rust
+match byte {
+  0b1100_???? => "high nibble is C",
+  _           => "other"
+}
+```
+
 ## Performance
 
 **Python** is interpreted. **hica** compiles through Koka to C, so the resulting binaries can run at native speed for many workloads.
