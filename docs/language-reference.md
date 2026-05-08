@@ -583,3 +583,45 @@ fun main() {
 ```
 
 **32-bit constraint:** Bitwise operations internally use 32-bit signed integers. Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). This is the same behaviour as C's `int` — suitable for flags, masks, and protocol work, but not for arbitrary-precision bit manipulation.
+
+## Testing
+
+### Test blocks
+
+Define tests alongside your code using `test` blocks:
+
+```rust
+fun double(n: int) : int => n * 2
+
+test "double works" {
+  assert(double(3) == 6)
+  assert_eq(double(0), 0)
+}
+
+test "string operations" {
+  let s = "hello"
+  assert(str_length(s) == 5)
+  assert_eq(to_upper(s), "HELLO")
+}
+```
+
+Run tests with `hica test`:
+
+```sh
+hica test my_file.hc
+```
+
+### Assertions
+
+| Function | Signature | Behaviour |
+|----------|-----------|-----------|
+| `assert(cond)` | `(bool) -> ()` | Fails with "assertion failed" if `cond` is `false` |
+| `assert_eq(expected, actual)` | `(a, a) -> ()` | Fails with "expected X but got Y" if values differ |
+
+### Test structure
+
+- Tests are declared at the top level (alongside functions and structs)
+- Each test has a string name and a block body
+- Tests can call any function defined in the same file
+- No imports needed — `assert` and `assert_eq` are built-in
+- Exit code is 0 on success, 1 on failure

@@ -20,6 +20,7 @@ Commands:
     run, r      Compile and run a .hc file
     check, c    Analyse a .hc file and report errors
     clean       Remove generated build artifacts
+    test, t     Run tests in a .hc file
     new         Create a new hica project
     init        Initialise a project in the current directory
     help        Print this message
@@ -60,6 +61,45 @@ Remove generated build artifacts:
 ```sh
 hica clean
 ```
+
+### `hica test` (alias: `t`)
+
+Run tests defined in a `.hc` file:
+
+```sh
+hica test examples/test-example.hc
+```
+
+Tests are written with `test` blocks and assertions:
+
+```rust
+fun double(n: int) : int => n * 2
+
+test "double works" {
+  assert(double(3) == 6)
+  assert_eq(double(0), 0)
+}
+```
+
+Output:
+
+```
+running 2 test(s)...
+
+  ✓ double works
+  ✓ basic math
+
+2 test(s) passed
+```
+
+**Assertions:**
+
+| Function | Description |
+|----------|-------------|
+| `assert(cond)` | Fails if `cond` is `false` |
+| `assert_eq(expected, actual)` | Fails if values differ; shows both values |
+
+**Exit codes:** 0 if all tests pass, 1 if any test fails.
 
 ### `hica new`
 

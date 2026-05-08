@@ -141,3 +141,30 @@ pub fun main() : io ()
     itest("help c resolves to check help")
       val out = hica("help c")
       assert/is-true(out.contains("hica check"))
+
+    // --- Test ---
+
+    itest("test runs test blocks in a file")
+      val out = hica("test examples/test-example.hc")
+      assert/is-true(out.contains("running 3 test(s)"))
+      assert/is-true(out.contains("3 test(s) passed"))
+
+    itest("t is an alias for test")
+      val out = hica("t examples/test-example.hc")
+      assert/is-true(out.contains("3 test(s) passed"))
+
+    itest("test with no tests shows message")
+      val out = hica("test examples/hello.hc")
+      assert/is-true(out.contains("no tests found"))
+
+    itest("test without file shows error")
+      val out = hica("test")
+      assert/is-true(out.contains("error:"))
+
+    itest("help test prints test help")
+      val out = hica("help test")
+      assert/is-true(out.contains("hica test"))
+
+    itest("help t resolves to test help")
+      val out = hica("help t")
+      assert/is-true(out.contains("hica test"))
