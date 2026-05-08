@@ -364,6 +364,7 @@ fun print-usage()
 val console-fns = ["println", "eprintln"]
 val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
 val io-fns      = ["input", "get_args", "get_env"]
+val ndet-fns    = ["random"]
 
 fun discover-effects( prog : program ) : div list<string>
   // Collect all called function names and recursion info
@@ -377,6 +378,8 @@ fun discover-effects( prog : program ) : div list<string>
     effects := effects ++ ["fsys"]
   if all-calls.any(fn(name) io-fns.any(fn(f) f == name)) then
     effects := effects ++ ["io"]
+  if all-calls.any(fn(name) ndet-fns.any(fn(f) f == name)) then
+    effects := effects ++ ["ndet"]
   if any-recursive then
     effects := effects ++ ["div"]
   effects

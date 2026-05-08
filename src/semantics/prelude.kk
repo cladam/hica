@@ -68,6 +68,12 @@ pub fun extern-env() : type-env
     ("read_file",   TFun([TString], TResult(TString, TString))),
     ("write_file",  TFun([TString, TString], TUnit)),
 
+    // Random numbers
+    ("random",     TFun([TInt, TInt], TInt)),
+
+    // Formatting
+    ("show_fixed", TFun([TFloat, TInt], TString)),
+
     // Result combinators
     ("unwrap",     TFun([TResult(TVar("_a"), TVar("_b"))], TVar("_a"))),
     ("unwrap_or",  TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))) ]
