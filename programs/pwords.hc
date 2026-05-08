@@ -30,3 +30,19 @@ fun main() {
     }
   }
 }
+
+test "single char is palindrome" {
+  assert_true(is_palindrome("a"))
+}
+
+test "aba is palindrome" {
+  assert_true(is_palindrome("aba"))
+}
+
+test "racecar is palindrome" {
+  assert_true(is_palindrome("racecar"))
+}
+
+test "hello is not palindrome" {
+  assert_false(is_palindrome("hello"))
+}

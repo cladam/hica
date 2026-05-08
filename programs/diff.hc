@@ -219,3 +219,67 @@ fun main() {
 // + THREE
 //   four
 // + five
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+test "identical inputs produce no changes" {
+  let a = ["hello", "world"]
+  let ops = diff(a, a)
+  let changes = ops.filter((op) => op.kind != "=")
+  assert_empty(changes)
+}
+
+test "detect single insertion" {
+  let a = ["a", "b"]
+  let b = ["a", "b", "c"]
+  let ops = diff(a, b)
+  let adds = ops.filter((op) => op.kind == "+")
+  assert_eq(length(adds), 1)
+  assert_eq(adds[0].line, "c")
+}
+
+test "detect single deletion" {
+  let a = ["a", "b", "c"]
+  let b = ["a", "c"]
+  let ops = diff(a, b)
+  let dels = ops.filter((op) => op.kind == "-")
+  assert_eq(length(dels), 1)
+  assert_eq(dels[0].line, "b")
+}
+
+test "detect replacement" {
+  let a = ["one", "two", "three"]
+  let b = ["one", "TWO", "three"]
+  let ops = diff(a, b)
+  let dels = ops.filter((op) => op.kind == "-")
+  let adds = ops.filter((op) => op.kind == "+")
+  assert_eq(length(dels), 1)
+  assert_eq(dels[0].line, "two")
+  assert_eq(length(adds), 1)
+  assert_eq(adds[0].line, "TWO")
+}
+
+test "format_op prefixes correctly" {
+  assert_eq(format_op(DiffOp { kind: "=", line: "x" }), "  x")
+  assert_eq(format_op(DiffOp { kind: "+", line: "y" }), "+ y")
+  assert_eq(format_op(DiffOp { kind: "-", line: "z" }), "- z")
+}
+
+test "empty inputs produce empty diff" {
+  let ops = diff([], [])
+  assert_empty(ops)
+}
+
+test "all new lines" {
+  let ops = diff([], ["a", "b"])
+  assert_eq(length(ops), 2)
+  assert(ops.all((op) => op.kind == "+"))
+}
+
+test "all deleted lines" {
+  let ops = diff(["a", "b"], [])
+  assert_eq(length(ops), 2)
+  assert(ops.all((op) => op.kind == "-"))
+}

@@ -33,3 +33,23 @@ fun main() {
     else { println("NO") }
   }
 }
+
+test "even-length repeated string" {
+  assert_true(twotimes("abcabc"))
+}
+
+test "single repeated char" {
+  assert_true(twotimes("aa"))
+}
+
+test "odd-length string is never twotimes" {
+  assert_false(twotimes("abc"))
+}
+
+test "different halves" {
+  assert_false(twotimes("abcdef"))
+}
+
+test "empty string is twotimes" {
+  assert_true(twotimes(""))
+}

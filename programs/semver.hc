@@ -97,3 +97,105 @@ fun main() {
   println(compare("1.0.0-alpha", "1.0.0"))
   println(compare("1.0.0-alpha", "1.0.0-beta"))
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+test "parse simple version" {
+  let v = parse("1.2.3")
+  match v {
+    Some(sv) => {
+      assert_eq(sv.major, 1)
+      assert_eq(sv.minor, 2)
+      assert_eq(sv.patch, 3)
+      assert_eq(sv.pre, "")
+      assert_eq(sv.build, "")
+    },
+    None => assert(false)
+  }
+}
+
+test "parse with v prefix" {
+  let v = parse("v2.0.0")
+  match v {
+    Some(sv) => assert_eq(sv.major, 2),
+    None => assert(false)
+  }
+}
+
+test "parse with prerelease" {
+  let v = parse("1.0.0-alpha.1")
+  match v {
+    Some(sv) => assert_eq(sv.pre, "alpha.1"),
+    None => assert(false)
+  }
+}
+
+test "parse with build metadata" {
+  let v = parse("1.0.0+build.42")
+  match v {
+    Some(sv) => assert_eq(sv.build, "build.42"),
+    None => assert(false)
+  }
+}
+
+test "parse with pre and build" {
+  let v = parse("v1.0.0-alpha+build.1")
+  match v {
+    Some(sv) => {
+      assert_eq(sv.pre, "alpha")
+      assert_eq(sv.build, "build.1")
+    },
+    None => assert(false)
+  }
+}
+
+test "parse invalid returns None" {
+  match parse("bad") {
+    None => assert(true),
+    _    => assert(false)
+  }
+  match parse("1.2") {
+    None => assert(true),
+    _    => assert(false)
+  }
+}
+
+test "compare: major differs" {
+  assert_eq(compare("1.0.0", "2.0.0") |> unwrap, -1)
+  assert_eq(compare("2.0.0", "1.0.0") |> unwrap, 1)
+}
+
+test "compare: minor differs" {
+  assert_eq(compare("1.1.0", "1.2.0") |> unwrap, -1)
+  assert_eq(compare("1.3.0", "1.2.0") |> unwrap, 1)
+}
+
+test "compare: patch differs" {
+  assert_eq(compare("1.0.1", "1.0.2") |> unwrap, -1)
+  assert_eq(compare("1.0.3", "1.0.2") |> unwrap, 1)
+}
+
+test "compare: equal versions" {
+  assert_eq(compare("1.2.3", "1.2.3") |> unwrap, 0)
+}
+
+test "compare: prerelease < release" {
+  assert_eq(compare("1.0.0-alpha", "1.0.0") |> unwrap, -1)
+  assert_eq(compare("1.0.0", "1.0.0-alpha") |> unwrap, 1)
+}
+
+test "compare: prerelease ordering" {
+  assert_eq(compare("1.0.0-alpha", "1.0.0-beta") |> unwrap, -1)
+  assert_eq(compare("1.0.0-beta", "1.0.0-alpha") |> unwrap, 1)
+}
+
+test "compare: numeric prerelease ids" {
+  assert_eq(compare("1.0.0-1", "1.0.0-2") |> unwrap, -1)
+  assert_eq(compare("1.0.0-2", "1.0.0-1") |> unwrap, 1)
+}
+
+test "compare: numeric before string in prerelease" {
+  assert_eq(compare("1.0.0-1", "1.0.0-alpha") |> unwrap, -1)
+}

@@ -26,8 +26,8 @@ hica
 examples/*
 !examples/*.hc
 
-exercises/*.*
-!exercises/*.hc
+programs/*
+!programs/*.hc
 
-learn/*.*
+learn/*
 !learn/*.hc
