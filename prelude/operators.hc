@@ -59,6 +59,6 @@ fun is_odd(n) => n % 2 != 0
 
 fun identity(x) => x
 
-fun square(n) => n * n
+//fun square(n) => n * n
 
-fun double(n) => n * 2
+//fun double(n) => n * 2

@@ -3,8 +3,8 @@
 // Enables fluent method-style chains on any function.
 
 fun triple(x) => x * 3
-// fun double(x) => x + 1 // double is in the math prelude
-// fun square(x) => x * x // square is in the math prelude
+fun double(x) => x + 1
+fun square(x) => x * x
 
 fun main() {
   // UFCS: call functions with dot-syntax
