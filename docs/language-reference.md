@@ -69,6 +69,15 @@ let name = "Alicia"
 let pi = 3.14
 ```
 
+Integer literals support binary (`0b`), hexadecimal (`0x`), and underscore separators for readability:
+
+```rust
+let flags  = 0b1010        // binary → 10
+let colour = 0xFF          // hex → 255
+let big    = 1_000_000     // underscores are ignored → 1000000
+let mask   = 0b1111_0000   // binary with separators → 240
+```
+
 ### Mutable variables
 
 Use `var` to declare a mutable variable. Reassign it with `=`:

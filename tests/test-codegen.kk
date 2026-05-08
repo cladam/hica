@@ -1519,3 +1519,25 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() { let x = bit_not(0)\nprintln(x + 1) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- Binary & hex literals ---
+    dtest("binary literal emits correct int")
+      val code = emit-typed-program("fun main() => println(0b1010)")
+      assert/is-true(code.contains("10"))
+
+    dtest("hex literal emits correct int")
+      val code = emit-typed-program("fun main() => println(0xFF)")
+      assert/is-true(code.contains("255"))
+
+    dtest("underscore separators in decimal")
+      val code = emit-typed-program("fun main() => println(1_000_000)")
+      assert/is-true(code.contains("1000000"))
+
+    dtest("binary literal in arithmetic")
+      val ds = check-diagnostics("fun main() { let x = 0b1010 + 5\nprintln(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("hex literal with bitwise op")
+      val code = emit-typed-program("fun main() => println(bit_and(0xFF, 0x0F))")
+      assert/is-true(code.contains(".int32.and("))

@@ -165,3 +165,36 @@ pub fun main() : io ()
 
     dtest("lex pipe vs pipe-pipe")
       assert/is-true(token-string("a || b | c") == "a || b | c <eof>")
+
+    // --- Binary literals ---
+    dtest("lex binary literal 0b1010")
+      assert/is-true(token-string("0b1010") == "10 <eof>")
+
+    dtest("lex binary literal 0B1111")
+      assert/is-true(token-string("0B1111") == "15 <eof>")
+
+    dtest("lex binary literal with underscores")
+      assert/is-true(token-string("0b1111_0000") == "240 <eof>")
+
+    dtest("lex binary literal 0b0")
+      assert/is-true(token-string("0b0") == "0 <eof>")
+
+    // --- Hex literals ---
+    dtest("lex hex literal 0xFF")
+      assert/is-true(token-string("0xFF") == "255 <eof>")
+
+    dtest("lex hex literal 0X1A")
+      assert/is-true(token-string("0X1A") == "26 <eof>")
+
+    dtest("lex hex literal with underscores")
+      assert/is-true(token-string("0x00_FF") == "255 <eof>")
+
+    dtest("lex hex literal 0x0")
+      assert/is-true(token-string("0x0") == "0 <eof>")
+
+    // --- Underscore separators in decimal ---
+    dtest("lex decimal with underscores")
+      assert/is-true(token-string("1_000_000") == "1000000 <eof>")
+
+    dtest("lex decimal without underscores unchanged")
+      assert/is-true(token-string("42") == "42 <eof>")

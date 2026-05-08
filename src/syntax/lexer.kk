@@ -191,18 +191,42 @@ fun skip-line-comment( cs : list<char>, pos : int ) : div list<token>
     Cons('\n', rest) -> lex-from(rest, pos + 1, True)
     Cons(_, rest)   -> skip-line-comment(rest, pos + 1)
 
+fun is-hex-digit( c : char ) : bool
+  c.is-digit || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+
+fun parse-binary( s : string ) : int
+  s.list.foldl(0, fn(acc, c) acc * 2 + (if c == '1' then 1 else 0))
+
 fun lex-number( cs : list<char>, start : int ) : div list<token>
-  val (digits, rest) = cs.span(fn(c) c.is-digit)
-  match rest
-    Cons('.', Cons(d, _)) | d.is-digit ->
-      val (frac, rest2) = rest.tail.span(fn(c) c.is-digit)
-      val text = digits.string ++ "." ++ frac.string
-      val end = start + digits.length + 1 + frac.length
-      Cons(Token(TkFloat(text), Span(start, end)), lex-from(rest2, end))
+  match cs
+    // Binary literal: 0b... or 0B...
+    Cons('0', Cons(b, rest)) | b == 'b' || b == 'B' ->
+      val (digits, rest2) = rest.span(fn(c) c == '0' || c == '1' || c == '_')
+      val clean = digits.filter(fn(c) c != '_').string
+      val n = if clean == "" then 0 else parse-binary(clean)
+      val end = start + 2 + digits.length
+      Cons(Token(TkInt(n), Span(start, end)), lex-from(rest2, end))
+    // Hex literal: 0x... or 0X...
+    Cons('0', Cons(x, rest)) | x == 'x' || x == 'X' ->
+      val (digits, rest2) = rest.span(fn(c) c.char/is-hex-digit || c == '_')
+      val clean = digits.filter(fn(c) c != '_').string
+      val n = if clean == "" then 0 else clean.parse-int(hex=True).default(0)
+      val end = start + 2 + digits.length
+      Cons(Token(TkInt(n), Span(start, end)), lex-from(rest2, end))
+    // Decimal (with optional _ separators)
     _ ->
-      val n = digits.string.parse-int.default(0)
-      val end = start + digits.length
-      Cons(Token(TkInt(n), Span(start, end)), lex-from(rest, end))
+      val (digits, rest) = cs.span(fn(c) c.is-digit || c == '_')
+      match rest
+        Cons('.', Cons(d, _)) | d.is-digit ->
+          val (frac, rest2) = rest.tail.span(fn(c) c.is-digit || c == '_')
+          val text = digits.filter(fn(c) c != '_').string ++ "." ++ frac.filter(fn(c) c != '_').string
+          val end = start + digits.length + 1 + frac.length
+          Cons(Token(TkFloat(text), Span(start, end)), lex-from(rest2, end))
+        _ ->
+          val clean = digits.filter(fn(c) c != '_').string
+          val n = clean.parse-int.default(0)
+          val end = start + digits.length
+          Cons(Token(TkInt(n), Span(start, end)), lex-from(rest, end))
 
 fun lex-ident( cs : list<char>, start : int ) : div list<token>
   val (chars, rest) = cs.span(fn(c) c.is-alpha || c.is-digit || c == '_')
