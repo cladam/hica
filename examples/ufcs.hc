@@ -3,8 +3,8 @@
 // Enables fluent method-style chains on any function.
 
 fun triple(x) => x * 3
-fun inc(x) => x + 1
-fun squared(x) => x * x
+// fun double(x) => x + 1 // double is in the math prelude
+// fun square(x) => x * x // square is in the math prelude
 
 fun main() {
   // UFCS: call functions with dot-syntax
@@ -12,7 +12,7 @@ fun main() {
   println(a)
 
   // Chain multiple calls
-  let b = 4.triple().inc().squared()
+  let b = 4.triple().double().square()
   println(b)
 
   // Works with prelude/stdlib functions too
@@ -24,8 +24,8 @@ fun main() {
   let s = "  hello, hica!  "
   println(s.trim().to_upper())
 
-  // Equivalent to pipe: 5 |> triple |> inc
-  let c = 5.triple().inc()
-  let d = 5 |> triple |> inc
+  // Equivalent to pipe: 5 |> triple |> double
+  let c = 5.triple().double()
+  let d = 5 |> triple |> double
   println(c == d)
 }

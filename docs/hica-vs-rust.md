@@ -300,7 +300,7 @@ fun main() {
 }
 ```
 
-## Pipe Operator
+## Pipe Operator and Dot-Call Syntax
 
 Rust doesn't have a built-in pipe operator. Method chaining on iterators fills a similar role:
 
@@ -312,17 +312,25 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
     .collect();
 ```
 
-hica has a first-class pipe `|>` that works with any function, not just methods:
+hica has both a pipe operator `|>` and dot-call syntax — they're equivalent and both work with any function:
 
 ```rust
 fun main() {
-  let result = [1, 2, 3, 4, 5]
+  // Pipe style
+  let a = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
-    |> fold(0, (acc, x) => acc + x)
-  println(result)
+
+  // Dot-call style (same result, closer to Rust's method chaining)
+  let b = [1, 2, 3, 4, 5]
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * 10)
+
+  println(a == b)
 }
 ```
+
+Unlike Rust, hica's dot-call isn't limited to methods defined in `impl` blocks — any function can be called with dot syntax. `a.f(b)` desugars to `f(a, b)`.
 
 ## Loops
 

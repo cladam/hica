@@ -189,7 +189,7 @@ fun main() {
 | `s.removeprefix("v")` | `removeprefix(s, "v")` | Strip prefix |
 | `s.removesuffix(".txt")` | `removesuffix(s, ".txt")` | Strip suffix |
 
-Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`). Both are readable; hica's style plays well with the pipe operator: `msg |> trim |> to_upper`.
+Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`) — but hica also supports dot-call syntax, so you can write `s.trim().to_upper()` just like method chaining. The pipe operator works too: `s |> trim |> to_upper`. Both styles are equivalent; use whichever you prefer.
 
 ## Parsing & Type Conversion
 

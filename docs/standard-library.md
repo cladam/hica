@@ -206,15 +206,25 @@ fun main() {
 }
 ```
 
-### Pipe with standard library
+### Pipe and dot-call with standard library
+
+Both `|>` and dot-call syntax work with any standard library function:
 
 ```rust
 fun main() {
-  let result = [1, 2, 3, 4, 5]
+  // Pipe style
+  let a = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
     |> fold(0, (acc, x) => acc + x)
-  println(result)
+  println(a)
+
+  // Dot-call style (equivalent)
+  let b = [1, 2, 3, 4, 5]
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * 10)
+    .fold(0, (acc, x) => acc + x)
+  println(b)
 }
 ```
 

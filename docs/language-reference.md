@@ -435,16 +435,37 @@ Comparison operators work on `int`, `float`, and `string` (lexicographic orderin
 | `&&` | Logical AND |
 | `||` | Logical OR |
 
-### Pipe
+### Pipe and dot-call syntax
 
-The pipe operator passes the left-hand value as the first argument to the right-hand function:
+hica has two equivalent ways to chain function calls left to right:
 
 ```rust
 fun double(x) => x * 2
 fun add_one(x) => x + 1
 
 fun main() {
-  let result = 5 |> double |> add_one
+  // Pipe operator: a |> f desugars to f(a)
+  let a = 5 |> double |> add_one
+  println(a)
+
+  // Dot-call (UFCS): a.f() also desugars to f(a)
+  let b = 5.double().add_one()
+  println(b)
+
+  // They're identical — use whichever reads better
+  println(a == b)
+}
+```
+
+Both `a |> f` and `a.f()` desugar to `f(a)`. The pipe is compact for simple chains; dot-call reads naturally when passing extra arguments:
+
+```rust
+fun main() {
+  // Dot-call with arguments: a.f(b) desugars to f(a, b)
+  let nums = [1, 2, 3, 4, 5]
+  let result = nums.filter((x) => x > 2).map((x) => x * 10)
   println(result)
 }
 ```
+
+Note: `expr.name` without parentheses is struct field access (`p.x`). With parentheses, `expr.name(...)` is a function call.

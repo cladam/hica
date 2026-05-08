@@ -215,21 +215,33 @@ fun main() {
 }
 ```
 
-### The pipe operator
+### The pipe operator and dot-call syntax
 
-Chaining operations with pipes reads left to right, like a pipeline:
+hica gives you two ways to chain functions left to right. Pick whichever reads better to you — they're equivalent:
 
 ```rust
 fun main() {
-  let result = [1, 2, 3, 4, 5]
+  // Pipe style
+  let a = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * 10)
     |> fold(0, (acc, x) => acc + x)
-  println(result)
+  println(a)
+
+  // Dot-call style (same result)
+  let b = [1, 2, 3, 4, 5]
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * 10)
+    .fold(0, (acc, x) => acc + x)
+  println(b)
 }
 ```
 
-`a |> f` is just `f(a)`. The pipe doesn't do anything magical; it just reorders so the data flows left to right.
+`a |> f` and `a.f()` both desugar to `f(a)`. The pipe operator doesn't take extra arguments; dot-call does: `a.f(b)` becomes `f(a, b)`.
+
+Rule of thumb:
+- Use `|>` when each step is a single-argument function: `5 |> double |> inc`
+- Use `.f()` when passing additional arguments: `nums.filter((x) => x > 2).map((x) => x * 10)`
 
 ## Tuples: quick grouping
 
