@@ -41,6 +41,8 @@ Each lesson is a standalone `.hc` file you can run:
 | 25 | `25-break-continue.hc`| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
 | 26 | `26-file-io.hc`       | File I/O                         | `read_file`, `write_file`, `unwrap`, `unwrap_or`, `read_lines`, `write_lines` |
 | 27 | `27-input.hc`         | User input                       | `input(prompt)`, combining with `parse_int`, interactive programs |
+| 28 | `28-random.hc`        | Random numbers                   | `random(min, max)`, non-determinism, dice and coin examples |
+| 29 | `29-format.hc`        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
 
 ## Language features shown
 
@@ -96,6 +98,9 @@ Each lesson is a standalone `.hc` file you can run:
 | `unwrap`, `unwrap_or`          | `26-file-io.hc`                       |
 | `read_lines`, `write_lines`    | `26-file-io.hc`                       |
 | `input(prompt)`                | `27-input.hc`                         |
+| `random(min, max)`             | `28-random.hc`                        |
+| `show_fixed(value, decimals)`  | `29-format.hc`                        |
+| `pad_left`, `pad_right`        | `29-format.hc`                        |
 | `pub` visibility               | `examples/match.hc` (module prep)     |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |

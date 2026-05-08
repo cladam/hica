@@ -14,6 +14,7 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | `println(s)` | `(a) -> ()` | Print a value to stdout with a newline |
 | `eprintln(s)` | `(a) -> ()` | Print a value to stderr with a newline |
 | `show(n)` | `(a) -> string` | Convert a value to its string representation |
+| `show_fixed(value, n)` | `(float, int) -> string` | Format a float with `n` decimal places |
 
 ## Environment
 
@@ -91,6 +92,47 @@ fun main() {
 | `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
 | `find(xs, f)` | `(list<a>, (a) -> bool) -> maybe<a>` | First element where `f` returns true, or `None` |
 
+## Random Numbers
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max)` — min included, max excluded |
+
+Using `random` gives your program the `ndet` (non-determinism) effect.
+
+```rust
+fun main() {
+  let die = random(1, 7)
+  println("You rolled a {die}")
+}
+```
+
+## Formatting
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `show_fixed(value, decimals)` | `(float, int) -> string` | Format a float with a fixed number of decimal places |
+
+```rust
+fun main() {
+  println(show_fixed(3.14159, 2))  // "3.14"
+  println(show_fixed(100.0 / 3.0, 1))  // "33.3"
+}
+```
+
+## User Input
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `input(prompt)` | `(string) -> string` | Display a prompt and read a line from stdin |
+
+```rust
+fun main() {
+  let name = input("What is your name? ")
+  println("Hello, {name}!")
+}
+```
+
 ## Math (`prelude/math.hc`)
 
 Written in hica itself:
@@ -101,6 +143,7 @@ Written in hica itself:
 | `min(a, b)` | `(int, int) -> int` | Smaller of two values |
 | `max(a, b)` | `(int, int) -> int` | Larger of two values |
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
+| `gcd(a, b)` | `(int, int) -> int` | Greatest common divisor |
 
 ## String Operations
 

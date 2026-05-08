@@ -43,45 +43,70 @@ A progressive set of 27 lessons that teach hica one concept at a time. Each less
 | 25 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc) | Break, continue, and loop | `break`, `continue`, `loop`, early exit from any loop |
 | 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc) | File I/O | `read_file`, `write_file`, `read_lines`, `write_lines` |
 | 27 | [`27-input.hc`](https://github.com/cladam/hica/blob/main/learn/27-input.hc) | User input | `input(prompt)`, combining with `parse_int`, interactive programs |
+| 28 | `28-random.hc`        | Random numbers                   | `random(min, max)`, non-determinism, dice and coin examples |
+| 29 | `29-format.hc`        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
+
 
 ## Feature Index
 
-| Feature | Where to look |
-|---------|---------------|
-| Implicit return (last line) | `01-hello.hc`, `03-variables.hc` |
-| `=>` arrow bodies | `02-arrow.hc`, `04-functions.hc` |
-| `let` bindings | `03-variables.hc`, `04-functions.hc` |
-| `if`/`else` expressions | `05-if-else.hc`, `07-logic.hc` |
-| `else if` chains | `08-fizzbuzz.hc` |
-| `match` + wildcards | `06-match.hc` |
-| Range patterns (`..=`) | `06-match.hc` |
-| `&&` boolean operators | `07-logic.hc` |
-| `repeat(n) { }` | `09-repeat.hc` |
-| String interpolation | `10-strings.hc` |
-| String indexing & slicing | `10-strings.hc` |
-| String utility functions | `10-strings.hc` |
-| Pipe `|>` operator | `11-pipe.hc` |
-| Float arithmetic | `12-floats.hc` |
-| Tuples and destructuring | `13-tuples.hc` |
-| Lists and `map`/`filter` | `14-lists.hc` |
-| For-range loops | `15-for.hc` |
-| Recursion | `16-recursion.hc` |
-| Char type | `17-chars.hc` |
-| `Some`/`None` | `18-maybe.hc` |
-| `Ok`/`Err` | `19-result.hc` |
-| Closures and HOFs | `20-closures.hc` |
-| Structs and field access | `21-structs.hc` |
-| `get_args()`, `get_env()` | `22-env.hc` |
-| `eprintln` (stderr) | `22-env.hc` |
-| `parse_int`, `parse_float` | `23-parsing.hc` |
-| `var` mutable variables | `24-while.hc` |
-| `while` loops | `24-while.hc` |
-| Reassignment (`x = expr`) | `24-while.hc` |
-| `break` | `25-break-continue.hc` |
-| `continue` | `25-break-continue.hc` |
-| `loop { ... }` | `25-break-continue.hc` |
-| `input(prompt)` | `27-input.hc` |
-| `pub` visibility | (module prep) |
+| Feature                        | Where to look                         |
+| ------------------------------ | ------------------------------------- |
+| Implicit return (last line)    | `01-hello.hc`, `03-variables.hc`      |
+| `=>` arrow bodies              | `02-arrow.hc`, `04-functions.hc`      |
+| `let` bindings                 | `03-variables.hc`, `04-functions.hc`  |
+| `if`/`else` expressions        | `05-if-else.hc`, `07-logic.hc`        |
+| `else if` chains               | `08-fizzbuzz.hc`                      |
+| `match` + wildcards            | `06-match.hc`                         |
+| Match guards (`if`)            | `06-match.hc`                         |
+| Or-patterns (`\|`)             | `06-match.hc`                         |
+| Range patterns (`..=`)         | `06-match.hc`                         |
+| `&&` boolean operators         | `07-logic.hc`                         |
+| Nested conditionals            | `08-fizzbuzz.hc`                      |
+| Unary negation (`-x`)          | `05-if-else.hc`                       |
+| `repeat(n) { ... }`            | `09-repeat.hc`                        |
+| String concatenation (`+`)     | `10-strings.hc`                       |
+| String interpolation (`{}`)    | `10-strings.hc`                       |
+| String indexing (`s[0]`)       | `10-strings.hc`                       |
+| String slicing (`s[1:3]`)      | `10-strings.hc`                       |
+| String utility functions       | `10-strings.hc`                       |
+| Pipe operator (`\|>`)          | `11-pipe.hc`                          |
+| Float literals (`3.14`)        | `12-floats.hc`                        |
+| Tuples `(a, b)`                | `13-tuples.hc`                        |
+| Tuple access `.0`, `.1`        | `13-tuples.hc`                        |
+| Tuple destructuring            | `13-tuples.hc`                        |
+| Lists `[1, 2, 3]`              | `14-lists.hc`                         |
+| `for i in start..end`          | `15-for.hc`                           |
+| `for x in list`                | `15-for.hc`                           |
+| Recursion (self-calling fns)   | `16-recursion.hc`                     |
+| Character literals `'c'`       | `17-chars.hc`                         |
+| `Some(x)` / `None` (maybe)     | `18-maybe.hc`                         |
+| `Ok(x)` / `Err(e)` (result)    | `19-result.hc`                        |
+| Closures / capturing variables | `20-closures.hc`                      |
+| Returning functions            | `20-closures.hc`                      |
+| Higher-order functions (custom)| `20-closures.hc`                      |
+| Struct definitions             | `21-structs.hc`                       |
+| Struct construction            | `21-structs.hc`                       |
+| Field access (`.field`)        | `21-structs.hc`                       |
+| `get_args()`                   | `22-env.hc`                           |
+| `get_env(key)`                 | `22-env.hc`                           |
+| `eprintln` (stderr output)     | `22-env.hc`                           |
+| `parse_int`, `parse_float`     | `23-parsing.hc`                       |
+| `var` mutable variables        | `24-while.hc`                         |
+| `while` loops                  | `24-while.hc`                         |
+| Reassignment (`x = expr`)      | `24-while.hc`                         |
+| `break`                        | `25-break-continue.hc`                |
+| `continue`                     | `25-break-continue.hc`                |
+| `loop { ... }`                 | `25-break-continue.hc`                |
+| `read_file`, `write_file`      | `26-file-io.hc`                       |
+| `unwrap`, `unwrap_or`          | `26-file-io.hc`                       |
+| `read_lines`, `write_lines`    | `26-file-io.hc`                       |
+| `input(prompt)`                | `27-input.hc`                         |
+| `random(min, max)`             | `28-random.hc`                        |
+| `show_fixed(value, decimals)`  | `29-format.hc`                        |
+| `pad_left`, `pad_right`        | `29-format.hc`                        |
+| `pub` visibility               | `examples/match.hc` (module prep)     |
+| Type annotations (`: int`)     | `examples/type-annotations.hc`        |
+| `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
 ## Getting Started
 

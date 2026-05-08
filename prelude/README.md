@@ -18,7 +18,9 @@ Hica. Their type signatures are declared in the compiler
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `println(s)` | `(a) -> ()` | Print a value to stdout with a newline |
+| `eprintln(s)` | `(a) -> ()` | Print a value to stderr with a newline |
 | `show(n)` | `(a) -> string` | Convert a value to its string representation |
+| `show_fixed(v, n)` | `(float, int) -> string` | Format a float with `n` decimal places |
 
 #### File I/O
 
@@ -26,6 +28,25 @@ Hica. Their type signatures are declared in the compiler
 |----------|-----------|-------------|
 | `read_file(path)` | `(string) -> result<string, string>` | Read entire file; returns `Ok(content)` or `Err(message)` |
 | `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
+
+#### User input
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `input(prompt)` | `(string) -> string` | Display a prompt and read a line from stdin |
+
+#### Random numbers
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max)` — min included, max excluded |
+
+#### Environment
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
+| `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
 
 #### Result combinators
 

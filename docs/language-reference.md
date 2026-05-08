@@ -403,6 +403,42 @@ fun main() {
 }
 ```
 
+### Random Numbers
+
+Generate random integers with `random(min, max)`. The result is in the range `[min, max)` — min is included, max is excluded:
+
+```rust
+fun main() {
+  let die = random(1, 7)     // 1–6
+  let coin = random(0, 2)    // 0 or 1
+  println("Die: {die}, Coin: {coin}")
+}
+```
+
+Using `random` gives your program the `ndet` (non-determinism) effect, which `hica check` will report.
+
+### Formatting Numbers
+
+Format floats to a fixed number of decimal places with `show_fixed(value, decimals)`:
+
+```rust
+fun main() {
+  println(show_fixed(3.14159, 2))       // "3.14"
+  println(show_fixed(100.0 / 3.0, 1))   // "33.3"
+}
+```
+
+Combine with `pad_left` and `pad_right` for aligned output:
+
+```rust
+fun main() {
+  println(pad_left(show(42), 6, " "))     // "    42"
+  println(pad_right("hi", 10, "."))       // "hi........"
+}
+```
+
+See the [Standard Library](standard-library.md) for the full list of formatting and string helper functions.
+
 ## Operators
 
 ### Arithmetic
