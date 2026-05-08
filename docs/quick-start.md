@@ -53,8 +53,6 @@ Hello, world!
 
 `run` transpiles the file to Koka, compiles it, and executes the result.
 
-```
-
 ## CLI Commands
 
 | Command | Description |
