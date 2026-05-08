@@ -673,6 +673,7 @@ fun parse-pattern() : <div,parser> pattern
             TkInt(j) -> { advance(); PRange(i, j) }
             _        -> { parse-error("expected integer after ..="); PLit(LitInt(i)) }
         _ -> PLit(LitInt(i))
+    TkBitPattern(m, v) -> { advance(); PBits(m, v) }
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }
     TkString(s)  -> { advance(); PLit(LitString(s)) }
     _ -> { parse-error("expected pattern"); PWild }

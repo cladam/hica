@@ -890,6 +890,9 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
     PRange(_, _) ->
       // Range patterns work on ints; unify scrutinee with TInt
       (compose-subst(unify(scrut-type, TInt, no-span), s), env)
+    PBits(_, _) ->
+      // Bit patterns work on ints; unify scrutinee with TInt
+      (compose-subst(unify(scrut-type, TInt, no-span), s), env)
 
 // Extract the inferred type from a node, defaulting to TUnit.
 fun get-type( n : node ) : hica-type

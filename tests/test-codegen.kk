@@ -1541,3 +1541,23 @@ pub fun main() : io ()
     dtest("hex literal with bitwise op")
       val code = emit-typed-program("fun main() => println(bit_and(0xFF, 0x0F))")
       assert/is-true(code.contains(".int32.and("))
+
+    // --- Bit-level matching ---
+    dtest("bit pattern emits mask-and-compare guard")
+      val code = emit-typed-program("fun main() {\n  let x = 200\n  match x {\n    0b1100_???? => println(1),\n    _ => println(0)\n  }\n}")
+      assert/is-true(code.contains("hc__bits.int32.and("))
+      assert/is-true(code.contains(".int32).int == "))
+
+    dtest("bit pattern imports std/num/int32")
+      val code = emit-typed-program("fun main() {\n  match 5 {\n    0b1?0? => println(1),\n    _ => println(0)\n  }\n}")
+      assert/is-true(code.contains("std/num/int32"))
+
+    dtest("bit pattern type-checks scrutinee as int")
+      val ds = check-diagnostics("fun main() {\n  let x = 200\n  match x {\n    0b1100_???? => println(1),\n    _ => println(0)\n  }\n}")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("bit pattern combined with guard")
+      val code = emit-typed-program("fun main() {\n  let x = 200\n  match x {\n    0b1100_???? if x > 100 => println(1),\n    _ => println(0)\n  }\n}")
+      assert/is-true(code.contains("hc__bits.int32.and("))
+      assert/is-true(code.contains("&& (x > 100)"))

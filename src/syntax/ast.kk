@@ -254,6 +254,7 @@ pub type pattern
   PTuple( elems : list<pattern> )
   POr( alts : list<pattern> )
   PRange( lo : int, hi : int )
+  PBits( msk : int, val_ : int )
 
 pub fun pattern/show( p : pattern ) : div string
   match p
@@ -267,6 +268,7 @@ pub fun pattern/show( p : pattern ) : div string
     PTuple(es) -> "(" ++ es.map(show).join(", ") ++ ")"
     POr(alts)  -> alts.map(show).join(" | ")
     PRange(lo, hi) -> lo.show ++ "..=" ++ hi.show
+    PBits(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
 
 // ---------------------------------------------------------------------------
 // Pretty printing

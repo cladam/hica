@@ -198,3 +198,13 @@ pub fun main() : io ()
 
     dtest("lex decimal without underscores unchanged")
       assert/is-true(token-string("42") == "42 <eof>")
+
+    // --- Bit patterns ---
+    dtest("lex bit pattern with wildcards")
+      assert/is-true(token-string("0b1100_????") == "<bits:240,192> <eof>")
+
+    dtest("lex bit pattern all wildcards")
+      assert/is-true(token-string("0b????") == "<bits:0,0> <eof>")
+
+    dtest("lex bit pattern mixed")
+      assert/is-true(token-string("0b1?0?") == "<bits:10,8> <eof>")

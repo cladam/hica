@@ -386,6 +386,12 @@ fun emit-expr( n : node, declared : list<string> ) : div string
               Just(g) -> " | " ++ rg ++ " && " ++ emit-expr(g, declared)
               Nothing -> " | " ++ rg
             ("hc__rng", gs)
+          PBits(msk, vl) ->
+            val bg = "hc__bits.int32.and(" ++ msk.show ++ ".int32).int == " ++ vl.show
+            val gs = match a.guard
+              Just(g) -> " | " ++ bg ++ " && " ++ emit-expr(g, declared)
+              Nothing -> " | " ++ bg
+            ("hc__bits", gs)
           _ ->
             val gs = match a.guard
               Just(g) -> " | " ++ emit-expr(g, declared)
@@ -523,6 +529,7 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
     PTuple(es) -> "(" ++ es.map(fn(e) emit-pattern(e, declared)).join(", ") ++ ")"
     POr(alts)  -> alts.map(fn(a) emit-pattern(a, declared)).join(" | ")
     PRange(_, _) -> "hc__rng"  // handled at arm level with guard
+    PBits(_, _)  -> "hc__bits" // handled at arm level with guard
 
 fun emit-binop( op : binop ) : string
   match op
@@ -745,7 +752,7 @@ fun node-uses-bitwise( n : node ) : div bool
     Unary(_, operand)     -> node-uses-bitwise(operand)
     If(c, t, e)           -> node-uses-bitwise(c) || node-uses-bitwise(t) || node-uses-bitwise(e)
     Block(stmts)          -> stmts.any(fn(s) node-uses-bitwise(s))
-    Match(scrut, arms)    -> node-uses-bitwise(scrut) || arms.any(fn(a) node-uses-bitwise(a.body) || a.guard.map(node-uses-bitwise).default(False))
+    Match(scrut, arms)    -> node-uses-bitwise(scrut) || arms.any(fn(a) arm-uses-bitwise(a))
     Repeat(count, body)   -> node-uses-bitwise(count) || node-uses-bitwise(body)
     ForIn(_, s, e, body)  -> node-uses-bitwise(s) || node-uses-bitwise(e) || node-uses-bitwise(body)
     ForEach(_, coll, body) -> node-uses-bitwise(coll) || node-uses-bitwise(body)
@@ -754,6 +761,11 @@ fun node-uses-bitwise( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-bitwise(p))
     LetTuple(_, init, body) -> node-uses-bitwise(init) || node-uses-bitwise(body)
     _                     -> False
+
+fun arm-uses-bitwise( a : match-arm ) : div bool
+  match a.pattern
+    PBits(_, _) -> True
+    _ -> node-uses-bitwise(a.body) || a.guard.map(node-uses-bitwise).default(False)
 
 fun program-uses-input( p : program ) : div bool
   p.decls.any(fn(d) node-uses-input(d.body))

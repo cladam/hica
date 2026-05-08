@@ -209,6 +209,37 @@ fun describe(point) => match point {
 }
 ```
 
+Bit patterns match integers by their binary representation using `0b` literals with `?` wildcards. Each `?` matches either 0 or 1:
+
+```rust
+fun decode(opcode) => match opcode {
+  0b1100_???? => "high nibble is C",
+  0b0000_0001 => "exactly 1",
+  _           => "other"
+}
+```
+
+The `?` wildcard means "don't care" — the bit at that position is not checked. This is useful for matching bit fields in protocols, instruction encodings, or hardware registers:
+
+```rust
+fun classify_instruction(byte) => match byte {
+  0b11??_???? => "category 3",
+  0b10??_???? => "category 2",
+  0b01??_???? => "category 1",
+  0b00??_???? => "category 0"
+}
+```
+
+Bit patterns combine with guards:
+
+```rust
+match flags {
+  0b????_1??? if flags > 100 => "high bit 3 set and large",
+  0b????_1??? => "bit 3 set",
+  _ => "bit 3 clear"
+}
+```
+
 ## Loops
 
 ### For-range loops

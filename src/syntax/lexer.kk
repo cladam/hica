@@ -79,6 +79,8 @@ pub type token-kind
   TkDot         // .
   TkDotDot      // ..
   TkDotDotEq    // ..=
+  // Bit patterns
+  TkBitPattern( msk : int, val_ : int )
   // Special
   TkEof
   TkError( msg : string )
@@ -151,6 +153,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkDot        -> "."
     TkDotDot     -> ".."
     TkDotDotEq   -> "..="
+    TkBitPattern(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
 
@@ -197,15 +200,31 @@ fun is-hex-digit( c : char ) : bool
 fun parse-binary( s : string ) : int
   s.list.foldl(0, fn(acc, c) acc * 2 + (if c == '1' then 1 else 0))
 
+// Compute (mask, value) from a binary pattern with ? wildcards.
+// '0' or '1' → mask bit = 1, value bit = 0/1
+// '?'        → mask bit = 0, value bit = 0
+fun compute-bit-pattern( cs : list<char> ) : (int, int)
+  cs.foldl((0, 0), fn((m, v), c)
+    match c
+      '0' -> (m * 2 + 1, v * 2)
+      '1' -> (m * 2 + 1, v * 2 + 1)
+      _   -> (m * 2, v * 2)       // '?' → don't care
+  )
+
 fun lex-number( cs : list<char>, start : int ) : div list<token>
   match cs
-    // Binary literal: 0b... or 0B...
+    // Binary literal: 0b... or 0B... (may contain ? for bit patterns)
     Cons('0', Cons(b, rest)) | b == 'b' || b == 'B' ->
-      val (digits, rest2) = rest.span(fn(c) c == '0' || c == '1' || c == '_')
-      val clean = digits.filter(fn(c) c != '_').string
-      val n = if clean == "" then 0 else parse-binary(clean)
+      val (digits, rest2) = rest.span(fn(c) c == '0' || c == '1' || c == '_' || c == '?')
+      val clean = digits.filter(fn(c) c != '_')
+      val has-wildcard = clean.any(fn(c) c == '?')
       val end = start + 2 + digits.length
-      Cons(Token(TkInt(n), Span(start, end)), lex-from(rest2, end))
+      if has-wildcard then
+        val (msk, vl) = compute-bit-pattern(clean)
+        Cons(Token(TkBitPattern(msk, vl), Span(start, end)), lex-from(rest2, end))
+      else
+        val n = if clean.string == "" then 0 else parse-binary(clean.string)
+        Cons(Token(TkInt(n), Span(start, end)), lex-from(rest2, end))
     // Hex literal: 0x... or 0X...
     Cons('0', Cons(x, rest)) | x == 'x' || x == 'X' ->
       val (digits, rest2) = rest.span(fn(c) c.char/is-hex-digit || c == '_')
