@@ -87,5 +87,11 @@ pub fun extern-env() : type-env
     ("bit_shr",  TFun([TInt, TInt], TInt)),
 
     // Test assertions
-    ("assert",    TFun([TBool], TUnit)),
-    ("assert_eq", TFun([TVar("_a"), TVar("_a")], TUnit)) ]
+    ("assert",        TFun([TBool], TUnit)),
+    ("assert_eq",     TFun([TVar("_a"), TVar("_a")], TUnit)),
+    ("assert_ne",     TFun([TVar("_a"), TVar("_a")], TUnit)),
+    ("assert_true",   TFun([TBool], TUnit)),
+    ("assert_false",  TFun([TBool], TUnit)),
+    ("assert_contains", TFun([TList(TVar("_a")), TVar("_a")], TUnit)),
+    ("assert_empty",  TFun([TList(TVar("_a"))], TUnit)),
+    ("assert_not_empty", TFun([TList(TVar("_a"))], TUnit)) ]

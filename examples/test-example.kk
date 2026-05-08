@@ -504,15 +504,27 @@ fun hctest0()
 fun hctest1()
   (if (hc_double(5)) != (10) then throw("expected " ++ (hc_double(5)).show ++ " but got " ++ (10).show) else ())
   (if (hc_double(0)) != (0) then throw("expected " ++ (hc_double(0)).show ++ " but got " ++ (0).show) else ())
+  (if (hc_double(3)) == (0) then throw("expected values to differ but both are " ++ (hc_double(3)).show) else ())
 
 fun hctest2()
+  (if !((10 > 5)) then throw("expected true but got false") else ())
+  (if ((1 > 2)) then throw("expected false but got true") else ())
+
+fun hctest3()
   val s : string = "hello"
   (if !((s.count == 5)) then throw("assertion failed") else ())
   (if (s.to-upper) != ("HELLO") then throw("expected " ++ (s.to-upper).show ++ " but got " ++ ("HELLO").show) else ())
+  (if (s) == ("world") then throw("expected values to differ but both are " ++ (s).show) else ())
+
+fun hctest4()
+  val xs : list<int> = [1, 2, 3]
+  (if !(xs.any(fn(hc__el) hc__el == 2)) then throw("expected list to contain " ++ (2).show) else ())
+  (if (xs.is-nil) then throw("expected non-empty list but got []") else ())
+  (if !([].is-nil) then throw("expected empty list but got " ++ ([]).length.show ++ " element(s)") else ())
 
 fun main()
   println("")
-  println("running 3 test(s)...")
+  println("running 5 test(s)...")
   println("")
   val r0 = match try({ hctest0() })
     Ok(_) ->
@@ -532,15 +544,31 @@ fun main()
       False
   val r2 = match try({ hctest2() })
     Ok(_) ->
+      println("  \x1b[32m\x2713\x1b[0m " ++ "boolean assertions")
+      True
+    Error(e) ->
+      println("  \x1b[31m\x2717\x1b[0m " ++ "boolean assertions")
+      println("    " ++ e.message)
+      False
+  val r3 = match try({ hctest3() })
+    Ok(_) ->
       println("  \x1b[32m\x2713\x1b[0m " ++ "string operations")
       True
     Error(e) ->
       println("  \x1b[31m\x2717\x1b[0m " ++ "string operations")
       println("    " ++ e.message)
       False
+  val r4 = match try({ hctest4() })
+    Ok(_) ->
+      println("  \x1b[32m\x2713\x1b[0m " ++ "list assertions")
+      True
+    Error(e) ->
+      println("  \x1b[31m\x2717\x1b[0m " ++ "list assertions")
+      println("    " ++ e.message)
+      False
   println("")
-  val passed = [r0, r1, r2].filter(fn(x) x).length
-  val failed = 3 - passed
+  val passed = [r0, r1, r2, r3, r4].filter(fn(x) x).length
+  val failed = 5 - passed
   if failed == 0 then
     println("\x1b[32m" ++ passed.show ++ " test(s) passed\x1b[0m")
   else

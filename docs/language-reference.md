@@ -616,8 +616,12 @@ hica test my_file.hc
 | Function | Signature | Behaviour |
 |----------|-----------|-----------|
 | `assert(cond)` | `(bool) -> ()` | Fails with "assertion failed" if `cond` is `false` |
-| `assert_eq(expected, actual)` | `(a, a) -> ()` | Fails with "expected X but got Y" if values differ |
-
+| `assert_eq(expected, actual)` | `(a, a) -> ()` | Fails with "expected X but got Y" if values differ || `assert_ne(a, b)` | `(a, a) -> ()` | Fails with "expected values to differ" if equal |
+| `assert_true(cond)` | `(bool) -> ()` | Fails with "expected true but got false" |
+| `assert_false(cond)` | `(bool) -> ()` | Fails with "expected false but got true" |
+| `assert_contains(list, elem)` | `(list<a>, a) -> ()` | Fails if list does not contain element |
+| `assert_empty(list)` | `(list<a>) -> ()` | Fails if list is not empty |
+| `assert_not_empty(list)` | `(list<a>) -> ()` | Fails if list is empty |
 ### Test structure
 
 - Tests are declared at the top level (alongside functions and structs)

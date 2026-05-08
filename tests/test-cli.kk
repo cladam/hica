@@ -146,12 +146,12 @@ pub fun main() : io ()
 
     itest("test runs test blocks in a file")
       val out = hica("test examples/test-example.hc")
-      assert/is-true(out.contains("running 3 test(s)"))
-      assert/is-true(out.contains("3 test(s) passed"))
+      assert/is-true(out.contains("running 5 test(s)"))
+      assert/is-true(out.contains("5 test(s) passed"))
 
     itest("t is an alias for test")
       val out = hica("t examples/test-example.hc")
-      assert/is-true(out.contains("3 test(s) passed"))
+      assert/is-true(out.contains("5 test(s) passed"))
 
     itest("test with no tests shows message")
       val out = hica("test examples/hello.hc")

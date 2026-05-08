@@ -354,10 +354,28 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         // Test assertions
         (Var("assert"), [cond]) ->
           "(if !(" ++ emit-expr(cond, declared) ++ ") then throw(\"assertion failed\") else ())"
+        (Var("assert_true"), [cond]) ->
+          "(if !(" ++ emit-expr(cond, declared) ++ ") then throw(\"expected true but got false\") else ())"
+        (Var("assert_false"), [cond]) ->
+          "(if (" ++ emit-expr(cond, declared) ++ ") then throw(\"expected false but got true\") else ())"
         (Var("assert_eq"), [expected, actual]) ->
           val e-code = emit-expr(expected, declared)
           val a-code = emit-expr(actual, declared)
           "(if (" ++ e-code ++ ") != (" ++ a-code ++ ") then throw(\"expected \" ++ (" ++ e-code ++ ").show ++ \" but got \" ++ (" ++ a-code ++ ").show) else ())"
+        (Var("assert_ne"), [expected, actual]) ->
+          val e-code = emit-expr(expected, declared)
+          val a-code = emit-expr(actual, declared)
+          "(if (" ++ e-code ++ ") == (" ++ a-code ++ ") then throw(\"expected values to differ but both are \" ++ (" ++ e-code ++ ").show) else ())"
+        (Var("assert_contains"), [lst, elem]) ->
+          val l-code = emit-expr(lst, declared)
+          val e-code = emit-expr(elem, declared)
+          "(if !(" ++ l-code ++ ".any(fn(hc__el) hc__el == " ++ e-code ++ ")) then throw(\"expected list to contain \" ++ (" ++ e-code ++ ").show) else ())"
+        (Var("assert_empty"), [lst]) ->
+          val l-code = emit-expr(lst, declared)
+          "(if !(" ++ l-code ++ ".is-nil) then throw(\"expected empty list but got \" ++ (" ++ l-code ++ ").length.show ++ \" element(s)\") else ())"
+        (Var("assert_not_empty"), [lst]) ->
+          val l-code = emit-expr(lst, declared)
+          "(if (" ++ l-code ++ ".is-nil) then throw(\"expected non-empty list but got []\") else ())"
 
         _ ->
           val callee-code = match callee.expr

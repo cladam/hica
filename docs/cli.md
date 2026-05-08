@@ -98,6 +98,12 @@ running 2 test(s)...
 |----------|-------------|
 | `assert(cond)` | Fails if `cond` is `false` |
 | `assert_eq(expected, actual)` | Fails if values differ; shows both values |
+| `assert_ne(a, b)` | Fails if values are equal |
+| `assert_true(cond)` | Fails if `cond` is `false` (descriptive message) |
+| `assert_false(cond)` | Fails if `cond` is `true` |
+| `assert_contains(list, elem)` | Fails if list does not contain element |
+| `assert_empty(list)` | Fails if list is not empty |
+| `assert_not_empty(list)` | Fails if list is empty |
 
 **Exit codes:** 0 if all tests pass, 1 if any test fails.
 
