@@ -798,6 +798,18 @@ fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
       []
 
 // ---------------------------------------------------------------------------
+// Test declarations: test "name" { body }
+// ---------------------------------------------------------------------------
+
+pub fun parse-test-decl() : <div,parser> test-decl
+  val t = expect("test", fn(k) match k { TkTest -> True; _ -> False })
+  val name = match peek()
+    TkString(s) -> { advance(); s }
+    _           -> { parse-error("expected test name string"); "unnamed" }
+  val body = parse-block()
+  Test-decl(Span(t.span.start, body.span.end), name, body)
+
+// ---------------------------------------------------------------------------
 // Top-level declarations: fun name(params) { body } or fun name(params) => expr
 // ---------------------------------------------------------------------------
 
@@ -826,12 +838,14 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
 pub fun parse-program() : <div,parser> program
   var decls := []
   var structs := []
+  var tests := []
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
+      TkTest   -> tests := Cons(parse-test-decl(), tests)
       TkPub    -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
-  Program(structs.reverse, decls.reverse)
+  Program(structs.reverse, decls.reverse, tests.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

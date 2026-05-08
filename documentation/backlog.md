@@ -106,12 +106,6 @@ Legend: **done** = shipped, **—** = not started
 | `import "mymodule"` | — | High | Multi-file compilation, module graph. Sub-tasks: file resolution, selective imports (`from "math" import { sin, cos }`), qualified names (`math.sin(x)`) |
 | `pub` visibility | **done** | Medium | Emit Koka `pub` |
 
-### Bundled Libraries
-
-| Feature | Status | Complexity | Notes |
-|---------|--------|------------|-------|
-| hica-klap (CLI parsing) | — | Medium | Expose klap as built-in `cli_*` functions. Opaque types (`CliArg`, `CliMatches`), codegen emits klap calls, compiler passes `-ilib/klap/src` to koka. See `documentation/building-klap-in-hica.md` |
-
 ---
 
 ## Compiler Infrastructure
@@ -143,7 +137,7 @@ Legend: **done** = shipped, **—** = not started
 | `hica new <name>` | **done** | — | Scaffold with hica.ini, main.hc, README.md |
 | `hica init` | **done** | — | Initialise in current directory |
 | `hica fmt` / `hica fmt --check` | — | Medium | Pretty-printer (Wadler-Leijen) |
-| `hica test [file]` | — | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail. Later: auto-discover `test_*.hc` / `*_test.hc`. Goal: simplest testing experience possible — no modules, no annotations, no imports, use kunit as reference|
+| `hica test [file]` | **done** | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail with ANSI colors. Exit code 1 on failure. No modules, no annotations, no imports needed. Short alias: `hica t` |
 
 ---
 

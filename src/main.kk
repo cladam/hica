@@ -24,6 +24,10 @@ import klap
 
 val version = "0.1.0"
 
+// Clean process exit without throwing exceptions
+extern hica-exit( code : int ) : a
+  c inline "(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())"
+
 fun hica-cli() : command
   command("hica")
     .version(version)
@@ -34,6 +38,7 @@ fun hica-cli() : command
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Analyse a .hc file and report errors")
     .subcommand("clean", "Remove generated build artifacts")
+    .subcommand("test, t", "Run tests in a .hc file")
     .subcommand("new", "Create a new hica project")
     .subcommand("init", "Initialise a hica project in the current directory")
     .subcommand("help", "Show help for a command")
@@ -56,6 +61,11 @@ fun check-cli() : command
 fun clean-cli() : command
   command("hica clean")
     .about("Remove generated build artifacts")
+    .arg(positional("FILE").help("Source .hc file").required)
+
+fun test-cli() : command
+  command("hica test")
+    .about("Run tests in a .hc file")
     .arg(positional("FILE").help("Source .hc file").required)
 
 fun new-cli() : command
@@ -99,6 +109,8 @@ fun main()
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
             "clean" -> cmd-clean(f)
+            "test"  -> cmd-test(f)
+            "t"     -> cmd-test(f)
             other   ->
               println("error: no such command: `" ++ other ++ "`\n")
               println(hica-cli().format-help)
@@ -137,6 +149,36 @@ fun cmd-check( file : string )
   else
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
+
+fun cmd-test( file : string )
+  val stem = file.path.stemname
+  val mod-name = safe-module-name(stem)
+  val dir  = file.path.dirname
+  val source = read-text-file(file.path)
+  val tokens = lex(source)
+  val prog   = run-parser-program(tokens)
+  if prog.tests.is-empty then
+    println("no tests found in " ++ file)
+  else
+    // Load prelude and merge
+    val prelude = load-prelude()
+    val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls, prog.tests)
+    // Type check
+    val (typed-prog, diags) = collect-diagnostics
+      run-fresh
+        check-program(merged)
+    val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
+    val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+    warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
+    if !errors.is-empty then
+      errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
+      println("test: " ++ errors.length.show ++ " type error(s)")
+    else
+      val koka-code = emit-test-program(typed-prog, mod-name)
+      val out-kk  = dir.path / (mod-name ++ ".kk").path
+      write-text-file(out-kk, koka-code)
+      compile-koka(file, mod-name)
+      run-tests(file)
 
 fun cmd-clean( file : string )
   val stem = file.path.stemname
@@ -225,6 +267,8 @@ fun cmd-help( sub : maybe<string> )
     Just("check") -> println(check-cli().format-help)
     Just("c")     -> println(check-cli().format-help)
     Just("clean") -> println(clean-cli().format-help)
+    Just("test")  -> println(test-cli().format-help)
+    Just("t")     -> println(test-cli().format-help)
     Just("new")   -> println(new-cli().format-help)
     Just("init")  -> println(init-cli().format-help)
     _             -> print-usage()
@@ -308,6 +352,19 @@ fun run-koka( file : string, user-args : list<string> = [] )
   if exit-code != 0 then
     println("error: process exited with code " ++ exit-code.show)
 
+// Run compiled test binary — non-zero exit is expected on failure (no extra error message).
+// Propagates the test binary's exit code to the parent process.
+fun run-tests( file : string )
+  val stem = file.path.stemname
+  val mod-name = safe-module-name(stem)
+  val dir  = file.path.dirname
+  val bin-file = (dir.path / mod-name.path).show
+  val exit-code = run-system(bin-file)
+  if exit-code != 0 then
+    val code = exit-code / 256
+    hica-exit(if code > 0 then code else 1)
+  ()
+
 // Escape a shell argument: wrap in single quotes, escaping any inner single quotes.
 fun shell-escape( s : string ) : string
   "'" ++ s.replace-all("'", "'\\''") ++ "'"
@@ -351,6 +408,7 @@ fun print-usage()
   println("    run, r      Compile and run a .hc file")
   println("    check, c    Analyse a .hc file and report errors")
   println("    clean       Remove generated build artifacts")
+  println("    test, t     Run tests in a .hc file")
   println("    new         Create a new hica project")
   println("    init        Initialise a project in the current directory")
   println("    help        Print this message\n")

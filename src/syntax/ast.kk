@@ -339,9 +339,18 @@ pub struct struct-def
 pub fun struct-def/show( d : struct-def ) : div string
   "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
 
+pub struct test-decl
+  span : span
+  name : string
+  body : node
+
+pub fun test-decl/show( d : test-decl ) : div string
+  "test \"" ++ d.name ++ "\" " ++ d.body.show
+
 pub struct program
   structs : list<struct-def>
   decls   : list<fun-decl>
+  tests   : list<test-decl> = []
 
 pub fun program/show( p : program ) : div string
   val struct-strs = p.structs.map(show)

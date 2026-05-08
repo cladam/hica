@@ -939,8 +939,9 @@ pub fun check-program( p : program ) : <div,diag,fresh> program
     fun get-structs() p.structs
   with handler
     fun in-loop() False
-  val (_, _, decls') = infer-decls(extern-env(), empty-subst, p.decls)
-  Program(p.structs, decls')
+  val (s1, env1, decls') = infer-decls(extern-env(), empty-subst, p.decls)
+  val tests' = infer-tests(env1, s1, p.tests)
+  Program(p.structs, decls', tests')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, type-env, list<fun-decl>)
   match ds
@@ -949,6 +950,15 @@ fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fr
       val (s1, env1, d') = infer-decl(env, s, d)
       val (s2, env2, rest') = infer-decls(env1, s1, rest)
       (s2, env2, Cons(d', rest'))
+
+// Type-check test declarations: each test body is checked like a function body
+// with no parameters.
+fun infer-tests( env : type-env, s : subst, ts : list<test-decl> ) : <div,diag,fresh,struct-reg,loop-ctx> list<test-decl>
+  match ts
+    Nil -> []
+    Cons(t, rest) ->
+      val (_, body') = infer(env, s, t.body)
+      Cons(t(body = body'), infer-tests(env, s, rest))
 
 // Convenience: check a single node (legacy API, still used by some tests).
 pub fun check( n : node ) : node

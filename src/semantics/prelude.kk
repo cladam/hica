@@ -84,4 +84,8 @@ pub fun extern-env() : type-env
     ("bit_xor",  TFun([TInt, TInt], TInt)),
     ("bit_not",  TFun([TInt], TInt)),
     ("bit_shl",  TFun([TInt, TInt], TInt)),
-    ("bit_shr",  TFun([TInt, TInt], TInt)) ]
+    ("bit_shr",  TFun([TInt, TInt], TInt)),
+
+    // Test assertions
+    ("assert",    TFun([TBool], TUnit)),
+    ("assert_eq", TFun([TVar("_a"), TVar("_a")], TUnit)) ]
