@@ -149,16 +149,16 @@ pub fun main() : io ()
       assert/is-true(code.contains("->"))
 
     dtest("emit match guard with constructor")
-      val code = emit-typed-program("fun test(v) { match parse_int(v) { Some(n) if n < 0 => 0, Some(n) => n, None => -1 } }")
+      val code = emit-typed-program("fun try_it(v) { match parse_int(v) { Some(n) if n < 0 => 0, Some(n) => n, None => -1 } }")
       assert/is-true(code.contains("|"))
       assert/is-true(code.contains("Just"))
 
     dtest("emit match without guard no pipe")
-      val code = emit-typed-program("fun test(x) => match x { 0 => 1, _ => 2 }")
+      val code = emit-typed-program("fun try_it(x) => match x { 0 => 1, _ => 2 }")
       assert/is-true(!code.contains("|"))
 
     dtest("match guard type-checks as bool")
-      val ds = check-diagnostics("fun test(n) => match n { x if x + 1 => x, _ => 0 }")
+      val ds = check-diagnostics("fun try_it(n) => match n { x if x + 1 => x, _ => 0 }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length > 0)
 
@@ -196,12 +196,12 @@ pub fun main() : io ()
       assert/is-true(code.contains("val x = 42"))
 
     dtest("emit function with if expression in body")
-      val code = emit-program-show("fun test(x) { if x { 1 } else { 2 } }")
-      assert/is-true(code.contains("fun hc_test(x)"))
+      val code = emit-program-show("fun try_it(x) { if x { 1 } else { 2 } }")
+      assert/is-true(code.contains("fun hc_try_it(x)"))
       assert/is-true(code.contains("if"))
 
     dtest("emit function with match in body")
-      val code = emit-program-show("fun test(x) { match x { 1 => 10, _ => 0 } }")
+      val code = emit-program-show("fun try_it(x) { match x { 1 => 10, _ => 0 } }")
       assert/is-true(code.contains("match x"))
 
     // --- Repeat emission ---
@@ -225,7 +225,7 @@ pub fun main() : io ()
 
     // --- String literal patterns ---
     dtest("emit match with string patterns")
-      val code = emit-program-show("fun test(s) { match s { \"yes\" => 1, \"no\" => 0, _ => -1 } }")
+      val code = emit-program-show("fun try_it(s) { match s { \"yes\" => 1, \"no\" => 0, _ => -1 } }")
       assert/is-true(code.contains("match"))
       assert/is-true(code.contains("\"yes\""))
       assert/is-true(code.contains("\"no\""))
@@ -1366,7 +1366,7 @@ pub fun main() : io ()
       assert/is-true(code.contains("3 ->"))
 
     dtest("emit or-pattern with two alternatives")
-      val code = emit-typed-program("fun test(x: int) => match x { 0 | 1 => true, _ => false }")
+      val code = emit-typed-program("fun try_it(x: int) => match x { 0 | 1 => true, _ => false }")
       assert/is-true(code.contains("0 ->"))
       assert/is-true(code.contains("1 ->"))
 
@@ -1443,7 +1443,7 @@ pub fun main() : io ()
       assert/is-true(code.contains("<= 5"))
 
     dtest("emit range pattern with existing guard")
-      val code = emit-typed-program("fun test(n: int) => match n { 1..=10 if n > 5 => \"high\", _ => \"low\" }")
+      val code = emit-typed-program("fun try_it(n: int) => match n { 1..=10 if n > 5 => \"high\", _ => \"low\" }")
       assert/is-true(code.contains("hc__rng"))
       assert/is-true(code.contains(">= 1"))
       assert/is-true(code.contains("<= 10"))
