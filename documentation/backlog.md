@@ -194,6 +194,14 @@ Issues that exist today but are not yet fixed:
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred
   independently. Call-site constraints don't refine a callee's inferred types.
+- **Codegen indentation bug in multi-statement match arms** — when a match
+  arm body contains multiple `let` bindings and the first binding involves a
+  complex expression (e.g. list indexing with `.unjust`, `read_file` wrapped
+  in `match`/`try`), the generated Koka indents subsequent statements deeper
+  as if they are continuations of the first `val`. Later statements that drop
+  back to the arm's base indentation lose access to those variables.
+  **Workaround:** extract the match arm body into a separate function so each
+  arm is a single expression.
 
 ---
 
