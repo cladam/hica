@@ -139,6 +139,18 @@ Legend: **done** = shipped, **—** = not started
 | `hica fmt` / `hica fmt --check` | — | Medium | Pretty-printer (Wadler-Leijen) |
 | `hica test [file]` | **done** | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail with ANSI colors. Exit code 1 on failure. No modules, no annotations, no imports needed. Short alias: `hica t` |
 
+### The "fmt" Implementation Goal
+
+For hica fmt tool, these rules should be the "Gold Standard":
+ 1. **Remove** trailing whitespace.
+ 2. **Enforce** a single space around operators (+, -, *, %, ==).
+ 3. **Insert** a single blank line between top-level definitions.
+ 4. **Auto-wrap** long pipe chains.
+ 5. **Remove** spaces inside parentheses, brackets, and braces.
+ 6. **Remove** spaces before function call parentheses.
+ 7. **Enforce** space after commas.
+ 8. **Enforce** space after colon in type annotations, no space before.
+
 ---
 
 ## Stand-Outs
