@@ -14,9 +14,9 @@ the surrounding code and match its style. Readability always wins.
 
 ### 1. The Hica Philosophy
 
- * **Be Explicit with Data, Implicit with Types:** Lean on type inference for local variables, but use names that describe the *content*, not the type.
- * **Flow over Nesting:** Prefer the pipe operator |> or UFCS (dot-notation) over deeply nested function calls.
- * **Expression First:** Every block should have a clear "result" (no floating side effects if possible).
+ - **Be Explicit with Data, Implicit with Types:** Lean on type inference for local variables, but use names that describe the *content*, not the type.
+ - **Flow over Nesting:** Prefer the pipe operator `|>` or UFCS (dot-notation) over deeply nested function calls.
+ - **Expression First:** Every block should have a clear "result" (no floating side effects if possible).
 
 ### 2. Naming Conventions (The "Social Contract")
 
@@ -29,20 +29,20 @@ the surrounding code and match its style. Readability always wins.
 | **Files** | kebab-case | file-utils.hc, main.hc |
 | **Constants** | UPPER_CASE | MAX_RETRIES, DEFAULT_PORT |
 
- * **Avoid single-letter names** except for standard math (x, y) or list indices (i, j).
- * **Boolean prefixes:** Use is_, has_, or can_ for boolean variables (e.g., is_empty, has_permission).
+ - **Avoid single-letter names** except for standard math (x, y) or list indices (i, j).
+ - **Boolean prefixes:** Use is_, has_, or can_ for boolean variables (e.g., is_empty, has_permission).
 
 ### 3. Layout and Indentation
 
- * **Indentation:** Use **2 spaces**. This keeps deeply nested functional structures (like match inside a fun) from drifting too far right.
- * **Line Length:** Limit lines to **80–100 characters**.
- * **Blank Lines:**
-   * One blank line between top-level function/struct definitions.
-   * One blank line inside a function to separate logical "steps."
+ - **Indentation:** Use **2 spaces**. This keeps deeply nested functional structures (like match inside a fun) from drifting too far right.
+ - **Line Length:** Limit lines to **80–100 characters**.
+ - **Blank Lines:**
+   - One blank line between top-level function/struct definitions.
+   - One blank line inside a function to separate logical "steps."
 
 ### 4. Whitespace
 
- * **No space** inside parentheses, brackets, or braces:
+ - **No space** inside parentheses, brackets, or braces:
    ```rust
    // Good
    println(nums[0])
@@ -52,7 +52,7 @@ the surrounding code and match its style. Readability always wins.
    println( nums[ 0 ] )
    ```
 
- * **No space** before the opening parenthesis of a function call:
+ - **No space** before the opening parenthesis of a function call:
    ```rust
    // Good
    println("hello")
@@ -61,7 +61,7 @@ the surrounding code and match its style. Readability always wins.
    println ("hello")
    ```
 
- * **One space** after commas, not before:
+ - **One space** after commas, not before:
    ```rust
    // Good
    let nums = [1, 2, 3]
@@ -71,7 +71,7 @@ the surrounding code and match its style. Readability always wins.
    let nums = [1 ,2 ,3]
    ```
 
- * **Type annotations:** Space after the colon, not before:
+ - **Type annotations:** Space after the colon, not before:
    ```rust
    // Good
    fun add(a: int, b: int) : int => a + b
@@ -81,7 +81,7 @@ the surrounding code and match its style. Readability always wins.
    fun add(a :int, b :int) :int => a + b
    ```
 
- * **Operator precedence:** You may omit spaces around high-precedence operators when it aids readability:
+ - **Operator precedence:** You may omit spaces around high-precedence operators when it aids readability:
    ```rust
    // Both acceptable
    let h = x*x + y*y
@@ -92,13 +92,13 @@ the surrounding code and match its style. Readability always wins.
 
 The `=>` arrow separates a function's signature from its body. Consistent placement of `=>` and `|>` is key to readable hica code.
 
- * **Single-line functions:** Keep on one line if it's short.
+ - **Single-line functions:** Keep on one line if it's short.
    ```rust
    fun double(n) => n * 2
 
    ```
 
- * **Multi-line functions:** Use braces for functions with multiple statements.
+ - **Multi-line functions:** Use braces for functions with multiple statements.
    ```rust
    fun handle_user(user) {
      let greeting = "Hello, {user.name}"
@@ -106,7 +106,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
    }
    ```
 
- * **Expression functions:** Use `=>` when the body is a single expression, even if it spans multiple lines.
+ - **Expression functions:** Use `=>` when the body is a single expression, even if it spans multiple lines.
    ```rust
    fun fizzbuzz(n) =>
      if n % 15 == 0 { "fizzbuzz" }
@@ -115,7 +115,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
      else { "{n}" }
    ```
 
- * **Pipe Placement:** Always place the pipe |> at the **start** of the following line, indented.
+ - **Pipe Placement:** Always place the pipe |> at the **start** of the following line, indented.
    ```rust
    let result = raw_data
      |> parse_json()
@@ -123,7 +123,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
      |> calculate_metrics()
    ```
 
- * **Line breaks before operators:** When an expression spans multiple lines, break *before* the operator. This keeps operators visually aligned with their operands:
+ - **Line breaks before operators:** When an expression spans multiple lines, break *before* the operator. This keeps operators visually aligned with their operands:
    ```rust
    // Good — operator at start of continuation
    let total = base_price
@@ -140,7 +140,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
 
 Pattern matching is where Hica code can get "busy." Formatting is key to keeping it safe.
 
- * **Align the Arrows:** For better readability, try to align the => in match arms.
+ - **Align the Arrows:** For better readability, try to align the => in match arms.
    ```rust
    match result {
      Ok(val)  => println("Success: {val}"),
@@ -149,7 +149,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    }
    ```
 
- * **Guard Clauses:** Keep guards on the same line as the pattern.
+ - **Guard Clauses:** Keep guards on the same line as the pattern.
    ```rust
    match n {
      n if n < 0 => "Negative",
@@ -159,7 +159,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 
 ### 7. Structs and Tuples
 
- * **Struct Definitions:** One field per line for anything more than two fields.
+ - **Struct Definitions:** One field per line for anything more than two fields.
    ```rust
    struct Config {
      port: int,
@@ -168,7 +168,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    }
    ```
 
- * **Tuple Access:** Avoid using .0, .1 for long-lived logic. Use **destructuring** to give values meaningful names.
+ - **Tuple Access:** Avoid using .0, .1 for long-lived logic. Use **destructuring** to give values meaningful names.
    ```rust
    // Good
    let (width, height) = get_dimensions()
@@ -178,7 +178,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    println(dims.0)
    ```
 
- * **Trailing commas:** Use a trailing comma on the last field when struct definitions or literals span multiple lines. This makes diffs cleaner when fields are added later:
+ - **Trailing commas:** Use a trailing comma on the last field when struct definitions or literals span multiple lines. This makes diffs cleaner when fields are added later:
    ```rust
    struct Config {
      port: int,
@@ -189,8 +189,8 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 
 ### 8. Comments and Documentation
 
- * **Line Comments:** Use // for brief explanations.
- * **Inline comments:** Use sparingly. Separate from code by at least two spaces. Don't state the obvious:
+ - **Line Comments:** Use // for brief explanations.
+ - **Inline comments:** Use sparingly. Separate from code by at least two spaces. Don't state the obvious:
    ```rust
    // Good
    let mask = 0xFF  // high byte only
@@ -198,7 +198,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    // Avoid
    let x = x + 1  // add one to x
    ```
- * **Function Docs:** Place a comment block immediately above a function to describe inputs/outputs if they aren't obvious.
+ - **Function Docs:** Place a comment block immediately above a function to describe inputs/outputs if they aren't obvious.
    ```rust
    // calculate_area: (float, float) => float
    // Computes the area of a rectangle given dimensions.
