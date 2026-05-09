@@ -61,8 +61,8 @@ Legend: **done** = shipped, **—** = not started
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
 | Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
 | Structs (`struct Point { x: int, y: int }`) | **done** | Medium | Emit Koka `struct`. Sub-tasks: construction (`Point { x: 1, y: 2 }`), field access (`p.x`), auto-generated `show`. Update syntax: `{ ...old, x: 5 }` not yet implemented. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
-| Algebraic types / enums | — | High | Emit Koka `type` with variants |
-| Maps / dictionaries | — | High | Koka `std/data/linearmap`; lower priority |
+| Algebraic types / enums | **done** | High | `type Color { Red, Green, Blue }`. Emit Koka `type` with variants. Constructors with data: `Circle(radius: float)`. Pattern matching on constructors: `Circle(r) => ...`. Exhaustiveness checking for enum variants. Auto-generated `show` function. Parser resolves PascalCase to constructor vs struct via lookahead |
+| Maps / dictionaries | **done** | High | `{"key": value}` literal syntax, `{:}` empty map. Functions: `map_get`, `map_set`, `map_remove`, `map_keys`, `map_values`, `map_contains_key`, `map_size`. Represented as list of tuples; all list operations work on maps. Codegen emits Koka list-of-tuples operations |
 | User input (`input("prompt")`) | **done** | Medium | Koka `readline`; returns `string`, combine with parse fns |
 | File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `()`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. `read_file` returns result; use `unwrap` / `unwrap_or` / `match` |
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |

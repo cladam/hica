@@ -328,6 +328,50 @@ fun main() {
 
 Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions, with no methods or `self`.
 
+## Enums: when a value can be one of several things
+
+A struct says "every value has these fields." An enum says "a value is one of these alternatives":
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+
+fun area(s: Shape) : float => match s {
+  Circle(r)  => 3.14159 * r * r,
+  Rect(w, h) => w * h,
+  Point      => 0.0
+}
+
+fun main() {
+  let shapes = [Circle(5.0), Rect(3.0, 4.0), Point]
+  for s in shapes {
+    println("area: {area(s)}")
+  }
+}
+```
+
+Each variant can carry different data (or none at all, like `Point`). Use `match` to handle each case. The compiler warns you if you forget a variant, so you can't accidentally miss a case.
+
+Simple enums work like named constants:
+
+```rust
+type Direction { North, South, East, West }
+
+fun opposite(d: Direction) : Direction => match d {
+  North => South,
+  South => North,
+  East  => West,
+  West  => East
+}
+```
+
+Rule of thumb:
+- **Struct** → every value looks the same (AND of fields)
+- **Enum** → each value is one of several alternatives (OR)
+
 ## Maps: key-value lookups
 
 When you need to associate keys with values, like a phone book or a scoreboard then use a map:
@@ -486,6 +530,6 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 29 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 31 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

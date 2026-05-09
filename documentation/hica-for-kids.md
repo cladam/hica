@@ -36,11 +36,12 @@ software.
 25. [Closures: Functions That Remember](#25-closures-functions-that-remember)
 26. [Structs: Build Your Own Types](#26-structs-build-your-own-types)
 27. [Maps: The Lookup Book](#27-maps-the-lookup-book)
-28. [Asking for Input](#28-asking-for-input)
-29. [Random Numbers: Roll the Dice!](#29-random-numbers-roll-the-dice)
-30. [Under the Hood: The Translator](#30-under-the-hood-the-translator)
-31. [Projects](#31-projects)
-32. [Glossary](#32-glossary)
+28. [Enums: Choose Your Adventure](#28-enums-choose-your-adventure)
+29. [Asking for Input](#29-asking-for-input)
+30. [Random Numbers: Roll the Dice!](#30-random-numbers-roll-the-dice)
+31. [Under the Hood: The Translator](#31-under-the-hood-the-translator)
+32. [Projects](#32-projects)
+33. [Glossary](#33-glossary)
 
 ---
 
@@ -1923,7 +1924,171 @@ friends and their ages. Then print `map_keys()` and `map_size()`.
 
 ---
 
-## 28. Asking for Input
+## 28. Enums: Choose Your Adventure
+
+Remember structs? A struct says "every value has the same fields." But what if
+a value could be **one of several different things**? That's an **enum** — short
+for "enumeration."
+
+Think of it like a "choose your adventure" book — at each point, the story can
+take one of several different paths. An enum says: "this value is one of these
+options."
+
+### A simple enum
+
+The simplest enum is just a list of named options, like picking a colour
+from a fixed set:
+
+```rust
+type Color {
+  Red,
+  Green,
+  Blue
+}
+
+fun main() {
+  let c = Red
+  println(c)        // Red
+}
+```
+
+`type` creates a new type. `Red`, `Green`, and `Blue` are the **variants** —
+the possible values. No numbers, no strings — just names. Clear and
+impossible to misspell (the compiler catches typos!).
+
+### Enums with data
+
+Here's where enums get really powerful. Each variant can carry **different
+data**:
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+```
+
+- `Circle` carries one float (the radius)
+- `Rect` carries two floats (width and height)
+- `Point` carries nothing at all
+
+Think of it like different kinds of packages: a round tube for circles,
+a flat box for rectangles, and just a dot for points.
+
+### Making enum values
+
+Construct them like function calls:
+
+```rust
+fun main() {
+  let s1 = Circle(5.0)
+  let s2 = Rect(3.0, 4.0)
+  let s3 = Point
+
+  println(s1)   // Circle(5)
+  println(s2)   // Rect(3, 4)
+  println(s3)   // Point
+}
+```
+
+### Using match with enums
+
+Here's the best part — `match` lets you handle each variant separately,
+and it **unpacks the data** for you:
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+
+fun describe(s: Shape) : string => match s {
+  Circle(r)  => "a circle with radius {r}",
+  Rect(w, h) => "a {w} by {h} rectangle",
+  Point      => "just a point"
+}
+
+fun main() {
+  println(describe(Circle(5.0)))
+  println(describe(Rect(3.0, 4.0)))
+  println(describe(Point))
+}
+```
+
+Output:
+```
+a circle with radius 5
+a 3 by 4 rectangle
+just a point
+```
+
+The variables `r`, `w`, and `h` are bound by the pattern — they hold whatever
+data was packed into the variant. It's like opening the package and seeing
+what's inside!
+
+### The compiler has your back
+
+If you forget a variant in your `match`, the compiler warns you:
+
+```
+warning: non-exhaustive match: missing Point
+```
+
+This is like a checklist — the compiler makes sure you've handled every
+possible case. No surprises at runtime!
+
+### Enums vs Structs
+
+| | Struct | Enum |
+| --- | --- | --- |
+| Every value looks... | The same (same fields) | Different (one of several variants) |
+| Think of it as... | AND — has field A **and** field B | OR — is variant A **or** variant B |
+| Example | `struct Pet { name: string, age: int }` | `type Shape { Circle(r: float), Point }` |
+
+Use a struct when all values have the same shape. Use an enum when a value
+can be one of several different things.
+
+### A pet shelter example
+
+```rust
+type Animal {
+  Dog(name: string, age: int),
+  Cat(name: string),
+  Fish
+}
+
+fun greet(a: Animal) : string => match a {
+  Dog(name, age) => "{name} the dog, {age} years old",
+  Cat(name)      => "{name} the cat",
+  Fish           => "just a fish"
+}
+
+fun is_pet(a: Animal) : bool => match a {
+  Fish => false,
+  _    => true
+}
+
+fun main() {
+  let animals = [Dog("Buddy", 3), Cat("Whiskers"), Fish]
+  let pets = animals |> filter(is_pet)
+  println("Pets: {pets}")
+}
+```
+
+Output: `Pets: [Dog(Buddy, 3),Cat(Whiskers)]`
+
+**🎯 Try it:** Create a `type Vehicle` with variants `Car(seats: int)`,
+`Bike`, and `Bus(seats: int)`. Write a function `capacity(v: Vehicle) : int`
+that returns the number of seats (bikes have 1).
+
+**🎯 Challenge:** Create a `type Coin` with `Heads` and `Tails`. Use
+`random(0, 1)` to pick one and `match` to print the result!
+
+---
+
+## 29. Asking for Input
 
 So far, your programs have been one-way conversations — the computer talks,
 but you can't talk back. Let's change that! The `input` function prints a
@@ -1984,7 +2149,7 @@ operator string!
 
 ---
 
-## 29. Random Numbers: Roll the Dice!
+## 30. Random Numbers: Roll the Dice!
 
 What if your program could surprise you? With `random`, it can! The `random`
 function picks a number for you — a different one each time you run the
@@ -2046,7 +2211,7 @@ game!
 
 ### A real guessing game!
 
-Remember the guessing game in chapter 26? The secret number was hard-coded.
+Remember the guessing game in chapter 29? The secret number was hard-coded.
 Now we can make it truly random:
 
 ```rust
@@ -2087,7 +2252,7 @@ choice. Use `match` to decide who wins!
 
 ---
 
-## 30. Under the Hood: The Translator
+## 31. Under the Hood: The Translator
 
 This is the coolest part of Hica. When you run your program, three things
 happen behind the scenes:
@@ -2116,7 +2281,7 @@ anymore. No pauses, no slowdowns.
 
 ---
 
-## 31. Projects
+## 32. Projects
 
 Ready for something bigger? Try these!
 
@@ -2217,7 +2382,7 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 
 ---
 
-## 32. Glossary
+## 33. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2258,6 +2423,8 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 | `struct` | Declares a new type with named fields — like designing a custom box |
 | `Name { f: v }` | Create a struct value — fill in the labelled compartments |\n| `{\"k\": v}` | A map literal — a lookup table of key-value pairs |\n| `{:}` | An empty map |\n| `map_get(m, k)` | Look up a key in a map — returns `Some(v)` or `None` |\n| `map_set(m, k, v)` | Add or update a key in a map |
 | `.field` | Struct field access — read a named compartment |
+| `type` | Declares an enum type — a value that can be one of several variants |
+| `Red`, `Circle(r)` | Enum variants — the possible shapes a value can take |
 | `input(prompt)` | Ask the user for text input — prints prompt, waits for answer |
 | `random(min, max)` | Pick a random number from min to max (both included) |
 | `show_fixed(v, n)` | Format a float with exactly n decimal places — `show_fixed(3.14159, 2)` gives `"3.14"` |

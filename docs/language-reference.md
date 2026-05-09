@@ -391,6 +391,56 @@ fun origin() : Point => Point { x: 0, y: 0 }
 
 Struct names must start with an uppercase letter. Fields are accessed with dot notation.
 
+### Enums (Algebraic Types)
+
+Define a type with named variants using `type`:
+
+```rust
+type Color {
+  Red,
+  Green,
+  Blue
+}
+```
+
+Variants can carry data — each variant specifies its own fields:
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+```
+
+Construct enum values like function calls (no data → bare name, with data → parenthesised arguments):
+
+```rust
+let c = Red
+let s = Circle(5.0)
+let r = Rect(3.0, 4.0)
+```
+
+Pattern match on enums to handle each variant:
+
+```rust
+fun describe(s: Shape) : string => match s {
+  Circle(r)  => "circle with radius {r}",
+  Rect(w, h) => "{w} x {h} rectangle",
+  Point      => "a point"
+}
+```
+
+The compiler checks exhaustiveness — if you forget a variant, you get a warning:
+
+```
+warning: non-exhaustive match: missing Circle(…)
+```
+
+Enum names and variant names must start with an uppercase letter. `println` auto-shows enum values (e.g. `Circle(5)`, `Red`).
+
+**Enum vs Struct:** Use a struct when every value has the same fields (AND of fields). Use an enum when a value can be one of several alternatives (OR of shapes).
+
 ### Lists
 
 Homogeneous, immutable lists:

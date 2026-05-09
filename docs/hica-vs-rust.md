@@ -17,7 +17,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Error handling | `Result<T, E>` + `?` operator | `Result` + `match` |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
 | Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result + ranges), not deeply nested |
-| Custom types | `struct` + `impl` + `derive` | `struct` (simple, no `impl` blocks) |
+| Custom types | `struct` + `enum` + `impl` + `derive` | `struct` + `type` enums (simple, no `impl` blocks) |
 | Maps | `HashMap<K, V>` (mutable, hash-based) | `{"k": v}` literals (immutable, list of tuples) |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
@@ -280,6 +280,55 @@ fun main() {
 ```
 
 Rust's `impl` blocks group methods on a type with `self` access, `derive` generates common trait implementations, and traits provide polymorphism. hica keeps it simple: structs hold data, free functions operate on them, and `show` is auto-generated.
+
+## Enums (Algebraic Types)
+
+Rust has powerful `enum` types with `impl` blocks and `derive`:
+
+```rust
+#[derive(Debug)]
+enum Shape {
+    Circle(f64),
+    Rect(f64, f64),
+    Point,
+}
+
+impl Shape {
+    fn area(&self) -> f64 {
+        match self {
+            Shape::Circle(r) => std::f64::consts::PI * r * r,
+            Shape::Rect(w, h) => w * h,
+            Shape::Point => 0.0,
+        }
+    }
+}
+```
+
+hica has the same core concept with a lighter syntax:
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+
+fun area(s: Shape) : float => match s {
+  Circle(r)  => 3.14159 * r * r,
+  Rect(w, h) => w * h,
+  Point      => 0.0
+}
+```
+
+| Rust | hica |
+|------|------|
+| `enum Shape { Circle(f64), ... }` | `type Shape { Circle(radius: float), ... }` |
+| `Shape::Circle(5.0)` (qualified) | `Circle(5.0)` (unqualified) |
+| `match self { Shape::Circle(r) => ... }` | `match s { Circle(r) => ... }` |
+| `#[derive(Debug)]` for printing | Auto-generated `show` |
+| `impl` blocks for methods | Free functions |
+
+Both languages have exhaustive matching — the compiler ensures every variant is handled. Rust adds generic type parameters (`Option<T>`, `Result<T, E>`), nested destructuring, and `if let` / `let else` for partial matching. hica covers the common cases with less syntax: no qualified paths (`Shape::`), no `derive`, no `impl` blocks.
 
 ## Maps / Dictionaries
 

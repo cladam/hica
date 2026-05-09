@@ -44,6 +44,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 28 | `28-random.hc`        | Random numbers                   | `random(min, max)`, non-determinism, dice and coin examples |
 | 29 | `29-format.hc`        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
 | 30 | `30-maps.hc`          | Maps                             | `{"key": value}` literals, `{:}` empty map, `map_get`, `map_set`, `map_remove` |
+| 31 | `31-enums.hc`         | Enum types                       | `type` declarations, variants with data, constructors, pattern matching on enums |
 
 ## Language features shown
 
@@ -98,6 +99,13 @@ Each lesson is a standalone `.hc` file you can run:
 | `read_file`, `write_file`      | `26-file-io.hc`                       |
 | `unwrap`, `unwrap_or`          | `26-file-io.hc`                       |
 | `read_lines`, `write_lines`    | `26-file-io.hc`                       |
+| `random(min, max)`             | `28-random.hc`                        |
+| `show_fixed`, `pad_left/right` | `29-format.hc`                        |
+| Map literals `{"k": v}`       | `30-maps.hc`                          |
+| `map_get`, `map_set`, etc.     | `30-maps.hc`                          |
+| `type` declarations (enums)   | `31-enums.hc`                         |
+| Enum constructors              | `31-enums.hc`                         |
+| Pattern matching on enums      | `31-enums.hc`                         |
 | `input(prompt)`                | `27-input.hc`                         |
 | `random(min, max)`             | `28-random.hc`                        |
 | `show_fixed(value, decimals)`  | `29-format.hc`                        |

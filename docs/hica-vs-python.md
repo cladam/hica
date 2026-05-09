@@ -16,7 +16,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Mutability | Mutable by default | Immutable by design |
 | Functions | `def` + simple lambdas (single-expression only) | `fun` + full closures + `|>` pipe |
 | Error handling | Exceptions (implicit flow) | Result types (explicit handling) |
-| Data structures | Classes / dataclasses | Structs |
+| Data structures | Classes / dataclasses | Structs + enums |
 | Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}`, immutable list of tuples) |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
@@ -256,6 +256,60 @@ struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
 ```
+
+## Enums (Algebraic Types)
+
+**Python** doesn't have built-in algebraic types. You can approximate them with classes or `enum.Enum`, but there's no exhaustiveness checking and no variant data:
+
+```python
+from enum import Enum
+
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+# For variants with data, you need classes:
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+class Rect:
+    def __init__(self, w, h):
+        self.w = w
+        self.h = h
+
+def area(shape):
+    if isinstance(shape, Circle):
+        return 3.14159 * shape.radius ** 2
+    elif isinstance(shape, Rect):
+        return shape.w * shape.h
+    # Easy to forget a case — no compiler warning!
+```
+
+**hica** has first-class enum types with exhaustiveness checking:
+
+```rust
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+
+fun area(s: Shape) : float => match s {
+  Circle(r)  => 3.14159 * r * r,
+  Rect(w, h) => w * h,
+  Point      => 0.0
+}
+```
+
+If you forget a variant, the compiler warns you:
+
+```
+warning: non-exhaustive match: missing Point
+```
+
+Python's `isinstance` chains are error-prone and have no compile-time safety. hica's `match` is exhaustive — every case must be handled. This is one of hica's strongest advantages over Python for modelling data that comes in different shapes.
 
 ## Dictionaries / Maps
 
