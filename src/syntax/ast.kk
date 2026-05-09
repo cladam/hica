@@ -388,8 +388,9 @@ pub struct program
 
 pub fun program/show( p : program ) : div string
   val struct-strs = p.structs.map(show)
+  val type-strs = p.types.map(show)
   val decl-strs = p.decls.map(show)
-  (struct-strs ++ decl-strs).join("\n\n")
+  (struct-strs ++ type-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------
 // Type environment
