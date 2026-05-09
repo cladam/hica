@@ -202,6 +202,9 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
       else
         emit-error(sp, "type mismatch: expected " ++ a ++ ", got " ++ b)
         empty-subst
+    // Parser uses TStruct for all user-defined type annotations; unify with TEnum
+    (TStruct(a), TEnum(b)) | a == b -> empty-subst
+    (TEnum(a), TStruct(b)) | a == b -> empty-subst
     _ ->
       emit-error(sp, "type mismatch: expected " ++ t1.show ++ ", got " ++ t2.show)
       empty-subst
@@ -1118,4 +1121,6 @@ fun body-calls-name( n : node, name : string ) : div bool
     EErr(v)                 -> body-calls-name(v, name)
     StructLit(_, fs)        -> fs.any(fn((_, v)) body-calls-name(v, name))
     FieldAccess(o, _)       -> body-calls-name(o, name)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) body-calls-name(a, name))
+    MapLit(entries)         -> entries.any(fn((k, v)) body-calls-name(k, name) || body-calls-name(v, name))
     _                       -> False

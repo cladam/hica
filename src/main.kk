@@ -134,7 +134,7 @@ fun cmd-check( file : string )
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
   val prelude = load-prelude()
-  val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls)
+  val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
@@ -162,7 +162,7 @@ fun cmd-test( file : string )
   else
     // Load prelude and merge
     val prelude = load-prelude()
-    val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls, prog.tests)
+    val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls, prog.tests)
     // Type check
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
@@ -289,7 +289,7 @@ fun load-prelude()
       val prog = run-parser-program(tokens)
       decl-result := decl-result ++ prog.decls
       struct-result := struct-result ++ prog.structs
-  Program(struct-result, decl-result)
+  Program(struct-result, [], decl-result)
 
 // ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk
@@ -304,7 +304,7 @@ fun build( file : string )
   val prog   = run-parser-program(tokens)
   // Load prelude .hc files and merge with user program
   val prelude = load-prelude()
-  val merged = Program(prelude.structs ++ prog.structs, prelude.decls ++ prog.decls)
+  val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh

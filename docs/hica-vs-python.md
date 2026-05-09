@@ -17,7 +17,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Functions | `def` + simple lambdas (single-expression only) | `fun` + full closures + `|>` pipe |
 | Error handling | Exceptions (implicit flow) | Result types (explicit handling) |
 | Data structures | Classes / dataclasses | Structs |
-| Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}` — immutable, list of tuples) |
+| Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}`, immutable list of tuples) |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
 | Loops | `for`, `while`, `break`, `continue` | `for`, `while`, `repeat`, `loop`, `break`, `continue` |
