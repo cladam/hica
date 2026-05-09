@@ -61,6 +61,7 @@ Legend: **done** = shipped, **—** = not started
 | Maybe type (`Some` / `None`) | **done** | Medium | Koka `maybe<a>`; `Some` → `Just`, `None` → `Nothing` |
 | Result type (`Ok` / `Err`) | **done** | Medium | Koka `either<a,b>`; `Ok` → `Right`, `Err` → `Left` |
 | Structs (`struct Point { x: int, y: int }`) | **done** | Medium | Emit Koka `struct`. Sub-tasks: construction (`Point { x: 1, y: 2 }`), field access (`p.x`), auto-generated `show`. Update syntax: `{ ...old, x: 5 }` not yet implemented. Motivation: hica-diff's hunk state needs 8+ fields (exceeds tuple5 limit); hica-semver's `(major, minor, patch, pre, build)` is cleaner as named fields |
+| Struct functional update (`spec with { field: val }`) | — | Medium | Syntax: `expr with { field1: val1, field2: val2 }`. Creates a copy of a struct with selected fields replaced. Desugars to full constructor call with unchanged fields forwarded. Avoids manual 7-field reconstruction in builders (e.g. CLI prelude `with_flags`/`with_options` helpers). Parser: new `with` keyword after expression, followed by `{ field: val }` block. Checker: verify field names exist on struct type. Codegen: emit Koka functional update or full constructor. Prerequisite: struct type must be known at the `with` expression site |
 | Algebraic types / enums | **done** | High | `type Color { Red, Green, Blue }`. Emit Koka `type` with variants. Constructors with data: `Circle(radius: float)`. Pattern matching on constructors: `Circle(r) => ...`. Exhaustiveness checking for enum variants. Auto-generated `show` function. Parser resolves PascalCase to constructor vs struct via lookahead |
 | Maps / dictionaries | **done** | High | `{"key": value}` literal syntax, `{:}` empty map. Functions: `map_get`, `map_set`, `map_remove`, `map_keys`, `map_values`, `map_contains_key`, `map_size`. Represented as list of tuples; all list operations work on maps. Codegen emits Koka list-of-tuples operations |
 | User input (`input("prompt")`) | **done** | Medium | Koka `readline`; returns `string`, combine with parse fns |
@@ -181,6 +182,11 @@ Issues that exist today but are not yet fixed:
   The generated Koka code omits annotations, but Koka can't always resolve
   `.fst`/`.snd` without them. **Workaround:** use type annotations:
   `fun swap(p: (int, int)) : (int, int) => (p.1, p.0)`.
+- **Prelude-defined enum constructors not visible in user code** — `type`
+  definitions in the prelude are not propagated to the checker's constructor
+  environment for user code. User code cannot pattern-match on prelude enums.
+  **Workaround:** define the enum in the user file, or use Result/Maybe
+  as the public API.
 - **~~`show` gets marshalled to `hc_show` in user functions~~** — Fixed.
   `show` is now mapped directly to Koka's `show` in codegen, bypassing the
   `hc_` prefix. Both `show(42)` and `"{n}"` work correctly.

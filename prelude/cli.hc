@@ -59,11 +59,15 @@ struct CliResult {
 }
 
 // ---------------------------------------------------------------------------
-// Builders (pipe-friendly: each returns a (CliSpec) -> CliSpec closure)
+// Builders (pipe-friendly)
 //
 //   cli("myapp", "1.0.0", "about")
 //     |> flag("verbose", "v", "enable verbose output")
 //     |> option("output", "o", "output file")
+//
+// Note: builders reconstruct CliSpec because hica doesn't yet have struct
+// functional update syntax (spec with { app_flags: ... }). Each with_*
+// helper isolates the boilerplate to one place.
 // ---------------------------------------------------------------------------
 
 fun cli(name: string, version: string, about: string) =>
@@ -77,92 +81,78 @@ fun cli(name: string, version: string, about: string) =>
     app_commands: []
   }
 
+// --- with_* helpers to reduce builder boilerplate ---
+
+fun with_flags(spec: CliSpec, flags: list<CliFlag>) =>
+  CliSpec { app_name: spec.app_name, app_version: spec.app_version,
+            app_about: spec.app_about, app_flags: flags,
+            app_options: spec.app_options, app_args: spec.app_args,
+            app_commands: spec.app_commands }
+
+fun with_options(spec: CliSpec, options: list<CliOption>) =>
+  CliSpec { app_name: spec.app_name, app_version: spec.app_version,
+            app_about: spec.app_about, app_flags: spec.app_flags,
+            app_options: options, app_args: spec.app_args,
+            app_commands: spec.app_commands }
+
+fun with_args(spec: CliSpec, args: list<CliArg>) =>
+  CliSpec { app_name: spec.app_name, app_version: spec.app_version,
+            app_about: spec.app_about, app_flags: spec.app_flags,
+            app_options: spec.app_options, app_args: args,
+            app_commands: spec.app_commands }
+
+fun with_commands(spec: CliSpec, commands: list<(string, CliSpec)>) =>
+  CliSpec { app_name: spec.app_name, app_version: spec.app_version,
+            app_about: spec.app_about, app_flags: spec.app_flags,
+            app_options: spec.app_options, app_args: spec.app_args,
+            app_commands: commands }
+
 fun flag(spec: CliSpec, name: string, short: string, help_text: string) =>
-  CliSpec {
-    app_name: spec.app_name,
-    app_version: spec.app_version,
-    app_about: spec.app_about,
-    app_flags: spec.app_flags + [CliFlag { flag_name: name, flag_short: short, flag_help: help_text }],
-    app_options: spec.app_options,
-    app_args: spec.app_args,
-    app_commands: spec.app_commands
-  }
+  with_flags(spec, spec.app_flags + [CliFlag { flag_name: name, flag_short: short, flag_help: help_text }])
 
 fun option(spec: CliSpec, name: string, short: string, help_text: string) =>
-  CliSpec {
-    app_name: spec.app_name,
-    app_version: spec.app_version,
-    app_about: spec.app_about,
-    app_flags: spec.app_flags,
-    app_options: spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: "" }],
-    app_args: spec.app_args,
-    app_commands: spec.app_commands
-  }
+  with_options(spec, spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: "" }])
 
 fun option_default(spec: CliSpec, name: string, short: string, help_text: string, default: string) =>
-  CliSpec {
-    app_name: spec.app_name,
-    app_version: spec.app_version,
-    app_about: spec.app_about,
-    app_flags: spec.app_flags,
-    app_options: spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: default }],
-    app_args: spec.app_args,
-    app_commands: spec.app_commands
-  }
+  with_options(spec, spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: default }])
 
 fun arg(spec: CliSpec, name: string, help_text: string, required: bool) =>
-  CliSpec {
-    app_name: spec.app_name,
-    app_version: spec.app_version,
-    app_about: spec.app_about,
-    app_flags: spec.app_flags,
-    app_options: spec.app_options,
-    app_args: spec.app_args + [CliArg { arg_name: name, arg_help: help_text, arg_required: required }],
-    app_commands: spec.app_commands
-  }
+  with_args(spec, spec.app_args + [CliArg { arg_name: name, arg_help: help_text, arg_required: required }])
 
 fun command(spec: CliSpec, name: string, sub: CliSpec) =>
-  CliSpec {
-    app_name: spec.app_name,
-    app_version: spec.app_version,
-    app_about: spec.app_about,
-    app_flags: spec.app_flags,
-    app_options: spec.app_options,
-    app_args: spec.app_args,
-    app_commands: spec.app_commands + [(name, sub)]
-  }
+  with_commands(spec, spec.app_commands + [(name, sub)])
 
 // ---------------------------------------------------------------------------
 // Help & version formatting
 // ---------------------------------------------------------------------------
 
 fun format_flag_usage(f: CliFlag) =>
-  if is_empty(f.flag_short) { pad_right("    --" + f.flag_name, 24, " ") + f.flag_help }
-  else { pad_right("  -" + f.flag_short + ", --" + f.flag_name, 24, " ") + f.flag_help }
+  if is_empty(f.flag_short) { pad_right("    --{f.flag_name}", 24, " ") + f.flag_help }
+  else { pad_right("  -{f.flag_short}, --{f.flag_name}", 24, " ") + f.flag_help }
 
 fun format_option_usage(o: CliOption) {
-  let suffix = if is_empty(o.opt_default) { "" } else { " [default: " + o.opt_default + "]" }
-  if is_empty(o.opt_short) { pad_right("    --" + o.opt_name + " VALUE", 24, " ") + o.opt_help + suffix }
-  else { pad_right("  -" + o.opt_short + ", --" + o.opt_name + " VALUE", 24, " ") + o.opt_help + suffix }
+  let suffix = if is_empty(o.opt_default) { "" } else { " [default: {o.opt_default}]" }
+  if is_empty(o.opt_short) { pad_right("    --{o.opt_name} VALUE", 24, " ") + o.opt_help + suffix }
+  else { pad_right("  -{o.opt_short}, --{o.opt_name} VALUE", 24, " ") + o.opt_help + suffix }
 }
 
 fun format_arg_usage(a: CliArg) {
   let marker = if a.arg_required { " (required)" } else { "" }
-  pad_right("  <" + a.arg_name + ">", 24, " ") + a.arg_help + marker
+  pad_right("  <{a.arg_name}>", 24, " ") + a.arg_help + marker
 }
 
 fun format_arg_label(a: CliArg) =>
-  if a.arg_required { " <" + a.arg_name + ">" } else { " [" + a.arg_name + "]" }
+  if a.arg_required { " <{a.arg_name}>" } else { " [{a.arg_name}]" }
 
 fun format_cmd_usage(pair: (string, CliSpec)) =>
-  pad_right("  " + pair.0, 24, " ") + pair.1.app_about
+  pad_right("  {pair.0}", 24, " ") + pair.1.app_about
 
 fun cli_help(spec: CliSpec) {
-  let header = spec.app_name + " " + spec.app_version + " — " + spec.app_about
+  let header = "{spec.app_name} {spec.app_version} — {spec.app_about}"
   let arg_labels = map(spec.app_args, (a) => format_arg_label(a))
   let args_str = join(arg_labels, "")
   let cmds_str = if length(spec.app_commands) > 0 { " <COMMAND>" } else { "" }
-  let usage_line = "USAGE: " + spec.app_name + " [OPTIONS]" + args_str + cmds_str
+  let usage_line = "USAGE: {spec.app_name} [OPTIONS]{args_str}{cmds_str}"
   let flag_lines = map(spec.app_flags, (f) => format_flag_usage(f))
   let opt_lines = map(spec.app_options, (o) => format_option_usage(o))
   let builtin = [
@@ -170,20 +160,19 @@ fun cli_help(spec: CliSpec) {
     pad_right("      --version", 24, " ") + "Show version"
   ]
   let all_opts = flag_lines + opt_lines + builtin
-  var out = header + "\n\n" + usage_line + "\n\nOPTIONS:\n" + join(all_opts, "\n")
+  var out = "{header}\n\n{usage_line}\n\nOPTIONS:\n{join(all_opts, "\n")}"
   if length(spec.app_args) > 0 {
     let arg_lines = map(spec.app_args, (a) => format_arg_usage(a))
-    out = out + "\n\nARGS:\n" + join(arg_lines, "\n")
+    out = "{out}\n\nARGS:\n{join(arg_lines, "\n")}"
   }
   if length(spec.app_commands) > 0 {
     let cmd_lines = map(spec.app_commands, (c) => format_cmd_usage(c))
-    out = out + "\n\nCOMMANDS:\n" + join(cmd_lines, "\n")
+    out = "{out}\n\nCOMMANDS:\n{join(cmd_lines, "\n")}"
   }
   out
 }
 
-fun cli_version_str(spec) =>
-  spec.app_name + " " + spec.app_version
+fun cli_version_str(spec) => "{spec.app_name} {spec.app_version}"
 
 // ---------------------------------------------------------------------------
 // Querying results
@@ -193,7 +182,7 @@ fun cli_empty() =>
   CliResult { cli_flags: [], cli_options: [], cli_positionals: [], cli_command: "", cli_sub: None }
 
 fun has_flag(r: CliResult, name: string) : bool =>
-  any(r.cli_flags, (f) => f == name)
+  name in r.cli_flags
 
 fun get_opt(r: CliResult, name: string) =>
   match find(r.cli_options, (pair) => pair.0 == name) {
@@ -247,7 +236,7 @@ fun check_one_arg(positionals: list<string>, err: string, pair: (int, CliArg)) =
   if !is_empty(err) { err }
   else {
     if pair.1.arg_required && pair.0 >= length(positionals) {
-      "missing required argument: <" + pair.1.arg_name + ">"
+      "missing required argument: <{pair.1.arg_name}>"
     }
     else { "" }
   }
@@ -364,7 +353,7 @@ fun cli_parse_args(spec: CliSpec, args: list<string>) {
           }),
           Err(e) => Err(e)
         },
-        None => Err("unknown command: " + subcmd)
+        None => Err("unknown command: {subcmd}")
       }
     }
     else {

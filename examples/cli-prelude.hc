@@ -1,5 +1,6 @@
-// Test the cli prelude with all new features:
-// pipe-friendly builders, subcommands, defaults, positional args
+// Test the cli prelude with all features:
+// pipe-friendly builders, subcommands, defaults, positional args,
+// with_* builder helpers, string interpolation, `in` operator
 //
 // Usage:
 //   ./hica run examples/cli-prelude.hc -- --help
