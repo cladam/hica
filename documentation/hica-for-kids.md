@@ -35,11 +35,12 @@ software.
 24. [Recursion: The Russian Doll Trick](#24-recursion-the-russian-doll-trick)
 25. [Closures: Functions That Remember](#25-closures-functions-that-remember)
 26. [Structs: Build Your Own Types](#26-structs-build-your-own-types)
-27. [Asking for Input](#27-asking-for-input)
-28. [Random Numbers: Roll the Dice!](#28-random-numbers-roll-the-dice)
-29. [Under the Hood: The Translator](#29-under-the-hood-the-translator)
-30. [Projects](#30-projects)
-31. [Glossary](#31-glossary)
+27. [Maps: The Lookup Book](#27-maps-the-lookup-book)
+28. [Asking for Input](#28-asking-for-input)
+29. [Random Numbers: Roll the Dice!](#29-random-numbers-roll-the-dice)
+30. [Under the Hood: The Translator](#30-under-the-hood-the-translator)
+31. [Projects](#31-projects)
+32. [Glossary](#32-glossary)
 
 ---
 
@@ -1823,7 +1824,106 @@ Write a function `level_up(p: Player) : string` that prints
 
 ---
 
-## 27. Asking for Input
+## 27. Maps: The Lookup Book
+
+Imagine a **dictionary**, you look up a word and find its meaning. Or a **phone book**, you look up a name and find a number. 
+In Hica, this is called a **map**.
+
+### Making a map
+
+Use curly braces with `"key": value` pairs:
+
+```rust
+let ages = {"kalle": 30, "olle": 25, "lisa": 35}
+println(ages)
+```
+
+Output: `[("kalle",30),("olle",25),("lisa",35)]`
+
+Think of it like a table with two columns:
+
+| Key       | Value |
+| --------- | ----- |
+| `"kalle"` | `30`  |
+| `"olle"`  | `25`  |
+| `"lisa"`  | `35`  |
+
+### Looking things up
+
+Use `map_get` to find a value by its key. It returns a **maybe** — because
+the key might not exist!
+
+```rust
+let ages = {"kalle": 30, "olle": 25}
+println(ages.map_get("kalle"))    // Just(30) — found it!
+println(ages.map_get("nobody"))   // Nothing — not there
+```
+
+### Adding and changing entries
+
+Use `map_set` to add a new key or change an existing one:
+
+```rust
+let ages = {"kalle": 30, "olle": 25}
+let ages2 = ages.map_set("lisa", 35)    // adds lisa
+let ages3 = ages2.map_set("olle", 26)   // updates olle
+println(ages3.map_keys())               // ["kalle", "olle", "lisa"]
+```
+
+Maps don't change, `map_set` gives you a **new** map with the change.
+The original stays the same.
+
+### Removing entries
+
+```rust
+let ages = {"kalle": 30, "olle": 25, "lisa": 35}
+let ages2 = ages.map_remove("olle")
+println(ages2.map_keys())   // ["kalle", "lisa"]
+```
+
+### Empty maps
+
+Use `{:}` to create an empty map, then build it up with `map_set`:
+
+```rust
+let m = {:}
+let m2 = m.map_set("x", 1).map_set("y", 2)
+println(m2)   // [("x",1),("y",2)]
+```
+
+### Map tools
+
+| Tool | What it does | Example |
+| --- | --- | --- |
+| `map_get(m, key)` | Look up a key | `m.map_get("kalle")` → `Just(30)` |
+| `map_set(m, key, val)` | Add or change | `m.map_set("lisa", 35)` |
+| `map_remove(m, key)` | Remove a key | `m.map_remove("olle")` |
+| `map_keys(m)` | All the keys | `m.map_keys()` → `["kalle", "olle"]` |
+| `map_values(m)` | All the values | `m.map_values()` → `[30, 25]` |
+| `map_contains_key(m, key)` | Is the key there? | `m.map_contains_key("kalle")` → `true` |
+| `map_size(m)` | How many entries? | `m.map_size()` → `2` |
+
+### The secret: maps are lists!
+
+Under the hood, a map is just a **list of tuples** — pairs of (key, value).
+That means you can use all the list tools on maps too:
+
+```rust
+let scores = {"kalle": 95, "olle": 60, "lisa": 88}
+let high = scores.filter((entry) => entry.1 >= 80)
+println(high)   // [("kalle",95),("lisa",88)]
+```
+
+**🎯 Try it:** Create a map of your favourite animals and their sounds
+(like `{"cat": "meow", "dog": "woof"}`). Look up one that exists and one
+that doesn't.
+
+**🎯 Try it:** Start with an empty map `{:}` and use `map_set` to add three
+friends and their ages. Then print `map_keys()` and `map_size()`.
+
+---
+
+## 28. Asking for Input
 
 So far, your programs have been one-way conversations — the computer talks,
 but you can't talk back. Let's change that! The `input` function prints a
@@ -1884,7 +1984,7 @@ operator string!
 
 ---
 
-## 28. Random Numbers: Roll the Dice!
+## 29. Random Numbers: Roll the Dice!
 
 What if your program could surprise you? With `random`, it can! The `random`
 function picks a number for you — a different one each time you run the
@@ -1987,7 +2087,7 @@ choice. Use `match` to decide who wins!
 
 ---
 
-## 29. Under the Hood: The Translator
+## 30. Under the Hood: The Translator
 
 This is the coolest part of Hica. When you run your program, three things
 happen behind the scenes:
@@ -2016,7 +2116,7 @@ anymore. No pauses, no slowdowns.
 
 ---
 
-## 30. Projects
+## 31. Projects
 
 Ready for something bigger? Try these!
 
@@ -2117,7 +2217,7 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 
 ---
 
-## 31. Glossary
+## 32. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2156,7 +2256,7 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 | `.0`, `.1` | Tuple access — get the first or second item from a tuple |
 | `let (x, y)` | Tuple destructuring — unpack a tuple into separate variables |
 | `struct` | Declares a new type with named fields — like designing a custom box |
-| `Name { f: v }` | Create a struct value — fill in the labelled compartments |
+| `Name { f: v }` | Create a struct value — fill in the labelled compartments |\n| `{\"k\": v}` | A map literal — a lookup table of key-value pairs |\n| `{:}` | An empty map |\n| `map_get(m, k)` | Look up a key in a map — returns `Some(v)` or `None` |\n| `map_set(m, k, v)` | Add or update a key in a map |
 | `.field` | Struct field access — read a named compartment |
 | `input(prompt)` | Ask the user for text input — prints prompt, waits for answer |
 | `random(min, max)` | Pick a random number from min to max (both included) |

@@ -328,6 +328,43 @@ fun main() {
 
 Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions, with no methods or `self`.
 
+## Maps: key-value lookups
+
+When you need to associate keys with values, like a phone book or a scoreboard then use a map:
+
+```rust
+let scores = {"kalle": 95, "olle": 87, "lisa": 92}
+println(scores.map_get("kalle"))   // Just(95)
+println(scores.map_get("nobody"))  // Nothing
+```
+
+Maps use curly braces with `"key": value` pairs. Use `{:}` for an empty map.
+
+Update, add, and remove entries:
+
+```rust
+let scores2 = scores.map_set("pelle", 88)
+let scores3 = scores2.map_remove("olle")
+println(scores3.map_keys())   // ["kalle", "lisa", "pelle"]
+```
+
+Under the hood, maps are lists of tuples. That means all list functions (`filter`, `map`, `fold`) work on maps too:
+
+```rust
+let high_scores = scores.filter((entry) => entry.1 >= 90)
+println(high_scores)   // [("kalle", 95), ("lisa", 92)]
+```
+
+| Function | What it does |
+|----------|-------------|
+| `map_get(m, key)` | Look up a key → `maybe<v>` |
+| `map_set(m, key, val)` | Add or update a key |
+| `map_remove(m, key)` | Remove a key |
+| `map_keys(m)` | List of all keys |
+| `map_values(m)` | List of all values |
+| `map_contains_key(m, key)` | Check if a key exists |
+| `map_size(m)` | Number of entries |
+
 ## User Input
 
 `input(prompt)` prints the prompt and reads a line from your input. It returns a `string`.

@@ -401,6 +401,38 @@ let empty = []
 let words = ["hello", "world"]
 ```
 
+### Maps
+
+Key-value dictionaries using `{"key": value}` syntax:
+
+```rust
+let ages = {"kalle": 30, "olle": 25, "lisa": 35}
+let empty = {:}
+```
+
+Maps are represented as lists of tuples under the hood. All list operations work on maps too.
+
+Map functions:
+
+| Function | Description |
+|----------|-------------|
+| `map_get(m, key)` | Look up a key, returns `maybe<v>` |
+| `map_set(m, key, value)` | Add or update a key |
+| `map_remove(m, key)` | Remove a key |
+| `map_keys(m)` | List of all keys |
+| `map_values(m)` | List of all values |
+| `map_contains_key(m, key)` | Check if a key exists |
+| `map_size(m)` | Number of entries |
+
+```rust
+fun main() {
+  let m = {"x": 1, "y": 2}
+  println(m.map_get("x"))           // Just(1)
+  let m2 = m.map_set("z", 3)
+  println(m2.map_keys())            // ["x", "y", "z"]
+}
+```
+
 ### Maybe
 
 Optional values:

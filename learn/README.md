@@ -43,6 +43,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 27 | `27-input.hc`         | User input                       | `input(prompt)`, combining with `parse_int`, interactive programs |
 | 28 | `28-random.hc`        | Random numbers                   | `random(min, max)`, non-determinism, dice and coin examples |
 | 29 | `29-format.hc`        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
+| 30 | `30-maps.hc`          | Maps                             | `{"key": value}` literals, `{:}` empty map, `map_get`, `map_set`, `map_remove` |
 
 ## Language features shown
 
@@ -101,6 +102,10 @@ Each lesson is a standalone `.hc` file you can run:
 | `random(min, max)`             | `28-random.hc`                        |
 | `show_fixed(value, decimals)`  | `29-format.hc`                        |
 | `pad_left`, `pad_right`        | `29-format.hc`                        |
+| Maps `{"k": v}`                | `30-maps.hc`                          |
+| `map_get`, `map_set`           | `30-maps.hc`                          |
+| `map_remove`, `map_keys`       | `30-maps.hc`                          |
+| `map_contains_key`, `map_size` | `30-maps.hc`                          |
 | `pub` visibility               | `examples/match.hc` (module prep)     |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |

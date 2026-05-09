@@ -18,6 +18,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
 | Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result + ranges), not deeply nested |
 | Custom types | `struct` + `impl` + `derive` | `struct` (simple, no `impl` blocks) |
+| Maps | `HashMap<K, V>` (mutable, hash-based) | `{"k": v}` literals (immutable, list of tuples) |
 | Generics | Monomorphized generics + traits | Inferred polymorphism |
 | Compilation target | LLVM (native) | Koka -> C (native) |
 | Loops | `loop`, `while`, `for`, `break`/`continue`, labeled breaks | `loop`, `while`, `for`, `repeat`, `break`/`continue` |
@@ -279,6 +280,46 @@ fun main() {
 ```
 
 Rust's `impl` blocks group methods on a type with `self` access, `derive` generates common trait implementations, and traits provide polymorphism. hica keeps it simple: structs hold data, free functions operate on them, and `show` is auto-generated.
+
+## Maps / Dictionaries
+
+Rust uses `HashMap` from the standard library, requiring an import and explicit type:
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let mut ages = HashMap::new();
+    ages.insert("kalle", 30);
+    ages.insert("olle", 25);
+    println!("{:?}", ages.get("kalle"));  // Some(30)
+    ages.remove("olle");
+}
+```
+
+hica has built-in map literals with `{"key": value}` syntax. Maps are immutable lists of tuples:
+
+```rust
+fun main() {
+  let ages = {"kalle": 30, "olle": 25}
+  println(ages.map_get("kalle"))     // Just(30)
+  let ages2 = ages.map_set("lisa", 35)
+  let ages3 = ages2.map_remove("olle")
+  println(ages3.map_keys())          // ["kalle", "lisa"]
+}
+```
+
+| Rust | hica |
+|------|------|
+| `map.get(&key)` → `Option<&V>` | `map_get(m, key)` → `maybe<v>` |
+| `map.insert(key, val)` (mutates) | `map_set(m, key, val)` (returns new map) |
+| `map.remove(&key)` | `map_remove(m, key)` |
+| `map.keys()` | `map_keys(m)` |
+| `map.values()` | `map_values(m)` |
+| `map.contains_key(&key)` | `map_contains_key(m, key)` |
+| `map.len()` | `map_size(m)` |
+
+Rust's `HashMap` is a mutable hash table with O(1) average lookup and full generic support. hica maps are immutable association lists — no imports, built-in literal syntax, and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. Rust gives performance and flexibility; hica gives simplicity and immutability by default.
 
 ## Immutability
 

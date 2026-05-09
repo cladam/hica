@@ -17,6 +17,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Functions | `def` + simple lambdas (single-expression only) | `fun` + full closures + `|>` pipe |
 | Error handling | Exceptions (implicit flow) | Result types (explicit handling) |
 | Data structures | Classes / dataclasses | Structs |
+| Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}` — immutable, list of tuples) |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
 | Loops | `for`, `while`, `break`, `continue` | `for`, `while`, `repeat`, `loop`, `break`, `continue` |
@@ -255,6 +256,44 @@ struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
 ```
+
+## Dictionaries / Maps
+
+**Python** has a built-in mutable `dict` type:
+
+```python
+ages = {"kalle": 30, "olle": 25}
+ages["lisa"] = 35         # mutates in place
+print(ages["kalle"])      # 30
+print(ages.get("nobody")) # None
+del ages["olle"]
+print(list(ages.keys()))  # ['kalle', 'lisa']
+```
+
+**hica** has map literals with the same `{"key": value}` syntax, but maps are immutable lists of tuples:
+
+```rust
+fun main() {
+  let ages = {"kalle": 30, "olle": 25}
+  let ages2 = ages.map_set("lisa", 35)
+  println(ages2.map_get("kalle"))   // Just(30)
+  println(ages2.map_get("nobody"))  // Nothing
+  let ages3 = ages2.map_remove("olle")
+  println(ages3.map_keys())         // ["kalle", "lisa"]
+}
+```
+
+| Python | hica |
+|--------|------|
+| `d[key]` (raises `KeyError`) | `map_get(m, key)` (returns `maybe`) |
+| `d[key] = val` (mutates) | `map_set(m, key, val)` (returns new map) |
+| `del d[key]` | `map_remove(m, key)` |
+| `d.keys()` | `map_keys(m)` |
+| `d.values()` | `map_values(m)` |
+| `key in d` | `map_contains_key(m, key)` |
+| `len(d)` | `map_size(m)` |
+
+Python dicts are mutable hash tables with O(1) lookup. hica maps are immutable association lists — simpler and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. For small maps this is fine; for large data sets, Python's dict is more efficient.
 
 ## Pattern Matching
 

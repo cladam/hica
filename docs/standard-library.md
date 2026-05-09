@@ -92,6 +92,35 @@ fun main() {
 | `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
 | `find(xs, f)` | `(list<a>, (a) -> bool) -> maybe<a>` | First element where `f` returns true, or `None` |
 
+## Map Operations
+
+Maps use `{"key": value}` syntax and are represented as `list<(k, v)>`. Use `{:}` for an empty map.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `map_get(m, key)` | `(list<(k, v)>, k) -> maybe<v>` | Look up a key |
+| `map_set(m, key, value)` | `(list<(k, v)>, k, v) -> list<(k, v)>` | Add or update a key |
+| `map_remove(m, key)` | `(list<(k, v)>, k) -> list<(k, v)>` | Remove a key |
+| `map_keys(m)` | `(list<(k, v)>) -> list<k>` | All keys |
+| `map_values(m)` | `(list<(k, v)>) -> list<v>` | All values |
+| `map_contains_key(m, key)` | `(list<(k, v)>, k) -> bool` | Check if a key exists |
+| `map_size(m)` | `(list<(k, v)>) -> int` | Number of entries |
+
+```rust
+fun main() {
+  let scores = {"kalle": 95, "olle": 87}
+  println(scores.map_get("kalle"))       // Just(95)
+
+  let scores2 = scores.map_set("lisa", 92)
+  println(scores2.map_keys())            // ["kalle", "olle", "lisa"]
+
+  let scores3 = scores2.map_remove("olle")
+  println(scores3.map_size())            // 2
+}
+```
+
+Since maps are lists of tuples, all list operations (`filter`, `map`, `fold`, etc.) work on them too.
+
 ## Random Numbers
 
 | Function | Signature | Description |
