@@ -92,13 +92,23 @@ fun parse-prefix() : <div,parser> node
               val fields = parse-struct-lit-fields()
               val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
               Node(Span(t.span.start, end-tok.span.end), StructLit(name, fields))
+            TkLParen | name.is-upper-start ->
+              // Constructor call: Name(args)
+              advance() // consume (
+              val args = parse-args()
+              val end-tok = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+              Node(Span(t.span.start, end-tok.span.end), EConstructor(name, args))
             TkEq ->
               // x = expr — reassignment (only valid for var-declared names)
               advance()
               val value = parse-expr()
               Node(Span(t.span.start, value.span.end), Assign(name, value))
             _ ->
-              Node(t.span, Var(name))
+              if name.is-upper-start then
+                // Bare constructor: Name with no args
+                Node(t.span, EConstructor(name, []))
+              else
+                Node(t.span, Var(name))
     TkLParen ->
       val start-tok = advance()
       match peek()
@@ -510,7 +520,7 @@ fun parse-type() : <div,parser> hica-type
           expect(">", fn(k) match k { TkGt -> True; _ -> False })
           TResult(ok-t, err-t)
         _ ->
-          // User-defined struct type
+          // User-defined struct or enum type
           if name.is-upper-start then TStruct(name)
           else
             parse-error("unknown type: " ++ name)
@@ -698,7 +708,25 @@ fun parse-pattern() : <div,parser> pattern
       val rest = parse-pattern-list()
       expect(")", fn(k) match k { TkRParen -> True; _ -> False })
       PTuple(Cons(first, rest))
-    TkIdent(n)   -> { advance(); PVar(n) }
+    TkIdent(n)   ->
+      advance()
+      if n.is-upper-start then
+        // Constructor pattern: Name or Name(p1, p2, ...)
+        match peek()
+          TkLParen ->
+            advance()
+            match peek()
+              TkRParen ->
+                advance()
+                PConstructor(n, [])
+              _ ->
+                val args = parse-pattern-list()
+                expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+                PConstructor(n, args)
+          _ ->
+            PConstructor(n, [])
+      else
+        PVar(n)
     TkInt(i)     ->
       advance()
       match peek()
@@ -833,6 +861,59 @@ fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
       []
 
 // ---------------------------------------------------------------------------
+// Type (enum) declarations: type Name { Variant, Variant(field: type), ... }
+// ---------------------------------------------------------------------------
+
+pub fun parse-type-decl() : <div,parser> type-def
+  val t = expect("type", fn(k) match k { TkType -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected type name"); "_" }
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  val variants = parse-variant-defs()
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Type-def(Span(t.span.start, end-tok.span.end), name, variants)
+
+// Parse variant definitions: Name, Name(field: type, ...), ...
+fun parse-variant-defs() : <div,parser> list<variant-def>
+  match peek()
+    TkRBrace -> []
+    TkIdent(name) ->
+      advance()
+      val fields = match peek()
+        TkLParen ->
+          advance()
+          val fs = parse-variant-fields()
+          expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+          fs
+        _ -> []
+      match peek()
+        TkComma ->
+          advance()
+          Cons(Variant-def(name, fields), parse-variant-defs())
+        _ -> [Variant-def(name, fields)]
+    _ ->
+      parse-error("expected variant name in type definition")
+      []
+
+// Parse variant fields: name: type, ...
+fun parse-variant-fields() : <div,parser> list<(string, hica-type)>
+  match peek()
+    TkRParen -> []
+    TkIdent(name) ->
+      advance()
+      expect(":", fn(k) match k { TkColon -> True; _ -> False })
+      val ftype = parse-type()
+      match peek()
+        TkComma ->
+          advance()
+          Cons((name, ftype), parse-variant-fields())
+        _ -> [(name, ftype)]
+    _ ->
+      parse-error("expected field name in variant definition")
+      []
+
+// ---------------------------------------------------------------------------
 // Test declarations: test "name" { body }
 // ---------------------------------------------------------------------------
 
@@ -873,14 +954,16 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
 pub fun parse-program() : <div,parser> program
   var decls := []
   var structs := []
+  var types := []
   var tests := []
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
+      TkType   -> types := Cons(parse-type-decl(), types)
       TkTest   -> tests := Cons(parse-test-decl(), tests)
       TkPub    -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
-  Program(structs.reverse, decls.reverse, tests.reverse)
+  Program(structs.reverse, types = types.reverse, decls = decls.reverse, tests = tests.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

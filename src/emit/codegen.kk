@@ -74,6 +74,7 @@ fun emit-type( t : hica-type ) : div string
       if param-strs.any(fn(s) s == "") || ret-str == "" then ""
       else "(" ++ param-strs.join(", ") ++ ") -> " ++ ret-str
     TStruct(name) -> name.struct-type-name
+    TEnum(name)   -> name.to-lower
     TVar(_)     -> ""  // unresolved — omit annotation
 
 // ---------------------------------------------------------------------------
@@ -543,6 +544,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       sname ++ "(" ++ fields.map(fn((_, v)) emit-expr(v, declared)).join(", ") ++ ")"
     FieldAccess(obj, fname) ->
       emit-expr(obj, declared) ++ "." ++ fname
+    EConstructor(cname, cargs) ->
+      if cargs.is-nil then cname
+      else cname ++ "(" ++ cargs.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
 
 fun emit-interp-part( p : node, declared : list<string> ) : div string
   match p.expr
@@ -579,6 +583,9 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
     PErr(i)  -> "Left(" ++ emit-pattern(i, declared) ++ ")"
     PTuple(es) -> "(" ++ es.map(fn(e) emit-pattern(e, declared)).join(", ") ++ ")"
     POr(alts)  -> alts.map(fn(a) emit-pattern(a, declared)).join(" | ")
+    PConstructor(cname, args) ->
+      if args.is-nil then cname
+      else cname ++ "(" ++ args.map(fn(a) emit-pattern(a, declared)).join(", ") ++ ")"
     PRange(_, _) -> "hc__rng"  // handled at arm level with guard
     PBits(_, _)  -> "hc__bits" // handled at arm level with guard
 

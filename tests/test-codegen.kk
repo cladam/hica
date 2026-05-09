@@ -1561,3 +1561,47 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() {\n  let x = 200\n  match x {\n    0b1100_???? if x > 100 => println(1),\n    _ => println(0)\n  }\n}")
       assert/is-true(code.contains("hc__bits.int32.and("))
       assert/is-true(code.contains("&& (x > 100)"))
+
+    // --- Map literals ---
+    dtest("empty map emits empty list")
+      val code = emit-typed-program("fun main() {\n  let m = {:}\n  let m2 = m.map_set(\"a\", 1)\n  println(m2)\n}")
+      assert/is-true(code.contains("[]"))
+
+    dtest("map literal emits list of tuples")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
+      assert/is-true(code.contains("(\"a\", 1)"))
+      assert/is-true(code.contains("(\"b\", 2)"))
+
+    dtest("map_get emits find")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  println(m.map_get(\"a\"))\n}")
+      assert/is-true(code.contains(".find("))
+
+    dtest("map_set emits update-or-append")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  let m2 = m.map_set(\"b\", 2)\n  println(m2)\n}")
+      assert/is-true(code.contains(".any("))
+      assert/is-true(code.contains(".map("))
+
+    dtest("map_remove emits filter")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  let m2 = m.map_remove(\"a\")\n  println(m2)\n}")
+      assert/is-true(code.contains(".filter("))
+
+    dtest("map_keys emits map projection")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_keys())\n}")
+      assert/is-true(code.contains(".map(fn((hc__k, _)) hc__k)"))
+
+    dtest("map_values emits map projection")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_values())\n}")
+      assert/is-true(code.contains(".map(fn((_, hc__v)) hc__v)"))
+
+    dtest("map_contains_key emits any")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  println(m.map_contains_key(\"a\"))\n}")
+      assert/is-true(code.contains(".any("))
+
+    dtest("map_size emits length")
+      val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_size())\n}")
+      assert/is-true(code.contains(".length"))
+
+    dtest("map type-checks keys as same type")
+      val ds = check-diagnostics("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)

@@ -43,6 +43,29 @@ pub effect struct-reg
   fun get-structs() : struct-registry
 
 // ---------------------------------------------------------------------------
+// Type (enum) registry: look up type definitions by name
+// ---------------------------------------------------------------------------
+
+pub alias type-registry = list<type-def>
+
+fun type-find( reg : type-registry, tname : string ) : maybe<type-def>
+  match reg
+    Nil -> Nothing
+    Cons(td, rest) -> if td.name == tname then Just(td) else type-find(rest, tname)
+
+// Find which type definition a constructor belongs to.
+fun type-find-by-ctor( reg : type-registry, cname : string ) : maybe<(type-def, variant-def)>
+  match reg
+    Nil -> Nothing
+    Cons(td, rest) ->
+      match td.variants.find(fn(v) v.name == cname)
+        Just(vd) -> Just((td, vd))
+        Nothing  -> type-find-by-ctor(rest, cname)
+
+pub effect type-reg
+  fun get-types() : type-registry
+
+// ---------------------------------------------------------------------------
 // Loop context: track whether we are inside a loop body
 // ---------------------------------------------------------------------------
 
@@ -81,6 +104,7 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
     TResult(ok, err) ->
       TResult(apply-subst(s, ok), apply-subst(s, err))
     TStruct(_) -> t
+    TEnum(_)   -> t
     _ -> t
 
 // Check if a name is bound in a substitution.
@@ -122,6 +146,7 @@ fun occurs-in( name : string, t : hica-type ) : div bool
     TMaybe(elem)     -> occurs-in(name, elem)
     TResult(ok, err) -> occurs-in(name, ok) || occurs-in(name, err)
     TStruct(_)       -> False
+    TEnum(_)         -> False
     _                -> False
 
 // ---------------------------------------------------------------------------
@@ -168,6 +193,11 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
         val ret-subst = unify(r1', r2', sp)
         compose-subst(ret-subst, param-subst)
     (TStruct(a), TStruct(b)) ->
+      if a == b then empty-subst
+      else
+        emit-error(sp, "type mismatch: expected " ++ a ++ ", got " ++ b)
+        empty-subst
+    (TEnum(a), TEnum(b)) ->
       if a == b then empty-subst
       else
         emit-error(sp, "type mismatch: expected " ++ a ++ ", got " ++ b)
@@ -231,6 +261,7 @@ fun apply-rename( mapping : list<(string, hica-type)>, t : hica-type ) : div hic
     TList(elem)     -> TList(apply-rename(mapping, elem))
     TMaybe(elem)    -> TMaybe(apply-rename(mapping, elem))
     TResult(ok, err) -> TResult(apply-rename(mapping, ok), apply-rename(mapping, err))
+    TEnum(_)        -> t
     _               -> t
 
 fun find-mapping( mapping : list<(string, hica-type)>, name : string ) : maybe<hica-type>
@@ -263,14 +294,14 @@ fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div
 // ---------------------------------------------------------------------------
 
 // Infer a node inside a loop body context (sets in-loop to True).
-fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, node)
+fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
   with override
     fun in-loop() True
   infer(env, s, n)
 
 // Infer the type of a node, returning the updated substitution and a
 // node annotated with its inferred type.
-pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, node)
+pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
   match n.expr
     // --- Literals: known concrete types ---
     Literal(LitInt(_)) ->
@@ -641,6 +672,22 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val ok-var = fresh-tvar()
       (s1, Node(n.span, EErr(value'), Just(TResult(ok-var, val-type))))
 
+    // --- Enum constructors ---
+    EConstructor(cname, args) ->
+      val reg = get-types()
+      match type-find-by-ctor(reg, cname)
+        Nothing ->
+          emit-error(n.span, "unknown constructor: " ++ cname)
+          (s, n(typ = Just(fresh-tvar())))
+        Just((td, vd)) ->
+          // Check arity
+          if args.length != vd.fields.length then
+            emit-error(n.span, "constructor " ++ cname ++ " expects " ++ vd.fields.length.show ++ " argument(s), got " ++ args.length.show)
+          // Infer args and unify with declared field types
+          val (s1, args') = infer-args(env, s, args)
+          val s2 = unify-ctor-args(s1, vd.fields, args', n.span)
+          (s2, Node(n.span, EConstructor(cname, args'), Just(TEnum(td.name))))
+
     // --- Struct literal ---
     StructLit(sname, lit-fields) ->
       val reg = get-structs()
@@ -689,7 +736,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
 
 // Infer types for struct literal fields and unify with declared types.
-fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<(string, node)>)
+fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<(string, node)>)
   match lit-fields
     Nil -> (s, [])
     Cons((fname, fval), rest) ->
@@ -702,10 +749,19 @@ fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, h
       val (s3, rest') = infer-struct-fields(env, s2, def-fields, rest, sp)
       (s3, Cons((fname, fval'), rest'))
 
+// Unify constructor arguments with declared variant field types.
+fun unify-ctor-args( s : subst, def-fields : list<(string, hica-type)>, args : list<node>, sp : span ) : <div,diag,fresh,struct-reg,type-reg,loop-ctx> subst
+  match (def-fields, args)
+    (Cons((_, ft), frest), Cons(arg, arest)) ->
+      val arg-type = apply-subst(s, get-type(arg))
+      val s1 = compose-subst(unify(arg-type, ft, sp), s)
+      unify-ctor-args(s1, frest, arest, sp)
+    _ -> s
+
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
-fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>, hica-type)
+fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>, hica-type)
   match stmts
     Nil -> (s, [], TUnit)
     Cons(stmt, Nil) ->
@@ -736,7 +792,7 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
     _ -> env
 
 // Infer types for a list of call arguments.
-fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>)
+fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>)
   match args
     Nil -> (s, [])
     Cons(arg, rest) ->
@@ -745,7 +801,7 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
       (s2, Cons(arg', rest'))
 
 // Infer types for map literal entries (key-value pairs).
-fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<(node, node)>)
+fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<(node, node)>)
   match entries
     Nil -> (s, [])
     Cons((k, v), rest) ->
@@ -757,7 +813,7 @@ fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> )
 // Infer types for string interpolation parts.
 // Each part is inferred independently — string segments stay TString,
 // expression parts can be any type (they get .show in codegen).
-fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<node>)
+fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>)
   match parts
     Nil -> (s, [])
     Cons(part, rest) ->
@@ -768,7 +824,7 @@ fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,d
 // Infer types for match arms.
 // Each arm's pattern constrains the scrutinee type, and each arm's body
 // must unify with the result type variable.
-fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<match-arm>)
+fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<match-arm>)
   match arms
     Nil -> (s, [])
     Cons(arm, rest) ->
@@ -816,8 +872,13 @@ fun is-plit-bool( p : pattern, v : bool ) : bool
     PLit(LitBool(b)) -> b == v
     _                 -> False
 
+fun is-pctor( p : pattern, cname : string ) : bool
+  match p
+    PConstructor(n, _) -> n == cname
+    _                  -> False
+
 // Compute missing case names for a given scrutinee type and pattern list.
-fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : list<string>
+fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : <type-reg> list<string>
   if has-catch-all(pats) then []
   else match scrut-type
     TMaybe(_) ->
@@ -832,6 +893,16 @@ fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : list<string>
       val missing-true  = if has-constructor(pats, fn(p) is-plit-bool(p, True))  then [] else ["true"]
       val missing-false = if has-constructor(pats, fn(p) is-plit-bool(p, False)) then [] else ["false"]
       missing-true ++ missing-false
+    TEnum(tname) ->
+      val reg = get-types()
+      match type-find(reg, tname)
+        Nothing -> []
+        Just(td) ->
+          td.variants.filter(fn(vd)
+            !has-constructor(pats, fn(p) is-pctor(p, vd.name))
+          ).map(fn(vd)
+            if vd.fields.is-nil then vd.name else vd.name ++ "(_)"
+          )
     TInt    -> ["_ (wildcard)"]
     TFloat  -> ["_ (wildcard)"]
     TString -> ["_ (wildcard)"]
@@ -840,7 +911,7 @@ fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : list<string>
 
 // Emit a warning if the match is not exhaustive.
 // Guarded arms don't count as catch-alls since the guard may fail.
-fun check-exhaustive( scrut-type : hica-type, arms : list<match-arm>, sp : span ) : diag ()
+fun check-exhaustive( scrut-type : hica-type, arms : list<match-arm>, sp : span ) : <diag,type-reg> ()
   val unguarded = arms.filter(fn(a) a.guard.is-nothing)
   val pats = unguarded.map(fn(a) a.pattern)
   val missing = missing-cases(scrut-type, pats)
@@ -876,7 +947,7 @@ fun infer-comparison-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node,
 // Infer type constraints from a match pattern.
 // Returns the updated substitution and the environment extended with
 // any pattern-bound variables.
-fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh> (subst, type-env)
+fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh,type-reg> (subst, type-env)
   match p
     PWild    -> (s, env)
     PVar(name) -> (s, env.extend(name, scrut-type))
@@ -916,6 +987,21 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
       // Each alternative must unify with the scrutinee; no bindings (or-patterns can't bind)
       alts.foldl((s, env)) fn((sa, ea), alt)
         infer-pattern(ea, sa, scrut-type, alt)
+    PConstructor(cname, args) ->
+      val reg = get-types()
+      match type-find-by-ctor(reg, cname)
+        Nothing ->
+          emit-error(no-span, "unknown constructor in pattern: " ++ cname)
+          (s, env)
+        Just((td, vd)) ->
+          // Unify scrutinee with the enum type
+          val s1 = compose-subst(unify(scrut-type, TEnum(td.name), no-span), s)
+          // Check arity
+          if args.length != vd.fields.length then
+            emit-error(no-span, "constructor " ++ cname ++ " expects " ++ vd.fields.length.show ++ " field(s) in pattern, got " ++ args.length.show)
+          // Infer each sub-pattern against the declared field type
+          args.zip(vd.fields).foldl((s1, env)) fn((sa, ea), (pat, fld))
+            infer-pattern(ea, sa, fld.snd, pat)
     PRange(_, _) ->
       // Range patterns work on ints; unify scrutinee with TInt
       (compose-subst(unify(scrut-type, TInt, no-span), s), env)
@@ -936,7 +1022,7 @@ fun get-type( n : node ) : hica-type
 // Infer a top-level function declaration.
 // Supports self-recursion: the function's own name is pre-seeded in the
 // environment with a fresh type so recursive calls can resolve.
-fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, type-env, fun-decl)
+fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, fun-decl)
   // Assign types to each parameter: use annotation if provided, otherwise fresh type variable
   val param-types = zip-with-anns(d.params, d.param-anns)
   val ret-var = match d.ret-ann
@@ -967,12 +1053,14 @@ pub fun check-program( p : program ) : <div,diag,fresh> program
   with handler
     fun get-structs() p.structs
   with handler
+    fun get-types() p.types
+  with handler
     fun in-loop() False
   val (s1, env1, decls') = infer-decls(extern-env(), empty-subst, p.decls)
   val tests' = infer-tests(env1, s1, p.tests)
-  Program(p.structs, decls', tests')
+  Program(p.structs, types = p.types, decls = decls', tests = tests')
 
-fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, type-env, list<fun-decl>)
+fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, list<fun-decl>)
   match ds
     Nil -> (s, env, [])
     Cons(d, rest) ->
@@ -982,7 +1070,7 @@ fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fr
 
 // Type-check test declarations: each test body is checked like a function body
 // with no parameters.
-fun infer-tests( env : type-env, s : subst, ts : list<test-decl> ) : <div,diag,fresh,struct-reg,loop-ctx> list<test-decl>
+fun infer-tests( env : type-env, s : subst, ts : list<test-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> list<test-decl>
   match ts
     Nil -> []
     Cons(t, rest) ->

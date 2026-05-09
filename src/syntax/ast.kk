@@ -45,6 +45,7 @@ pub type hica-type
   TResult( ok-type : hica-type, err-type : hica-type )
   TFun( params : list<hica-type>, result : hica-type )
   TStruct( name : string )
+  TEnum( name : string )
   TVar( name : string )
 
 pub fun hica-type/show( t : hica-type ) : div string
@@ -61,6 +62,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TResult(o, e) -> "result<" ++ o.show ++ ", " ++ e.show ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
     TStruct(n)  -> n
+    TEnum(n)    -> n
     TVar(n)     -> n
 
 pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
@@ -78,6 +80,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TResult(o1, e1), TResult(o2, e2)) -> o1 == o2 && e1 == e2
     (TVar(a), TVar(b)) -> a == b
     (TStruct(a), TStruct(b)) -> a == b
+    (TEnum(a), TEnum(b)) -> a == b
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
     _ -> False
@@ -241,6 +244,9 @@ pub type expr
   // Err(x) — error result
   EErr( value : node )
 
+  // Constructor(args) — enum variant construction
+  EConstructor( ctor-name : string, ctor-args : list<node> )
+
 pub struct match-arm
   pattern : pattern
   guard   : maybe<node>
@@ -256,6 +262,7 @@ pub type pattern
   PErr( inner : pattern )
   PTuple( elems : list<pattern> )
   POr( alts : list<pattern> )
+  PConstructor( ctor-name : string, ctor-args : list<pattern> )
   PRange( lo : int, hi : int )
   PBits( msk : int, val_ : int )
 
@@ -270,6 +277,9 @@ pub fun pattern/show( p : pattern ) : div string
     PErr(i)  -> "Err(" ++ i.show ++ ")"
     PTuple(es) -> "(" ++ es.map(show).join(", ") ++ ")"
     POr(alts)  -> alts.map(show).join(" | ")
+    PConstructor(name, args) ->
+      if args.is-nil then name
+      else name ++ "(" ++ args.map(show).join(", ") ++ ")"
     PRange(lo, hi) -> lo.show ++ "..=" ++ hi.show
     PBits(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
 
@@ -315,6 +325,9 @@ pub fun expr/show( e : expr ) : div string
     StructLit(nm, fs) -> nm ++ " { " ++ fs.map(fn((f, v)) f ++ ": " ++ v.show).join(", ") ++ " }"
     FieldAccess(o, f)  -> o.show ++ "." ++ f
     EErr(v)            -> "Err(" ++ v.show ++ ")"
+    EConstructor(name, args) ->
+      if args.is-nil then name
+      else name ++ "(" ++ args.map(show).join(", ") ++ ")"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations
@@ -343,6 +356,22 @@ pub struct struct-def
 pub fun struct-def/show( d : struct-def ) : div string
   "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
 
+pub struct variant-def
+  name   : string
+  fields : list<(string, hica-type)>
+
+pub fun variant-def/show( v : variant-def ) : div string
+  if v.fields.is-nil then v.name
+  else v.name ++ "(" ++ v.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ ")"
+
+pub struct type-def
+  span     : span
+  name     : string
+  variants : list<variant-def>
+
+pub fun type-def/show( d : type-def ) : div string
+  "type " ++ d.name ++ " { " ++ d.variants.map(show).join(", ") ++ " }"
+
 pub struct test-decl
   span : span
   name : string
@@ -353,6 +382,7 @@ pub fun test-decl/show( d : test-decl ) : div string
 
 pub struct program
   structs : list<struct-def>
+  types   : list<type-def> = []
   decls   : list<fun-decl>
   tests   : list<test-decl> = []
 

@@ -208,3 +208,10 @@ pub fun main() : io ()
 
     dtest("lex bit pattern mixed")
       assert/is-true(token-string("0b1?0?") == "<bits:10,8> <eof>")
+
+    // --- Map literals ---
+    dtest("lex empty map {:}")
+      assert/is-true(token-string("{:}") == "{ : } <eof>")
+
+    dtest("lex map literal tokens")
+      assert/is-true(token-string("{\"a\": 1}") == "{ \"a\" : 1 } <eof>")

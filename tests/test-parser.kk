@@ -490,3 +490,27 @@ pub fun main() : io ()
     itest("parse non-pub fun declaration")
       val result = parse-program-show("fun add(a, b) => a + b\nfun main() => add(1, 2)")
       assert/is-true(result.contains("fun add(a, b)"))
+
+    // --- Map literals ---
+    itest("parse empty map")
+      val result = parse-show("{:}")
+      assert/is-true(result.contains("{"))
+
+    itest("parse single-entry map")
+      val result = parse-show("{\"a\": 1}")
+      assert/is-true(result.contains("\"a\": 1"))
+
+    itest("parse multi-entry map")
+      val result = parse-show("{\"a\": 1, \"b\": 2, \"c\": 3}")
+      assert/is-true(result.contains("\"a\": 1"))
+      assert/is-true(result.contains("\"b\": 2"))
+      assert/is-true(result.contains("\"c\": 3"))
+
+    itest("parse map with trailing comma")
+      val result = parse-show("{\"x\": 10, \"y\": 20,}")
+      assert/is-true(result.contains("\"x\": 10"))
+      assert/is-true(result.contains("\"y\": 20"))
+
+    itest("parse map in program")
+      val result = parse-program-show("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
+      assert/is-true(result.contains("\"a\": 1"))
