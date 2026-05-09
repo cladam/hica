@@ -211,6 +211,9 @@ pub type expr
   // [a, b, c] — list literal
   EList( elems : list<node> )
 
+  // {"a": 1, "b": 2} — map literal (desugars to list of pairs)
+  MapLit( entries : list<(node, node)> )
+
   // list[index] — list indexing
   ListIndex( list : node, index : node )
 
@@ -298,6 +301,7 @@ pub fun expr/show( e : expr ) : div string
     StringInterp(ps) -> "\"" ++ ps.map(fn(p) match p.expr { Literal(LitString(s)) -> s; _ -> "{" ++ p.show ++ "}" }).join("") ++ "\""
     Tuple(es)        -> "(" ++ es.map(show).join(", ") ++ ")"
     EList(es)        -> "[" ++ es.map(show).join(", ") ++ "]"
+    MapLit(entries)  -> "{" ++ entries.map(fn((k, v)) k.show ++ ": " ++ v.show).join(", ") ++ "}"
     ListIndex(l, i)  -> l.show ++ "[" ++ i.show ++ "]"
     ListSlice(l, s, e) ->
       val s-str = match s { Just(n) -> n.show; Nothing -> "" }

@@ -17,6 +17,7 @@ import syntax/lexer
 
 pub effect parser
   fun peek() : token-kind
+  fun peek-next() : token-kind
   fun peek-newline() : bool  // True if next token is on a new line
   fun advance() : token
   fun current-span() : span
@@ -150,7 +151,12 @@ fun parse-prefix() : <div,parser> node
           val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
           Node(Span(start-tok.span.start, end-tok.span.end), EList(Cons(first, rest)))
     TkLBrace ->
-      parse-block()
+      // Lookahead: { "key" : ... } is a map literal
+      // Also: { : } is an empty map
+      match peek-next()
+        TkColon -> parse-empty-map()
+        TkString(_) -> parse-map-literal()
+        _ -> parse-block()
     TkIf ->
       parse-if()
     TkLet ->
@@ -333,6 +339,35 @@ fun parse-list-rest() : <div,parser> list<node>
           val elem = parse-expr()
           Cons(elem, parse-list-rest())
     _ -> []
+
+// ---------------------------------------------------------------------------
+// Map literals: {"key": value, ...} or {:} for empty map
+// ---------------------------------------------------------------------------
+
+fun parse-empty-map() : <div,parser> node
+  val start-tok = advance()    // consume {
+  advance()                    // consume :
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Node(Span(start-tok.span.start, end-tok.span.end), MapLit([]))
+
+fun parse-map-literal() : <div,parser> node
+  val start-tok = advance()    // consume {
+  val entries = parse-map-entries()
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Node(Span(start-tok.span.start, end-tok.span.end), MapLit(entries))
+
+fun parse-map-entries() : <div,parser> list<(node, node)>
+  val key = parse-expr()
+  expect(":", fn(k) match k { TkColon -> True; _ -> False })
+  val value = parse-expr()
+  val entry = (key, value)
+  match peek()
+    TkComma ->
+      advance()
+      match peek()
+        TkRBrace -> [entry]   // trailing comma
+        _ -> Cons(entry, parse-map-entries())
+    _ -> [entry]
 
 fun parse-binary-loop( lhs : node, min-bp : int ) : <div,parser> node
   val tk = peek()
@@ -858,6 +893,10 @@ pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> no
       match toks
         Cons(t, _) -> t.kind
         Nil        -> TkEof
+    fun peek-next()
+      match toks
+        Cons(_, Cons(t2, _)) -> t2.kind
+        _ -> TkEof
     fun peek-newline()
       match toks
         Cons(t, _) -> t.newline-before
@@ -885,6 +924,10 @@ pub fun run-parser-program( tokens : list<token> ) : <div,console> program
       match toks
         Cons(t, _) -> t.kind
         Nil        -> TkEof
+    fun peek-next()
+      match toks
+        Cons(_, Cons(t2, _)) -> t2.kind
+        _ -> TkEof
     fun peek-newline()
       match toks
         Cons(t, _) -> t.newline-before

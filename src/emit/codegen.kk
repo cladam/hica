@@ -377,6 +377,29 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           val l-code = emit-expr(lst, declared)
           "(if (" ++ l-code ++ ".is-nil) then throw(\"expected non-empty list but got []\") else ())"
 
+        // Map operations — maps are list<(k, v)>
+        (Var("map_get"), [m, key]) ->
+          val m-code = emit-expr(m, declared)
+          val k-code = emit-expr(key, declared)
+          "(match " ++ m-code ++ ".find(fn((hc__k, _)) hc__k == " ++ k-code ++ ") { Just((_, hc__v)) -> Just(hc__v); Nothing -> Nothing })"
+        (Var("map_set"), [m, key, value]) ->
+          val m-code = emit-expr(m, declared)
+          val k-code = emit-expr(key, declared)
+          val v-code = emit-expr(value, declared)
+          "(if " ++ m-code ++ ".any(fn((hc__k, _)) hc__k == " ++ k-code ++ ") then " ++ m-code ++ ".map(fn((hc__k, hc__v)) if hc__k == " ++ k-code ++ " then (" ++ k-code ++ ", " ++ v-code ++ ") else (hc__k, hc__v)) else " ++ m-code ++ " ++ [(" ++ k-code ++ ", " ++ v-code ++ ")])"
+        (Var("map_remove"), [m, key]) ->
+          val m-code = emit-expr(m, declared)
+          val k-code = emit-expr(key, declared)
+          m-code ++ ".filter(fn((hc__k, _)) hc__k != " ++ k-code ++ ")"
+        (Var("map_keys"), [m]) ->
+          emit-expr(m, declared) ++ ".map(fn((hc__k, _)) hc__k)"
+        (Var("map_values"), [m]) ->
+          emit-expr(m, declared) ++ ".map(fn((_, hc__v)) hc__v)"
+        (Var("map_contains_key"), [m, key]) ->
+          emit-expr(m, declared) ++ ".any(fn((hc__k, _)) hc__k == " ++ emit-expr(key, declared) ++ ")"
+        (Var("map_size"), [m]) ->
+          emit-expr(m, declared) ++ ".length"
+
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
@@ -456,6 +479,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "(" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ ")"
     EList(elems) ->
       "[" ++ elems.map(fn(e) emit-expr(e, declared)).join(", ") ++ "]"
+    MapLit(entries) ->
+      "[" ++ entries.map(fn((k, v)) "(" ++ emit-expr(k, declared) ++ ", " ++ emit-expr(v, declared) ++ ")").join(", ") ++ "]"
     ESome(value) ->
       "Just(" ++ emit-expr(value, declared) ++ ")"
     ENone ->

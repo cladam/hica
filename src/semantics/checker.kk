@@ -529,6 +529,25 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           val s2 = elem-types.tail.foldl(s1, fn(acc, et) compose-subst(unify(apply-subst(acc, first-type), apply-subst(acc, et), n.span), acc))
           (s2, Node(n.span, EList(elems'), Just(TList(apply-subst(s2, first-type)))))
 
+    // --- Map literals ---
+    MapLit(entries) ->
+      match entries
+        Nil ->
+          val key-var = fresh-tvar()
+          val val-var = fresh-tvar()
+          (s, Node(n.span, MapLit([]), Just(TList(TTuple([key-var, val-var])))))
+        Cons(_, _) ->
+          // Infer all keys and values
+          val (s1, entries') = infer-map-entries(env, s, entries)
+          // Unify all key types and all value types
+          val key-types = entries'.map(fn((k, _v)) apply-subst(s1, get-type(k)))
+          val val-types = entries'.map(fn((_k, v)) apply-subst(s1, get-type(v)))
+          val first-key = key-types.head.default(TUnit)
+          val first-val = val-types.head.default(TUnit)
+          val s2 = key-types.tail.foldl(s1, fn(acc, kt) compose-subst(unify(apply-subst(acc, first-key), apply-subst(acc, kt), n.span), acc))
+          val s3 = val-types.tail.foldl(s2, fn(acc, vt) compose-subst(unify(apply-subst(acc, first-val), apply-subst(acc, vt), n.span), acc))
+          (s3, Node(n.span, MapLit(entries'), Just(TList(TTuple([apply-subst(s3, first-key), apply-subst(s3, first-val)])))))
+
     TupleIndex(tup, idx) ->
       val (s1, tup') = infer(env, s, tup)
       val tup-type = apply-subst(s1, get-type(tup'))
@@ -724,6 +743,16 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
       val (s1, arg') = infer(env, s, arg)
       val (s2, rest') = infer-args(env, s1, rest)
       (s2, Cons(arg', rest'))
+
+// Infer types for map literal entries (key-value pairs).
+fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> ) : <div,diag,fresh,struct-reg,loop-ctx> (subst, list<(node, node)>)
+  match entries
+    Nil -> (s, [])
+    Cons((k, v), rest) ->
+      val (s1, k') = infer(env, s, k)
+      val (s2, v') = infer(env, s1, v)
+      val (s3, rest') = infer-map-entries(env, s2, rest)
+      (s3, Cons((k', v'), rest'))
 
 // Infer types for string interpolation parts.
 // Each part is inferred independently — string segments stay TString,

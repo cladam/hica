@@ -94,4 +94,13 @@ pub fun extern-env() : type-env
     ("assert_false",  TFun([TBool], TUnit)),
     ("assert_contains", TFun([TList(TVar("_a")), TVar("_a")], TUnit)),
     ("assert_empty",  TFun([TList(TVar("_a"))], TUnit)),
-    ("assert_not_empty", TFun([TList(TVar("_a"))], TUnit)) ]
+    ("assert_not_empty", TFun([TList(TVar("_a"))], TUnit)),
+
+    // Map operations — maps are list<(k, v)>
+    ("map_get",          TFun([TList(TTuple([TVar("_k"), TVar("_v")])), TVar("_k")], TMaybe(TVar("_v")))),
+    ("map_set",          TFun([TList(TTuple([TVar("_k"), TVar("_v")])), TVar("_k"), TVar("_v")], TList(TTuple([TVar("_k"), TVar("_v")])))),
+    ("map_remove",       TFun([TList(TTuple([TVar("_k"), TVar("_v")])), TVar("_k")], TList(TTuple([TVar("_k"), TVar("_v")])))),
+    ("map_keys",         TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TList(TVar("_k")))),
+    ("map_values",       TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TList(TVar("_v")))),
+    ("map_contains_key", TFun([TList(TTuple([TVar("_k"), TVar("_v")])), TVar("_k")], TBool)),
+    ("map_size",         TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TInt)) ]
