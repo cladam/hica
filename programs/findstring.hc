@@ -15,10 +15,13 @@ fun make_spec() =>
     |> arg("file", "file to search", true)
     |> arg("strings", "strings to find (one or more)", true)
 
+fun find_matches(text: string, needles: list<string>) : (list<string>, list<string>) =>
+  (needles.filter((n) => contains(text, n)),
+   needles.filter((n) => not_(contains(text, n))))
+
 fun search(file: string, needles: list<string>) {
   let text = read_file(file) |> unwrap
-  let found = needles.filter((n) => contains(text, n))
-  let missing = needles.filter((n) => not_(contains(text, n)))
+  let (found, missing) = find_matches(text, needles)
   found.foreach((n) => println("found: {n}"))
   missing.foreach((n) => println("NOT found: {n}"))
   if length(missing) == 0 { println("all strings found") }
@@ -33,4 +36,18 @@ fun main() {
     Err(msg)           => eprintln("error: {msg}"),
     Ok(r)              => search(r.cli_positionals[0], r.cli_positionals[1:])
   }
+}
+
+test "finds matching needles" {
+  let (found, missing) = find_matches("hello world", ["hello", "xyz"])
+  assert_eq(length(found), 1)
+  assert_eq(length(missing), 1)
+  assert_contains(found, "hello")
+  assert_contains(missing, "xyz")
+}
+
+test "all needles found" {
+  let (found, missing) = find_matches("hello world", ["hello", "world"])
+  assert_eq(length(found), 2)
+  assert_eq(length(missing), 0)
 }
