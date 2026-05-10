@@ -59,6 +59,23 @@ fun main() {
 }
 ```
 
+### Recursion
+
+Functions can call themselves (self-recursion):
+
+```rust
+fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }
+```
+
+Functions can also call each other (mutual recursion). The compiler
+detects cycles automatically — no forward declarations needed:
+
+```rust
+fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }
+
+fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
+```
+
 ## Variables
 
 Variables are bound with `let` and are immutable:

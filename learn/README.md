@@ -45,6 +45,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 29 | `29-format.hc`        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
 | 30 | `30-maps.hc`          | Maps                             | `{"key": value}` literals, `{:}` empty map, `map_get`, `map_set`, `map_remove` |
 | 31 | `31-enums.hc`         | Enum types                       | `type` declarations, variants with data, constructors, pattern matching on enums |
+| 32 | `32-combinators.hc`   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
 
 ## Language features shown
 
@@ -114,6 +115,9 @@ Each lesson is a standalone `.hc` file you can run:
 | `map_get`, `map_set`           | `30-maps.hc`                          |
 | `map_remove`, `map_keys`       | `30-maps.hc`                          |
 | `map_contains_key`, `map_size` | `30-maps.hc`                          |
+| `map_maybe`, `and_then`        | `32-combinators.hc`                   |
+| `map_result`, `map_err`        | `32-combinators.hc`                   |
+| `unwrap_maybe`, `is_some`      | `32-combinators.hc`                   |
 | `pub` visibility               | `examples/match.hc` (module prep)     |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
@@ -127,7 +131,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 25 lessons, try these challenges:
+Once you finish all 32 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers

@@ -9,6 +9,10 @@
 //   1. A base case - when to stop
 //   2. A recursive case - break the problem down
 //
+// Hica also supports mutual recursion: two or more functions
+// that call each other. The compiler detects the cycle
+// automatically.
+//
 // ============================================================
 
 // Factorial: 5! = 5 * 4 * 3 * 2 * 1 = 120
@@ -20,10 +24,17 @@ fun sum_to(n) => if n <= 0 { 0 } else { n + sum_to(n - 1) }
 // GCD using Euclid's algorithm: gcd(12, 8) = 4
 fun my_gcd(a, b) => if b == 0 { a } else { my_gcd(b, a % b) }
 
+// Mutual recursion: check_even and check_odd call each other
+fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }
+
+fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
+
 fun main() {
   println(factorial(5))
   println(sum_to(100))
   println(my_gcd(12, 8))
+  println(check_even(10))
+  println(check_odd(7))
 }
 
 // ============================================================
@@ -32,5 +43,6 @@ fun main() {
 // Hint: power(2, 3) = 2 * power(2, 2)
 //       power(2, 0) = 1  (base case)
 //
-// Bonus: What does factorial(0) return? Why?
+// Bonus: Can you write a pair of mutually recursive functions
+//        that count down, alternating between two functions?
 // ============================================================

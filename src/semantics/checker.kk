@@ -1087,12 +1087,36 @@ pub fun check-program( p : program ) : <div,diag,fresh> program
   Program(p.structs, types = p.types, decls = decls', tests = tests')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, list<fun-decl>)
-  match ds
-    Nil -> (s, env, [])
-    Cons(d, rest) ->
-      val (s1, env1, d') = infer-decl(env, s, d)
-      val (s2, env2, rest') = infer-decls(env1, s1, rest)
-      (s2, env2, Cons(d', rest'))
+  // Two-pass approach: pre-seed ALL function signatures first (enables mutual recursion),
+  // then check each body with the full environment.
+  //
+  // Pass 1: collect fresh function types for every declaration
+  val pre-types = ds.map fn(d)
+    val param-types = zip-with-anns(d.params, d.param-anns)
+    val ret-var = match d.ret-ann
+      Just(t) -> t
+      Nothing -> fresh-tvar()
+    (d.name, TFun(param-types, ret-var))
+  val env-all = pre-types.foldl(env, fn(e, entry) match entry { (nm, ft) -> e.extend(nm, ft) })
+  //
+  // Pass 2: check each body against the pre-seeded environment
+  val (s-final, env-final, decls') = ds.foldl((s, env-all, []:list<fun-decl>)) fn(acc, d)
+    val (s-acc, env-acc, checked) = acc
+    val (s1, env1, d') = infer-decl(env-acc, s-acc, d)
+    (s1, env1, Cons(d', checked))
+  //
+  // Pass 3: detect mutual recursion — a function is recursive if it calls itself
+  // OR participates in a cycle (calls a function that transitively calls it back).
+  val all-names = ds.map(fn(d) d.name)
+  val decls-ordered = decls'.reverse
+  val decls-final = decls-ordered.map fn(d)
+    if d.is-recursive then d  // already marked by self-recursion detection
+    else
+      // Check if this function is mutually recursive: it calls another function
+      // that (directly or transitively) calls it back
+      val is-mutual = is-mutually-recursive(d.name, decls-ordered, all-names)
+      d(is-recursive = is-mutual)
+  (s-final, env-final, decls-final)
 
 // Type-check test declarations: each test body is checked like a function body
 // with no parameters.
@@ -1146,4 +1170,40 @@ fun body-calls-name( n : node, name : string ) : div bool
     FieldAccess(o, _)       -> body-calls-name(o, name)
     EConstructor(_, cargs)  -> cargs.any(fn(a) body-calls-name(a, name))
     MapLit(entries)         -> entries.any(fn((k, v)) body-calls-name(k, name) || body-calls-name(v, name))
+    StructUpdate(_, base, overrides, _) -> body-calls-name(base, name) || overrides.any(fn((_, v)) body-calls-name(v, name))
     _                       -> False
+
+// ---------------------------------------------------------------------------
+// Mutual recursion detection: check if a function participates in a call cycle
+// ---------------------------------------------------------------------------
+
+// Collect all user-defined function names called by a function body
+fun body-calls-any( n : node, names : list<string> ) : div list<string>
+  names.filter(fn(nm) body-calls-name(n, nm))
+
+// Check if function `fname` is mutually recursive with any other function.
+// A function is mutually recursive if it calls another function that
+// (directly or transitively) calls it back.
+fun is-mutually-recursive( fname : string, decls : list<fun-decl>, all-names : list<string> ) : div bool
+  // Find which user-defined functions this function calls (excluding itself)
+  match decls.find(fn(d) d.name == fname)
+    Nothing -> False
+    Just(d) ->
+      val callees = body-calls-any(d.body, all-names).filter(fn(nm) nm != fname)
+      // For each callee, check if it (transitively) calls back to `fname`
+      callees.any fn(callee)
+        calls-back-to(callee, fname, decls, all-names, [fname])
+
+// Does function `current` transitively call `target`?
+// `visited` prevents infinite loops in the traversal.
+fun calls-back-to( current : string, target : string, decls : list<fun-decl>, all-names : list<string>, visited : list<string> ) : div bool
+  if visited.any(fn(v) v == current) then False  // already visited, avoid infinite loop
+  else match decls.find(fn(d) d.name == current)
+    Nothing -> False
+    Just(d) ->
+      val callees = body-calls-any(d.body, all-names)
+      if callees.any(fn(c) c == target) then True
+      else
+        val visited' = Cons(current, visited)
+        callees.filter(fn(c) !visited'.any(fn(v) v == c)).any fn(c)
+          calls-back-to(c, target, decls, all-names, visited')

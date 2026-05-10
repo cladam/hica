@@ -1737,3 +1737,37 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
       assert/is-true(errors.length == 0)
+
+    // --- Mutual recursion ---
+    dtest("mutual recursion type-checks without error")
+      val ds = check-diagnostics("fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }\nfun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }\nfun main() => check_even(4)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined") || d.message.contains("cannot be found"))
+      assert/is-true(errors.length == 0)
+
+    dtest("mutual recursion omits return annotation for div")
+      val code = emit-typed-program("fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }\nfun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }\nfun main() => check_even(4)")
+      // Both mutually recursive functions should omit return annotation
+      assert/is-true(code.contains("fun hc_check_even(n : int)\n"))
+      assert/is-true(code.contains("fun hc_check_odd(n : int)\n"))
+
+    dtest("mutual recursion marks both functions as recursive")
+      val code = emit-typed-program("fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }\nfun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }\nfun main() => check_even(4)")
+      // Neither should have `: bool` return annotation
+      assert/is-true(!code.contains("fun hc_check_even(n : int) : bool"))
+      assert/is-true(!code.contains("fun hc_check_odd(n : int) : bool"))
+
+    dtest("non-mutual functions still get return annotations")
+      val code = emit-typed-program("fun add(a, b) => a + b\nfun double(x) => x * 2\nfun main() => add(double(3), 1)")
+      assert/is-true(code.contains(": int"))
+
+    dtest("self-recursion still works with mutual recursion support")
+      val code = emit-typed-program("fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }\nfun main() => factorial(5)")
+      assert/is-true(code.contains("fun hc_factorial("))
+      assert/is-true(!code.contains("fun hc_factorial(n : int) : int"))
+
+    dtest("three-way mutual recursion")
+      val src = "fun fa(n) => if n <= 0 { 0 } else { fb(n - 1) }\nfun fb(n) => if n <= 0 { 1 } else { fc(n - 1) }\nfun fc(n) => if n <= 0 { 2 } else { fa(n - 1) }\nfun main() => fa(5)"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fun hc_fa(n : int)\n"))
+      assert/is-true(code.contains("fun hc_fb(n : int)\n"))
+      assert/is-true(code.contains("fun hc_fc(n : int)\n"))

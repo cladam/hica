@@ -93,7 +93,7 @@ Legend: **done** = shipped, **—** = not started
 | Lambdas (`(x) => x * 2`) | **done** | — | Desugars to `Fun` node |
 | Higher-order functions | **done** | — | Checker infers `TFun` types |
 | Self-recursion | **done** | Medium | Checker pre-seeds env; codegen omits annotation for `div` |
-| Mutual recursion | — | Medium | Needs fixpoint or two-pass approach |
+| Mutual recursion | **done** | Medium | Two-pass checker: pre-seeds all fn sigs, then checks bodies; cycle detection marks mutually recursive fns so codegen omits return annotations |
 | Returning closures from functions | **done** | Medium | Codegen omits function-typed return annotations; Koka infers them |
 | User-defined higher-order functions | **done** | Medium | Codegen omits incomplete `TFun` annotations; Koka infers them |
 

@@ -1699,6 +1699,27 @@ Use recursion when a problem can be broken into **smaller copies of itself**:
 
 **🎯 Think:** What's `factorial(0)`? What about `sum_to(0)`?
 
+### Mutual recursion: two functions that take turns
+
+Sometimes two functions call **each other** instead of themselves. Imagine
+two friends playing catch — each one throws the ball to the other until
+someone decides to stop.
+
+```rust
+fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }
+
+fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
+```
+
+- `check_even(4)` calls `check_odd(3)`, which calls `check_even(2)`,
+  which calls `check_odd(1)`, which calls `check_even(0)` → `true`!
+- They keep bouncing back and forth, making the number smaller each time.
+
+Hica figures out that these functions call each other — you don't need to
+do anything special.
+
+**🎯 Try it:** Trace `check_odd(3)` on paper. What does each call look like?
+
 ---
 
 ## 25. Closures: Functions That Remember
