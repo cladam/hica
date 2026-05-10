@@ -14,6 +14,7 @@ documentation/diff-manpage.txt
 documentation/lib.xs
 documentation/positioning-genai-era.md
 documentation/hica-package-manager.md
+documentation/tbdflow-port.md
 
 .koka/
 .DS_Store

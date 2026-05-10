@@ -17,31 +17,67 @@
 | Error handling | `result<a,b>`, `maybe<a>`, pattern matching |
 | Compiles to native binary | Via Koka → C → binary |
 
-## What Hica lacks — libraries needed
+## What Hica lacks — libraries to build
 
-These gaps should be filled by writing **pure Hica libraries** (not Koka shims), making them reusable for the broader ecosystem.
+These gaps should be filled by writing **pure Hica libraries**, making them reusable for the broader ecosystem. Each library is a standalone `.hc` file that any Hica program can import.
 
 ### 1. YAML parser (`lib/yaml.hc`) — **BLOCKING for Phase 1**
 
-tbdflow reads `.tbdflow.yml` and `.dod.yml` for configuration. Without a YAML parser, the port either uses a different config format (breaking compatibility) or can't read existing configs.
+tbdflow reads `.tbdflow.yml` and `.dod.yml` for configuration. The Rust version uses [yaml_serde](https://github.com/yaml/yaml-serde) (the maintained fork of serde_yaml) which deserializes YAML directly into typed Rust structs via serde derive macros.
+
+Hica doesn't have serde-style derive, so the approach is a **dynamic value tree** with typed accessor helpers — idiomatic for config parsing:
+
+```
+enum Yaml {
+  YStr(value: string),
+  YInt(value: int),
+  YFloat(value: float64),
+  YBool(value: bool),
+  YNull,
+  YList(items: list<yaml>),
+  YMap(entries: list<(string, yaml)>)
+}
+
+// API sketch:
+yaml_parse(input: string) -> result<yaml, string>
+yaml_get(y: yaml, key: string) -> maybe<yaml>
+yaml_str(y: yaml) -> maybe<string>
+yaml_list(y: yaml) -> maybe<list<yaml>>
+yaml_bool(y: yaml) -> maybe<bool>
+```
 
 **Minimum viable scope:**
 - Parse flat `key: value` pairs
 - Parse lists (`- item`)
 - Parse nested maps (indentation-based)
 - Ignore comments (`#`)
-- Return a tree structure (e.g. `enum Yaml { YStr(s), YList(items), YMap(entries) }`)
+- Quoted strings, bare strings, numbers, booleans
 
-**Not needed initially:** anchors/aliases, multi-line blocks, flow syntax `{a: b}`, tags.
+**Not needed initially:** anchors/aliases, multi-line blocks (`|`, `>`), flow syntax `{a: b}`, tags (`!type`).
 
 ### 2. JSON parser/writer (`lib/json.hc`) — **BLOCKING for Phase 2–3**
 
 The intent log is stored in `.tbdflow-intent.json`. WIP Guard snapshots also use JSON.
 
+```
+enum Json {
+  JStr(value: string),
+  JNum(value: float64),
+  JBool(value: bool),
+  JNull,
+  JArr(items: list<json>),
+  JObj(entries: list<(string, json)>)
+}
+
+// API sketch:
+json_parse(input: string) -> result<json, string>
+json_stringify(j: json) -> string
+json_get(j: json, key: string) -> maybe<json>
+```
+
 **Minimum viable scope:**
-- Parse JSON strings, numbers, booleans, null, arrays, objects
-- Write/serialize back to JSON string
-- Return a tree structure (e.g. `enum Json { JStr(s), JNum(n), JBool(b), JNull, JArr(items), JObj(entries) }`)
+- Full JSON spec (strings with escapes, numbers, booleans, null, arrays, objects)
+- Serialize back to JSON string (pretty and compact)
 
 ### 3. Date/time helpers (`lib/datetime.hc`) — **NEEDED for Phase 2+**
 
