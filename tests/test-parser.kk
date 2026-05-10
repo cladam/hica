@@ -527,3 +527,15 @@ pub fun main() : io ()
     itest("parse pub import declaration")
       val result = parse-program-show("pub import \"utils\"\nfun main() => println(1)")
       assert/is-true(result.contains("pub import \"utils\""))
+
+    itest("parse struct pattern")
+      val result = parse-show("match p { Point { x, y } => x }")
+      assert/is-true(result.contains("Point { x: x, y: y }"))
+
+    itest("parse struct pattern with literal")
+      val result = parse-show("match p { Point { x: 0, y } => y }")
+      assert/is-true(result.contains("Point { x: 0, y: y }"))
+
+    itest("parse struct pattern with wildcard")
+      val result = parse-show("match p { Point { x, y: _ } => x }")
+      assert/is-true(result.contains("Point { x: x, y: _ }"))

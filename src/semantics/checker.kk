@@ -857,6 +857,7 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
       // Constrain scrutinee type from pattern
       val resolved-scrut = apply-subst(s, scrut-type)
       val (s1, pat-env) = infer-pattern(env, s, resolved-scrut, arm.pattern)
+      val pat' = enrich-struct-pattern(arm.pattern)
       // Type-check optional guard (must be bool) in pattern environment
       val (s2, guard') = match arm.guard
         Just(g) ->
@@ -871,7 +872,7 @@ fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : 
       // Unify with result type so all arms agree
       val s4 = compose-subst(unify(body-type, apply-subst(s3, result-var), arm.body.span), s3)
       val (s5, rest') = infer-arms(env, s4, scrut-type, result-var, rest)
-      (s5, Cons(Match-arm(arm.pattern, guard', body'), rest'))
+      (s5, Cons(Match-arm(pat', guard', body'), rest'))
 
 // ---------------------------------------------------------------------------
 // Exhaustiveness checking
@@ -970,10 +971,20 @@ fun infer-comparison-op( lt : hica-type, rt : hica-type, lhs : node, rhs : node,
       emit-error(n.span, "comparison operator requires int, float, or string operands, got " ++ resolved.show)
       (s-lr, TBool)
 
+// Enrich PStruct patterns with field order from the struct definition.
+fun enrich-struct-pattern( p : pattern ) : <struct-reg> pattern
+  match p
+    PStruct(sname, fps, _) ->
+      val reg = get-structs()
+      match struct-find(reg, sname)
+        Just(sd) -> PStruct(sname, fps, sd.fields.map(fn((n, _)) n))
+        Nothing  -> p
+    _ -> p
+
 // Infer type constraints from a match pattern.
 // Returns the updated substitution and the environment extended with
 // any pattern-bound variables.
-fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh,type-reg> (subst, type-env)
+fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh,struct-reg,type-reg> (subst, type-env)
   match p
     PWild    -> (s, env)
     PVar(name) -> (s, env.extend(name, scrut-type))
@@ -1028,6 +1039,21 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
           // Infer each sub-pattern against the declared field type
           args.zip(vd.fields).foldl((s1, env)) fn((sa, ea), (pat, fld))
             infer-pattern(ea, sa, fld.snd, pat)
+    PStruct(sname, fps) ->
+      val reg = get-structs()
+      match struct-find(reg, sname)
+        Nothing ->
+          emit-error(no-span, "unknown struct in pattern: " ++ sname)
+          (s, env)
+        Just(sd) ->
+          val s1 = compose-subst(unify(scrut-type, TStruct(sname), no-span), s)
+          fps.foldl((s1, env)) fn((sa, ea), (fname, fpat))
+            match sd.fields.find(fn((n, _)) n == fname)
+              Nothing ->
+                emit-error(no-span, "struct " ++ sname ++ " has no field '" ++ fname ++ "'")
+                (sa, ea)
+              Just((_, ftype)) ->
+                infer-pattern(ea, sa, ftype, fpat)
     PRange(_, _) ->
       // Range patterns work on ints; unify scrutinee with TInt
       (compose-subst(unify(scrut-type, TInt, no-span), s), env)

@@ -695,6 +695,18 @@ fun parse-pattern-list() : <div,parser> list<pattern>
     TkComma -> { advance(); Cons(p, parse-pattern-list()) }
     _       -> [p]
 
+fun parse-struct-pattern-fields() : <div,parser> list<(string, pattern)>
+  val fname = match peek()
+    TkIdent(f) -> { advance(); f }
+    _ -> { parse-error("expected field name in struct pattern"); "" }
+  val pat = match peek()
+    TkColon -> { advance(); parse-pattern() }
+    _       -> PVar(fname)
+  val field = (fname, pat)
+  match peek()
+    TkComma -> { advance(); Cons(field, parse-struct-pattern-fields()) }
+    _       -> [field]
+
 fun parse-pattern() : <div,parser> pattern
   match peek()
     TkIdent("_") -> { advance(); PWild }
@@ -727,7 +739,7 @@ fun parse-pattern() : <div,parser> pattern
     TkIdent(n)   ->
       advance()
       if n.is-upper-start then
-        // Constructor pattern: Name or Name(p1, p2, ...)
+        // Constructor pattern: Name(...) or struct pattern: Name { ... }
         match peek()
           TkLParen ->
             advance()
@@ -739,6 +751,16 @@ fun parse-pattern() : <div,parser> pattern
                 val args = parse-pattern-list()
                 expect(")", fn(k) match k { TkRParen -> True; _ -> False })
                 PConstructor(n, args)
+          TkLBrace ->
+            advance()
+            match peek()
+              TkRBrace ->
+                advance()
+                PStruct(n, [])
+              _ ->
+                val fps = parse-struct-pattern-fields()
+                expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+                PStruct(n, fps)
           _ ->
             PConstructor(n, [])
       else

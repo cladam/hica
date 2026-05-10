@@ -688,6 +688,12 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
     PConstructor(cname, args) ->
       if args.is-nil then cname
       else cname ++ "(" ++ args.map(fn(a) emit-pattern(a, declared)).join(", ") ++ ")"
+    PStruct(sname, fps, defs) ->
+      val ordered = defs.map fn(fname)
+        match fps.find(fn((n, _)) n == fname)
+          Just((_, fpat)) -> emit-pattern(fpat, declared)
+          Nothing         -> "_"
+      sname ++ "(" ++ ordered.join(", ") ++ ")"
     PRange(_, _) -> "hc__rng"  // handled at arm level with guard
     PBits(_, _)  -> "hc__bits" // handled at arm level with guard
 

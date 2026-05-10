@@ -1787,3 +1787,22 @@ pub fun main() : io ()
       val src = "import \"match\"\nfun main() => println(1)"
       val code = emit-program-show(src)
       assert/is-true(code.contains("import hc-match"))
+
+    dtest("emit struct destructuring pattern")
+      val src = "struct Point { x: int, y: int }\nfun main() {\n  let p = Point { x: 3, y: 4 }\n  match p {\n    Point { x, y } => println(x)\n  }\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Point(x, y)"))
+
+    dtest("emit struct pattern with literal")
+      val src = "struct Point { x: int, y: int }\nfun main() {\n  let p = Point { x: 0, y: 5 }\n  match p {\n    Point { x: 0, y } => println(y)\n  }\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Point(0, y)"))
+
+    dtest("emit struct pattern with wildcard field")
+      val src = "struct Point { x: int, y: int }\nfun main() {\n  let p = Point { x: 3, y: 4 }\n  match p {\n    Point { x } => println(x)\n  }\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Point(x, _)"))
+
+    dtest("struct pattern unknown field error")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() {\n  let p = Point { x: 3, y: 4 }\n  match p {\n    Point { z } => println(1)\n  }\n}")
+      assert/is-true(ds.any(fn(d) d.message.contains("no field 'z'")))

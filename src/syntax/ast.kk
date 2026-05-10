@@ -266,6 +266,7 @@ pub type pattern
   PTuple( elems : list<pattern> )
   POr( alts : list<pattern> )
   PConstructor( ctor-name : string, ctor-args : list<pattern> )
+  PStruct( struct-name : string, field-pats : list<(string, pattern)>, def-fields : list<string> = [] )
   PRange( lo : int, hi : int )
   PBits( msk : int, val_ : int )
 
@@ -283,6 +284,8 @@ pub fun pattern/show( p : pattern ) : div string
     PConstructor(name, args) ->
       if args.is-nil then name
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
+    PStruct(sname, fps) ->
+      sname ++ " { " ++ fps.map(fn((f, p)) f ++ ": " ++ p.show).join(", ") ++ " }"
     PRange(lo, hi) -> lo.show ++ "..=" ++ hi.show
     PBits(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
 
