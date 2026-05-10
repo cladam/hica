@@ -389,11 +389,35 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("show_fixed"), [f, prec]) ->
           emit-expr(f, declared) ++ ".show-fixed(" ++ emit-expr(prec, declared) ++ ")"
 
+        // Maybe combinators
+        (Var("map_maybe"), [m, f]) ->
+          "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> Just((" ++ emit-expr(f, declared) ++ ")(hc__v)); Nothing -> Nothing })"
+        (Var("and_then"), [m, f]) ->
+          "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Nothing -> Nothing })"
+        (Var("unwrap_maybe"), [m]) ->
+          "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> hc__v; Nothing -> throw(\"unwrap_maybe: None\") })"
+        (Var("unwrap_maybe_or"), [m, d]) ->
+          emit-expr(m, declared) ++ ".default(" ++ emit-expr(d, declared) ++ ")"
+        (Var("is_some"), [m]) ->
+          emit-expr(m, declared) ++ ".is-just"
+        (Var("is_none"), [m]) ->
+          emit-expr(m, declared) ++ ".is-nothing"
+
         // Result combinators
         (Var("unwrap"), [r]) ->
           "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(hc__e) -> throw(\"unwrap: \" ++ hc__e.show) })"
         (Var("unwrap_or"), [r, d]) ->
           "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(_) -> " ++ emit-expr(d, declared) ++ " })"
+        (Var("map_result"), [r, f]) ->
+          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right((" ++ emit-expr(f, declared) ++ ")(hc__v)); Left(hc__e) -> Left(hc__e) })"
+        (Var("map_err"), [r, f]) ->
+          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(hc__e) -> Left((" ++ emit-expr(f, declared) ++ ")(hc__e)) })"
+        (Var("and_then_result"), [r, f]) ->
+          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Left(hc__e) -> Left(hc__e) })"
+        (Var("is_ok"), [r]) ->
+          emit-expr(r, declared) ++ ".is-right"
+        (Var("is_err"), [r]) ->
+          emit-expr(r, declared) ++ ".is-left"
 
         // Bitwise operations — convert to int32, apply op, convert back
         (Var("bit_and"), [a, b]) ->

@@ -4,7 +4,7 @@
 // Count the words in a text file. A word is a sequence of non-whitespace
 // characters separated by whitespace.
 //
-// Usage: hica run exercises/wordcount.hc -- <file>
+// Usage: hica run programs/wordcount.hc -- <file>
 //
 // In C this requires a state machine tracking in-word vs whitespace.
 // In hica it's a one-liner pipeline.

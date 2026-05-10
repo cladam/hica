@@ -502,6 +502,27 @@ fun safe_divide(a, b) =>
   else { Ok(a / b) }
 ```
 
+### Combinators
+
+Instead of nesting `match` expressions, use combinators to transform and chain `Maybe` and `Result` values. All are pipe-friendly (value first):
+
+```rust
+// Maybe: transform the inner value
+let doubled = Some(5) |> map_maybe((x) => x * 2)       // Some(10)
+
+// Maybe: chain functions that return Maybe
+let parsed = Some("42") |> and_then((s) => parse_int(s))  // Some(42)
+
+// Result: transform the Ok value
+let r = safe_divide(10, 2) |> map_result((n) => n * 10)   // Ok(50)
+
+// Result: chain fallible operations
+let r2 = safe_divide(10, 2)
+  |> and_then_result((n) => safe_divide(n, 1))             // Ok(5)
+```
+
+See the [Standard Library](standard-library) for the full list of combinators.
+
 ### User Input
 
 Read a line from stdin with `input(prompt)`. The prompt is printed, and the user's response is returned as a `string`:

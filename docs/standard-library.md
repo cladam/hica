@@ -30,12 +30,44 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | `read_file(path)` | `(string) -> result<string, string>` | Read entire file; returns `Ok(content)` or `Err(message)` |
 | `write_file(path, content)` | `(string, string) -> ()` | Write a string to a file (throws on error) |
 
+## Maybe Combinators
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `map_maybe(m, f)` | `(maybe<a>, (a) -> b) -> maybe<b>` | Transform the value inside a `Some`; pass `None` through |
+| `and_then(m, f)` | `(maybe<a>, (a) -> maybe<b>) -> maybe<b>` | Chain a function that returns `maybe`; short-circuits on `None` |
+| `unwrap_maybe(m)` | `(maybe<a>) -> a` | Extract the `Some` value, or throw on `None` |
+| `unwrap_maybe_or(m, default)` | `(maybe<a>, a) -> a` | Extract the `Some` value, or return `default` |
+| `is_some(m)` | `(maybe<a>) -> bool` | True if `Some` |
+| `is_none(m)` | `(maybe<a>) -> bool` | True if `None` |
+
+```rust
+fun main() {
+  // Transform a maybe value
+  let doubled = Some(5) |> map_maybe((x) => x * 2)
+  println(doubled)                // Some(10)
+
+  // Chain maybe-returning functions
+  let parsed = Some("42") |> and_then((s) => parse_int(s))
+  println(parsed)                 // Some(42)
+
+  // Safe extraction
+  println(unwrap_maybe_or(None, 0))   // 0
+  println(is_some(Some(1)))           // true
+}
+```
+
 ## Result Combinators
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `unwrap(r)` | `(result<a, b>) -> a` | Extract the `Ok` value, or throw on `Err` |
 | `unwrap_or(r, default)` | `(result<a, b>, a) -> a` | Extract the `Ok` value, or return `default` |
+| `map_result(r, f)` | `(result<a, b>, (a) -> c) -> result<c, b>` | Transform the `Ok` value; pass `Err` through |
+| `map_err(r, f)` | `(result<a, b>, (b) -> c) -> result<a, c>` | Transform the `Err` value; pass `Ok` through |
+| `and_then_result(r, f)` | `(result<a, b>, (a) -> result<c, b>) -> result<c, b>` | Chain a function that returns `result`; short-circuits on `Err` |
+| `is_ok(r)` | `(result<a, b>) -> bool` | True if `Ok` |
+| `is_err(r)` | `(result<a, b>) -> bool` | True if `Err` |
 
 ### File Helpers (`prelude/io.hc`)
 

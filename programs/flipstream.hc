@@ -3,7 +3,7 @@
 //
 // Read lines from a file and output them in reverse order.
 //
-// Usage: hica run exercises/flipstream.hc -- <file>
+// Usage: hica run programs/flipstream.hc -- <file>
 //
 // In C this requires a linked list or dynamically resized array,
 // malloc/free, and careful memory management (~50 lines).

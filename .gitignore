@@ -13,6 +13,7 @@ documentation/diff-port.hc
 documentation/diff-manpage.txt
 documentation/lib.xs
 documentation/positioning-genai-era.md
+documentation/hica-package-manager.md
 
 .koka/
 .DS_Store

@@ -4,7 +4,7 @@
 // Count the number of palindrome words in a text file.
 // A word is a contiguous sequence of alphabetic characters.
 //
-// Usage: hica run exercises/pwords.hc -- <file>
+// Usage: hica run programs/pwords.hc -- <file>
 //
 // In C this requires manual character-by-character parsing,
 // pointer arithmetic, and in-place reversal for comparison.

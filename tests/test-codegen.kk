@@ -1427,6 +1427,103 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
+    // --- Maybe combinators ---
+    dtest("map_maybe emits match with Just transform")
+      val code = emit-typed-program("fun main() => map_maybe(Some(5), (x) => x * 2)")
+      assert/is-true(code.contains("Just("))
+      assert/is-true(code.contains("Nothing"))
+
+    dtest("map_maybe type-checks without error")
+      val ds = check-diagnostics("fun main() => map_maybe(Some(5), (x) => x * 2)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("and_then emits match with flatmap")
+      val code = emit-typed-program("fun main() => and_then(Some(5), (x) => Some(x * 2))")
+      assert/is-true(code.contains("Just("))
+      assert/is-true(code.contains("Nothing"))
+
+    dtest("and_then type-checks without error")
+      val ds = check-diagnostics("fun main() => and_then(Some(5), (x) => Some(x * 2))")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("unwrap_maybe emits match with throw")
+      val code = emit-typed-program("fun main() => unwrap_maybe(Some(42))")
+      assert/is-true(code.contains("Just("))
+      assert/is-true(code.contains("throw("))
+
+    dtest("unwrap_maybe_or emits default")
+      val code = emit-typed-program("fun main() => unwrap_maybe_or(Some(42), 0)")
+      assert/is-true(code.contains(".default("))
+
+    dtest("is_some emits is-just")
+      val code = emit-typed-program("fun main() => is_some(Some(42))")
+      assert/is-true(code.contains(".is-just"))
+
+    dtest("is_none emits is-nothing")
+      val code = emit-typed-program("fun main() => is_none(None)")
+      assert/is-true(code.contains(".is-nothing"))
+
+    dtest("is_some type-checks without error")
+      val ds = check-diagnostics("fun main() => is_some(Some(42))")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    // --- Result combinators (map/and_then) ---
+    dtest("map_result emits match with Right transform")
+      val code = emit-typed-program("fun main() => map_result(Ok(5), (x) => x * 2)")
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
+
+    dtest("map_result type-checks without error")
+      val ds = check-diagnostics("fun main() => map_result(Ok(5), (x) => x * 2)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("map_err emits match with Left transform")
+      val code = emit-typed-program("fun main() => map_err(Err(\"oops\"), (e) => \"wrapped: \" + e)")
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
+
+    dtest("map_err type-checks without error")
+      val ds = check-diagnostics("fun main() => map_err(Err(\"oops\"), (e) => \"wrapped: \" + e)")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("and_then_result emits match with flatmap")
+      val code = emit-typed-program("fun main() => and_then_result(Ok(5), (x) => Ok(x * 2))")
+      assert/is-true(code.contains("Right("))
+      assert/is-true(code.contains("Left("))
+
+    dtest("and_then_result type-checks without error")
+      val ds = check-diagnostics("fun main() => and_then_result(Ok(5), (x) => Ok(x * 2))")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("is_ok emits is-right")
+      val code = emit-typed-program("fun main() => is_ok(Ok(42))")
+      assert/is-true(code.contains(".is-right"))
+
+    dtest("is_err emits is-left")
+      val code = emit-typed-program("fun main() => is_err(Err(\"oops\"))")
+      assert/is-true(code.contains(".is-left"))
+
+    dtest("is_ok type-checks without error")
+      val ds = check-diagnostics("fun main() => is_ok(Ok(42))")
+      val errors = ds.filter(fn(d) d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("maybe combinators work with pipe syntax")
+      val ds = check-diagnostics("fun main() { let x = Some(5) |> map_maybe((n) => n + 1); println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("undefined") || d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("result combinators work with pipe syntax")
+      val ds = check-diagnostics("fun main() { let x = Ok(5) |> map_result((n) => n * 2); println(x) }")
+      val errors = ds.filter(fn(d) d.message.contains("undefined") || d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
     dtest("read_lines emits read_file call")
       val code = emit-typed-program("fun read_lines(p: string) => read_file(p)\nfun main() => read_lines(\"test.txt\")")
       assert/is-true(code.contains("read-text-file("))

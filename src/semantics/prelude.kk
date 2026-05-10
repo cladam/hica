@@ -74,9 +74,22 @@ pub fun extern-env() : type-env
     // Formatting
     ("show_fixed", TFun([TFloat, TInt], TString)),
 
+    // Maybe combinators
+    ("map_maybe",       TFun([TMaybe(TVar("_a")), TFun([TVar("_a")], TVar("_b"))], TMaybe(TVar("_b")))),
+    ("and_then",        TFun([TMaybe(TVar("_a")), TFun([TVar("_a")], TMaybe(TVar("_b")))], TMaybe(TVar("_b")))),
+    ("unwrap_maybe",    TFun([TMaybe(TVar("_a"))], TVar("_a"))),
+    ("unwrap_maybe_or", TFun([TMaybe(TVar("_a")), TVar("_a")], TVar("_a"))),
+    ("is_some",         TFun([TMaybe(TVar("_a"))], TBool)),
+    ("is_none",         TFun([TMaybe(TVar("_a"))], TBool)),
+
     // Result combinators
-    ("unwrap",     TFun([TResult(TVar("_a"), TVar("_b"))], TVar("_a"))),
-    ("unwrap_or",  TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))),
+    ("unwrap",          TFun([TResult(TVar("_a"), TVar("_b"))], TVar("_a"))),
+    ("unwrap_or",       TFun([TResult(TVar("_a"), TVar("_b")), TVar("_a")], TVar("_a"))),
+    ("map_result",      TFun([TResult(TVar("_a"), TVar("_b")), TFun([TVar("_a")], TVar("_c"))], TResult(TVar("_c"), TVar("_b")))),
+    ("map_err",         TFun([TResult(TVar("_a"), TVar("_b")), TFun([TVar("_b")], TVar("_c"))], TResult(TVar("_a"), TVar("_c")))),
+    ("and_then_result", TFun([TResult(TVar("_a"), TVar("_b")), TFun([TVar("_a")], TResult(TVar("_c"), TVar("_b")))], TResult(TVar("_c"), TVar("_b")))),
+    ("is_ok",           TFun([TResult(TVar("_a"), TVar("_b"))], TBool)),
+    ("is_err",          TFun([TResult(TVar("_a"), TVar("_b"))], TBool)),
 
     // Bitwise operations — backed by Koka std/num/int32
     ("bit_and",  TFun([TInt, TInt], TInt)),

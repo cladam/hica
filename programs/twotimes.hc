@@ -5,7 +5,7 @@
 // "mammamiamammamia" → true  (mammamia + mammamia)
 // "abracadabra"      → false
 //
-// Usage: hica run exercises/twotimes.hc -- <file>
+// Usage: hica run programs/twotimes.hc -- <file>
 //
 // In C this requires strlen, manual pointer arithmetic, and strncmp.
 // In hica it's slicing + comparison.
