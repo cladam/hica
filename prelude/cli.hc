@@ -58,6 +58,13 @@ struct CliResult {
   cli_sub: maybe<CliResult>
 }
 
+type CliOutcome {
+  Help,
+  Version,
+  CliError(cli_error_msg: string),
+  Parsed(cli_result: CliResult)
+}
+
 // ---------------------------------------------------------------------------
 // Builders (pipe-friendly)
 //
@@ -336,28 +343,30 @@ fun cli_parse_args(spec: CliSpec, args: list<string>) {
   let subcmd = raw.raw_subcmd
   let sub_args = raw.raw_sub_args
 
-  if !is_empty(error) { Err(error) }
+  if error == "__help__" { Help }
+  else if error == "__version__" { Version }
+  else if !is_empty(error) { CliError(error) }
   else {
     let final_options = apply_defaults(spec, options)
     let req_err = check_required_args(spec, positionals)
-    if !is_empty(req_err) { Err(req_err) }
+    if !is_empty(req_err) { CliError(req_err) }
     else if !is_empty(subcmd) {
       match find_command(spec.app_commands, subcmd) {
         Some(pair) => match cli_parse_args(pair.1, sub_args) {
-          Ok(sub) => Ok(CliResult {
+          Parsed(sub) => Parsed(CliResult {
             cli_flags: flags,
             cli_options: final_options,
             cli_positionals: positionals,
             cli_command: subcmd,
             cli_sub: Some(sub)
           }),
-          Err(e) => Err(e)
+          other => other
         },
-        None => Err("unknown command: {subcmd}")
+        None => CliError("unknown command: {subcmd}")
       }
     }
     else {
-      Ok(CliResult {
+      Parsed(CliResult {
         cli_flags: flags,
         cli_options: final_options,
         cli_positionals: positionals,
@@ -377,8 +386,8 @@ fun cli_parse(spec) =>
 
 fun cli_parse_or_exit(spec) =>
   match cli_parse(spec) {
-    Ok(r)               => r,
-    Err("__help__")     => { println(cli_help(spec)); cli_empty() },
-    Err("__version__")  => { println(cli_version_str(spec)); cli_empty() },
-    Err(msg)            => { eprintln("error: {msg}"); eprintln("try --help for usage"); cli_empty() }
+    Parsed(r)   => r,
+    Help        => { println(cli_help(spec)); cli_empty() },
+    Version     => { println(cli_version_str(spec)); cli_empty() },
+    CliError(msg) => { eprintln("error: {msg}"); eprintln("try --help for usage"); cli_empty() }
   }

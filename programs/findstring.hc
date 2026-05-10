@@ -31,10 +31,10 @@ fun search(file: string, needles: list<string>) {
 fun main() {
   let spec = make_spec()
   match cli_parse(spec) {
-    Err("__help__")    => println(cli_help(spec)),
-    Err("__version__") => println(cli_version_str(spec)),
-    Err(msg)           => eprintln("error: {msg}"),
-    Ok(r)              => search(r.cli_positionals[0], r.cli_positionals[1:])
+    Help          => println(cli_help(spec)),
+    Version       => println(cli_version_str(spec)),
+    CliError(msg) => eprintln("error: {msg}"),
+    Parsed(r)     => search(r.cli_positionals[0], r.cli_positionals[1:])
   }
 }
 

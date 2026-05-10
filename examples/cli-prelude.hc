@@ -24,10 +24,10 @@ fun make_spec() =>
 fun main() {
   let spec = make_spec()
   match cli_parse(spec) {
-    Err("__help__")    => println(cli_help(spec)),
-    Err("__version__") => println(cli_version_str(spec)),
-    Err(msg)           => eprintln("error: {msg}"),
-    Ok(r)              => {
+    Help          => println(cli_help(spec)),
+    Version       => println(cli_version_str(spec)),
+    CliError(msg) => eprintln("error: {msg}"),
+    Parsed(r)     => {
       println("flags: {show(r.cli_flags)}")
       println("options: {show(r.cli_options)}")
       println("positionals: {show(r.cli_positionals)}")

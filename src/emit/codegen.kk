@@ -103,7 +103,7 @@ fun emit-struct-def( sd : struct-def ) : div string
 // Type (enum) definition emission
 // ---------------------------------------------------------------------------
 
-fun emit-type-def( td : type-def ) : div string
+fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
   val tname = td.name.to-lower
   val type-str = "type " ++ tname ++ "\n" ++
     td.variants.map(fn(vd)
@@ -112,7 +112,8 @@ fun emit-type-def( td : type-def ) : div string
     ).join("\n")
   // Emit a show function for the type
   val is-rec = td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.references-type(td.name)))
-  val effect-ann = if is-rec then " : div string" else " : string"
+  val refs-rec-struct = td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.references-recursive-struct(structs)))
+  val effect-ann = if is-rec || refs-rec-struct then " : div string" else " : string"
   val show-arms = td.variants.map fn(vd)
     if vd.fields.is-nil then
       "    " ++ vd.name ++ " -> \"" ++ vd.name ++ "\""
@@ -150,6 +151,16 @@ fun references-struct( t : hica-type, name : string ) : div bool
     TFun(params, ret) -> params.any(fn(p) p.references-struct(name)) || ret.references-struct(name)
     _ -> False
 
+// Check if a type contains a reference to a recursive struct (whose show is div)
+fun references-recursive-struct( t : hica-type, structs : list<struct-def> ) : div bool
+  match t
+    TStruct(sn) -> structs.any(fn(sd) sd.name == sn && sd.fields.any(fn((_, ft)) ft.references-struct(sn)))
+    TMaybe(inner) -> inner.references-recursive-struct(structs)
+    TList(inner) -> inner.references-recursive-struct(structs)
+    TTuple(ts) -> ts.any(fn(tt) tt.references-recursive-struct(structs))
+    TFun(params, ret) -> params.any(fn(p) p.references-recursive-struct(structs)) || ret.references-recursive-struct(structs)
+    _ -> False
+
 // Emit a show call for a specific type
 fun emit-show-call( t : hica-type, expr-str : string ) : div string
   match t
@@ -178,7 +189,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   val has-cont = program-has-continue(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
-  val type-defs = p.types.map(fn(td) emit-type-def(td)).join("\n\n")
+  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
@@ -1041,7 +1052,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main" ) : div strin
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
-  val type-defs = p.types.map(fn(td) emit-type-def(td)).join("\n\n")
+  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   // Emit user functions (excluding main — tests replace main)
   val user-decls = p.decls.filter(fn(d) d.name != "main")
