@@ -95,7 +95,6 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
  - **Single-line functions:** Keep on one line if it's short.
    ```rust
    fun double(n) => n * 2
-
    ```
 
  - **Multi-line functions:** Use braces for functions with multiple statements.
@@ -124,6 +123,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
    ```
 
  - **Line breaks before operators:** When an expression spans multiple lines, break *before* the operator. This keeps operators visually aligned with their operands:
+
    ```rust
    // Good — operator at start of continuation
    let total = base_price
