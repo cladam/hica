@@ -10,11 +10,13 @@ documentation/review.md
 documentation/diff.h
 documentation/diff.c
 documentation/diff-port.hc
+documentation/diff-port.md
 documentation/diff-manpage.txt
 documentation/lib.xs
 documentation/positioning-genai-era.md
 documentation/hica-package-manager.md
 documentation/tbdflow-port.md
+documentation/building-klap-in-hica.md
 
 .koka/
 .DS_Store
