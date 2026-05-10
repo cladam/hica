@@ -198,12 +198,18 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
 
 fun emit-decl( d : fun-decl, declared : list<string> ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
-  // Omit return type annotation for recursive functions — let Koka infer `div`
+  // For recursive functions with explicit return annotations, emit with `div`
+  // effect so Koka can resolve operators like (+). For non-recursive, use the
+  // user-written annotation as-is.
   // Omit function-typed returns — Koka's parser confuses `(a) -> b` with the
   // function's own signature, so we let Koka infer it.
-  // Use ret-ann (user-written) rather than ret-type (inferred) so that Koka
-  // can freely infer effects for functions that call divergent helpers.
-  val ret-ann = if d.is-recursive then "" else match d.ret-ann
+  val ret-ann = if d.is-recursive then match d.ret-ann
+    Just(TFun(_, _)) -> ""
+    Just(t) ->
+      val ts = emit-type(t)
+      if ts == "" then "" else " : div " ++ ts
+    Nothing -> ""
+  else match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
       val ts = emit-type(t)
