@@ -457,6 +457,31 @@ fun main() {
 }
 ```
 
+### Combinators: chaining without nesting
+
+When you have several operations that each might fail, nesting `match` gets deep. Combinators let you chain them with pipes instead:
+
+```rust
+// Transform the value inside a Maybe
+let doubled = Some(5) |> map_maybe((x) => x * 2)   // Some(10)
+
+// Chain functions that return Maybe
+let parsed = Some("42") |> and_then((s) => parse_int(s))  // Some(42)
+
+// Extract with a fallback
+let n = None |> unwrap_maybe_or(0)   // 0
+```
+
+Result has its own set:
+
+```rust
+let result = safe_divide(10, 2)
+  |> map_result((n) => n * 10)       // Ok(50)
+  |> and_then_result((n) => safe_divide(n, 5))  // Ok(10)
+```
+
+See the [Standard Library](standard-library) for the full list.
+
 ### Parsing strings safely
 
 `parse_int` and `parse_float` return `Maybe`, so you always know whether the conversion worked:

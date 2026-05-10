@@ -1488,6 +1488,30 @@ fun main() {
 **🎯 Try it:** Write a function that takes a number and returns
 `Some("even")` if it's even, or `None` if it's odd.
 
+### Helpers: working with maybe without match
+
+Sometimes you don't want to write a whole `match` just to peek inside. Hica
+has helper functions (called **combinators**) that work like little machines
+you can pipe through:
+
+```rust
+// Transform what's inside (if anything)
+let doubled = Some(5) |> map_maybe((x) => x * 2)
+println(doubled)   // Some(10)
+
+// Get the value or use a backup
+let value = None |> unwrap_maybe_or(0)
+println(value)     // 0
+
+// Ask yes/no questions
+println(is_some(Some(1)))   // true
+println(is_none(None))      // true
+```
+
+Think of `map_maybe` like putting a letter through a stamping machine — if
+the envelope is empty (`None`), the machine does nothing. If there's a letter
+inside (`Some`), it stamps it and puts it back.
+
 ---
 
 ## 23. Result: It Worked or It Didn't
@@ -1548,6 +1572,35 @@ Think of it this way:
 
 **🎯 Try it:** Write a `safe_head(nums)` function that returns `Ok(nums[0])`
 if the list is not empty, or `Err("empty list")` if it is.
+
+### Helpers: working with results without match
+
+Just like Maybe, Result has helper functions to avoid writing `match`
+everywhere:
+
+```rust
+fun safe_divide(a, b) =>
+  if b == 0 { Err("division by zero") }
+  else { Ok(a / b) }
+
+fun main() {
+  // Transform the Ok value
+  let big = safe_divide(10, 2) |> map_result((n) => n * 100)
+  println(big)   // Ok(500)
+
+  // Chain operations that might fail
+  let chained = safe_divide(10, 2)
+    |> and_then_result((n) => safe_divide(n, 1))
+  println(chained)   // Ok(5)
+
+  // Quick checks
+  println(is_ok(safe_divide(1, 1)))    // true
+  println(is_err(safe_divide(1, 0)))   // true
+}
+```
+
+Think of `and_then_result` like a relay race — each runner passes the baton
+to the next, but if someone trips (`Err`), the race stops right there.
 
 ---
 

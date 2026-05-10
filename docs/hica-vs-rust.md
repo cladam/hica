@@ -14,7 +14,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Type system | Ownership + lifetimes + traits | Hindley-Milner inference (little to no annotations in practice) |
 | Memory model | Borrow checker, zero-cost abstractions | Automatic reference counting with compile-time optimisation (Koka/Perceus) |
 | Mutability | Immutable by default, `mut` opt-in | Immutable, no `mut` |
-| Error handling | `Result<T, E>` + `?` operator | `Result` + `match` |
+| Error handling | `Result<T, E>` + `?` operator | `Result` + `match` + combinators (`map_result`, `and_then_result`) |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
 | Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result + ranges), not deeply nested |
 | Custom types | `struct` + `enum` + `impl` + `derive` | `struct` + `type` enums (simple, no `impl` blocks) |
@@ -133,7 +133,18 @@ fun main() {
 }
 ```
 
-Rust's `?` is more ergonomic for chaining fallible operations. hica favours explicit control flow via `match` rather than implicit propagation. This keeps behaviour visible but can be more verbose for deeply chained operations.
+hica also has combinators for chaining without deeply nested `match`:
+
+```rust
+fun main() {
+  let result = safe_divide(10, 2)
+    |> map_result((n) => n * 10)                    // Ok(50)
+    |> and_then_result((n) => safe_divide(n, 5))    // Ok(10)
+  println(result)
+}
+```
+
+Rust's `?` is still more ergonomic for long chains, but hica's combinators (`map_result`, `and_then_result`, `map_err`) close much of the gap. hica doesn't yet have a `?` operator (it would require an effect-based early-return mechanism).
 
 ## String Operations
 

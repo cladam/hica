@@ -15,7 +15,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Readability | Excellent (indentation) | Excellent (arrows, braces) |
 | Mutability | Mutable by default | Immutable by design |
 | Functions | `def` + simple lambdas (single-expression only) | `fun` + full closures + `|>` pipe |
-| Error handling | Exceptions (implicit flow) | Result types (explicit handling) |
+| Error handling | Exceptions (implicit flow) | Result types + combinators (explicit handling) |
 | Data structures | Classes / dataclasses | Structs + enums |
 | Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}`, immutable list of tuples) |
 | Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
@@ -147,7 +147,18 @@ fun main() {
 }
 ```
 
-This makes error paths explicit, but can feel more verbose than Python's exception model.
+For chaining, hica has combinators that reduce the verbosity:
+
+```rust
+fun main() {
+  let result = safe_divide(10, 2)
+    |> map_result((n) => n * 10)                    // Ok(50)
+    |> and_then_result((n) => safe_divide(n, 5))    // Ok(10)
+  println(result)
+}
+```
+
+This makes error paths explicit. Python's exception model is more concise for simple cases, but errors can silently propagate. hica forces you to handle each failure point, either with `match` or with combinators like `map_result` and `and_then_result`.
 
 ## String Operations
 
