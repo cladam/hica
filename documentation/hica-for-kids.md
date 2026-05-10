@@ -1876,6 +1876,23 @@ Use structs when you want names that explain the data.
 Write a function `level_up(p: Player) : string` that prints
 `"{p.name} reached score {p.score}!"`.
 
+### Updating a struct
+
+Structs can't change (they're immutable), but you can make a copy with some
+fields changed using `...`:
+
+```rust
+struct Pet { name: string, species: string, age: int }
+
+fun main() {
+  let daisy = Pet { name: "Daisy", species: "cat", age: 3 }
+  let older = Pet { ...daisy, age: 4 }   // everything else stays the same!
+  println(older)
+}
+```
+
+Think of it like photocopying a form and writing over just one field.
+
 ---
 
 ## 27. Maps: The Lookup Book

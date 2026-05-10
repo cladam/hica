@@ -328,6 +328,12 @@ fun main() {
 
 Struct names start uppercase. Fields are accessed with dot notation. Functions that work with structs are just regular functions, with no methods or `self`.
 
+Since structs are immutable, you create a modified copy with update syntax:
+
+```rust
+let moved = Point { ...p, x: 10 }   // y stays the same
+```
+
 ## Enums: when a value can be one of several things
 
 A struct says "every value has these fields." An enum says "a value is one of these alternatives":

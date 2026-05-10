@@ -290,7 +290,7 @@ fun main() {
 }
 ```
 
-Rust's `impl` blocks group methods on a type with `self` access, `derive` generates common trait implementations, and traits provide polymorphism. hica keeps it simple: structs hold data, free functions operate on them, and `show` is auto-generated.
+Rust's `impl` blocks group methods on a type with `self` access, `derive` generates common trait implementations, and traits provide polymorphism. hica keeps it simple: structs hold data, free functions operate on them, and `show` is auto-generated. Both support struct update syntax: Rust's `Point { x: 10, ..p }` is hica's `Point { ...p, x: 10 }`.
 
 ## Enums (Algebraic Types)
 

@@ -229,6 +229,9 @@ pub type expr
   // Point { x: 10, y: 20 } — struct literal
   StructLit( struct-name : string, fields : list<(string, node)> )
 
+  // { ...base, x: 5 } — struct update (def-fields: all field names in definition order)
+  StructUpdate( struct-name : string, base : node, fields : list<(string, node)>, def-fields : list<string> )
+
   // expr.field — struct field access
   FieldAccess( obj : node, field-name : string )
 
@@ -323,6 +326,7 @@ pub fun expr/show( e : expr ) : div string
     ENone            -> "None"
     EOk(v)           -> "Ok(" ++ v.show ++ ")"
     StructLit(nm, fs) -> nm ++ " { " ++ fs.map(fn((f, v)) f ++ ": " ++ v.show).join(", ") ++ " }"
+    StructUpdate(nm, base, fs, _) -> nm ++ " { ..." ++ base.show ++ ", " ++ fs.map(fn((f, v)) f ++ ": " ++ v.show).join(", ") ++ " }"
     FieldAccess(o, f)  -> o.show ++ "." ++ f
     EErr(v)            -> "Err(" ++ v.show ++ ")"
     EConstructor(name, args) ->

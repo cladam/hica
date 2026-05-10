@@ -89,9 +89,25 @@ fun parse-prefix() : <div,parser> node
           match peek()
             TkLBrace | name.is-upper-start ->
               advance() // consume {
-              val fields = parse-struct-lit-fields()
-              val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-              Node(Span(t.span.start, end-tok.span.end), StructLit(name, fields))
+              // Check for struct update: Name { ...base, field: value }
+              match peek()
+                TkSpread ->
+                  advance() // consume ...
+                  val base = parse-expr()
+                  match peek()
+                    TkComma ->
+                      advance()
+                      val fields = parse-struct-lit-fields()
+                      val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+                      Node(Span(t.span.start, end-tok.span.end), StructUpdate(name, base, fields, []))
+                    _ ->
+                      // { ...base } with no overrides
+                      val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+                      Node(Span(t.span.start, end-tok.span.end), StructUpdate(name, base, [], []))
+                _ ->
+                  val fields = parse-struct-lit-fields()
+                  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+                  Node(Span(t.span.start, end-tok.span.end), StructLit(name, fields))
             TkLParen | name.is-upper-start ->
               // Constructor call: Name(args)
               advance() // consume (

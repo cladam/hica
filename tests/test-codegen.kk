@@ -1209,6 +1209,41 @@ pub fun main() : io ()
       assert/is-true(code.contains("p : point"))
       assert/is-true(code.contains("p.x"))
 
+    // --- Struct update syntax ---
+    dtest("struct update emits let + constructor")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p, x: 10 }; println(q) }")
+      assert/is-true(code.contains("hc__base"))
+      assert/is-true(code.contains("Point("))
+
+    dtest("struct update type-checks without error")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p, x: 10 }; println(q) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("struct update preserves non-overridden fields")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p, x: 10 }; println(q) }")
+      assert/is-true(code.contains("hc__base.y"))
+
+    dtest("struct update rejects unknown field")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; Point { ...p, z: 10 } }")
+      val errors = ds.filter(fn(d) d.message.contains("unknown field"))
+      assert/is-true(errors.length > 0)
+
+    dtest("struct update rejects wrong base type")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() { Point { ...42, x: 10 } }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("unify"))
+      assert/is-true(errors.length > 0)
+
+    dtest("struct update with no overrides copies base")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p }; println(q) }")
+      assert/is-true(code.contains("hc__base.x"))
+      assert/is-true(code.contains("hc__base.y"))
+
+    dtest("struct update with all fields overridden")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p, x: 10, y: 20 }; println(q) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
     // --- Match exhaustiveness checking ---
     dtest("exhaustive maybe match emits no warning")
       val ds = check-diagnostics("fun main() { let x = Some(1); match x { Some(n) => n, None => 0 } }")

@@ -81,6 +81,7 @@ pub type token-kind
   TkDot         // .
   TkDotDot      // ..
   TkDotDotEq    // ..=
+  TkSpread      // ...
   // Bit patterns
   TkBitPattern( msk : int, val_ : int )
   // Special
@@ -157,6 +158,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkDot        -> "."
     TkDotDot     -> ".."
     TkDotDotEq   -> "..="
+    TkSpread     -> "..."
     TkBitPattern(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
@@ -486,6 +488,7 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('<', rest) -> Cons(Token(TkLt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('>', rest) -> Cons(Token(TkGt, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons('.', Cons('.', Cons('=', rest))) -> Cons(Token(TkDotDotEq, Span(pos, pos+3)), lex-from(rest, pos+3))
+    Cons('.', Cons('.', Cons('.', rest))) -> Cons(Token(TkSpread, Span(pos, pos+3)), lex-from(rest, pos+3))
     Cons('.', Cons('.', rest)) -> Cons(Token(TkDotDot, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('.', rest) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(c, rest)   -> Cons(Token(TkError("unexpected character: " ++ c.string), Span(pos, pos+1)), lex-from(rest, pos+1))

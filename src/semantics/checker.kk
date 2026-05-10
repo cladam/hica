@@ -714,6 +714,29 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           val (s1, fields') = infer-struct-fields(env, s, sd.fields, lit-fields, n.span)
           (s1, Node(n.span, StructLit(sname, fields'), Just(TStruct(sname))))
 
+    // --- Struct update ---
+    // Desugared in codegen into: { val hc__base = base; Name(override-or-base.field, ...) }
+    StructUpdate(sname, base, lit-fields, _) ->
+      val reg = get-structs()
+      match struct-find(reg, sname)
+        Nothing ->
+          emit-error(n.span, "unknown struct: " ++ sname)
+          (s, n(typ = Just(fresh-tvar())))
+        Just(sd) ->
+          // Infer the base expression and ensure it's the right struct type
+          val (s1, base') = infer(env, s, base)
+          val base-type = apply-subst(s1, get-type(base'))
+          val s2 = compose-subst(unify(base-type, TStruct(sname), n.span), s1)
+          // Check that override fields exist in the struct
+          val def-names = sd.fields.map(fn((nm, _t)) nm)
+          val lit-names = lit-fields.map(fn((nm, _v)) nm)
+          lit-names.foreach fn(ln)
+            if !def-names.any(fn(dn) dn == ln) then
+              emit-error(n.span, "unknown field '" ++ ln ++ "' in " ++ sname)
+          // Infer override field values and unify with declared types
+          val (s3, fields') = infer-struct-fields(env, s2, sd.fields, lit-fields, n.span)
+          (s3, Node(n.span, StructUpdate(sname, base', fields', def-names), Just(TStruct(sname))))
+
     // --- Field access ---
     FieldAccess(obj, fname) ->
       val (s1, obj') = infer(env, s, obj)

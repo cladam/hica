@@ -623,6 +623,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
     StructLit(sname, fields) ->
       sname ++ "(" ++ fields.map(fn((_, v)) emit-expr(v, declared)).join(", ") ++ ")"
+    StructUpdate(sname, base, overrides, def-fields) ->
+      // Emit: { val hc__base = <base>; Name(field-or-override, ...) }
+      val base-code = emit-expr(base, declared)
+      val args = def-fields.map fn(fname)
+        match overrides.find(fn((nm, _)) nm == fname)
+          Just((_, fval)) -> emit-expr(fval, declared)
+          Nothing -> "hc__base." ++ fname
+      "{ val hc__base = " ++ base-code ++ "; " ++ sname ++ "(" ++ args.join(", ") ++ ") }"
     FieldAccess(obj, fname) ->
       emit-expr(obj, declared) ++ "." ++ fname
     EConstructor(cname, cargs) ->

@@ -52,10 +52,27 @@ fun main() {
   println("distance² = {distance_sq(p)}")
 
   // Struct with string fields
-  let alice = Person { name: "Love", age: 12 }
-  println(greet(alice))
+  let love = Person { name: "Love", age: 12 }
+  println(greet(love))
 
   // println auto-shows structs
   println(origin)
-  println(alice)
+  println(love)
+
+  // --- Struct update syntax ---
+  // Create a new struct based on an existing one, overriding some fields:
+  let moved = Point { ...p, x: 10 }
+  println(moved)                     // Point(x: 10, y: 4)
+
+  // Override all fields
+  let flipped = Point { ...p, x: p.y, y: p.x }
+  println(flipped)                   // Point(x: 4, y: 3)
+
+  // Copy with no overrides (creates an identical value)
+  let twin = Point { ...p }
+  println(twin)                      // Point(x: 3, y: 4)
+
+  // Works with any struct
+  let older = Person { ...love, age: 13 }
+  println(greet(older))              // "Hej, Love! You are 13 years old."
 }

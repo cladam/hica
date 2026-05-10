@@ -391,6 +391,22 @@ fun origin() : Point => Point { x: 0, y: 0 }
 
 Struct names must start with an uppercase letter. Fields are accessed with dot notation.
 
+#### Struct update syntax
+
+Create a new struct from an existing one, overriding specific fields with `{ ...base, field: value }`:
+
+```rust
+struct Point { x: int, y: int }
+
+fun main() {
+  let p = Point { x: 3, y: 4 }
+  let q = Point { ...p, x: 10 }     // Point(x: 10, y: 4)
+  let r = Point { ...p }            // copy — Point(x: 3, y: 4)
+}
+```
+
+The original value is unchanged (structs are immutable). The compiler checks that override fields exist in the struct and have the right types.
+
 ### Enums (Algebraic Types)
 
 Define a type with named variants using `type`:
