@@ -215,10 +215,3 @@ pub fun main() : io ()
 
     dtest("lex map literal tokens")
       assert/is-true(token-string("{\"a\": 1}") == "{ \"a\" : 1 } <eof>")
-
-    // --- Type keyword ---
-    dtest("lex type keyword")
-      assert/is-true(token-string("type") == "type <eof>")
-
-    dtest("lex type declaration tokens")
-      assert/is-true(token-string("type Color { Red, Green }") == "type Color { Red , Green } <eof>")

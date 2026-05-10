@@ -282,6 +282,7 @@ val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/strings
 fun load-prelude()
   var decl-result : list<fun-decl> := []
   var struct-result : list<struct-def> := []
+  var type-result : list<type-def> := []
   prelude-files.foreach fn(f)
     if is-file(f.path) then
       val source = read-text-file(f.path)
@@ -289,7 +290,8 @@ fun load-prelude()
       val prog = run-parser-program(tokens)
       decl-result := decl-result ++ prog.decls
       struct-result := struct-result ++ prog.structs
-  Program(struct-result, [], decl-result)
+      type-result := type-result ++ prog.types
+  Program(struct-result, type-result, decl-result)
 
 // ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk

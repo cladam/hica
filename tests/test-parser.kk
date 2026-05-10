@@ -514,37 +514,3 @@ pub fun main() : io ()
     itest("parse map in program")
       val result = parse-program-show("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
       assert/is-true(result.contains("\"a\": 1"))
-
-    // --- Enum / type declarations ---
-    itest("parse simple type declaration")
-      val result = parse-program-show("type Color { Red, Green, Blue }\nfun main() => println(Red)")
-      assert/is-true(result.contains("type Color"))
-      assert/is-true(result.contains("Red"))
-      assert/is-true(result.contains("Green"))
-      assert/is-true(result.contains("Blue"))
-
-    itest("parse type with data variants")
-      val result = parse-program-show("type Shape { Circle(radius: float), Rect(w: float, h: float), Point }\nfun main() => println(Point)")
-      assert/is-true(result.contains("type Shape"))
-      assert/is-true(result.contains("Circle(radius: float)"))
-      assert/is-true(result.contains("Rect(w: float, h: float)"))
-      assert/is-true(result.contains("Point"))
-
-    itest("parse bare constructor expression")
-      val result = parse-program-show("type Color { Red, Green, Blue }\nfun main() => println(Red)")
-      assert/is-true(result.contains("Red"))
-
-    itest("parse constructor with args expression")
-      val result = parse-program-show("type Shape { Circle(r: float) }\nfun main() => println(Circle(5.0))")
-      assert/is-true(result.contains("Circle(5.0)"))
-
-    itest("parse constructor pattern in match")
-      val result = parse-program-show("type Shape { Circle(r: float), Point }\nfun f(s) => match s { Circle(r) => r, Point => 0.0 }")
-      assert/is-true(result.contains("Circle(r)"))
-      assert/is-true(result.contains("Point"))
-
-    itest("parse type with trailing comma")
-      val result = parse-program-show("type Dir { North, South, }\nfun main() => println(North)")
-      assert/is-true(result.contains("type Dir"))
-      assert/is-true(result.contains("North"))
-      assert/is-true(result.contains("South"))

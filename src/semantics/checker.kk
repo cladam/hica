@@ -906,17 +906,6 @@ fun missing-cases( scrut-type : hica-type, pats : list<pattern> ) : <type-reg> l
           ).map(fn(vd)
             if vd.fields.is-nil then vd.name else vd.name ++ "(_)"
           )
-    // Parser uses TStruct for type annotations; check the type registry
-    TStruct(tname) ->
-      val reg = get-types()
-      match type-find(reg, tname)
-        Nothing -> []
-        Just(td) ->
-          td.variants.filter(fn(vd)
-            !has-constructor(pats, fn(p) is-pctor(p, vd.name))
-          ).map(fn(vd)
-            if vd.fields.is-nil then vd.name else vd.name ++ "(_)"
-          )
     TInt    -> ["_ (wildcard)"]
     TFloat  -> ["_ (wildcard)"]
     TString -> ["_ (wildcard)"]
