@@ -1771,3 +1771,19 @@ pub fun main() : io ()
       assert/is-true(code.contains("fun hc_fa(n : int)\n"))
       assert/is-true(code.contains("fun hc_fb(n : int)\n"))
       assert/is-true(code.contains("fun hc_fc(n : int)\n"))
+
+    // --- Import emission ---
+    dtest("emit program with import")
+      val src = "import \"greet\"\nfun main() => println(1)"
+      val code = emit-program-show(src)
+      assert/is-true(code.contains("import greet"))
+
+    dtest("emit program with pub import")
+      val src = "pub import \"utils\"\nfun main() => println(1)"
+      val code = emit-program-show(src)
+      assert/is-true(code.contains("pub import utils"))
+
+    dtest("import module name is safe")
+      val src = "import \"match\"\nfun main() => println(1)"
+      val code = emit-program-show(src)
+      assert/is-true(code.contains("import hc-match"))

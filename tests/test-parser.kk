@@ -514,3 +514,16 @@ pub fun main() : io ()
     itest("parse map in program")
       val result = parse-program-show("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m)\n}")
       assert/is-true(result.contains("\"a\": 1"))
+
+    // --- Import declarations ---
+    itest("parse import declaration")
+      val result = parse-program-show("import \"greet\"\nfun main() => println(1)")
+      assert/is-true(result.contains("import \"greet\""))
+
+    itest("parse from import declaration")
+      val result = parse-program-show("from \"greet\" import { hello, goodbye }\nfun main() => println(1)")
+      assert/is-true(result.contains("from \"greet\" import { hello, goodbye }"))
+
+    itest("parse pub import declaration")
+      val result = parse-program-show("pub import \"utils\"\nfun main() => println(1)")
+      assert/is-true(result.contains("pub import \"utils\""))

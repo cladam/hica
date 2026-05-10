@@ -848,6 +848,47 @@ fun parse-struct-lit-fields() : <div,parser> list<(string, node)>
       parse-error("expected field name in struct literal")
       []
 
+// Parse an import declaration:
+//   import "path"                      — import all pub items
+//   from "path" import { a, b }        — selective import
+//   pub import "path"                  — re-export all pub items
+fun parse-import-decl() : <div,parser> import-decl
+  val sp = current-span()
+  // Check for `pub import`
+  val is-pub = match peek()
+    TkPub -> { advance(); True }
+    _     -> False
+  match peek()
+    TkImport ->
+      advance()
+      val path-str = match peek()
+        TkString(s) -> { advance(); s }
+        _           -> { parse-error("expected string path after import"); "" }
+      Import-decl(Span(sp.start, current-span().end), path-str, Nothing, is-pub)
+    TkFrom ->
+      advance()
+      val path-str = match peek()
+        TkString(s) -> { advance(); s }
+        _           -> { parse-error("expected string path after from"); "" }
+      expect("import", fn(k) match k { TkImport -> True; _ -> False })
+      expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+      val names = parse-import-names()
+      expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+      Import-decl(Span(sp.start, current-span().end), path-str, Just(names), is-pub)
+    _ ->
+      parse-error("expected import or from")
+      Import-decl(sp, "", Nothing, False)
+
+// Parse comma-separated import names: { a, b, c }
+fun parse-import-names() : <div,parser> list<string>
+  var names := []
+  while { match peek() { TkRBrace -> False; TkEof -> False; _ -> True } }
+    match peek()
+      TkIdent(n) -> { val _ = advance(); names := Cons(n, names) }
+      TkComma    -> { val _ = advance(); () }
+      _          -> { val _ = parse-error("expected name in import list"); val _ = advance(); () }
+  names.reverse
+
 // Parse a struct declaration: struct Name { field: type, ... }
 fun parse-struct-decl() : <div,parser> struct-def
   val t = expect("struct", fn(k) match k { TkStruct -> True; _ -> False })
@@ -972,14 +1013,23 @@ pub fun parse-program() : <div,parser> program
   var structs := []
   var types := []
   var tests := []
+  var imports := []
+  // Parse imports at the top of the file
+  while { match peek() { TkImport -> True; TkFrom -> True; _ -> False } }
+    imports := Cons(parse-import-decl(), imports)
+  // Parse remaining declarations
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
       TkType   -> types := Cons(parse-type-decl(), types)
       TkTest   -> tests := Cons(parse-test-decl(), tests)
-      TkPub    -> decls := Cons(parse-fun-decl(), decls)
+      TkPub    ->
+        // pub import "path" — re-export
+        match peek-next()
+          TkImport -> imports := Cons(parse-import-decl(), imports)
+          _        -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
-  Program(structs.reverse, types = types.reverse, decls = decls.reverse, tests = tests.reverse)
+  Program(structs.reverse, types = types.reverse, decls = decls.reverse, tests = tests.reverse, imports = imports.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

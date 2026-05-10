@@ -215,3 +215,16 @@ pub fun main() : io ()
 
     dtest("lex map literal tokens")
       assert/is-true(token-string("{\"a\": 1}") == "{ \"a\" : 1 } <eof>")
+
+    // --- Import keywords ---
+    dtest("lex import keyword")
+      assert/is-true(token-string("import") == "import <eof>")
+
+    dtest("lex from keyword")
+      assert/is-true(token-string("from") == "from <eof>")
+
+    dtest("lex import statement")
+      assert/is-true(token-string("import \"greet\"") == "import \"greet\" <eof>")
+
+    dtest("lex from import statement")
+      assert/is-true(token-string("from \"greet\" import") == "from \"greet\" import <eof>")

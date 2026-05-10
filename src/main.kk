@@ -22,7 +22,7 @@ import semantics/checker
 import emit/codegen
 import klap
 
-val version = "0.7.2"
+val version = "0.7.1"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -133,8 +133,12 @@ fun cmd-check( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens)
+  val dir    = file.path.dirname
   val prelude = load-prelude()
-  val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls)
+  val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                       types = prelude.types ++ imported-types ++ prog.types,
+                       decls = prelude.decls ++ imported-decls ++ prog.decls)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(merged)
@@ -162,7 +166,11 @@ fun cmd-test( file : string )
   else
     // Load prelude and merge
     val prelude = load-prelude()
-    val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls, prog.tests)
+    val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+    val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                         types = prelude.types ++ imported-types ++ prog.types,
+                         decls = prelude.decls ++ imported-decls ++ prog.decls,
+                         tests = prog.tests)
     // Type check
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
@@ -306,7 +314,12 @@ fun build( file : string )
   val prog   = run-parser-program(tokens)
   // Load prelude .hc files and merge with user program
   val prelude = load-prelude()
-  val merged = Program(prelude.structs ++ prog.structs, prelude.types ++ prog.types, prelude.decls ++ prog.decls)
+  // Compile imported modules and collect pub declarations
+  val (imported-decls, imported-structs, imported-types, imported-names) = compile-imports(prog.imports, dir.path, [file])
+  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                       types = prelude.types ++ imported-types ++ prog.types,
+                       decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       imports = prog.imports)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
@@ -317,11 +330,91 @@ fun build( file : string )
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
-  val koka-code = emit-program(typed-prog, mod-name)
+  // Emit main module — keep prelude + user decls, skip imported decl definitions
+  val prelude-count = prelude.decls.length
+  val imported-count = imported-decls.length
+  val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
+  val user-prog = typed-prog(decls = user-typed-decls, imports = prog.imports)
+  val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names)
   val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ file ++ " -> " ++ out-kk.show)
   compile-koka(file, mod-name)
+
+// ---------------------------------------------------------------------------
+// Import resolution: compile imported modules, collect pub declarations
+// ---------------------------------------------------------------------------
+
+// Resolve an import path relative to a directory → absolute .hc file path
+fun resolve-import( imp-path : string, base-dir : path ) : path
+  base-dir / (imp-path ++ ".hc").path
+
+// Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names)
+fun compile-imports( imports : list<import-decl>, base-dir : path, visited : list<string> )
+  imports.foldl(([], [], [], []), fn(acc, imp)
+    val (prev-decls, prev-structs, prev-types, prev-names) = acc
+    val imp-file = resolve-import(imp.path, base-dir)
+    val imp-path-str = imp-file.show
+    // Cycle detection
+    if visited.any(fn(v) v == imp-path-str) then
+      println("error: circular import detected: " ++ imp-path-str)
+      acc
+    elif !is-file(imp-file) then
+      println("error: imported file not found: " ++ imp-path-str)
+      acc
+    else
+      // Compile the imported module to .kk
+      compile-module(imp-file, visited)
+      // Parse the module to collect pub declarations for the checker
+      val mod-source = read-text-file(imp-file)
+      val mod-tokens = lex(mod-source)
+      val mod-prog = run-parser-program(mod-tokens)
+      // Collect pub declarations (for selective imports, filter by name)
+      val pub-decls = mod-prog.decls.filter(fn(d) d.is-pub)
+      val pub-names-all = pub-decls.map(fn(d) d.name)
+      val filtered-decls = match imp.names
+        Nothing  -> pub-decls
+        Just(ns) -> pub-decls.filter(fn(d) ns.any(fn(n) n == d.name))
+      val filtered-names = match imp.names
+        Nothing  -> pub-names-all
+        Just(ns) -> ns
+      (prev-decls ++ filtered-decls, prev-structs ++ mod-prog.structs, prev-types ++ mod-prog.types, prev-names ++ filtered-names)
+  )
+
+// Compile a single imported module to a .kk file
+fun compile-module( imp-file : path, visited : list<string> )
+  val stem = imp-file.stemname
+  val mod-name = safe-module-name(stem)
+  val dir = imp-file.dirname
+  val source = read-text-file(imp-file)
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  // Load prelude for this module
+  val prelude = load-prelude()
+  // Recursively compile this module's imports
+  val imp-path-str = imp-file.show
+  val (imp-decls, imp-structs, imp-types, imp-names) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
+  val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
+                       types = prelude.types ++ imp-types ++ prog.types,
+                       decls = prelude.decls ++ imp-decls ++ prog.decls,
+                       imports = prog.imports)
+  // Type check
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(merged)
+  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
+    println("error: " ++ errors.length.show ++ " type error(s) in " ++ imp-file.show)
+  // Emit module .kk — keep prelude + user decls, skip imported decl definitions
+  val prelude-count = prelude.decls.length
+  val imp-imported-count = imp-decls.length
+  val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imp-imported-count)
+  val user-prog = typed-prog(decls = user-typed-decls, imports = prog.imports)
+  val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names)
+  val out-kk = dir.path / (mod-name ++ ".kk").path
+  write-text-file(out-kk, koka-code)
+  println("compiled " ++ imp-file.show ++ " -> " ++ out-kk.show)
 
 // ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary

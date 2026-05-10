@@ -384,16 +384,30 @@ pub struct test-decl
 pub fun test-decl/show( d : test-decl ) : div string
   "test \"" ++ d.name ++ "\" " ++ d.body.show
 
+pub struct import-decl
+  span   : span
+  path   : string                    // e.g. "greet" or "lib/utils"
+  names  : maybe<list<string>>       // Nothing = all pub, Just([...]) = selective
+  is-pub : bool                      // pub import re-exports
+
+pub fun import-decl/show( d : import-decl ) : div string
+  val pub-str = if d.is-pub then "pub " else ""
+  match d.names
+    Nothing     -> pub-str ++ "import \"" ++ d.path ++ "\""
+    Just(ns)    -> "from \"" ++ d.path ++ "\" import { " ++ ns.join(", ") ++ " }"
+
 pub struct program
   structs : list<struct-def>
   types   : list<type-def> = []
   decls   : list<fun-decl>
   tests   : list<test-decl> = []
+  imports : list<import-decl> = []
 
 pub fun program/show( p : program ) : div string
+  val import-strs = p.imports.map(show)
   val struct-strs = p.structs.map(show)
   val decl-strs = p.decls.map(show)
-  (struct-strs ++ decl-strs).join("\n\n")
+  (import-strs ++ struct-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------
 // Type environment

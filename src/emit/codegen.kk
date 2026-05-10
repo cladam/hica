@@ -27,6 +27,12 @@ pub fun safe-module-name( name : string ) : string
     Cons(c, _) | c.is-digit -> "hc" ++ name
     _                       -> name
 
+// Extract the basename from an import path: "lib/utils" → "utils"
+fun import-basename( p : string ) : div string
+  match p.list.reverse.span(fn(c) c != '/')
+    (_, Nil)        -> p
+    (rev-base, _)   -> rev-base.reverse.string
+
 // ---------------------------------------------------------------------------
 // Name marshalling: prefix user-declared names to avoid Koka stdlib clashes.
 // Names declared by the user or that conflict with Koka builtins get an hc_ prefix.
@@ -177,14 +183,19 @@ fun emit-show-call( t : hica-type, expr-str : string ) : div string
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
-pub fun emit-program( p : program, mod-name : string = "main" ) : div string
-  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main")
+pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [] ) : div string
+  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
+  val hica-imports = p.imports.map(fn(imp)
+    val koka-mod = safe-module-name(imp.path.import-basename)
+    val pub-str = if imp.is-pub then "pub " else ""
+    pub-str ++ "import " ++ koka-mod ++ "\n"
+  ).join("") ++ (if p.imports.is-nil then "" else "\n")
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
@@ -201,6 +212,7 @@ pub fun emit-program( p : program, mod-name : string = "main" ) : div string
   env-import ++
   file-import ++
   readline-import ++
+  hica-imports ++
   break-effect ++
   cont-effect ++
   type-defs ++ type-sep ++

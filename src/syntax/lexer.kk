@@ -44,6 +44,8 @@ pub type token-kind
   TkContinue
   TkStruct
   TkType
+  TkImport
+  TkFrom
   TkPub
   TkTest
   TkTrue
@@ -123,6 +125,8 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkContinue   -> "continue"
     TkStruct     -> "struct"
     TkType       -> "type"
+    TkImport     -> "import"
+    TkFrom       -> "from"
     TkPub        -> "pub"
     TkTest       -> "test"
     TkTrue       -> "true"
@@ -273,6 +277,8 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "in"     -> TkIn
     "struct" -> TkStruct
     "type"   -> TkType
+    "import" -> TkImport
+    "from"   -> TkFrom
     "pub"    -> TkPub
     "test"   -> TkTest
     "true"   -> TkBool(True)
@@ -399,6 +405,8 @@ fun lex-one-interp( cs : list<char>, str-start : int, pos : int, depth : int ) :
           "else"   -> TkElse
           "match"  -> TkMatch
           "repeat" -> TkRepeat
+          "import" -> TkImport
+          "from"   -> TkFrom
           "test"   -> TkTest
           "while"  -> TkWhile
           "true"   -> TkBool(True)
