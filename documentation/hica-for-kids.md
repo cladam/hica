@@ -41,7 +41,8 @@ software.
 30. [Random Numbers: Roll the Dice!](#30-random-numbers-roll-the-dice)
 31. [Under the Hood: The Translator](#31-under-the-hood-the-translator)
 32. [Projects](#32-projects)
-33. [Glossary](#33-glossary)
+33. [Sharing Code Between Files](#33-sharing-code-between-files)
+34. [Glossary](#34-glossary)
 
 ---
 
@@ -2473,7 +2474,81 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 
 ---
 
-## 33. Glossary
+## 33. Sharing Code Between Files
+
+When your programs get bigger, you might want to put some functions in a
+separate file. That's what **imports** are for!
+
+### Making things shareable
+
+To share a function from a file, add `pub` in front of it:
+
+```rust
+// helpers.hc
+pub fun double(x) => x * 2
+pub fun triple(x) => x * 3
+fun secret() => 42   // no pub — stays hidden!
+```
+
+`pub` is short for "public". It means: "other files are allowed to use this."
+
+### Importing
+
+In another file, use `import` to bring those shared functions in:
+
+```rust
+// main.hc
+import "helpers"
+
+fun main() {
+  println(double(5))   // 10
+  println(triple(5))   // 15
+  // secret() would fail — it's not pub!
+}
+```
+
+The name in quotes is the file name **without** `.hc`. If `helpers.hc` is in
+the same folder as your main file, just write `"helpers"`.
+
+### Picking what you want
+
+Sometimes a file has lots of functions but you only need one. Use
+`from ... import { }` to pick:
+
+```rust
+from "helpers" import { double }
+
+fun main() {
+  println(double(5))   // works!
+  // triple(5)         // nope — we didn't import it
+}
+```
+
+Think of it like ordering from a menu: you don't have to take everything,
+just pick the dishes you want.
+
+### Passing things along
+
+If you want to share someone else's functions through your file, use
+`pub import`:
+
+```rust
+// everything.hc
+pub import "helpers"
+pub import "math_tools"
+```
+
+Now anyone who imports `everything` gets all the pub functions from both
+`helpers` and `math_tools`. It's like being a librarian: you collect books
+from different shelves and put them on one table.
+
+**🎯 Challenge:** Create two files — `animals.hc` with `pub fun cat()` and
+`pub fun dog()`, and a main file that imports them and prints each animal's
+sound!
+
+---
+
+## 34. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2542,6 +2617,10 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 | `foreach()` | Function form of for-each — `foreach(list, fn)` |
 | closure | A function that remembers values from where it was created |
 | higher-order function | A function that takes or returns other functions |
+| `import` | Bring functions from another file into yours |
+| `pub` | Mark a function as public — other files can use it |
+| `from ... import` | Pick specific functions from another file |
+| `pub import` | Import and re-share — pass functions along to your importers |
 | `: int` | A type annotation — labels a variable or parameter with its type |
 | block `{ }` | A group of steps; the last line is the answer |
 | `.hc` | The file extension for Hica source code |

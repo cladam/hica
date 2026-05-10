@@ -538,6 +538,42 @@ fun main() {
 
 The inner function `(x) => x + n` captures `n` from the enclosing scope. This is how `map`, `filter`, and `fold` work: you pass them a function and they call it for you.
 
+## Importing modules
+
+As your programs grow, you'll want to split code across files. Any `.hc` file can be a module — just mark the functions you want to share with `pub`:
+
+```rust
+// helpers.hc
+pub fun double(x) => x * 2
+pub fun triple(x) => x * 3
+fun secret() => 42   // private — not visible outside this file
+```
+
+Then import from another file:
+
+```rust
+// main.hc
+import "helpers"
+
+fun main() {
+  println(double(5))   // 10
+  println(triple(5))   // 15
+}
+```
+
+The path is relative to the importing file, without `.hc`. Use `from ... import { }` to pick specific names:
+
+```rust
+from "helpers" import { double }
+
+fun main() {
+  println(double(5))   // works
+  // triple(5)         // error — not imported
+}
+```
+
+And `pub import` re-exports to your own importers — handy for building libraries.
+
 ## Putting it all together
 
 Here's a complete program that uses most of what you've learned:
@@ -561,6 +597,6 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 32 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 33 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

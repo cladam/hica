@@ -94,8 +94,28 @@ The repo ships with ready-to-run [examples](https://github.com/cladam/hica/tree/
 ./hica run examples/closures.hc
 ```
 
+## Multi-file Projects
+
+Split code across files with `import`. Mark shared functions with `pub`:
+
+```rust
+// helpers.hc
+pub fun double(x) => x * 2
+```
+
+```rust
+// main.hc
+import "helpers"
+
+fun main() {
+  println(double(5))
+}
+```
+
+See the [Language Reference](/hica/docs/language-reference#modules--imports) for selective imports and re-exporting.
+
 ## Next Steps
 
-- **[Learn hica](/hica/docs/learn)**: 32 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 33 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

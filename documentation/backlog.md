@@ -103,7 +103,7 @@ Legend: **done** = shipped, **—** = not started
 |---------|--------|------------|-------|
 | Single-file compilation | **done** | — | `.hc` → `.kk` |
 | Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
-| `import "mymodule"` | — | High | Multi-file compilation, module graph. Sub-tasks: file resolution, selective imports (`from "math" import { sin, cos }`), qualified names (`math.sin(x)`) |
+| `import "mymodule"` | **done** | High | Multi-file compilation, module graph. Three forms: `import "path"` (all pub items), `from "path" import { names }` (selective), `pub import "path"` (re-export). File resolution relative to importer, cycle detection, each module compiled to own Koka module |
 | `pub` visibility | **done** | Medium | Emit Koka `pub` |
 
 ---

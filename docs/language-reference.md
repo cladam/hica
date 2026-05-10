@@ -765,3 +765,79 @@ hica test my_file.hc
 - Tests can call any function defined in the same file
 - No imports needed — `assert` and `assert_eq` are built-in
 - Exit code is 0 on success, 1 on failure
+
+## Modules & Imports
+
+### Modules
+
+Any `.hc` file is a module. Mark functions with `pub` to make them available to other files:
+
+```rust
+// greet.hc
+pub fun hello(name: string) {
+  println("hello, " + name + "!")
+}
+
+pub fun goodbye(name: string) {
+  println("goodbye, " + name + "!")
+}
+
+fun secret() {
+  println("this is private")
+}
+```
+
+Only `pub` items are visible to importers. Functions without `pub` stay private to their file.
+
+### Import
+
+Use `import` to bring all `pub` items from another file into scope:
+
+```rust
+import "greet"
+
+fun main() {
+  hello("world")     // works — hello is pub
+  goodbye("world")   // works — goodbye is pub
+  // secret()        // error — secret is not pub
+}
+```
+
+The path is relative to the importing file, without the `.hc` extension:
+
+- `import "greet"` → looks for `greet.hc` in the same directory
+- `import "lib/utils"` → looks for `lib/utils.hc` relative to the importing file
+
+### Selective import
+
+Use `from ... import { ... }` to import only specific names:
+
+```rust
+from "greet" import { hello }
+
+fun main() {
+  hello("world")     // works — explicitly imported
+  // goodbye("world")  // error — not imported
+}
+```
+
+This is useful when a module exports many items but you only need a few, or when you want to make it clear where a name comes from.
+
+### Re-exporting with `pub import`
+
+Prefix `import` with `pub` to re-export the imported items to your own importers:
+
+```rust
+// prelude.hc
+pub import "math_helpers"
+pub import "string_helpers"
+```
+
+Anyone who imports `prelude` gets the `pub` items from both `math_helpers` and `string_helpers`. This is useful for building library packages.
+
+### Import resolution rules
+
+- Imports are resolved **relative to the importing file**, not the working directory
+- **Circular imports** are detected and reported as errors
+- Each imported file is compiled to its own Koka module — names do not collide across files
+- The import graph is processed before the main file, so imported functions are available throughout your code

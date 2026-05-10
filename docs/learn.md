@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 27 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 33 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -46,6 +46,7 @@ A progressive set of 27 lessons that teach hica one concept at a time. Each less
 | 30 | `30-maps.hc`          | Maps                             | `{"key": value}` literals, `{:}` empty map, `map_get`, `map_set`, `map_remove` |
 | 31 | `31-enums.hc`         | Enum types                       | `type` declarations, variants with data, constructors, pattern matching on enums |
 | 32 | `32-combinators.hc`   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
+| 33 | `33-imports.hc`       | Imports                          | `import`, `from ... import { }`, `pub import`, modules, `pub` visibility |
 
 ## Language features shown
 
@@ -118,7 +119,10 @@ A progressive set of 27 lessons that teach hica one concept at a time. Each less
 | `map_maybe`, `and_then`        | `32-combinators.hc`                   |
 | `map_result`, `map_err`        | `32-combinators.hc`                   |
 | `unwrap_maybe`, `is_some`      | `32-combinators.hc`                   |
-| `pub` visibility               | `examples/match.hc` (module prep)     |
+| `pub` visibility               | `33-imports.hc`, `examples/greet.hc`  |
+| `import` (all pub items)       | `33-imports.hc`, `examples/import.hc` |
+| `from ... import { }`          | `33-imports.hc`, `examples/import-selective.hc` |
+| `pub import` (re-export)       | `33-imports.hc`                       |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 
