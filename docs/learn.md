@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 33 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 34 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -47,6 +47,7 @@ A progressive set of 33 lessons that teach hica one concept at a time. Each less
 | 31 | [`31-enums.hc`](https://github.com/cladam/hica/blob/main/learn/31-enums.hc)         | Enum types                       | `type` declarations, variants with data, constructors, pattern matching on enums |
 | 32 | [`32-combinators.hc`](https://github.com/cladam/hica/blob/main/learn/32-combinators.hc)   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
 | 33 | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc)       | Imports                          | `import`, `from ... import { }`, `pub import`, modules, `pub` visibility |
+| 34 | [`34-struct-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/34-struct-patterns.hc) | Struct patterns            | Struct destructuring in `match`, partial patterns, literal fields |
 
 ## Language features shown
 
@@ -124,6 +125,7 @@ A progressive set of 33 lessons that teach hica one concept at a time. Each less
 | `from ... import { }`          | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc), [`import-selective.hc`](https://github.com/cladam/hica/blob/main/examples/import-selective.hc) |
 | `pub import` (re-export)       | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc)                       |
 | Type annotations (`: int`)     | [`type-annotations.hc`](https://github.com/cladam/hica/blob/main/examples/type-annotations.hc)        |
+| Struct destructuring patterns   | [`34-struct-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/34-struct-patterns.hc), [`struct-patterns.hc`](https://github.com/cladam/hica/blob/main/examples/struct-patterns.hc) |
 | `println()`                    | [`01-hello.hc`](https://github.com/cladam/hica/blob/main/learn/01-hello.hc), [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc)         |
 
 ## Getting Started

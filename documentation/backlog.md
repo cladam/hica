@@ -34,7 +34,7 @@ Legend: **done** = shipped, **—** = not started
 | String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
 | Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
 | Match exhaustiveness checking | **done** | Medium | Warns on missing cases for Maybe, Result, Bool, and literal types |
-| Destructuring patterns (tuples/structs) | tuples **done** | Medium | Depends on tuple/struct types; struct patterns not yet implemented |
+| Destructuring patterns (tuples/structs) | **done** | Medium | Tuple patterns: `(a, b) => ...`. Struct patterns: `Point { x, y } => ...`, `Point { x: 0, y } => ...`. Partial patterns (unmentioned fields are wildcards). Checker validates field names against struct definition |
 | Or-patterns (`1 \| 2 \| 3 => ...`) | **done** | Medium | Multiple patterns per arm; emits Koka native or-patterns |
 | Match guards (`n if n > 5 => ...`) | **done** | Medium | `pattern if cond => body`; guard parsed after pattern, type-checked as bool, emitted as Koka `pattern \| cond ->`; guarded arms excluded from exhaustiveness check |
 | Tuple destructuring patterns (`(a, b) => ...`) | **done** | Low | Koka handles tuple patterns directly; just parse + emit |

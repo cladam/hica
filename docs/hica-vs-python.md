@@ -372,7 +372,7 @@ match command:
         print("Unknown")
 ```
 
-**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, or-patterns, and range patterns:
+**hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, or-patterns, range patterns, and struct destructuring:
 
 ```rust
 fun describe(x) => match x {
@@ -389,9 +389,16 @@ fun grade(score: int) => match score {
   90..=100 => "A",
   _        => "invalid"
 }
+
+struct Point { x: int, y: int }
+
+fun classify(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y }       => "({x}, {y})"
+}
 ```
 
-Python's `match` supports guards (`case x if x > 0`) but has no range pattern syntax. hica's `..=` makes numeric ranges concise and readable.
+Python's `match` supports guards (`case x if x > 0`) but has no range pattern syntax. hica's `..=` makes numeric ranges concise and readable. Both languages support struct/class destructuring in patterns.
 
 ## Loops
 

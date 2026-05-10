@@ -233,7 +233,7 @@ match score {
 }
 ```
 
-hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, or-patterns, and range patterns:
+hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, or-patterns, range patterns, and struct destructuring:
 
 ```rust
 fun describe(x) => match x {
@@ -248,9 +248,16 @@ fun grade(score: int) => match score {
   90..=100 => "A",
   _        => "other"
 }
+
+struct Point { x: int, y: int }
+
+fun classify(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y }       => "({x}, {y})"
+}
 ```
 
-Both languages use `..=` for inclusive range patterns. Rust's pattern matching is more powerful (nested destructuring, `if let`, `@` bindings, exclusive ranges with `..`). hica covers the common cases — including or-patterns, guards, and ranges — with fewer constructs and edge cases to learn.
+Both languages use `..=` for inclusive range patterns and support struct destructuring in match. Rust's pattern matching is still more powerful (`if let`, `@` bindings, exclusive ranges with `..`, nested destructuring). hica covers the common cases — including or-patterns, guards, ranges, and struct patterns — with fewer constructs and edge cases to learn.
 
 ## Custom Data Types
 

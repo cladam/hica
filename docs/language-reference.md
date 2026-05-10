@@ -226,6 +226,30 @@ fun describe(point) => match point {
 }
 ```
 
+Struct destructuring patterns:
+
+```rust
+struct Point { x: int, y: int }
+
+fun describe(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y: 0 }    => "on x-axis at {x}",
+  Point { x: 0, y }    => "on y-axis at {y}",
+  Point { x, y }       => "({x}, {y})"
+}
+```
+
+Write just the field name (`x`) to bind it to a variable with that name, or `field: pattern` to match a specific value. Fields not mentioned in the pattern are ignored (treated as wildcards):
+
+```rust
+struct Player { name: string, score: int, level: int }
+
+fun rank(p: Player) : string => match p {
+  Player { score: 0 }      => "newcomer",
+  Player { level, score }  => "level {level} with {score} pts"
+}
+```
+
 Bit patterns match integers by their binary representation using `0b` literals with `?` wildcards. Each `?` matches either 0 or 1:
 
 ```rust
@@ -423,6 +447,21 @@ fun main() {
 ```
 
 The original value is unchanged (structs are immutable). The compiler checks that override fields exist in the struct and have the right types.
+
+#### Struct destructuring in match
+
+Use struct patterns to destructure a struct in `match` arms:
+
+```rust
+struct Point { x: int, y: int }
+
+fun classify(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y }       => "({x}, {y})"
+}
+```
+
+See [Pattern Matching](#match-expressions) for the full syntax.
 
 ### Enums (Algebraic Types)
 

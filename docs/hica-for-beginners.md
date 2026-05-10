@@ -334,6 +334,18 @@ Since structs are immutable, you create a modified copy with update syntax:
 let moved = Point { ...p, x: 10 }   // y stays the same
 ```
 
+You can also destructure structs directly in `match`:
+
+```rust
+fun classify(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y: 0 }    => "on x-axis",
+  Point { x, y }       => "({x}, {y})"
+}
+```
+
+Write just the field name to bind it as a variable. Fields you don't mention are ignored.
+
 ## Enums: when a value can be one of several things
 
 A struct says "every value has these fields." An enum says "a value is one of these alternatives":
@@ -597,6 +609,6 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 33 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 34 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

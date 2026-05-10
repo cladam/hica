@@ -1915,6 +1915,29 @@ fun main() {
 
 Think of it like photocopying a form and writing over just one field.
 
+### Taking structs apart in match
+
+Remember `match`? You can use it to look inside a struct — like opening a
+box and checking what's in each compartment:
+
+```rust
+struct Point { x: int, y: int }
+
+fun describe(p: Point) : string => match p {
+  Point { x: 0, y: 0 } => "origin",
+  Point { x, y: 0 }    => "on x-axis",
+  Point { x, y }       => "({x}, {y})"
+}
+```
+
+- `Point { x, y }` — opens the box and names each field
+- `Point { x: 0, y: 0 }` — only matches when both fields are zero
+- `Point { x }` — you can skip fields you don't care about
+
+**🎯 Try it:** Create a `Pet` struct with `name`, `species`, and `age`.
+Write a `describe` function that uses match to print different messages
+for kittens (age 0) vs older pets!
+
 ---
 
 ## 27. Maps: The Lookup Book

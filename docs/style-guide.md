@@ -178,6 +178,14 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    println(dims.0)
    ```
 
+ - **Struct patterns:** Use struct destructuring in `match` when you need specific fields. List fields in declaration order:
+   ```rust
+   match p {
+     Point { x: 0, y: 0 } => "origin",
+     Point { x, y }       => "({x}, {y})"
+   }
+   ```
+
  - **Trailing commas:** Use a trailing comma on the last field when struct definitions or literals span multiple lines. This makes diffs cleaner when fields are added later:
    ```rust
    struct Config {
