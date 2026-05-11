@@ -13,6 +13,7 @@ import syntax/parser
 import semantics/checker
 import diagnostics/diagnostics
 import emit/codegen
+import transform/desugar
 
 // Helper: parse then emit (single expression)
 fun emit-show( source : string ) : <div,console> string
@@ -30,18 +31,20 @@ fun emit-program-show( source : string ) : <div,console> string
 fun emit-typed-program( source : string ) : <div,console> string
   val tokens = lex(source)
   val prog = run-parser-program(tokens)
+  val desugared = desugar-program(prog)
   val (typed-prog, _) = collect-diagnostics
     run-fresh
-      check-program(prog)
+      check-program(desugared)
   emit-program(typed-prog)
 
 // Helper: parse → check and return diagnostics
 fun check-diagnostics( source : string ) : <div,console> list<diagnostic>
   val tokens = lex(source)
   val prog = run-parser-program(tokens)
+  val desugared = desugar-program(prog)
   val (_, ds) = collect-diagnostics
     run-fresh
-      check-program(prog)
+      check-program(desugared)
   ds
 
 pub fun main() : io ()

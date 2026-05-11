@@ -20,6 +20,7 @@ import syntax/parser
 import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
+import transform/desugar
 import klap
 
 val version = "0.8.0"
@@ -139,9 +140,10 @@ fun cmd-check( file : string )
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls)
+  val desugared = desugar-program(merged)
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(merged)
+      check-program(desugared)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -171,10 +173,12 @@ fun cmd-test( file : string )
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
                          tests = prog.tests)
+    // Desugar
+    val desugared = desugar-program(merged)
     // Type check
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(merged)
+        check-program(desugared)
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -320,10 +324,12 @@ fun build( file : string )
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        imports = prog.imports)
+  // Desugar
+  val desugared = desugar-program(merged)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(merged)
+      check-program(desugared)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -398,10 +404,12 @@ fun compile-module( imp-file : path, visited : list<string> )
                        types = prelude.types ++ imp-types ++ prog.types,
                        decls = prelude.decls ++ imp-decls ++ prog.decls,
                        imports = prog.imports)
+  // Desugar
+  val desugared = desugar-program(merged)
   // Type check
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(merged)
+      check-program(desugared)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))

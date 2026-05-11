@@ -523,18 +523,6 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "match " ++ emit-expr(scrut, declared) ++ "\n" ++
       expanded.map(fn(a)
         val (pat-str, guard-str) = match a.pattern
-          PRange(lo, hi) ->
-            val rg = "hc__rng >= " ++ lo.show ++ " && hc__rng <= " ++ hi.show
-            val gs = match a.guard
-              Just(g) -> " | " ++ rg ++ " && " ++ emit-expr(g, declared)
-              Nothing -> " | " ++ rg
-            ("hc__rng", gs)
-          PBits(msk, vl) ->
-            val bg = "hc__bits.int32.and(" ++ msk.show ++ ".int32).int == " ++ vl.show
-            val gs = match a.guard
-              Just(g) -> " | " ++ bg ++ " && " ++ emit-expr(g, declared)
-              Nothing -> " | " ++ bg
-            ("hc__bits", gs)
           _ ->
             val gs = match a.guard
               Just(g) -> " | " ++ emit-expr(g, declared)
@@ -700,8 +688,8 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
         Just(rp) -> emit-pattern(rp, declared)
       elems.foldr(tail-str) fn(ep, acc)
         "Cons(" ++ emit-pattern(ep, declared) ++ ", " ++ acc ++ ")"
-    PRange(_, _) -> "hc__rng"  // handled at arm level with guard
-    PBits(_, _)  -> "hc__bits" // handled at arm level with guard
+    PRange(_, _) -> "_"  // desugared before codegen
+    PBits(_, _)  -> "_"  // desugared before codegen
 
 fun emit-binop( op : binop ) : string
   match op
