@@ -691,6 +691,19 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           val s2 = unify-ctor-args(s1, vd.fields, args', n.span)
           (s2, Node(n.span, EConstructor(cname, args'), Just(TEnum(td.name))))
 
+    // --- Try operator (?) ---
+    ETry(inner) ->
+      val (s1, inner') = infer(env, s, inner)
+      val inner-type = apply-subst(s1, get-type(inner'))
+      match inner-type
+        TMaybe(elem) ->
+          (s1, Node(n.span, ETry(inner'), Just(elem)))
+        TResult(ok-t, _) ->
+          (s1, Node(n.span, ETry(inner'), Just(ok-t)))
+        _ ->
+          emit-error(n.span, "? operator requires maybe or result type, got " ++ inner-type.show)
+          (s1, Node(n.span, ETry(inner'), Just(fresh-tvar())))
+
     // --- Struct literal ---
     StructLit(sname, lit-fields) ->
       val reg = get-structs()
@@ -1206,6 +1219,7 @@ fun body-calls-name( n : node, name : string ) : div bool
     StructLit(_, fs)        -> fs.any(fn((_, v)) body-calls-name(v, name))
     FieldAccess(o, _)       -> body-calls-name(o, name)
     EConstructor(_, cargs)  -> cargs.any(fn(a) body-calls-name(a, name))
+    ETry(inner)             -> body-calls-name(inner, name)
     MapLit(entries)         -> entries.any(fn((k, v)) body-calls-name(k, name) || body-calls-name(v, name))
     StructUpdate(_, base, overrides, _) -> body-calls-name(base, name) || overrides.any(fn((_, v)) body-calls-name(v, name))
     _                       -> False

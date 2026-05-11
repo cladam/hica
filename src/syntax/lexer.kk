@@ -80,6 +80,7 @@ pub type token-kind
   TkPipePipe    // ||
   TkPipeGt      // |>
   TkBang        // !
+  TkQuestion    // ?
   TkDot         // .
   TkDotDot      // ..
   TkDotDotEq    // ..=
@@ -159,6 +160,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkPipePipe   -> "||"
     TkPipeGt     -> "|>"
     TkBang       -> "!"
+    TkQuestion   -> "?"
     TkDot        -> "."
     TkDotDot     -> ".."
     TkDotDotEq   -> "..="
@@ -499,5 +501,6 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('.', Cons('.', Cons('.', rest))) -> Cons(Token(TkSpread, Span(pos, pos+3)), lex-from(rest, pos+3))
     Cons('.', Cons('.', rest)) -> Cons(Token(TkDotDot, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('.', rest) -> Cons(Token(TkDot, Span(pos, pos+1)), lex-from(rest, pos+1))
+    Cons('?', rest) -> Cons(Token(TkQuestion, Span(pos, pos+1)), lex-from(rest, pos+1))
     Cons(c, rest)   -> Cons(Token(TkError("unexpected character: " ++ c.string), Span(pos, pos+1)), lex-from(rest, pos+1))
     Nil             -> [Token(TkEof, Span(pos, pos))]

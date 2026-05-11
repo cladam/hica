@@ -333,6 +333,9 @@ fun parse-postfix() : <div,parser> node
                 // list[index]
                 val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
                 result := Node(Span(result.span.start, end-tok.span.end), ListIndex(result, idx-e))
+      TkQuestion ->
+        val t = advance()
+        result := Node(Span(result.span.start, t.span.end), ETry(result))
       _ -> cont := False
   result
 

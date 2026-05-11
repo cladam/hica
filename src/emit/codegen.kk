@@ -198,8 +198,12 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
+  val has-try-r = program-has-try-result(p)
+  val has-try-m = program-has-try-maybe(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
+  val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
+  val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
@@ -215,17 +219,16 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   hica-imports ++
   break-effect ++
   cont-effect ++
+  try-result-effect ++
+  try-maybe-effect ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   p.decls.map(fn(d) emit-decl(d, declared)).join("\n\n") ++ "\n"
 
 fun emit-decl( d : fun-decl, declared : list<string> ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
-  // Omit return type annotation for recursive functions — let Koka infer `div`
-  // Omit function-typed returns — Koka's parser confuses `(a) -> b` with the
-  // function's own signature, so we let Koka infer it.
-  // Use ret-ann (user-written) rather than ret-type (inferred) so that Koka
-  // can freely infer effects for functions that call divergent helpers.
+  val has-try-result = node-has-try-result(d.body)
+  val has-try-maybe  = node-has-try-maybe(d.body)
   val ret-ann = if d.is-recursive then "" else match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
@@ -233,8 +236,14 @@ fun emit-decl( d : fun-decl, declared : list<string> ) : div string
       if ts == "" then "" else " : " ++ ts
     Nothing -> ""
   val pub-prefix = if d.is-pub then "pub " else ""
+  val body-code = emit-body(d.body, declared).lines.map(fn(line) "  " ++ line).join("\n")
+  val wrapped-body = if has-try-result then
+    "  with handler\n    ctl hica-early-err(e) -> Left(e)\n" ++ body-code
+  elif has-try-maybe then
+    "  with handler\n    ctl hica-early-none() -> Nothing\n" ++ body-code
+  else body-code
   pub-prefix ++ "fun " ++ marshal-name(d.name, declared) ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
-  emit-body(d.body, declared).lines.map(fn(line) "  " ++ line).join("\n")
+  wrapped-body
 
 // Emit parameter list with type annotations when available.
 fun emit-typed-params( names : list<string>, types : list<hica-type>, declared : list<string> ) : div string
@@ -571,6 +580,16 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "Right(" ++ emit-expr(value, declared) ++ ")"
     EErr(value) ->
       "Left(" ++ emit-expr(value, declared) ++ ")"
+    ETry(inner) ->
+      val inner-code = emit-expr(inner, declared)
+      match inner.typ
+        Just(TResult(_, _)) ->
+          "match " ++ inner-code ++ "\n  Right(hc__v) -> hc__v\n  Left(hc__e) -> hica-early-err(hc__e)"
+        Just(TMaybe(_)) ->
+          "match " ++ inner-code ++ "\n  Just(hc__v) -> hc__v\n  Nothing -> hica-early-none()"
+        _ ->
+          // Fallback — assume result
+          "match " ++ inner-code ++ "\n  Right(hc__v) -> hc__v\n  Left(hc__e) -> hica-early-err(hc__e)"
     ListIndex(lst, idx) ->
       val lst-code = emit-expr(lst, declared)
       val idx-code = emit-expr(idx, declared)
@@ -1068,6 +1087,54 @@ fun body-has-continue( n : node ) : div bool
     EConstructor(_, cargs)  -> cargs.any(fn(a) body-has-continue(a))
     _                     -> False
 
+// ---------------------------------------------------------------------------
+// Try operator (?) detection
+// ---------------------------------------------------------------------------
+
+// Check if a node contains ETry on a result type (needs hica-early-result effect)
+fun node-has-try-result( n : node ) : div bool
+  match n.expr
+    ETry(inner) -> match inner.typ
+      Just(TResult(_, _)) -> True
+      _ -> False
+    Let(_, _, init, body) -> node-has-try-result(init) || node-has-try-result(body)
+    VarDecl(_, _, init, body) -> node-has-try-result(init) || node-has-try-result(body)
+    Assign(_, value)      -> node-has-try-result(value)
+    Fun(_, _)             -> False  // nested functions handle their own ?
+    Call(callee, args)    -> node-has-try-result(callee) || args.any(fn(a) node-has-try-result(a))
+    Binary(_, lhs, rhs)   -> node-has-try-result(lhs) || node-has-try-result(rhs)
+    Unary(_, operand)     -> node-has-try-result(operand)
+    If(c, t, e)           -> node-has-try-result(c) || node-has-try-result(t) || node-has-try-result(e)
+    Block(stmts)          -> stmts.any(fn(s) node-has-try-result(s))
+    Match(scrut, arms)    -> node-has-try-result(scrut) || arms.any(fn(a) node-has-try-result(a.body))
+    LetTuple(_, init, body) -> node-has-try-result(init) || node-has-try-result(body)
+    _                     -> False
+
+// Check if a node contains ETry on a maybe type (needs hica-early-maybe effect)
+fun node-has-try-maybe( n : node ) : div bool
+  match n.expr
+    ETry(inner) -> match inner.typ
+      Just(TMaybe(_)) -> True
+      _ -> False
+    Let(_, _, init, body) -> node-has-try-maybe(init) || node-has-try-maybe(body)
+    VarDecl(_, _, init, body) -> node-has-try-maybe(init) || node-has-try-maybe(body)
+    Assign(_, value)      -> node-has-try-maybe(value)
+    Fun(_, _)             -> False  // nested functions handle their own ?
+    Call(callee, args)    -> node-has-try-maybe(callee) || args.any(fn(a) node-has-try-maybe(a))
+    Binary(_, lhs, rhs)   -> node-has-try-maybe(lhs) || node-has-try-maybe(rhs)
+    Unary(_, operand)     -> node-has-try-maybe(operand)
+    If(c, t, e)           -> node-has-try-maybe(c) || node-has-try-maybe(t) || node-has-try-maybe(e)
+    Block(stmts)          -> stmts.any(fn(s) node-has-try-maybe(s))
+    Match(scrut, arms)    -> node-has-try-maybe(scrut) || arms.any(fn(a) node-has-try-maybe(a.body))
+    LetTuple(_, init, body) -> node-has-try-maybe(init) || node-has-try-maybe(body)
+    _                     -> False
+
+fun program-has-try-result( p : program ) : div bool
+  p.decls.any(fn(d) node-has-try-result(d.body))
+
+fun program-has-try-maybe( p : program ) : div bool
+  p.decls.any(fn(d) node-has-try-maybe(d.body))
+
 // Wrap loop code with break handler if the body uses break.
 // Uses val _ = ... to scope the handler so it doesn't extend
 // beyond the loop into subsequent statements.
@@ -1091,8 +1158,12 @@ pub fun emit-test-program( p : program, mod-name : string = "main" ) : div strin
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
+  val has-try-r = program-has-try-result(p)
+  val has-try-m = program-has-try-maybe(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
+  val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
+  val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
@@ -1118,6 +1189,8 @@ pub fun emit-test-program( p : program, mod-name : string = "main" ) : div strin
   exit-extern ++
   break-effect ++
   cont-effect ++
+  try-result-effect ++
+  try-maybe-effect ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   decls-code ++ decls-sep ++

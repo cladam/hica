@@ -250,6 +250,9 @@ pub type expr
   // Constructor(args) — enum variant construction
   EConstructor( ctor-name : string, ctor-args : list<node> )
 
+  // expr? — try operator, early return on Err/None
+  ETry( inner : node )
+
 pub struct match-arm
   pattern : pattern
   guard   : maybe<node>
@@ -344,6 +347,7 @@ pub fun expr/show( e : expr ) : div string
     EConstructor(name, args) ->
       if args.is-nil then name
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
+    ETry(inner) -> inner.show ++ "?"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations
