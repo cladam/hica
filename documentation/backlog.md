@@ -39,7 +39,7 @@ Legend: **done** = shipped, **—** = not started
 | Match guards (`n if n > 5 => ...`) | **done** | Medium | `pattern if cond => body`; guard parsed after pattern, type-checked as bool, emitted as Koka `pattern \| cond ->`; guarded arms excluded from exhaustiveness check |
 | Tuple destructuring patterns (`(a, b) => ...`) | **done** | Low | Koka handles tuple patterns directly; just parse + emit |
 | Range patterns (`4..=6 => ...`) | **done** | Medium | Desugar to match guard (`x >= 4 && x <= 6`); depends on guards |
-| Slice patterns (`[first, ..rest]`) | — | High | Depends on list types |
+| Slice patterns (`[first, ..rest]`) | **done** | High | Depends on list types |
 
 ### Data Types
 

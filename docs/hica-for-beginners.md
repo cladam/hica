@@ -205,6 +205,19 @@ fun classify(n) => match n {
 
 The variable `x` is bound by the pattern and available in the guard. This is much cleaner than nested `if`/`else` chains.
 
+### List slice patterns
+
+You can match on the shape of a list with slice patterns. This is great for recursive functions:
+
+```rust
+fun sum(xs: list<int>) : int => match xs {
+  []          => 0,
+  [x, ..rest] => x + sum(rest)
+}
+```
+
+`[]` matches empty, `[x]` matches exactly one element, and `[x, ..rest]` splits the list into its first element and the remainder.
+
 ## Loops
 
 hica has five ways to repeat things:

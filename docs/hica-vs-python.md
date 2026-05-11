@@ -398,7 +398,16 @@ fun classify(p: Point) : string => match p {
 }
 ```
 
-Python's `match` supports guards (`case x if x > 0`) but has no range pattern syntax. hica's `..=` makes numeric ranges concise and readable. Both languages support struct/class destructuring in patterns.
+hica also supports list slice patterns for recursive processing:
+
+```rust
+fun sum(xs: list<int>) : int => match xs {
+  []          => 0,
+  [x, ..rest] => x + sum(rest)
+}
+```
+
+Python's `match` supports guards (`case x if x > 0`) but has no range pattern syntax or list slice patterns. hica's `..=` makes numeric ranges concise and `[x, ..rest]` provides idiomatic list destructuring. Both languages support struct/class destructuring in patterns.
 
 ## Loops
 

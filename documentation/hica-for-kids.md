@@ -672,6 +672,37 @@ fun main() {
 Each arm peeks inside the tuple and names the pieces. It's like opening a
 lunchbox and checking what's in each compartment!
 
+**list slice patterns**:
+
+You can also peek inside lists! Use brackets to check what's in the list:
+
+```rust
+fun describe(xs: list<int>) : string => match xs {
+  []           => "empty bag",
+  [x]          => "just {x}",
+  [x, ..rest]  => "first is {x}, {length(rest)} more inside"
+}
+
+fun main() {
+  println(describe([]))           // empty bag
+  println(describe([42]))         // just 42
+  println(describe([1, 2, 3]))    // first is 1, 2 more inside
+}
+```
+
+Think of it like looking into a bag: `[]` means the bag is empty, `[x]`
+means there's exactly one thing, and `[x, ..rest]` means "grab the first
+thing and keep the rest in the bag."
+
+This is perfect for processing a list one item at a time:
+
+```rust
+fun sum(xs: list<int>) : int => match xs {
+  []          => 0,
+  [x, ..rest] => x + sum(rest)
+}
+```
+
 **🎯 Try it:** Write a `match` that labels 0 as `"none"`, 1 as `"solo"`,
 2 as `"pair"`, and everything else as `"group"`.
 
@@ -2588,6 +2619,7 @@ sound!
 | `x if cond` | A match guard — adds a condition to a pattern |
 | `a \| b` | Or-pattern — match this *or* that in a match arm |
 | `0..=59` | Range pattern — match any integer in a range (inclusive) |
+| `[x, ..rest]` | Slice pattern — grab the first item, keep the rest |
 | `if / else` | A fork in the road — pick one path |
 | `else if` | Chain multiple conditions without nesting |
 | `repeat(n)` | Do something n times |

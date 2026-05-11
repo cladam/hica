@@ -255,9 +255,14 @@ fun classify(p: Point) : string => match p {
   Point { x: 0, y: 0 } => "origin",
   Point { x, y }       => "({x}, {y})"
 }
+
+fun sum(xs: list<int>) : int => match xs {
+  []          => 0,
+  [x, ..rest] => x + sum(rest)
+}
 ```
 
-Both languages use `..=` for inclusive range patterns and support struct destructuring in match. Rust's pattern matching is still more powerful (`if let`, `@` bindings, exclusive ranges with `..`, nested destructuring). hica covers the common cases — including or-patterns, guards, ranges, and struct patterns — with fewer constructs and edge cases to learn.
+Both languages use `..=` for inclusive range patterns, support struct destructuring, and have list/slice patterns in match. Rust uses `[first, rest @ ..]` syntax; hica uses `[first, ..rest]`. Rust's pattern matching is still more powerful (`if let`, `@` bindings, exclusive ranges with `..`, nested destructuring). hica covers the common cases — including or-patterns, guards, ranges, struct patterns, and list slice patterns — with fewer constructs and edge cases to learn.
 
 ## Custom Data Types
 

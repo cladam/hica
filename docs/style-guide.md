@@ -186,6 +186,14 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    }
    ```
 
+ - **List slice patterns:** Prefer `[x, ..rest]` over manual `head`/`tail` calls. Put the empty case first:
+   ```rust
+   match xs {
+     []          => 0,
+     [x, ..rest] => x + sum(rest)
+   }
+   ```
+
  - **Trailing commas:** Use a trailing comma on the last field when struct definitions or literals span multiple lines. This makes diffs cleaner when fields are added later:
    ```rust
    struct Config {

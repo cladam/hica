@@ -250,6 +250,32 @@ fun rank(p: Player) : string => match p {
 }
 ```
 
+List slice patterns destructure lists by shape. Use `[]` for empty, `[x]` for a single element, `[x, y]` for exactly two, and `[x, ..rest]` to split into head and tail:
+
+```rust
+fun describe(xs: list<int>) : string => match xs {
+  []           => "empty",
+  [x]          => "just {x}",
+  [x, y]       => "{x} and {y}",
+  [x, ..rest]  => "starts with {x}, {length(rest)} more"
+}
+```
+
+Slice patterns make recursive list processing clean:
+
+```rust
+fun sum(xs: list<int>) : int => match xs {
+  []          => 0,
+  [x, ..rest] => x + sum(rest)
+}
+```
+
+Use `..` without a name to ignore the tail:
+
+```rust
+[x, ..] => "starts with {x}"
+```
+
 Bit patterns match integers by their binary representation using `0b` literals with `?` wildcards. Each `?` matches either 0 or 1:
 
 ```rust

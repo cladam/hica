@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 34 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 35 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -48,6 +48,7 @@ A progressive set of 34 lessons that teach hica one concept at a time. Each less
 | 32 | [`32-combinators.hc`](https://github.com/cladam/hica/blob/main/learn/32-combinators.hc)   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
 | 33 | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc)       | Imports                          | `import`, `from ... import { }`, `pub import`, modules, `pub` visibility |
 | 34 | [`34-struct-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/34-struct-patterns.hc) | Struct patterns            | Struct destructuring in `match`, partial patterns, literal fields |
+| 35 | [`35-slice-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/35-slice-patterns.hc) | Slice patterns              | List destructuring `[]`, `[x]`, `[x, ..rest]`, recursive processing |
 
 ## Language features shown
 
@@ -126,6 +127,7 @@ A progressive set of 34 lessons that teach hica one concept at a time. Each less
 | `pub import` (re-export)       | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc)                       |
 | Type annotations (`: int`)     | [`type-annotations.hc`](https://github.com/cladam/hica/blob/main/examples/type-annotations.hc)        |
 | Struct destructuring patterns   | [`34-struct-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/34-struct-patterns.hc), [`struct-patterns.hc`](https://github.com/cladam/hica/blob/main/examples/struct-patterns.hc) |
+| List slice patterns `[x, ..rest]`| [`35-slice-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/35-slice-patterns.hc), [`slice-patterns.hc`](https://github.com/cladam/hica/blob/main/examples/slice-patterns.hc) |
 | `println()`                    | [`01-hello.hc`](https://github.com/cladam/hica/blob/main/learn/01-hello.hc), [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc)         |
 
 ## Getting Started
