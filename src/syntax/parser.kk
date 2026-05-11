@@ -707,6 +707,25 @@ fun parse-struct-pattern-fields() : <div,parser> list<(string, pattern)>
     TkComma -> { advance(); Cons(field, parse-struct-pattern-fields()) }
     _       -> [field]
 
+fun parse-list-pattern-elems() : <div,parser> (list<pattern>, maybe<pattern>)
+  // Check for ..rest or .. at current position
+  match peek()
+    TkDotDot ->
+      advance()
+      val rest-pat = match peek()
+        TkRBracket -> PWild
+        TkIdent(n) -> { advance(); PVar(n) }
+        _          -> { parse-error("expected variable name or ] after .."); PWild }
+      ([], Just(rest-pat))
+    _ ->
+      val p = parse-pattern()
+      match peek()
+        TkComma ->
+          advance()
+          val (more, rest) = parse-list-pattern-elems()
+          (Cons(p, more), rest)
+        _ -> ([p], Nothing)
+
 fun parse-pattern() : <div,parser> pattern
   match peek()
     TkIdent("_") -> { advance(); PWild }
@@ -736,6 +755,16 @@ fun parse-pattern() : <div,parser> pattern
       val rest = parse-pattern-list()
       expect(")", fn(k) match k { TkRParen -> True; _ -> False })
       PTuple(Cons(first, rest))
+    TkLBracket ->
+      advance()
+      match peek()
+        TkRBracket ->
+          advance()
+          PList([], Nothing)
+        _ ->
+          val (elems, rest) = parse-list-pattern-elems()
+          expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+          PList(elems, rest)
     TkIdent(n)   ->
       advance()
       if n.is-upper-start then

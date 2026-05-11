@@ -1054,6 +1054,15 @@ fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : patter
                 (sa, ea)
               Just((_, ftype)) ->
                 infer-pattern(ea, sa, ftype, fpat)
+    PList(elems, rest) ->
+      val elem-var = fresh-tvar()
+      val s1 = compose-subst(unify(scrut-type, TList(elem-var), no-span), s)
+      val (s2, env2) = elems.foldl((s1, env)) fn((sa, ea), pat)
+        val resolved = apply-subst(sa, elem-var)
+        infer-pattern(ea, sa, resolved, pat)
+      match rest
+        Nothing  -> (s2, env2)
+        Just(rp) -> infer-pattern(env2, s2, apply-subst(s2, TList(elem-var)), rp)
     PRange(_, _) ->
       // Range patterns work on ints; unify scrutinee with TInt
       (compose-subst(unify(scrut-type, TInt, no-span), s), env)

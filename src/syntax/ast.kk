@@ -267,6 +267,7 @@ pub type pattern
   POr( alts : list<pattern> )
   PConstructor( ctor-name : string, ctor-args : list<pattern> )
   PStruct( struct-name : string, field-pats : list<(string, pattern)>, def-fields : list<string> = [] )
+  PList( elems : list<pattern>, rest : maybe<pattern> )
   PRange( lo : int, hi : int )
   PBits( msk : int, val_ : int )
 
@@ -286,6 +287,14 @@ pub fun pattern/show( p : pattern ) : div string
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
     PStruct(sname, fps) ->
       sname ++ " { " ++ fps.map(fn((f, p)) f ++ ": " ++ p.show).join(", ") ++ " }"
+    PList(elems, rest) ->
+      val es = elems.map(show).join(", ")
+      match rest
+        Nothing -> "[" ++ es ++ "]"
+        Just(r) ->
+          val rs = match r { PWild -> ".." ; _ -> ".." ++ r.show }
+          if elems.is-nil then "[" ++ rs ++ "]"
+          else "[" ++ es ++ ", " ++ rs ++ "]"
     PRange(lo, hi) -> lo.show ++ "..=" ++ hi.show
     PBits(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
 
@@ -406,10 +415,10 @@ pub struct program
   tests   : list<test-decl> = []
   imports : list<import-decl> = []
 
-pub fun program/show( p : program ) : div string
-  val import-strs = p.imports.map(show)
-  val struct-strs = p.structs.map(show)
-  val decl-strs = p.decls.map(show)
+pub fun program/show( prg : program ) : div string
+  val import-strs = prg.imports.map(show)
+  val struct-strs = prg.structs.map(show)
+  val decl-strs = prg.decls.map(show)
   (import-strs ++ struct-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------

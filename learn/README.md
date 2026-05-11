@@ -46,6 +46,8 @@ Each lesson is a standalone `.hc` file you can run:
 | 30 | `30-maps.hc`          | Maps                             | `{"key": value}` literals, `{:}` empty map, `map_get`, `map_set`, `map_remove` |
 | 31 | `31-enums.hc`         | Enum types                       | `type` declarations, variants with data, constructors, pattern matching on enums |
 | 32 | `32-combinators.hc`   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
+| 33 | `33-imports.hc`       | Imports                          | `import`, `from ... import { }`, `pub import`, modules, `pub` visibility |
+| 34 | `34-struct-patterns.hc` | Struct patterns            | Struct destructuring in `match`, partial patterns, literal fields |
 
 ## Language features shown
 
@@ -118,7 +120,13 @@ Each lesson is a standalone `.hc` file you can run:
 | `map_maybe`, `and_then`        | `32-combinators.hc`                   |
 | `map_result`, `map_err`        | `32-combinators.hc`                   |
 | `unwrap_maybe`, `is_some`      | `32-combinators.hc`                   |
-| `pub` visibility               | `examples/match.hc` (module prep)     |
+| `pub` visibility               | `33-imports.hc`, `greet.hc`  |
+| `import` (all pub items)       | `33-imports.hc`, `import.hc` |
+| `from ... import { }`          | `33-imports.hc`, `import-selective.hc` |
+| `pub import` (re-export)       | `33-imports.hc`                 |
+| Type annotations (`: int`)     | `type-annotations.hc`       |
+| Struct destructuring patterns   | `34-struct-patterns.hc`, `struct-patterns.hc` |
+| `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 

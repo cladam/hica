@@ -1806,3 +1806,23 @@ pub fun main() : io ()
     dtest("struct pattern unknown field error")
       val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() {\n  let p = Point { x: 3, y: 4 }\n  match p {\n    Point { z } => println(1)\n  }\n}")
       assert/is-true(ds.any(fn(d) d.message.contains("no field 'z'")))
+
+    dtest("emit empty list pattern")
+      val src = "fun f(xs: list<int>) : int => match xs {\n  [] => 0,\n  _ => 1\n}\nfun main() => println(f([]))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Nil"))
+
+    dtest("emit single element list pattern")
+      val src = "fun f(xs: list<int>) : int => match xs {\n  [x] => x,\n  _ => 0\n}\nfun main() => println(f([42]))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Cons(x, Nil)"))
+
+    dtest("emit list pattern with rest")
+      val src = "fun f(xs: list<int>) : int => match xs {\n  [x, ..rest] => x,\n  _ => 0\n}\nfun main() => println(f([1, 2, 3]))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Cons(x, rest)"))
+
+    dtest("emit two element list pattern")
+      val src = "fun f(xs: list<int>) : int => match xs {\n  [a, b] => a,\n  _ => 0\n}\nfun main() => println(f([1, 2]))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Cons(a, Cons(b, Nil))"))

@@ -539,3 +539,23 @@ pub fun main() : io ()
     itest("parse struct pattern with wildcard")
       val result = parse-show("match p { Point { x, y: _ } => x }")
       assert/is-true(result.contains("Point { x: x, y: _ }"))
+
+    itest("parse empty list pattern")
+      val result = parse-show("match xs { [] => 0 }")
+      assert/is-true(result.contains("[]"))
+
+    itest("parse single element list pattern")
+      val result = parse-show("match xs { [x] => x }")
+      assert/is-true(result.contains("[x]"))
+
+    itest("parse two element list pattern")
+      val result = parse-show("match xs { [a, b] => a }")
+      assert/is-true(result.contains("[a, b]"))
+
+    itest("parse list pattern with rest")
+      val result = parse-show("match xs { [x, ..rest] => x }")
+      assert/is-true(result.contains("[x, ..rest]"))
+
+    itest("parse list pattern with wildcard rest")
+      val result = parse-show("match xs { [x, ..] => x }")
+      assert/is-true(result.contains("[x, ..]"))

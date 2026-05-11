@@ -694,6 +694,12 @@ fun emit-pattern( p : pattern, declared : list<string> ) : div string
           Just((_, fpat)) -> emit-pattern(fpat, declared)
           Nothing         -> "_"
       sname ++ "(" ++ ordered.join(", ") ++ ")"
+    PList(elems, rest) ->
+      val tail-str = match rest
+        Nothing  -> "Nil"
+        Just(rp) -> emit-pattern(rp, declared)
+      elems.foldr(tail-str) fn(ep, acc)
+        "Cons(" ++ emit-pattern(ep, declared) ++ ", " ++ acc ++ ")"
     PRange(_, _) -> "hc__rng"  // handled at arm level with guard
     PBits(_, _)  -> "hc__bits" // handled at arm level with guard
 
