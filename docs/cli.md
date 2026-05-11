@@ -19,6 +19,7 @@ Commands:
     build, b    Compile a .hc file and build a binary
     run, r      Compile and run a .hc file
     check, c    Analyse a .hc file and report errors
+    fmt, f      Format a .hc file
     clean       Remove generated build artifacts
     test, t     Run tests in a .hc file
     new         Create a new hica project
@@ -61,6 +62,31 @@ Remove generated build artifacts:
 ```sh
 hica clean
 ```
+
+### `hica fmt` (alias: `f`)
+
+Format a `.hc` file according to the [style guide](/hica/docs/style-guide):
+
+```sh
+hica fmt examples/hello.hc
+```
+
+Use `--check` to verify formatting without modifying the file. Returns exit code 1 if changes are needed (useful in CI):
+
+```sh
+hica fmt --check examples/hello.hc
+```
+
+**Formatting rules applied:**
+
+- Remove trailing whitespace
+- Space around operators (`+`, `*`, `/`, `%`, `=`, `==`, `!=`, `<=`, `>=`, `&&`, `||`, `|>`, `=>`)
+- Collapse consecutive blank lines to one
+- Remove spaces inside `()` and `[]`
+- Remove space before function-call parentheses
+- Space after commas (not before)
+- Space after colon in type annotations (not before)
+- Ensure trailing newline at end of file
 
 ### `hica test` (alias: `t`)
 

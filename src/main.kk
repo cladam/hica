@@ -21,6 +21,7 @@ import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
 import transform/desugar
+import format/formatter
 import klap
 
 val version = "0.9.0"
@@ -35,9 +36,11 @@ fun hica-cli() : command
     .about("The hica compiler")
     .arg(positional("COMMAND").help("Command to run").required)
     .arg(positional("FILE").help("Source .hc file"))
+    .arg(flag("check").help("Check formatting without modifying the file"))
     .subcommand("build, b", "Compile a .hc file to Koka and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Analyse a .hc file and report errors")
+    .subcommand("fmt, f", "Format a .hc file")
     .subcommand("clean", "Remove generated build artifacts")
     .subcommand("test, t", "Run tests in a .hc file")
     .subcommand("new", "Create a new hica project")
@@ -63,6 +66,12 @@ fun clean-cli() : command
   command("hica clean")
     .about("Remove generated build artifacts")
     .arg(positional("FILE").help("Source .hc file").required)
+
+fun fmt-cli() : command
+  command("hica fmt")
+    .about("Format a .hc file")
+    .arg(positional("FILE").help("Source .hc file").required)
+    .arg(flag("check").help("Check formatting without modifying the file"))
 
 fun test-cli() : command
   command("hica test")
@@ -109,6 +118,8 @@ fun main()
             "r"     -> cmd-run(f, user-args)
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
+            "fmt"   -> cmd-fmt(f, m.get-flag("check"))
+            "f"     -> cmd-fmt(f, m.get-flag("check"))
             "clean" -> cmd-clean(f)
             "test"  -> cmd-test(f)
             "t"     -> cmd-test(f)
@@ -155,6 +166,22 @@ fun cmd-check( file : string )
   else
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
+
+fun cmd-fmt( file : string, check-only : bool )
+  val source    = read-text-file(file.path)
+  val formatted = format-source(source)
+  if check-only then
+    if source == formatted then
+      println("fmt: " ++ file ++ " — ok")
+    else
+      println("fmt: " ++ file ++ " — needs formatting")
+      hica-exit(1)
+  else
+    if source == formatted then
+      println("fmt: " ++ file ++ " — unchanged")
+    else
+      write-text-file(file.path, formatted)
+      println("fmt: " ++ file ++ " — formatted")
 
 fun cmd-test( file : string )
   val stem = file.path.stemname
@@ -278,6 +305,8 @@ fun cmd-help( sub : maybe<string> )
     Just("r")     -> println(run-cli().format-help)
     Just("check") -> println(check-cli().format-help)
     Just("c")     -> println(check-cli().format-help)
+    Just("fmt")   -> println(fmt-cli().format-help)
+    Just("f")     -> println(fmt-cli().format-help)
     Just("clean") -> println(clean-cli().format-help)
     Just("test")  -> println(test-cli().format-help)
     Just("t")     -> println(test-cli().format-help)

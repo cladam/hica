@@ -174,3 +174,29 @@ pub fun main() : io ()
       assert/is-true(out.contains("Just(7)"))
       assert/is-true(out.contains("Nothing"))
       assert/is-true(out.contains("Just(5)"))
+
+    // --- Fmt ---
+
+    itest("fmt formats a .hc file")
+      val out = hica("fmt examples/hello.hc")
+      assert/is-true(out.contains("fmt:"))
+
+    itest("f is an alias for fmt")
+      val out = hica("f examples/hello.hc")
+      assert/is-true(out.contains("fmt:"))
+
+    itest("fmt --check on clean file reports ok")
+      val out = hica("fmt --check examples/hello.hc")
+      assert/is-true(out.contains("ok"))
+
+    itest("fmt without file shows error")
+      val out = hica("fmt")
+      assert/is-true(out.contains("error:"))
+
+    itest("help fmt prints fmt help")
+      val out = hica("help fmt")
+      assert/is-true(out.contains("hica fmt"))
+
+    itest("help f resolves to fmt help")
+      val out = hica("help f")
+      assert/is-true(out.contains("hica fmt"))

@@ -75,12 +75,19 @@ Hello, world!
 | `hica run <file>` | Compile and run a `.hc` file |
 | `hica build <file>` | Compile a `.hc` file and build a binary |
 | `hica check <file>` | Analyse a `.hc` file and report errors |
+| `hica fmt <file>` | Format a `.hc` file according to the style guide |
 | `hica clean` | Remove generated build artifacts |
 | `hica new <name>` | Create a new hica project |
 | `hica init` | Initialise a project in the current directory |
-| `hica help <command> | Show help for a command |
+| `hica help <command>` | Show help for a command |
 
-Short aliases work too: `hica r`, `hica b`, `hica c`.
+Short aliases work too: `hica r`, `hica b`, `hica c`, `hica f`.
+
+Use `--check` with `fmt` to verify formatting without changing the file (exits 1 if changes needed):
+
+```sh
+hica fmt --check hello.hc
+```
 
 ## Try the Examples
 

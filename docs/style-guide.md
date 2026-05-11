@@ -5,6 +5,9 @@ title: Style Guide - hica
 
 # Style Guide
 
+> **Tip:** Run `hica fmt <file>` to automatically format your code according to these rules.
+> Use `hica fmt --check <file>` to verify formatting in CI without modifying the file.
+
 ### A Note on Consistency
 
 A style guide is about consistency. Consistency within a project is important.
