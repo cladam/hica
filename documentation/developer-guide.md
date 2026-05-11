@@ -18,7 +18,7 @@ Step-by-step guide for developing a new feature in hica.
 Understanding how hica compiles a `.hc` file:
 
 ```
-.hc source → Lex → Parse → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
+.hc source → Lex → Parse → Desugar → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
 ```
 
 ## Source Architecture
@@ -31,6 +31,7 @@ Understanding how hica compiles a `.hc` file:
 | `src/syntax/fold.kk` | AST traversal utilities |
 | `src/semantics/checker.kk` | Type inference (Hindley-Milner + unification) |
 | `src/semantics/prelude.kk` | Extern function signatures (Koka-backed stdlib) |
+| `src/transform/desugar.kk` | AST-to-AST rewrites (range/bit patterns → guards) |
 | `src/emit/codegen.kk` | Hica AST → Koka source emission |
 | `src/diagnostics/diagnostics.kk` | Error collection and rendering |
 | `src/main.kk` | CLI entry point, build pipeline, prelude loading |

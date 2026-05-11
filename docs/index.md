@@ -26,7 +26,7 @@ Most programming languages force you to choose: easy to learn **or** safe and fa
 hica compiles through a multi-stage pipeline:
 
 ```
-.hc source -> Lex -> Parse -> Type Check -> Emit Koka (.kk) -> Koka -> C / JS / WASM
+.hc source → Lex → Parse → Desugar → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
 ```
 
 The compiler itself is written in Koka and uses algebraic effects to manage compiler state and diagnostics.

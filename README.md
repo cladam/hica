@@ -30,7 +30,7 @@ Visit hica's [website](https://cladam.github.io/hica/) for a tour of the languag
 ## Compilation Pipeline
 
 ```
-.hc source → Lex → Parse → Type Check → Emit Koka (.kk) → Koka → C / JS / WASM
+.hc source → Lex → Parse → Desugar → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
 ```
 
 Each phase is implemented as a Koka module using algebraic effects for compiler

@@ -120,7 +120,7 @@ Legend: **done** = shipped, **—** = not started
 | Name resolution | **done** | — | Phase 6; only declared names get `hc_` |
 | Module keyword clash fix | **done** | — | `match.hc` → `hc-match.kk` |
 | Structured error output with source snippets | **done** | Medium | Line:col + source line + caret underline |
-| Desugaring pass | — | Medium | Separate pass for complex transforms |
+| Desugaring pass | **done** | Medium | Separate `transform/desugar.kk` pass between parse and type check. Rewrites PRange → PVar + guard, PBits → PVar + bit_and guard. Simplifies codegen |
 
 ---
 
