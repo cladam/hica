@@ -23,7 +23,7 @@ import emit/codegen
 import transform/desugar
 import klap
 
-val version = "0.8.1"
+val version = "0.9.0"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
