@@ -214,10 +214,10 @@
                         <div className="grid md:grid-cols-3 gap-8">
                             {[
                                 {icon: 'arrow-right', name: 'Arrow Syntax', desc: 'Expression-bodied functions with =>. Single expressions or block bodies.'},
-                                {icon: 'git-branch', name: 'Pattern Matching', desc: 'match on integers, strings, Some/None, Ok/Err, and wildcards.'},
-                                {icon: 'repeat', name: 'For & Repeat', desc: 'for i in 0..n ranges, for x in list iteration, and repeat(n) blocks.'},
+                                {icon: 'git-branch', name: 'Pattern Matching', desc: 'Guards, or-patterns, range patterns, tuple destructuring, and exhaustiveness checking.'},
                                 {icon: 'link', name: 'Pipe Operator', desc: 'Chain functions left-to-right with |>. Pairs well with map, filter, and fold.'},
-                                {icon: 'box', name: 'Maybe & Result', desc: 'Optional values and error handling as types, with match to handle both cases.'},
+                                {icon: 'box', name: 'Structs & Enums', desc: 'Define data with structs and algebraic enums. Pattern match on variants with exhaustiveness.'},
+                                {icon: 'flask-conical', name: 'Built-in Testing', desc: 'test blocks, assert, and assert_eq built into the language. Run with hica test.'},
                                 {icon: 'layers', name: 'Compiles to C', desc: 'Through Koka to native binaries, JavaScript, or WASM.'}
                             ].map(feature => (
                                 <div key={feature.name}
