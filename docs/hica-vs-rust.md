@@ -14,7 +14,7 @@ hica and Rust share values like immutability, expression-oriented design, `match
 | Type system | Ownership + lifetimes + traits | Hindley-Milner inference (little to no annotations in practice) |
 | Memory model | Borrow checker, zero-cost abstractions | Automatic reference counting with compile-time optimisation (Koka/Perceus) |
 | Mutability | Immutable by default, `mut` opt-in | Immutable, no `mut` |
-| Error handling | `Result<T, E>` + `?` operator | `Result` + `match` + combinators (`map_result`, `and_then_result`) |
+| Error handling | `Result<T, E>` + `?` operator | `Result` + `match` + combinators + `?` operator |
 | Closures | `Fn` / `FnMut` / `FnOnce` traits | Single closure type, always captured |
 | Pattern matching | Exhaustive, deeply nested | Common cases (primitives + Maybe/Result + ranges), not deeply nested |
 | Custom types | `struct` + `enum` + `impl` + `derive` | `struct` + `type` enums (simple, no `impl` blocks) |
@@ -144,7 +144,17 @@ fun main() {
 }
 ```
 
-Rust's `?` is still more ergonomic for long chains, but hica's combinators (`map_result`, `and_then_result`, `map_err`) close much of the gap. hica doesn't yet have a `?` operator (it would require an effect-based early-return mechanism).
+For `maybe` types, hica also has a `?` operator that works like Rust's — unwrap or return early:
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  let x = parse_int(a)?   // None → return None
+  let y = parse_int(b)?
+  Some(x + y)
+}
+```
+
+hica's `?` currently works with `maybe` types. Rust's `?` works with both `Result` and `Option` and supports custom `Try` implementations.
 
 ## String Operations
 

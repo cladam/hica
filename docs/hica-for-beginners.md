@@ -534,6 +534,25 @@ match parse_int(input) {
 }
 ```
 
+### The `?` shortcut
+
+When a function returns `maybe`, the `?` operator saves you from writing nested matches. It unwraps `Some(v)` into `v`, or returns `None` from the enclosing function immediately:
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  let x = parse_int(a)?   // None → the whole function returns None
+  let y = parse_int(b)?
+  Some(x + y)
+}
+
+fun main() {
+  println(add_strings("3", "4"))    // Some(7)
+  println(add_strings("3", "abc"))  // None
+}
+```
+
+Think of `?` as asking "did this work?" — if not, bail out.
+
 ## Strings
 
 Strings support concatenation (`+`), interpolation (`{expr}`), indexing, and slicing:

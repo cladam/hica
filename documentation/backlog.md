@@ -68,7 +68,7 @@ Legend: **done** = shipped, **—** = not started
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
 | Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | **done** | Medium | `unwrap(result)` → value or throw; `unwrap_or(result, default)` → value or default. Maybe/Result combinators: `map_maybe`, `and_then`, `or_else`, `map_result`, `map_err` |
-| `?` operator (early return on Err/None) | — | High | Needs a return/early-exit mechanism; Koka uses effects for this |
+| `?` operator (early return on Err/None) | **done** | High | Postfix `?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Implemented via Koka algebraic effects (`hica-early-maybe`) |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
 | Mutable variables (`var x = 10; x = 5`) | **done** | Medium | `var` declares mutable local; `x = expr` reassigns. Emits Koka `var x := 10` / `x := 5`. Effect-safe via Koka's algebraic `local-var` — can't leak scope |
 

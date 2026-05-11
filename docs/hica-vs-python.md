@@ -158,7 +158,17 @@ fun main() {
 }
 ```
 
-This makes error paths explicit. Python's exception model is more concise for simple cases, but errors can silently propagate. hica forces you to handle each failure point, either with `match` or with combinators like `map_result` and `and_then_result`.
+For functions that chain several fallible steps, the `?` operator keeps things flat:
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  let x = parse_int(a)?   // None → return None early
+  let y = parse_int(b)?
+  Some(x + y)
+}
+```
+
+This makes error paths explicit. Python's exception model is more concise for simple cases, but errors can silently propagate. hica forces you to handle each failure point, either with `match`, combinators like `map_result`, or the `?` operator.
 
 ## String Operations
 

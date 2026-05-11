@@ -559,3 +559,22 @@ pub fun main() : io ()
     itest("parse list pattern with wildcard rest")
       val result = parse-show("match xs { [x, ..] => x }")
       assert/is-true(result.contains("[x, ..]"))
+
+    // --- ? operator ---
+
+    itest("parse try operator on call")
+      val result = parse-show("parse_int(s)?")
+      assert/is-true(result.contains("parse_int(s)?"))
+
+    itest("parse try operator on variable")
+      val result = parse-show("x?")
+      assert/is-true(result.contains("x?"))
+
+    itest("parse try operator in let binding")
+      val result = parse-program-show("fun f(s: string) : maybe<int> {\n  let x = parse_int(s)?\n  Some(x)\n}")
+      assert/is-true(result.contains("parse_int(s)?"))
+
+    itest("parse try operator chained with binary")
+      val result = parse-show("parse_int(a)? + parse_int(b)?")
+      assert/is-true(result.contains("parse_int(a)?"))
+      assert/is-true(result.contains("parse_int(b)?"))

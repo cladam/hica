@@ -1829,3 +1829,40 @@ pub fun main() : io ()
       val src = "fun f(xs: list<int>) : int => match xs {\n  [a, b] => a,\n  _ => 0\n}\nfun main() => println(f([1, 2]))"
       val code = emit-typed-program(src)
       assert/is-true(code.contains("Cons(a, Cons(b, Nil))"))
+
+    // --- ? operator ---
+
+    dtest("emit try on maybe unwraps with match")
+      val src = "fun f(s: string) : maybe<int> {\n  let x = parse_int(s)?\n  Some(x)\n}\nfun main() => println(f(\"42\"))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("Just(hc__v) -> hc__v"))
+      assert/is-true(code.contains("Nothing -> hica-early-none()"))
+
+    dtest("emit try handler wraps function body")
+      val src = "fun f(s: string) : maybe<int> {\n  let x = parse_int(s)?\n  Some(x)\n}\nfun main() => println(f(\"42\"))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("with handler"))
+      assert/is-true(code.contains("ctl hica-early-none() -> Nothing"))
+
+    dtest("emit try effect declaration")
+      val src = "fun f(s: string) : maybe<int> {\n  let x = parse_int(s)?\n  Some(x)\n}\nfun main() => println(f(\"42\"))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("effect hica-early-maybe"))
+
+    dtest("emit try on maybe keeps return annotation")
+      val src = "fun f(s: string) : maybe<int> {\n  let x = parse_int(s)?\n  Some(x)\n}\nfun main() => println(f(\"42\"))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("hc_f(s : string) : maybe<int>"))
+
+    dtest("emit try multiple maybe unwraps")
+      val src = "fun f(a: string, b: string) : maybe<int> {\n  let x = parse_int(a)?\n  let y = parse_int(b)?\n  Some(x + y)\n}\nfun main() => println(f(\"3\", \"4\"))"
+      val code = emit-typed-program(src)
+      // Both ? calls should emit match/unwrap
+      val count = code.lines.filter(fn(l) l.contains("hica-early-none()")).length
+      assert/is-true(count >= 2)
+
+    dtest("emit try type error on non-maybe non-result")
+      val src = "fun f(x: int) : int {\n  let y = x?\n  y\n}\nfun main() => println(f(42))"
+      val ds = check-diagnostics(src)
+      val errs = ds.filter(fn(d) d.message.contains("? operator requires"))
+      assert/is-true(errs.length > 0)

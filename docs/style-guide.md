@@ -203,7 +203,32 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    }
    ```
 
-### 8. Comments and Documentation
+### 8. Error Propagation
+
+ - **Prefer `?` over nested match:** When a function returns `maybe`, use `?` to unwrap intermediate values instead of nesting `match` expressions:
+   ```rust
+   // Good — flat and readable
+   fun add_strings(a: string, b: string) : maybe<int> {
+     let x = parse_int(a)?
+     let y = parse_int(b)?
+     Some(x + y)
+   }
+
+   // Avoid — deeply nested
+   fun add_strings(a: string, b: string) : maybe<int> {
+     match parse_int(a) {
+       None => None,
+       Some(x) => match parse_int(b) {
+         None => None,
+         Some(y) => Some(x + y)
+       }
+     }
+   }
+   ```
+
+ - **Use combinators for single transforms:** For a single mapping or chaining step, `map_maybe` or `and_then` may be clearer than `?`.
+
+### 9. Comments and Documentation
 
  - **Line Comments:** Use // for brief explanations.
  - **Inline comments:** Use sparingly. Separate from code by at least two spaces. Don't state the obvious:

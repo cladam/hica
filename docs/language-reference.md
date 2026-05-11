@@ -785,6 +785,42 @@ fun main() {
 
 **32-bit constraint:** Bitwise operations internally use 32-bit signed integers. Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). This is the same behaviour as C's `int` — suitable for flags, masks, and protocol work, but not for arbitrary-precision bit manipulation.
 
+### Error propagation (`?`)
+
+The `?` operator unwraps a `maybe` value: if it is `Some(v)`, the expression evaluates to `v`; if it is `None`, the enclosing function returns `None` immediately. This replaces nested `match` expressions with a single postfix `?`.
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  let x = parse_int(a)?     // None → return None early
+  let y = parse_int(b)?
+  Some(x + y)
+}
+
+fun main() {
+  println(add_strings("3", "4"))    // Some(7)
+  println(add_strings("3", "abc"))  // None
+}
+```
+
+Without `?`, the same logic requires nesting:
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  match parse_int(a) {
+    None => None,
+    Some(x) => match parse_int(b) {
+      None => None,
+      Some(y) => Some(x + y)
+    }
+  }
+}
+```
+
+Rules:
+- The expression before `?` must be of type `maybe<T>`.
+- The enclosing function must return `maybe<T>` (so early-return `None` is type-safe).
+- `?` is a postfix operator and binds tighter than binary operators, so `parse_int(a)? + parse_int(b)?` works as expected.
+
 ## Testing
 
 ### Test blocks

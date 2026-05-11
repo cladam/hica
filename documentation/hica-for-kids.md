@@ -1634,6 +1634,51 @@ fun main() {
 Think of `and_then_result` like a relay race — each runner passes the baton
 to the next, but if someone trips (`Err`), the race stops right there.
 
+### The `?` shortcut
+
+When you're writing a function that returns `maybe`, and you need to unwrap
+several maybe values in a row, all those `match` blocks pile up fast — like
+stacking boxes inside boxes inside boxes. 📦📦📦
+
+The `?` operator is a shortcut. Put `?` after a maybe value and it does two
+things:
+
+- If it's `Some(v)`, you get `v` — the value inside.
+- If it's `None`, the whole function returns `None` right away.
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  let x = parse_int(a)?   // None → stop here, return None
+  let y = parse_int(b)?   // None → stop here, return None
+  Some(x + y)
+}
+
+fun main() {
+  println(add_strings("3", "4"))    // Some(7)
+  println(add_strings("3", "abc"))  // None
+}
+```
+
+Without `?`, you'd need:
+
+```rust
+fun add_strings(a: string, b: string) : maybe<int> {
+  match parse_int(a) {
+    None => None,
+    Some(x) => match parse_int(b) {
+      None => None,
+      Some(y) => Some(x + y)
+    }
+  }
+}
+```
+
+See how `?` keeps everything flat? Think of it as asking "did this work?" —
+if not, bail out.
+
+**🎯 Try it:** Write a function `safe_first(xs: list<int>) : maybe<int>`
+that uses `find(xs, (n) => n > 0)?` to find the first positive number.
+
 ---
 
 ## 24. Recursion: The Russian Doll Trick
