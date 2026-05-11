@@ -37,7 +37,7 @@ fun hica-cli() : command
     .arg(positional("COMMAND").help("Command to run").required)
     .arg(positional("FILE").help("Source .hc file"))
     .arg(flag("check").help("Check formatting without modifying the file"))
-    .subcommand("build, b", "Compile a .hc file to Koka and build a binary")
+    .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Analyse a .hc file and report errors")
     .subcommand("fmt, f", "Format a .hc file")
@@ -49,7 +49,7 @@ fun hica-cli() : command
 
 fun build-cli() : command
   command("hica build")
-    .about("Compile a .hc file to Koka and build a binary")
+    .about("Compile a .hc file and build a binary")
     .arg(positional("FILE").help("Source .hc file").required)
 
 fun run-cli() : command
@@ -285,6 +285,7 @@ fun scaffold-project( project-dir : path, name : string )
     "```sh",
     "hica build   # compile to binary",
     "hica run     # compile and run",
+    "hica fmt     # format according to hica style guide"
     "hica check   # type-check without emitting",
     "hica clean   # remove generated files",
     "```"
@@ -539,6 +540,7 @@ fun print-usage()
   println("    build, b    Compile a .hc file and build a binary")
   println("    run, r      Compile and run a .hc file")
   println("    check, c    Analyse a .hc file and report errors")
+  println("    fmt, f      Format a .hc file")
   println("    clean       Remove generated build artifacts")
   println("    test, t     Run tests in a .hc file")
   println("    new         Create a new hica project")

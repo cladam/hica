@@ -171,6 +171,7 @@ Commands:
   build, b               Compile a .hc file and build a binary
   run, r                 Compile and run a .hc file
   check, c               Analyse a .hc file and report errors
+  fmt, f                 Format a .hc file
   clean                  Remove generated build artifacts
   test, t                Run tests in a .hc file
   new                    Create a new hica project
