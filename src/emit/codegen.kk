@@ -268,6 +268,22 @@ fun emit-body( n : node, declared : list<string> ) : div string
     Block(stmts) -> stmts.map(fn(s) emit-stmt(s, declared)).join("\n")
     _            -> emit-stmt(n, declared)
 
+// Emit a body but wrap the last expression in a constructor, e.g. Just(last-expr)
+fun emit-body-wrap-last( wrapper : string, n : node, declared : list<string> ) : div string
+  match n.expr
+    LetTuple(names, init, body) ->
+      "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-body-wrap-last(wrapper, body, declared)
+    Let(name, _, init, body) ->
+      "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-body-wrap-last(wrapper, body, declared)
+    Block(stmts) ->
+      match stmts.reverse
+        Cons(last, rest) ->
+          rest.reverse.map(fn(s) emit-stmt(s, declared)).join("\n") ++
+          (if rest.is-nil then "" else "\n") ++
+          emit-body-wrap-last(wrapper, last, declared)
+        Nil -> wrapper ++ "()"
+    _ -> wrapper ++ "(" ++ emit-expr(n, declared) ++ ")"
+
 fun emit-stmt( n : node, declared : list<string> ) : div string
   match n.expr
     Let(name, _, init, body) ->
@@ -335,9 +351,17 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       // Emit as Koka native: fn((a, b)) body
       match (params, body.expr)
         (Cons("_tp", Nil), LetTuple(names, _, actual-body)) ->
-          "fn((" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ")) " ++ emit-expr(actual-body, declared)
+          val param-str = "fn((" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ "))"
+          if actual-body.expr.is-multiline then
+            param-str ++ "\n" ++ indent-all(emit-body(actual-body, declared))
+          else
+            param-str ++ " " ++ emit-expr(actual-body, declared)
         _ ->
-          "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ") " ++ emit-expr(body, declared)
+          val param-str = "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ")"
+          if body.expr.is-multiline then
+            param-str ++ "\n" ++ indent-all(emit-body(body, declared))
+          else
+            param-str ++ " " ++ emit-expr(body, declared)
     Call(callee, args) ->
       // Auto-wrap println argument with show when it's not a string
       match (callee.expr, args)
@@ -419,9 +443,47 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 
         // Maybe combinators
         (Var("map_maybe"), [m, f]) ->
-          "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> Just((" ++ emit-expr(f, declared) ++ ")(hc__v)); Nothing -> Nothing })"
+          match f.expr
+            Fun(Cons(p, Nil), body) | body.expr.is-multiline ->
+              val pn = marshal-name(p, declared)
+              val m-code = emit-expr(m, declared)
+              if m-code.contains("\n") then
+                "val hc__mm = " ++ m-code ++ "\n" ++
+                "match hc__mm\n" ++
+                "  Just(" ++ pn ++ ") ->\n" ++
+                indent-all(indent-all(emit-body-wrap-last("Just", body, declared))) ++ "\n" ++
+                "  Nothing -> Nothing"
+              else
+                "match " ++ m-code ++ "\n" ++
+                "  Just(" ++ pn ++ ") ->\n" ++
+                indent-all(indent-all(emit-body-wrap-last("Just", body, declared))) ++ "\n" ++
+                "  Nothing -> Nothing"
+            Fun(Cons(p, Nil), body) ->
+              val pn = marshal-name(p, declared)
+              "(match " ++ emit-expr(m, declared) ++ " { Just(" ++ pn ++ ") -> Just(" ++ emit-expr(body, declared) ++ "); Nothing -> Nothing })"
+            _ ->
+              "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> Just((" ++ emit-expr(f, declared) ++ ")(hc__v)); Nothing -> Nothing })"
         (Var("and_then"), [m, f]) ->
-          "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Nothing -> Nothing })"
+          match f.expr
+            Fun(Cons(p, Nil), body) | body.expr.is-multiline ->
+              val pn = marshal-name(p, declared)
+              val m-code = emit-expr(m, declared)
+              if m-code.contains("\n") then
+                "val hc__mm = " ++ m-code ++ "\n" ++
+                "match hc__mm\n" ++
+                "  Just(" ++ pn ++ ") ->\n" ++
+                indent-all(indent-all(emit-body(body, declared))) ++ "\n" ++
+                "  Nothing -> Nothing"
+              else
+                "match " ++ m-code ++ "\n" ++
+                "  Just(" ++ pn ++ ") ->\n" ++
+                indent-all(indent-all(emit-body(body, declared))) ++ "\n" ++
+                "  Nothing -> Nothing"
+            Fun(Cons(p, Nil), body) ->
+              val pn = marshal-name(p, declared)
+              "(match " ++ emit-expr(m, declared) ++ " { Just(" ++ pn ++ ") -> " ++ emit-expr(body, declared) ++ "; Nothing -> Nothing })"
+            _ ->
+              "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Nothing -> Nothing })"
         (Var("unwrap_maybe"), [m]) ->
           "(match " ++ emit-expr(m, declared) ++ " { Just(hc__v) -> hc__v; Nothing -> throw(\"unwrap_maybe: None\") })"
         (Var("unwrap_maybe_or"), [m, d]) ->
@@ -437,11 +499,26 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("unwrap_or"), [r, d]) ->
           "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> hc__v; Left(_) -> " ++ emit-expr(d, declared) ++ " })"
         (Var("map_result"), [r, f]) ->
-          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right((" ++ emit-expr(f, declared) ++ ")(hc__v)); Left(hc__e) -> Left(hc__e) })"
+          match f.expr
+            Fun(Cons(p, Nil), body) ->
+              val pn = marshal-name(p, declared)
+              "(match " ++ emit-expr(r, declared) ++ " { Right(" ++ pn ++ ") -> Right(" ++ emit-expr(body, declared) ++ "); Left(hc__e) -> Left(hc__e) })"
+            _ ->
+              "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right((" ++ emit-expr(f, declared) ++ ")(hc__v)); Left(hc__e) -> Left(hc__e) })"
         (Var("map_err"), [r, f]) ->
-          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(hc__e) -> Left((" ++ emit-expr(f, declared) ++ ")(hc__e)) })"
+          match f.expr
+            Fun(Cons(p, Nil), body) ->
+              val pn = marshal-name(p, declared)
+              "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(" ++ pn ++ ") -> Left(" ++ emit-expr(body, declared) ++ ") })"
+            _ ->
+              "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(hc__e) -> Left((" ++ emit-expr(f, declared) ++ ")(hc__e)) })"
         (Var("and_then_result"), [r, f]) ->
-          "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Left(hc__e) -> Left(hc__e) })"
+          match f.expr
+            Fun(Cons(p, Nil), body) ->
+              val pn = marshal-name(p, declared)
+              "(match " ++ emit-expr(r, declared) ++ " { Right(" ++ pn ++ ") -> " ++ emit-expr(body, declared) ++ "; Left(hc__e) -> Left(hc__e) })"
+            _ ->
+              "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Left(hc__e) -> Left(hc__e) })"
         (Var("is_ok"), [r]) ->
           emit-expr(r, declared) ++ ".is-right"
         (Var("is_err"), [r]) ->
@@ -517,7 +594,17 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Var("cons")   -> "Cons"
             Var("show")   -> "show"
             _             -> emit-expr(callee, declared)
-          callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
+          // Use trailing lambda syntax when the last argument is a multiline lambda
+          match args.reverse
+            Cons(last, rest) | last.expr.is-fun-multiline ->
+              val init-args = rest.reverse.map(fn(a) emit-expr(a, declared))
+              val trailing = emit-expr(last, declared)
+              if init-args.is-nil then
+                callee-code ++ " " ++ trailing
+              else
+                callee-code ++ "(" ++ init-args.join(", ") ++ ") " ++ trailing
+            _ ->
+              callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
     If(cond, then-e, else-e) ->
       match else-e.expr
         Block([]) ->
@@ -775,6 +862,26 @@ fun needs-block( e : expr ) : bool
     Match(_, _)         -> True
     Block(_)            -> True
     _                   -> False
+
+// Check if an expression produces multiple lines (needs indented block in lambda body)
+fun is-multiline( e : expr ) : bool
+  match e
+    Let(_, _, _, _)     -> True
+    VarDecl(_, _, _, _) -> True
+    LetTuple(_, _, _)   -> True
+    Block(Cons(s, Nil)) -> match s.expr
+      Let(_, _, _, _)     -> True
+      VarDecl(_, _, _, _) -> True
+      LetTuple(_, _, _)   -> True
+      _                   -> False
+    Block(stmts)        -> stmts.length > 1
+    _                   -> False
+
+// Check if an expression is a Fun (lambda) with a multiline body
+fun is-fun-multiline( e : expr ) : bool
+  match e
+    Fun(_, body) -> body.expr.is-multiline
+    _            -> False
 
 // Emit an if-branch as an indented block.
 fun emit-branch( n : node, declared : list<string> ) : div string

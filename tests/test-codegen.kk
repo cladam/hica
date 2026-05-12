@@ -1897,3 +1897,24 @@ pub fun main() : io ()
       val src = "type Yaml {\n  YStr(value: string),\n  YList(items: list<Yaml>)\n}\nfun main() => println(YStr(\"hi\"))"
       val code = emit-typed-program(src)
       assert/is-true(code.contains(": div string"))
+
+    dtest("emit lambda with let destructuring as indented block")
+      val src = "fun main() {\n  let xs = [(1, 2), (3, 4)]\n  xs |> find((e) => { let (k, _v) = e; k == 3 })\n}"
+      val code = emit-typed-program(src)
+      // The lambda body should be on a new indented line, not inline
+      assert/is-true(code.contains("fn(e)\n"))
+      assert/is-true(code.contains("val (k,"))
+
+    dtest("emit trailing lambda for multiline lambda in call")
+      val src = "fun main() {\n  let xs = [(1, 2), (3, 4)]\n  xs |> find((e) => { let (k, _v) = e; k == 3 })\n}"
+      val code = emit-typed-program(src)
+      // Should use trailing lambda syntax: find(xs) fn(e) ... not find(xs, fn(e) ...)
+      assert/is-true(code.contains("find(xs)"))
+      assert/is-true(!code.contains("find(xs, fn"))
+
+    dtest("emit map_maybe with multiline lambda hoists to val")
+      val src = "fun main() {\n  let xs = [(1, 2), (3, 4)]\n  xs |> find((e) => { let (k, _v) = e; k == 3 }) |> map_maybe((e) => { let (_k, v) = e; v })\n}"
+      val code = emit-typed-program(src)
+      // Should hoist the find call to val hc__mm and match on it
+      assert/is-true(code.contains("val hc__mm"))
+      assert/is-true(code.contains("match hc__mm"))
