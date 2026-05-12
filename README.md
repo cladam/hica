@@ -51,6 +51,8 @@ state (diagnostics, fresh type variables, symbol scopes).
 
 ## Install
 
+**Linux / macOS / Chromebook:**
+
 ```sh
 curl -fsSL https://cladam.github.io/hica/install.sh | sh
 ```
@@ -59,6 +61,12 @@ This installs the latest release binary to `~/.local/bin`. Override with `HICA_I
 
 ```sh
 curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://cladam.github.io/hica/install.ps1 | iex
 ```
 
 ### Build from source

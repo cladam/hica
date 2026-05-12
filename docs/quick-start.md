@@ -13,7 +13,7 @@ Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3
 
 ## Install hica
 
-The quickest way to install hica:
+### Linux / macOS / Chromebook
 
 ```sh
 curl -fsSL https://cladam.github.io/hica/install.sh | sh
@@ -27,6 +27,15 @@ To install elsewhere:
 ```sh
 curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
 ```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://cladam.github.io/hica/install.ps1 | iex
+```
+
+This installs hica to `%LOCALAPPDATA%\hica` and adds it to your user PATH.
+Override the install directory with `$env:HICA_INSTALL_DIR`.
 
 Verify the installation:
 
