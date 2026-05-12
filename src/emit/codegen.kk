@@ -345,9 +345,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Unary(Neg, o)           -> "(0 - " ++ emit-expr(o, declared) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->
-      "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
+      "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-expr(body, declared)
     VarDecl(name, _, init, body) ->
-      "var " ++ marshal-name(name, declared) ++ " := " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
+      "var " ++ marshal-name(name, declared) ++ " := " ++ emit-expr(init, declared) ++ "\n" ++ emit-expr(body, declared)
     Assign(name, value) ->
       marshal-name(name, declared) ++ " := " ++ emit-expr(value, declared)
     Fun(params, body) ->
@@ -737,7 +737,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     TupleIndex(tup, idx) ->
       emit-expr(tup, declared) ++ "." ++ tuple-field-name(idx)
     LetTuple(names, init, body) ->
-      "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n  " ++ emit-expr(body, declared)
+      "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-expr(body, declared)
     StructLit(sname, fields) ->
       sname ++ "(" ++ fields.map(fn((_, v)) emit-expr(v, declared)).join(", ") ++ ")"
     StructUpdate(sname, base, overrides, def-fields) ->
