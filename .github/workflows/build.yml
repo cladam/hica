@@ -113,7 +113,7 @@ jobs:
       - name: Run CLI e2e tests (Windows)
         if: runner.os == 'Windows'
         run: |
-          koka -ilib/kunit -ilib/klap -isrc -e tests/test-cli.kk -- ./hica.exe
+          koka -ilib/kunit -ilib/klap -isrc -e tests/test-cli.kk -- hica.exe
         shell: bash
 
       - name: Strip binary (Linux)
