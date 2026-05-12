@@ -782,7 +782,19 @@ fun emit-branch( n : node, declared : list<string> ) : div string
     _            -> indent-all(emit-stmt(n, declared))
 
 fun program-has-float( p : program ) : div bool
-  p.decls.any(fn(d) node-has-float(d.body))
+  p.decls.any(fn(d) node-has-float(d.body)) ||
+  p.types.any(fn(td) td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.has-float-type))) ||
+  p.structs.any(fn(sd) sd.fields.any(fn((_, ft)) ft.has-float-type))
+
+fun has-float-type( t : hica-type ) : div bool
+  match t
+    TFloat -> True
+    TList(e) -> e.has-float-type
+    TMaybe(e) -> e.has-float-type
+    TResult(o, e) -> o.has-float-type || e.has-float-type
+    TTuple(es) -> es.any(fn(e) e.has-float-type)
+    TFun(ps, r) -> ps.any(fn(p) p.has-float-type) || r.has-float-type
+    _ -> False
 
 fun is-parse-float( e : expr ) : bool
   match e
