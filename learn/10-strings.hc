@@ -11,21 +11,28 @@
 //      "hello, {name}!"
 //      Numbers and booleans are automatically converted inside {}.
 //
-// 3. Indexing with `s[i]` — returns a character:
+// 3. Escape sequences:
+//      \"  — literal double quote
+//      \\  — literal backslash
+//      \n  — newline
+//      \t  — tab
+//      Escapes work in both plain and interpolated strings.
+//
+// 5. Indexing with `s[i]` — returns a character:
 //      "hello"[0]   =>  'h'
 //      "hello"[-1]  =>  'o'   (negative = from end)
 //
-// 4. Slicing with `s[start:end]` — returns a string:
+// 6. Slicing with `s[start:end]` — returns a string:
 //      "hello"[1:4]  =>  "ell"
 //      "hello"[:3]   =>  "hel"
 //      "hello"[2:]   =>  "llo"
 //
-// 5. Utility functions — available everywhere:
+// 7. Utility functions — available everywhere:
 //      str_length, trim, to_upper, to_lower, split, join,
 //      contains, starts_with, ends_with, replace,
 //      capitalise, capwords, removeprefix, removesuffix, ...
 //
-// 6. Comparison operators (lexicographic):
+// 8. Comparison operators (lexicographic):
 //      "apple" < "banana"   =>  true
 //      "abc" <= "abc"       =>  true
 //
@@ -43,6 +50,13 @@ fun main() {
   println(greet("hica"))
   let apples = 5
   println("{apples} apples")
+
+  // --- Escape sequences ---
+  println("She said \"hi\"")
+  println("line one\nline two")
+  println("col1\tcol2")
+  println("path\\to\\file")
+  println("escaped in interp: {apples} apples!\ndone")
 
   // --- Indexing & slicing ---
   let s = "hello"

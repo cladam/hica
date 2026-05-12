@@ -300,6 +300,7 @@ fun string-has-interp( cs : list<char> ) : bool
   match cs
     Nil            -> False
     Cons('"', _)   -> False
+    Cons('\\', Cons(_, rest)) -> string-has-interp(rest) // skip escaped char
     Cons('{', _)   -> True
     Cons(_, rest)  -> string-has-interp(rest)
 
@@ -309,6 +310,11 @@ fun lex-plain-string( cs : list<char>, start : int, pos : int ) : div list<token
     Nil -> [Token(TkError("unterminated string"), Span(start, pos))]
     Cons('"', rest) ->
       Cons(Token(TkString(""), Span(start, pos + 1)), lex-from(rest, pos + 1))
+    Cons('\\', Cons(escaped, rest)) ->
+      match lex-plain-string(rest, start, pos + 2)
+        Cons(Token(TkString(s), sp), toks) ->
+          Cons(Token(TkString("\\" ++ escaped.string ++ s), sp), toks)
+        other -> other
     Cons(_, rest) ->
       match lex-plain-string(rest, start, pos + 1)
         Cons(Token(TkString(s), sp), toks) ->
@@ -350,6 +356,9 @@ fun collect-string-part( cs : list<char>, pos : int ) : (string, int, list<char>
   match cs
     Nil           -> ("", pos, Nil)
     Cons('"', _)  -> ("", pos, cs)
+    Cons('\\', Cons(escaped, rest)) ->
+      val (s, end, remaining) = collect-string-part(rest, pos + 2)
+      ("\\" ++ escaped.string ++ s, end, remaining)
     Cons('{', _)  -> ("", pos, cs)
     Cons(c, rest) ->
       val (s, end, remaining) = collect-string-part(rest, pos + 1)
@@ -428,6 +437,11 @@ fun lex-string-then-interp( cs : list<char>, str-start : int, quote-pos : int, p
     Nil -> [Token(TkError("unterminated string in interpolation"), Span(quote-pos, pos))]
     Cons('"', rest) ->
       Cons(Token(TkString(""), Span(quote-pos, pos + 1)), lex-interp-expr(rest, str-start, pos + 1, depth))
+    Cons('\\', Cons(escaped, rest)) ->
+      match lex-string-then-interp(rest, str-start, quote-pos, pos + 2, depth)
+        Cons(Token(TkString(s), sp), toks) ->
+          Cons(Token(TkString("\\" ++ escaped.string ++ s), sp), toks)
+        other -> other
     Cons(c, rest) ->
       match lex-string-then-interp(rest, str-start, quote-pos, pos + 1, depth)
         Cons(Token(TkString(s), sp), toks) ->

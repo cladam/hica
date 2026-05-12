@@ -1096,6 +1096,49 @@ Think of these like tools in a toolbox:
 **🎯 Try it:** Use `split` to break `"red,green,blue"` into a list, then
 `join` it back with `" and "`.
 
+### Special characters (escape sequences)
+
+What if you want to put a double-quote *inside* a string? You can't just
+write `"She said "hi""` — Hica would think the string ends at the second `"`.
+
+The trick: put a backslash `\` before the special character. The backslash
+says "the next character is literal, not magic":
+
+```rust
+fun main() {
+  println("She said \"hi\"")   // She said "hi"
+  println("one\\two")          // one\two  (literal backslash)
+}
+```
+
+There are also shortcuts for invisible characters:
+
+| Escape | What it does | |
+| --- | --- | --- |
+| `\"` | A literal `"` inside a string | `"say \"hi\""` |
+| `\\` | A literal backslash | `"C:\\folder"` |
+| `\n` | Start a new line | `"line1\nline2"` |
+| `\t` | A tab (big space) | `"col1\tcol2"` |
+
+```rust
+fun main() {
+  println("line one\nline two")  // prints on two lines!
+  println("name\tage")
+  println("Ada\t12")
+}
+```
+
+Escapes work inside interpolated strings too:
+
+```rust
+fun main() {
+  let name = "world"
+  println("hello, {name}!\ngoodbye!")
+}
+```
+
+**🎯 Try it:** Print a tiny two-line poem using `\n` to separate the lines.
+
 ### Peeking inside strings (indexing and slicing)
 
 You can grab individual characters or pieces of a string using square brackets

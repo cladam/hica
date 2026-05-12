@@ -228,3 +228,29 @@ pub fun main() : io ()
 
     dtest("lex from import statement")
       assert/is-true(token-string("from \"greet\" import") == "from \"greet\" import <eof>")
+
+    dtest("lex escaped double quote in string")
+      val toks = lex("\"hello \\\"world\\\"\"")
+      val str-tok = toks.head.default(Token(TkEof, Span(0, 0)))
+      match str-tok.kind
+        TkString(s) -> assert/is-true(s == "hello \\\"world\\\"")
+        _ -> assert/is-true(False)
+
+    dtest("lex escaped backslash in string")
+      val toks = lex("\"path\\\\file\"")
+      val str-tok = toks.head.default(Token(TkEof, Span(0, 0)))
+      match str-tok.kind
+        TkString(s) -> assert/is-true(s == "path\\\\file")
+        _ -> assert/is-true(False)
+
+    dtest("lex escaped newline and tab in string")
+      val toks = lex("\"line\\nbreak\\ttab\"")
+      val str-tok = toks.head.default(Token(TkEof, Span(0, 0)))
+      match str-tok.kind
+        TkString(s) -> assert/is-true(s == "line\\nbreak\\ttab")
+        _ -> assert/is-true(False)
+
+    dtest("lex escaped quote in interpolated string")
+      val toks = lex("\"hello \\\"name: {x}\\\"\"")
+      // Should have InterpStart, StringPart with escaped quotes, InterpExpr, x, }, InterpEnd
+      assert/is-true(toks.length > 3)

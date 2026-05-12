@@ -555,7 +555,7 @@ Think of `?` as asking "did this work?" — if not, bail out.
 
 ## Strings
 
-Strings support concatenation (`+`), interpolation (`{expr}`), indexing, and slicing:
+Strings support concatenation (`+`), interpolation (`{expr}`), escape sequences, indexing, and slicing:
 
 ```rust
 let s = "hello"
@@ -563,6 +563,17 @@ s[0]      // 'h' (a char)
 s[1:4]    // "ell" (a string)
 s[-1]     // 'o' (negative indexing)
 ```
+
+Use backslash escapes for special characters — `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, and `\t` for a tab:
+
+```rust
+println("She said \"hi\"")     // She said "hi"
+println("line1\nline2")        // two lines
+println("col1\tcol2")          // tab-separated
+println("path\\to\\file")      // path\to\file
+```
+
+Escapes work inside interpolated strings too: `"hello, {name}!\nbye!"`.
 
 There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`, `starts_with`, `capitalise`, `removeprefix`, and more. See the [Standard Library](/hica/docs/standard-library) for the complete list.
 

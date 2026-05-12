@@ -391,6 +391,31 @@ let greeting = "Hello, " + name
 let msg = "2 + 2 = {2 + 2}"
 ```
 
+#### Escape sequences
+
+Use backslash to include special characters in strings:
+
+| Escape | Character |
+| --- | --- |
+| `\"` | Double quote |
+| `\\` | Backslash |
+| `\n` | Newline |
+| `\t` | Tab |
+
+```rust
+println("She said \"hello\"")
+println("line one\nline two")
+println("col1\tcol2")
+println("C:\\Users\\file.txt")
+```
+
+Escapes work in both plain and interpolated strings:
+
+```rust
+let name = "world"
+println("hello, {name}!\nbye!")
+```
+
 Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
 
 ```rust
