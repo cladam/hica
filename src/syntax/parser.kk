@@ -160,9 +160,17 @@ fun parse-prefix() : <div,parser> node
               match peek()
                 TkArrow ->
                   advance()
-                  val params = extract-param-names([e])
                   val body = parse-lambda-body()
-                  Node(Span(start-tok.span.start, body.span.end), Fun(params, body))
+                  // Tuple destructuring in lambda: ((a, b)) => expr
+                  // desugars to: fn(_tp) { let (_tp_0, _tp_1, ...) = _tp; expr }
+                  match e.expr
+                    Tuple(elems) ->
+                      val tup-names = extract-param-names(elems)
+                      val desugar-body = Node(Span(e.span.start, body.span.end), LetTuple(tup-names, Node(e.span, Var("_tp")), body))
+                      Node(Span(start-tok.span.start, body.span.end), Fun(["_tp"], desugar-body))
+                    _ ->
+                      val params = extract-param-names([e])
+                      Node(Span(start-tok.span.start, body.span.end), Fun(params, body))
                 _ ->
                   e
     TkLBracket ->

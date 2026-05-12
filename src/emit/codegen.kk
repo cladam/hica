@@ -330,7 +330,13 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Assign(name, value) ->
       marshal-name(name, declared) ++ " := " ++ emit-expr(value, declared)
     Fun(params, body) ->
-      "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ") " ++ emit-expr(body, declared)
+      // Detect desugared tuple lambda: fn(_tp) { val (a, b) = _tp; body }
+      // Emit as Koka native: fn((a, b)) body
+      match (params, body.expr)
+        (Cons("_tp", Nil), LetTuple(names, _, actual-body)) ->
+          "fn((" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ")) " ++ emit-expr(actual-body, declared)
+        _ ->
+          "fn(" ++ params.map(fn(p) marshal-name(p, declared)).join(", ") ++ ") " ++ emit-expr(body, declared)
     Call(callee, args) ->
       // Auto-wrap println argument with show when it's not a string
       match (callee.expr, args)

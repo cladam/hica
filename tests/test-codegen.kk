@@ -1866,3 +1866,29 @@ pub fun main() : io ()
       val ds = check-diagnostics(src)
       val errs = ds.filter(fn(d) d.message.contains("? operator requires"))
       assert/is-true(errs.length > 0)
+
+    // --- Tuple destructuring in lambda ---
+    dtest("emit tuple destructuring lambda")
+      val src = "fun main() {\n  let pairs = [(1, \"a\"), (2, \"b\")]\n  let keys = pairs.map(((k, v)) => k)\n  println(keys)\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fn((k, v)) k"))
+
+    dtest("emit tuple destructuring lambda with body expression")
+      val src = "fun main() {\n  let pairs = [(1, 2), (3, 4)]\n  let sums = pairs.map(((a, b)) => a + b)\n  println(sums)\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fn((a, b))"))
+
+    dtest("emit tuple destructuring lambda in filter")
+      val src = "fun main() {\n  let pairs = [(1, \"x\"), (2, \"y\")]\n  let big = pairs.filter(((n, s)) => n > 1)\n  println(big)\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fn((n, s))"))
+
+    dtest("emit normal lambda still works")
+      val src = "fun main() {\n  let xs = [1, 2, 3]\n  let doubled = xs.map((x) => x * 2)\n  println(doubled)\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fn(x)"))
+
+    dtest("emit float show in enum variant")
+      val src = "type Temp {\n  Celsius(v: float)\n}\nfun main() => println(Celsius(36.6))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("float64/show(v)"))
