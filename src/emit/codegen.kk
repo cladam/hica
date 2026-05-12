@@ -171,7 +171,7 @@ fun references-recursive-struct( t : hica-type, structs : list<struct-def> ) : d
 fun emit-show-call( t : hica-type, expr-str : string ) : div string
   match t
     TInt    -> expr-str ++ ".show"
-    TFloat  -> expr-str ++ ".show"
+    TFloat  -> "float64/show(" ++ expr-str ++ ")"
     TBool   -> expr-str ++ ".show"
     TChar   -> expr-str ++ ".show"
     TString -> expr-str

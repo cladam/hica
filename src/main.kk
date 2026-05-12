@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.10.0" 
+val version = "0.10.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -285,7 +285,7 @@ fun scaffold-project( project-dir : path, name : string )
     "```sh",
     "hica build   # compile to binary",
     "hica run     # compile and run",
-    "hica fmt     # format according to hica style guide"
+    "hica fmt     # format according to hica style guide",
     "hica check   # type-check without emitting",
     "hica clean   # remove generated files",
     "```"

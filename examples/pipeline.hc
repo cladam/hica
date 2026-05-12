@@ -44,7 +44,7 @@ fun main() {
   println("--- name pipeline ---")
   names.foreach((name) =>
     start(name)
-      |> transform("lowercase", (s) => s.to_lower())
+      |> transform("lowercase",  (s) => s.to_lower())
       |> transform("capitalise", (s) => s.capitalise())
       |> must("min 3 chars", (s) => str_length(s) >= 3)
       |> report
