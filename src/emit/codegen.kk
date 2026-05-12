@@ -141,6 +141,7 @@ fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
 fun references-type( t : hica-type, name : string ) : div bool
   match t
     TEnum(en) -> en == name
+    TStruct(sn) -> sn == name
     TMaybe(inner) -> inner.references-type(name)
     TList(inner) -> inner.references-type(name)
     TTuple(ts) -> ts.any(fn(tt) tt.references-type(name))

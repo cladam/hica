@@ -1892,3 +1892,8 @@ pub fun main() : io ()
       val src = "type Temp {\n  Celsius(v: float)\n}\nfun main() => println(Celsius(36.6))"
       val code = emit-typed-program(src)
       assert/is-true(code.contains("float64/show(v)"))
+
+    dtest("emit div effect on show for recursive enum")
+      val src = "type Yaml {\n  YStr(value: string),\n  YList(items: list<Yaml>)\n}\nfun main() => println(YStr(\"hi\"))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains(": div string"))
