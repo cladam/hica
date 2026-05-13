@@ -301,46 +301,48 @@ fun parse-postfix() : <div,parser> node
             parse-error("expected field name or tuple index after '.'")
             ()
       TkLBracket ->
-        advance()
-        match peek()
-          TkColon ->
-            // list[:end] or list[:] — slice with no start
-            advance()
-            match peek()
-              TkRBracket ->
-                // list[:] — identity slice
-                val end-tok = advance()
-                result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Nothing))
-              _ ->
-                // list[:end]
-                val end-e = parse-expr()
-                val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
-                result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Just(end-e)))
-          TkRBracket ->
-            // list[] — parse error, empty index
-            parse-error("expected index expression inside []")
-            val end-tok = advance()
-            result := Node(Span(result.span.start, end-tok.span.end), ListIndex(result, Node(no-span, Literal(LitInt(0)))))
-          _ ->
-            val idx-e = parse-expr()
-            match peek()
-              TkColon ->
-                // list[start:] or list[start:end]
-                advance()
-                match peek()
-                  TkRBracket ->
-                    // list[start:]
-                    val end-tok = advance()
-                    result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Nothing))
-                  _ ->
-                    // list[start:end]
-                    val end-e = parse-expr()
-                    val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
-                    result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Just(end-e)))
-              _ ->
-                // list[index]
-                val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
-                result := Node(Span(result.span.start, end-tok.span.end), ListIndex(result, idx-e))
+        if peek-newline() then cont := False
+        else
+          advance()
+          match peek()
+            TkColon ->
+              // list[:end] or list[:] — slice with no start
+              advance()
+              match peek()
+                TkRBracket ->
+                  // list[:] — identity slice
+                  val end-tok = advance()
+                  result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Nothing))
+                _ ->
+                  // list[:end]
+                  val end-e = parse-expr()
+                  val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                  result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Nothing, Just(end-e)))
+            TkRBracket ->
+              // list[] — parse error, empty index
+              parse-error("expected index expression inside []")
+              val end-tok = advance()
+              result := Node(Span(result.span.start, end-tok.span.end), ListIndex(result, Node(no-span, Literal(LitInt(0)))))
+            _ ->
+              val idx-e = parse-expr()
+              match peek()
+                TkColon ->
+                  // list[start:] or list[start:end]
+                  advance()
+                  match peek()
+                    TkRBracket ->
+                      // list[start:]
+                      val end-tok = advance()
+                      result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Nothing))
+                    _ ->
+                      // list[start:end]
+                      val end-e = parse-expr()
+                      val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                      result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Just(end-e)))
+                _ ->
+                  // list[index]
+                  val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                  result := Node(Span(result.span.start, end-tok.span.end), ListIndex(result, idx-e))
       TkQuestion ->
         val t = advance()
         result := Node(Span(result.span.start, t.span.end), ETry(result))
