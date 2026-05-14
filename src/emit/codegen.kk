@@ -751,7 +751,11 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           Nothing -> "hc__base." ++ fname
       "{ val hc__base = " ++ base-code ++ "; " ++ sname ++ "(" ++ args.join(", ") ++ ") }"
     FieldAccess(obj, fname) ->
-      emit-expr(obj, declared) ++ "." ++ fname
+      val obj-is-struct = match obj.typ
+        Just(TStruct(_)) -> True
+        _                -> False
+      val emitted-name = if obj-is-struct then fname else marshal-name(fname, declared)
+      emit-expr(obj, declared) ++ "." ++ emitted-name
     EConstructor(cname, cargs) ->
       if cargs.is-nil then cname
       else cname ++ "(" ++ cargs.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"

@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.12.2-1" 
+val version = "0.12.3" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a

@@ -771,7 +771,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           // Type not yet known — return a fresh var
           (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
         _ ->
-          emit-error(n.span, "cannot access field '" ++ fname ++ "' on non-struct type " ++ obj-type.show)
+          // Non-struct type — treat as UFCS (Koka resolves expr.f as f(expr))
           (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
 
 // Infer types for struct literal fields and unify with declared types.
