@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.11.3" 
+val version = "0.12.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -195,7 +195,7 @@ fun cmd-test( file : string )
   else
     // Load prelude and merge
     val prelude = load-prelude()
-    val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+    val (imported-decls, imported-structs, imported-types, imported-names) = compile-imports(prog.imports, dir.path, [file])
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -213,10 +213,22 @@ fun cmd-test( file : string )
       errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
       println("test: " ++ errors.length.show ++ " type error(s)")
     else
-      val koka-code = emit-test-program(typed-prog, mod-name)
+      // Strip imported types/structs from the program before emission
+      val prelude-count = prelude.decls.length
+      val imported-count = imported-decls.length
+      val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
+      val prelude-struct-count = prelude.structs.length
+      val imported-struct-count = imported-structs.length
+      val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
+      val prelude-type-count = prelude.types.length
+      val imported-type-count = imported-types.length
+      val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-text-file(out-kk, koka-code)
-      compile-koka(file, mod-name)
+      val inc-dirs = import-dirs(prog.imports, dir.path)
+      compile-koka(file, mod-name, inc-dirs)
       run-tests(file)
 
 fun cmd-clean( file : string )
@@ -366,16 +378,32 @@ fun build( file : string )
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
-  // Emit main module — keep prelude + user decls, skip imported decl definitions
+  // Emit main module — keep prelude + user decls/types/structs, skip imported ones
   val prelude-count = prelude.decls.length
   val imported-count = imported-decls.length
   val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
-  val user-prog = typed-prog(decls = user-typed-decls, imports = prog.imports)
+  val prelude-struct-count = prelude.structs.length
+  val imported-struct-count = imported-structs.length
+  val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
+  val prelude-type-count = prelude.types.length
+  val imported-type-count = imported-types.length
+  val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
+  val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
   val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names)
   val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ file ++ " -> " ++ out-kk.show)
-  compile-koka(file, mod-name)
+  val inc-dirs = import-dirs(prog.imports, dir.path)
+  compile-koka(file, mod-name, inc-dirs)
+
+// Collect unique directories that imported modules live in (for Koka -i flags)
+fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
+  imports.map(fn(imp)
+    val imp-file = resolve-import(imp.path, base-dir)
+    imp-file.dirname.show
+  ).foldl([], fn(acc : list<string>, d)
+    if acc.any(fn(a) a == d) then acc else Cons(d, acc)
+  ).reverse
 
 // ---------------------------------------------------------------------------
 // Import resolution: compile imported modules, collect pub declarations
@@ -386,8 +414,8 @@ fun resolve-import( imp-path : string, base-dir : path ) : path
   base-dir / (imp-path ++ ".hc").path
 
 // Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names)
-fun compile-imports( imports : list<import-decl>, base-dir : path, visited : list<string> )
-  imports.foldl(([], [], [], []), fn(acc, imp)
+fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
+  imp-list.foldl(([], [], [], []), fn(acc, imp)
     val (prev-decls, prev-structs, prev-types, prev-names) = acc
     val imp-file = resolve-import(imp.path, base-dir)
     val imp-path-str = imp-file.show
@@ -414,7 +442,11 @@ fun compile-imports( imports : list<import-decl>, base-dir : path, visited : lis
       val filtered-names = match imp.names
         Nothing  -> pub-names-all
         Just(ns) -> ns
-      (prev-decls ++ filtered-decls, prev-structs ++ mod-prog.structs, prev-types ++ mod-prog.types, prev-names ++ filtered-names)
+      // Collect re-exported symbols from the module's pub imports
+      val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
+      val imp-dir = imp-file.dirname.path
+      val (re-decls, re-structs, re-types, re-names) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
+      (prev-decls ++ filtered-decls ++ re-decls, prev-structs ++ mod-prog.structs ++ re-structs, prev-types ++ mod-prog.types ++ re-types, prev-names ++ filtered-names ++ re-names)
   )
 
 // Compile a single imported module to a .kk file
@@ -444,11 +476,17 @@ fun compile-module( imp-file : path, visited : list<string> )
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
     println("error: " ++ errors.length.show ++ " type error(s) in " ++ imp-file.show)
-  // Emit module .kk — keep prelude + user decls, skip imported decl definitions
+  // Emit module .kk — keep prelude + user decls/types/structs, skip imported ones
   val prelude-count = prelude.decls.length
   val imp-imported-count = imp-decls.length
   val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imp-imported-count)
-  val user-prog = typed-prog(decls = user-typed-decls, imports = prog.imports)
+  val prelude-struct-count = prelude.structs.length
+  val imp-struct-count = imp-structs.length
+  val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imp-struct-count)
+  val prelude-type-count = prelude.types.length
+  val imp-type-count = imp-types.length
+  val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
+  val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
   val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names)
   val out-kk = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
@@ -458,14 +496,15 @@ fun compile-module( imp-file : path, visited : list<string> )
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
-fun compile-koka( file : string, mod-name : string )
+fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [] )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / mod-name.path).show
-  val exit-code = run-system("koka -O2 -v0 -o " ++ out-bin ++ " " ++ kk-file ++ " >/dev/null 2>&1")
+  val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("")
+  val exit-code = run-system("koka -O2 -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file ++ " >/dev/null 2>&1")
   if exit-code != 0 then
     // Re-run with output visible so the user sees the error
-    val _ = run-system("koka -O2 -v0 -o " ++ out-bin ++ " " ++ kk-file)
+    val _ = run-system("koka -O2 -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
   else
     val _ = run-system("chmod 0755 " ++ out-bin)

@@ -372,6 +372,7 @@ pub struct struct-def
   span   : span
   name   : string
   fields : list<(string, hica-type)>
+  is-pub : bool = False
 
 pub fun struct-def/show( d : struct-def ) : div string
   "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
@@ -388,6 +389,7 @@ pub struct type-def
   span     : span
   name     : string
   variants : list<variant-def>
+  is-pub   : bool = False
 
 pub fun type-def/show( d : type-def ) : div string
   "type " ++ d.name ++ " { " ++ d.variants.map(show).join(", ") ++ " }"

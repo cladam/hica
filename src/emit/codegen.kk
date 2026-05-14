@@ -93,7 +93,8 @@ fun struct-type-name( name : string ) : string
 
 fun emit-struct-def( sd : struct-def ) : div string
   val tname = sd.name.struct-type-name
-  val struct-str = "struct " ++ tname ++ "\n" ++
+  val pub-str = if sd.is-pub then "pub " else ""
+  val struct-str = pub-str ++ "struct " ++ tname ++ "\n" ++
     sd.fields.map(fn((fname, ftype)) "  " ++ fname ++ " : " ++ emit-type(ftype)).join("\n")
   // Emit a show function for the struct
   val show-parts = sd.fields.map fn((fname, ftype))
@@ -101,7 +102,7 @@ fun emit-struct-def( sd : struct-def ) : div string
   // Recursive structs need the `div` effect on show
   val is-rec = sd.fields.any(fn((_, ft)) ft.references-struct(sd.name))
   val effect-ann = if is-rec then " : div string" else " : string"
-  val show-fn = "fun " ++ tname ++ "/show(p : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
+  val show-fn = pub-str ++ "fun " ++ tname ++ "/show(p : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  \"" ++ sd.name ++ "(\" ++ " ++ show-parts.join(" ++ \", \" ++ ") ++ " ++ \")\""
   struct-str ++ "\n\n" ++ show-fn
 
@@ -111,7 +112,8 @@ fun emit-struct-def( sd : struct-def ) : div string
 
 fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
   val tname = td.name.to-lower
-  val type-str = "type " ++ tname ++ "\n" ++
+  val pub-str = if td.is-pub then "pub " else ""
+  val type-str = pub-str ++ "type " ++ tname ++ "\n" ++
     td.variants.map(fn(vd)
       if vd.fields.is-nil then "  " ++ vd.name
       else "  " ++ vd.name ++ "(" ++ vd.fields.map(fn((fname, ftype)) fname ++ " : " ++ emit-type(ftype)).join(", ") ++ ")"
@@ -132,7 +134,7 @@ fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
       val param-names = vd.fields.map(fn((fname, _)) fname)
       val show-parts = vd.fields.map(fn((fname, ftype)) emit-show-call(ftype, fname))
       "    " ++ vd.name ++ "(" ++ param-names.join(", ") ++ ") -> \"" ++ vd.name ++ "(\" ++ " ++ show-parts.join(" ++ \", \" ++ ") ++ " ++ \")\""
-  val show-fn = "fun " ++ tname ++ "/show(v : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
+  val show-fn = pub-str ++ "fun " ++ tname ++ "/show(v : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  match v\n" ++
     show-arms.join("\n")
   type-str ++ "\n\n" ++ show-fn
@@ -929,7 +931,7 @@ fun emit-branch( n : node, declared : list<string> ) : div string
     _            -> indent-all(emit-stmt(n, declared))
 
 fun program-has-float( p : program ) : div bool
-  p.decls.any(fn(d) node-has-float(d.body)) ||
+  p.decls.any(fn(d) node-has-float(d.body) || d.param-types.any(fn(t) t.has-float-type) || d.ret-type.map(fn(t) t.has-float-type).default(False)) ||
   p.types.any(fn(td) td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.has-float-type))) ||
   p.structs.any(fn(sd) sd.fields.any(fn((_, ft)) ft.has-float-type))
 
@@ -949,7 +951,11 @@ fun is-parse-float( e : expr ) : bool
     _                  -> False
 
 fun node-has-float( n : node ) : div bool
-  match n.expr
+  val typ-float = match n.typ
+    Just(t) -> t.has-float-type
+    Nothing -> False
+  if typ-float then True
+  else match n.expr
     Literal(LitFloat(_)) -> True
     Call(callee, _) | callee.expr.is-parse-float -> True
     Let(_, _, init, body) -> node-has-float(init) || node-has-float(body)
@@ -1313,8 +1319,8 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // Test program emission: generates a self-contained test runner
 // ---------------------------------------------------------------------------
 
-pub fun emit-test-program( p : program, mod-name : string = "main" ) : div string
-  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main")
+pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [] ) : div string
+  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) || tests-have-float(p.tests) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
@@ -1330,6 +1336,11 @@ pub fun emit-test-program( p : program, mod-name : string = "main" ) : div strin
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
+  val hica-imports = p.imports.map(fn(imp)
+    val koka-mod = safe-module-name(imp.path.import-basename)
+    val pub-str = if imp.is-pub then "pub " else ""
+    pub-str ++ "import " ++ koka-mod ++ "\n"
+  ).join("") ++ (if p.imports.is-nil then "" else "\n")
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
@@ -1352,6 +1363,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main" ) : div strin
   env-import ++
   file-import ++
   readline-import ++
+  hica-imports ++
   exit-extern ++
   break-effect ++
   cont-effect ++

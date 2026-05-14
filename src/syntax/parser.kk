@@ -962,7 +962,7 @@ fun parse-struct-decl() : <div,parser> struct-def
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
   val fields = parse-struct-def-fields()
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  Struct-def(Span(t.span.start, end-tok.span.end), name, fields)
+  Struct-def(Span(t.span.start, end-tok.span.end), name, fields, is-pub = False)
 
 // Parse struct definition fields: name: type, ...
 fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
@@ -993,7 +993,7 @@ pub fun parse-type-decl() : <div,parser> type-def
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
   val variants = parse-variant-defs()
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  Type-def(Span(t.span.start, end-tok.span.end), name, variants)
+  Type-def(Span(t.span.start, end-tok.span.end), name, variants, is-pub = False)
 
 // Parse variant definitions: Name, Name(field: type, ...), ...
 fun parse-variant-defs() : <div,parser> list<variant-def>
@@ -1091,6 +1091,14 @@ pub fun parse-program() : <div,parser> program
         // pub import "path" — re-export
         match peek-next()
           TkImport -> imports := Cons(parse-import-decl(), imports)
+          TkStruct ->
+            advance()
+            val sd = parse-struct-decl()
+            structs := Cons(sd(is-pub = True), structs)
+          TkType ->
+            advance()
+            val td = parse-type-decl()
+            types := Cons(td(is-pub = True), types)
           _        -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
   Program(structs.reverse, types = types.reverse, decls = decls.reverse, tests = tests.reverse, imports = imports.reverse)
