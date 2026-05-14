@@ -66,7 +66,7 @@ Legend: **done** = shipped, **—** = not started
 | User input (`input("prompt")`) | **done** | Medium | Koka `readline`; returns `string`, combine with parse fns |
 | File I/O (`read_file`, `write_file`, `read_lines`) | **done** | Medium | `read_file(path)` → `result<string, string>`, `write_file(path, content)` → `()`, `read_lines(path)` → `list<string>`, `write_lines(path, lines)` → `()`. Koka `std/os/file` `read-text-file` / `write-text-file`. `read_file` returns result; use `unwrap` / `unwrap_or` / `match` |
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
-| Type conversion (`to_int`, `to_float`) | **done** (`to_int`) | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float` still needed |
+| Type conversion (`to_int`, `to_float`) | **done** | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float(n)` → `float`; emits Koka `.float64` |
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | **done** | Medium | `unwrap(result)` → value or throw; `unwrap_or(result, default)` → value or default. Maybe/Result combinators: `map_maybe`, `and_then`, `or_else`, `map_result`, `map_err` |
 | `?` operator (early return on Err/None) | **done** | High | Postfix `?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Implemented via Koka algebraic effects (`hica-early-maybe`) |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
@@ -165,6 +165,55 @@ Tactical changes to differentiate hica from similar-looking languages.
 | UFCS support (`a.f(b)` → `f(a, b)`) | **done** | Low/Medium | Parser desugars `expr.f(args)` to `f(expr, args)` in the postfix loop. Struct field access (`p.x`) still works when no `(` follows. Users can write `5.triple().inc()`, `nums.map(fn).filter(fn)`, `s.trim().to_upper()`. Equivalent to pipe but reads left-to-right. See `examples/ufcs.hc` |
 | Binary & hex integer literals (`0b1010`, `0xFF`) | **done** | Low | `0b`/`0B` for binary, `0x`/`0X` for hex. Underscore separators in all integer literals (`1_000_000`, `0b1111_0000`, `0x00_FF`). All produce `TkInt(n)` — no AST changes. Prerequisite for bit-level matching |
 | Bit-level matching in `match` | **done** | Medium/High | Allow `match` to work on bit patterns with don't-care bits: `0b1100_xxxx => "high nibble C"`. Desugars to mask-and-compare guards: `(signal.and(0xF0)) == 0xC0`. Needs: new `PBits(mask: int, value: int)` pattern in AST, parser support for `x` wildcard bits inside `0b` literals in pattern position, codegen emitting `.and(mask) == value` guard. Identity angle: "hardware-aware functional programming" — unique among teaching/functional languages. Real-world use: packet headers, CPU instruction decoding, hardware registers, binary format parsing. Similar to Erlang/Elixir binary matching but at the bit level |
+
+---
+
+## Prelude Extensions
+
+Standard library functions added to the prelude. Extern functions are backed by Koka stdlib;
+pure functions are written in hica itself.
+
+### List Functions (`prelude/lists.hc` + externs)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `head(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | First element; emits Koka `xs.head` |
+| `tail(xs)` | `(list<a>) -> list<a>` | **done** (extern) | All but first; emits Koka `xs.tail` |
+| `last(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | Last element; emits Koka `xs.last` |
+| `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | **done** (extern) | Map + flatten; emits Koka `xs.flatmap(f)` |
+| `sort_by(xs, cmp)` | `(list<a>, (a, a) -> bool) -> list<a>` | **done** (extern) | Merge sort; `cmp(a, b)` returns true if a should come first. Koka helper emitted when used |
+| `intersperse(xs, sep)` | `(list<a>, a) -> list<a>` | **done** (hica) | Insert separator between elements |
+| `sum(xs)` | `(list<int>) -> int` | **done** (hica) | Sum via `fold` |
+| `product(xs)` | `(list<int>) -> int` | **done** (hica) | Product via `fold` |
+| `scan(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> list<b>` | **done** (hica) | Fold with all intermediate results |
+| `zip_with(xs, ys, f)` | `(list<a>, list<b>, (a, b) -> c) -> list<c>` | **done** (hica) | Zip + map in one step |
+| `unique(xs)` | `(list<a>) -> list<a>` | **done** (hica) | Remove duplicates (preserves first occurrence) |
+| `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | **done** (hica) | Split into groups of `n` |
+
+### Math Functions (`prelude/math.hc`)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `lcm(a, b)` | `(int, int) -> int` | **done** (hica) | Least common multiple; uses `gcd` |
+| `pow(base, exp)` | `(int, int) -> int` | **done** (hica) | Integer exponentiation |
+| `sign(n)` | `(int) -> int` | **done** (hica) | Returns -1, 0, or 1 |
+
+### Float Math (externs)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `sqrt(x)` | `(float) -> float` | **done** (extern) | Square root; emits Koka `sqrt(x)` |
+| `floor(x)` | `(float) -> int` | **done** (extern) | Round down; emits `floor(x).int` |
+| `ceil(x)` | `(float) -> int` | **done** (extern) | Round up; emits `ceiling(x).int` |
+| `round(x)` | `(float) -> int` | **done** (extern) | Round to nearest; emits `round(x).int` |
+| `to_float(n)` | `(int) -> float` | **done** (extern) | Int to float conversion; emits `n.float64` |
+
+### Char/String Conversions (externs)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `chars(s)` | `(string) -> list<char>` | **done** (extern) | String to char list; emits `s.list` |
+| `from_chars(cs)` | `(list<char>) -> string` | **done** (extern) | Char list to string; emits `cs.string` |
 
 ---
 

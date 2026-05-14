@@ -207,6 +207,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
+  val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
@@ -225,6 +226,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   cont-effect ++
   try-result-effect ++
   try-maybe-effect ++
+  sort-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   p.decls.map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n") ++ "\n"
@@ -593,6 +595,36 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("map_size"), [m]) ->
           emit-expr(m, declared) ++ ".length"
 
+        // Extended list operations
+        (Var("head"), [xs]) ->
+          emit-expr(xs, declared) ++ ".head"
+        (Var("tail"), [xs]) ->
+          emit-expr(xs, declared) ++ ".tail"
+        (Var("last"), [xs]) ->
+          emit-expr(xs, declared) ++ ".last"
+        (Var("flat_map"), [xs, f]) ->
+          emit-expr(xs, declared) ++ ".flatmap(" ++ emit-expr(f, declared) ++ ")"
+        (Var("sort_by"), [xs, f]) ->
+          "hc-sort-by(" ++ emit-expr(xs, declared) ++ ", " ++ emit-expr(f, declared) ++ ")"
+
+        // Float math
+        (Var("sqrt"), [x]) ->
+          "sqrt(" ++ emit-expr(x, declared) ++ ")"
+        (Var("floor"), [x]) ->
+          "floor(" ++ emit-expr(x, declared) ++ ").int"
+        (Var("ceil"), [x]) ->
+          "ceiling(" ++ emit-expr(x, declared) ++ ").int"
+        (Var("round"), [x]) ->
+          "round(" ++ emit-expr(x, declared) ++ ").int"
+        (Var("to_float"), [n]) ->
+          emit-expr(n, declared) ++ ".float64"
+
+        // Char/string conversions
+        (Var("chars"), [s]) ->
+          emit-expr(s, declared) ++ ".list"
+        (Var("from_chars"), [cs]) ->
+          emit-expr(cs, declared) ++ ".string"
+
         _ ->
           val callee-code = match callee.expr
             Var("fold")   -> "foldl"
@@ -893,6 +925,14 @@ fun tuple-field-name( idx : int ) : string
     2 -> "thd"
     n -> "field" ++ (n + 1).show
 
+// Extract element type annotation from a list-typed node (for sort codegen).
+fun list-elem-ann( n : node ) : div string
+  match n.typ
+    Just(TList(t)) ->
+      val ts = emit-type(t)
+      if ts == "" then "" else " : " ++ ts
+    _ -> ""
+
 // ---------------------------------------------------------------------------
 // Float detection: check if the program contains any float literals
 // ---------------------------------------------------------------------------
@@ -905,6 +945,14 @@ fun needs-block( e : expr ) : bool
     Assign(_, _)        -> True
     LetTuple(_, _, _)   -> True
     Match(_, _)         -> True
+    Block(Cons(s, Nil)) -> match s.expr
+      Let(_, _, _, _)     -> True
+      VarDecl(_, _, _, _) -> True
+      Assign(_, _)        -> True
+      LetTuple(_, _, _)   -> True
+      Match(_, _)         -> True
+      Block(_)            -> True
+      _                   -> False
     Block(_)            -> True
     _                   -> False
 
@@ -1157,6 +1205,56 @@ fun node-uses-input( n : node ) : div bool
     _                     -> False
 
 // ---------------------------------------------------------------------------
+// Sort detection: emit merge-sort helper when sort_by is used
+// ---------------------------------------------------------------------------
+
+fun program-uses-sort( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-sort(d.body))
+
+fun node-uses-sort( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-sort-fn = match callee.expr
+        Var("sort_by") -> True
+        _              -> False
+      is-sort-fn || node-uses-sort(callee) || args.any(fn(a) node-uses-sort(a))
+    Let(_, _, init, body) -> node-uses-sort(init) || node-uses-sort(body)
+    VarDecl(_, _, init, body) -> node-uses-sort(init) || node-uses-sort(body)
+    Assign(_, value)      -> node-uses-sort(value)
+    Fun(_, body)          -> node-uses-sort(body)
+    Binary(_, lhs, rhs)   -> node-uses-sort(lhs) || node-uses-sort(rhs)
+    Unary(_, operand)     -> node-uses-sort(operand)
+    If(c, t, e)           -> node-uses-sort(c) || node-uses-sort(t) || node-uses-sort(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-sort(s))
+    Match(scrut, arms)    -> node-uses-sort(scrut) || arms.any(fn(a) node-uses-sort(a.body) || a.guard.map(node-uses-sort).default(False))
+    Repeat(count, body)   -> node-uses-sort(count) || node-uses-sort(body)
+    ForIn(_, s, e, body)  -> node-uses-sort(s) || node-uses-sort(e) || node-uses-sort(body)
+    ForEach(_, coll, body) -> node-uses-sort(coll) || node-uses-sort(body)
+    While(cond, body)      -> node-uses-sort(cond) || node-uses-sort(body)
+    Loop(body)             -> node-uses-sort(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-sort(p))
+    LetTuple(_, init, body) -> node-uses-sort(init) || node-uses-sort(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-sort(a))
+    _                     -> False
+
+val sort-helper-code : string =
+  "fun hc-merge-with( xs, ys, cmp )\n" ++
+  "  match xs\n" ++
+  "    Nil -> ys\n" ++
+  "    Cons(x, xr) -> match ys\n" ++
+  "      Nil -> xs\n" ++
+  "      Cons(y, yr) -> if cmp(x, y) then Cons(x, hc-merge-with(xr, ys, cmp)) else Cons(y, hc-merge-with(xs, yr, cmp))\n" ++
+  "\n" ++
+  "fun hc-sort-by( xs, cmp )\n" ++
+  "  match xs\n" ++
+  "    Nil -> Nil\n" ++
+  "    Cons(_, Nil) -> xs\n" ++
+  "    _ ->\n" ++
+  "      val mid = xs.length / 2\n" ++
+  "      hc-merge-with(hc-sort-by(xs.take(mid), cmp), hc-sort-by(xs.drop(mid), cmp), cmp)\n" ++
+  "\n"
+
+// ---------------------------------------------------------------------------
 // Break / continue detection
 // ---------------------------------------------------------------------------
 
@@ -1339,6 +1437,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
+  val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
@@ -1373,6 +1472,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   cont-effect ++
   try-result-effect ++
   try-maybe-effect ++
+  sort-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   decls-code ++ decls-sep ++

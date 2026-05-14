@@ -116,4 +116,22 @@ pub fun extern-env() : type-env
     ("map_keys",         TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TList(TVar("_k")))),
     ("map_values",       TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TList(TVar("_v")))),
     ("map_contains_key", TFun([TList(TTuple([TVar("_k"), TVar("_v")])), TVar("_k")], TBool)),
-    ("map_size",         TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TInt)) ]
+    ("map_size",         TFun([TList(TTuple([TVar("_k"), TVar("_v")]))], TInt)),
+
+    // Extended list operations — backed by Koka std/core/list
+    ("head",      TFun([TList(TVar("_a"))], TMaybe(TVar("_a")))),
+    ("tail",      TFun([TList(TVar("_a"))], TList(TVar("_a")))),
+    ("last",      TFun([TList(TVar("_a"))], TMaybe(TVar("_a")))),
+    ("flat_map",  TFun([TList(TVar("_a")), TFun([TVar("_a")], TList(TVar("_b")))], TList(TVar("_b")))),
+    ("sort_by",   TFun([TList(TVar("_a")), TFun([TVar("_a"), TVar("_a")], TBool)], TList(TVar("_a")))),
+
+    // Float math — backed by Koka std/num/float64
+    ("sqrt",      TFun([TFloat], TFloat)),
+    ("floor",     TFun([TFloat], TInt)),
+    ("ceil",      TFun([TFloat], TInt)),
+    ("round",     TFun([TFloat], TInt)),
+    ("to_float",  TFun([TInt], TFloat)),
+
+    // Char/string conversions
+    ("chars",      TFun([TString], TList(TChar))),
+    ("from_chars", TFun([TList(TChar)], TString)) ]
