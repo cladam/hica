@@ -1502,6 +1502,63 @@ one. It's similar to `map`, but you use it when you want to *do* something
 **🎯 Try it:** Use `for` to print each number in `[10, 20, 30]`
 multiplied by 5.
 
+### Even more list tools
+
+Here are a few more useful list functions:
+
+**`head` and `last` — peek at the ends**
+
+```rust
+fun main() {
+  let nums = [10, 20, 30]
+  println(head(nums))   // Some(10)
+  println(last(nums))   // Some(30)
+  println(head([]))     // None — nothing there!
+}
+```
+
+`head` gives you the first item, `last` gives you the last. They return
+`Some(...)` or `None` because the list might be empty.
+
+**`tail` — everything except the first**
+
+```rust
+println(tail([1, 2, 3]))   // [2, 3]
+```
+
+**`sum` — add them all up**
+
+```rust
+println(sum([1, 2, 3, 4, 5]))   // 15
+```
+
+No need to write `fold` for the most common case!
+
+**`sort_by` — put things in order**
+
+```rust
+let messy = [3, 1, 4, 1, 5, 9]
+let tidy = sort_by(messy, (a, b) => a <= b)
+println(tidy)   // [1, 1, 3, 4, 5, 9]
+```
+
+You give `sort_by` a comparison function. It returns `true` when the first
+value should come before the second. Flip it to sort the other way:
+
+```rust
+let biggest_first = sort_by(messy, (a, b) => a >= b)
+println(biggest_first)   // [9, 5, 4, 3, 1, 1]
+```
+
+**`unique` — remove repeats**
+
+```rust
+println(unique([1, 2, 3, 2, 1]))   // [1, 2, 3]
+```
+
+**🎯 Try it:** Sort `[5, 2, 8, 1, 9]` from smallest to biggest, then
+print just the first element using `head`.
+
 ---
 
 ## 22. Maybe: Something or Nothing
@@ -2756,8 +2813,22 @@ sound!
 | `replace()` | Swap parts of a string |
 | `length()` | Count how many items are in a list |
 | `reverse()` | Flip a list backwards |
+| `head()` | First element of a list — returns `Some(x)` or `None` |
+| `tail()` | Everything after the first element |
+| `last()` | Last element of a list — returns `Some(x)` or `None` |
+| `sum()` | Add up all numbers in a list |
+| `sort_by()` | Sort a list using a comparison function |
+| `unique()` | Remove duplicates from a list |
 | `for x in list` | Walk through each item in a list |
 | `foreach()` | Function form of for-each — `foreach(list, fn)` |
+| `pow(base, exp)` | Exponentiation — `pow(2, 10)` gives `1024` |
+| `sqrt(x)` | Square root — `sqrt(25.0)` gives `5.0` |
+| `floor(x)` | Round a float down — `floor(3.7)` gives `3` |
+| `ceil(x)` | Round a float up — `ceil(3.2)` gives `4` |
+| `round(x)` | Round to nearest integer |
+| `to_float(n)` | Turn an integer into a float |
+| `chars(s)` | Break a string into a list of characters |
+| `from_chars(cs)` | Turn a list of characters back into a string |
 | closure | A function that remembers values from where it was created |
 | higher-order function | A function that takes or returns other functions |
 | `import` | Bring functions from another file into yours |

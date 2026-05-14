@@ -311,6 +311,27 @@ Rule of thumb:
 - Use `|>` when each step is a single-argument function: `5 |> double |> inc`
 - Use `.f()` when passing additional arguments: `nums.filter((x) => x > 2).map((x) => x * 10)`
 
+### More list tools
+
+Beyond `map`/`filter`/`fold`, the standard library has everything you'd expect:
+
+```rust
+fun main() {
+  let nums = [3, 1, 4, 1, 5]
+
+  println(head(nums))           // Some(3)
+  println(tail(nums))           // [1, 4, 1, 5]
+  println(last(nums))           // Some(5)
+  println(sum(nums))            // 14
+  println(unique(nums))         // [3, 1, 4, 5]
+
+  let sorted = sort_by(nums, (a, b) => a <= b)
+  println(sorted)               // [1, 1, 3, 4, 5]
+}
+```
+
+`head` and `last` return `Maybe` since the list might be empty. `sort_by` takes a comparison function — return `true` when the first argument should come first. See the [Standard Library](standard-library) for the full list including `flat_map`, `scan`, `chunks`, and more.
+
 ## Tuples: quick grouping
 
 When you need to bundle two or three values together, use a tuple:
@@ -577,6 +598,27 @@ Escapes work inside interpolated strings too: `"hello, {name}!\nbye!"`.
 
 There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`, `starts_with`, `capitalise`, `removeprefix`, and more. See the [Standard Library](/hica/docs/standard-library) for the complete list.
 
+You can also convert between strings and character lists:
+
+```rust
+let cs = chars("hello")        // ['h', 'e', 'l', 'l', 'o']
+let s = from_chars(cs)         // "hello"
+```
+
+## Math
+
+The prelude includes common integer math (`abs`, `min`, `max`, `gcd`, `lcm`, `pow`, `sign`) and float functions (`sqrt`, `floor`, `ceil`, `round`, `to_float`):
+
+```rust
+fun main() {
+  println(pow(2, 10))          // 1024
+  println(sqrt(25.0))          // 5.0
+  println(floor(3.7))          // 3
+  let n = floor(sqrt(to_float(50)))
+  println(n)                   // 7
+}
+```
+
 ## Closures
 
 Functions are values. You can store them, pass them around, and return them:
@@ -652,6 +694,6 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 34 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Learn hica](/hica/docs/learn)**: 38 standalone programs, each teaching one concept. Run them, modify them, break them.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

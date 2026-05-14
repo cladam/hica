@@ -48,6 +48,10 @@ Each lesson is a standalone `.hc` file you can run:
 | 32 | `32-combinators.hc`   | Combinators                      | `map_maybe`, `and_then`, `unwrap_maybe`, `map_result`, `and_then_result`, pipe-friendly chaining |
 | 33 | `33-imports.hc`       | Imports                          | `import`, `from ... import { }`, `pub import`, modules, `pub` visibility |
 | 34 | `34-struct-patterns.hc` | Struct patterns            | Struct destructuring in `match`, partial patterns, literal fields |
+| 35 | `35-slice-patterns.hc` | Slice patterns             | List destructuring in `match`: `[]`, `[x, ..rest]`, recursive list functions |
+| 36 | `36-try.hc`            | The `?` operator           | Early return on failure, unwrapping `maybe` values |
+| 37 | `37-list-extras.hc`    | List extras                | `head`, `tail`, `last`, `flat_map`, `sort_by`, `sum`, `product`, `unique`, `intersperse`, `zip_with`, `scan`, `chunks` |
+| 38 | `38-math-extras.hc`    | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
 
 ## Language features shown
 
@@ -126,6 +130,17 @@ Each lesson is a standalone `.hc` file you can run:
 | `pub import` (re-export)       | `33-imports.hc`                 |
 | Type annotations (`: int`)     | `type-annotations.hc`       |
 | Struct destructuring patterns   | `34-struct-patterns.hc`, `struct-patterns.hc` |
+| Slice patterns (`[x, ..rest]`) | `35-slice-patterns.hc`                |
+| `?` operator (early return)    | `36-try.hc`                           |
+| `head`, `tail`, `last`         | `37-list-extras.hc`                   |
+| `flat_map`, `sort_by`          | `37-list-extras.hc`                   |
+| `sum`, `product`, `unique`     | `37-list-extras.hc`                   |
+| `intersperse`, `zip_with`      | `37-list-extras.hc`                   |
+| `scan`, `chunks`               | `37-list-extras.hc`                   |
+| `lcm`, `pow`, `sign`           | `38-math-extras.hc`                   |
+| `sqrt`, `floor`, `ceil`        | `38-math-extras.hc`                   |
+| `round`, `to_float`            | `38-math-extras.hc`                   |
+| `chars`, `from_chars`          | `38-math-extras.hc`                   |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |

@@ -123,6 +123,37 @@ fun main() {
 | `foreach(xs, f)` | `(list<a>, (a) -> ()) -> ()` | Call `f` on each element for side effects |
 | `enumerate(xs)` | `(list<a>) -> list<(int, a)>` | Pair each element with its index |
 | `find(xs, f)` | `(list<a>, (a) -> bool) -> maybe<a>` | First element where `f` returns true, or `None` |
+| `head(xs)` | `(list<a>) -> maybe<a>` | First element, or `None` if empty |
+| `tail(xs)` | `(list<a>) -> list<a>` | All elements except the first |
+| `last(xs)` | `(list<a>) -> maybe<a>` | Last element, or `None` if empty |
+| `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | Map then flatten |
+| `sort_by(xs, cmp)` | `(list<a>, (a, a) -> bool) -> list<a>` | Sort using a comparison; `cmp(a, b)` returns true if `a` comes first |
+
+### List Helpers (`prelude/lists.hc`)
+
+Written in hica itself:
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `sum(xs)` | `(list<int>) -> int` | Sum all elements |
+| `product(xs)` | `(list<int>) -> int` | Multiply all elements |
+| `unique(xs)` | `(list<int>) -> list<int>` | Remove duplicates (keeps first occurrence) |
+| `intersperse(xs, sep)` | `(list<a>, a) -> list<a>` | Insert `sep` between every element |
+| `zip_with(xs, ys, f)` | `(list<a>, list<b>, (a, b) -> c) -> list<c>` | Zip and transform in one step |
+| `scan(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> list<b>` | Like `fold` but keeps all intermediate results |
+| `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | Split into groups of `n` |
+
+```rust
+fun main() {
+  println(sum([1, 2, 3, 4, 5]))           // 15
+  println(sort_by([3, 1, 4], (a, b) => a <= b))  // [1, 3, 4]
+  println(unique([1, 2, 3, 2, 1]))        // [1, 2, 3]
+  println(chunks([1, 2, 3, 4, 5], 2))     // [[1, 2], [3, 4], [5]]
+  println(head([10, 20, 30]))             // Some(10)
+  println(last([10, 20, 30]))             // Some(30)
+  println(flat_map([1, 2, 3], (x) => [x, x * 10]))  // [1, 10, 2, 20, 3, 30]
+}
+```
 
 ## Map Operations
 
@@ -232,6 +263,46 @@ Written in hica itself:
 | `max(a, b)` | `(int, int) -> int` | Larger of two values |
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
 | `gcd(a, b)` | `(int, int) -> int` | Greatest common divisor |
+| `lcm(a, b)` | `(int, int) -> int` | Least common multiple |
+| `pow(base, exp)` | `(int, int) -> int` | Integer exponentiation |
+| `sign(n)` | `(int) -> int` | Returns -1, 0, or 1 |
+
+## Float Math
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `sqrt(x)` | `(float) -> float` | Square root |
+| `floor(x)` | `(float) -> int` | Round down to integer |
+| `ceil(x)` | `(float) -> int` | Round up to integer |
+| `round(x)` | `(float) -> int` | Round to nearest integer |
+| `to_float(n)` | `(int) -> float` | Convert integer to float |
+
+```rust
+fun main() {
+  println(sqrt(16.0))     // 4.0
+  println(floor(3.7))     // 3
+  println(ceil(3.2))      // 4
+  println(round(3.5))     // 4
+  println(to_float(42))   // 42.0
+  println(pow(2, 10))     // 1024
+  println(lcm(12, 18))    // 36
+}
+```
+
+## Char / String Conversions
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `chars(s)` | `(string) -> list<char>` | Convert a string to a list of characters |
+| `from_chars(cs)` | `(list<char>) -> string` | Convert a list of characters back to a string |
+
+```rust
+fun main() {
+  let cs = chars("hello")
+  println(cs)              // ['h', 'e', 'l', 'l', 'o']
+  println(from_chars(cs))  // "hello"
+}
+```
 
 ## String Operations
 
