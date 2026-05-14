@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/hica-logo.png" width="200" alt="hica logo" />
+  <img src="assets/hica-logo2.png" width="200" alt="hica logo" />
   <p><b>A modern, expressive and fast systems language</b></p>
   
 </div>

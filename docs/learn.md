@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 35 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 36 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
