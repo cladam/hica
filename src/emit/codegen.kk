@@ -208,6 +208,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
+  val assert-helper = assert-helper-code
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
@@ -227,6 +228,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   try-result-effect ++
   try-maybe-effect ++
   sort-helper ++
+  assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   p.decls.map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n") ++ "\n"
@@ -546,31 +548,32 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("bit_shr"), [a, sh]) ->
           emit-expr(a, declared) ++ ".int32.shr(" ++ emit-expr(sh, declared) ++ ").int"
 
-        // Test assertions
+        // Test assertions — use 1-arg hc-assert to work around Koka Perceus
+        // ref-counting bug with multi-arg calls inside nested match arms
         (Var("assert"), [cond]) ->
-          "(if !(" ++ emit-expr(cond, declared) ++ ") then throw(\"assertion failed\") else ())"
+          "hc-assert(" ++ emit-expr(cond, declared) ++ ")"
         (Var("assert_true"), [cond]) ->
-          "(if !(" ++ emit-expr(cond, declared) ++ ") then throw(\"expected true but got false\") else ())"
+          "hc-assert(" ++ emit-expr(cond, declared) ++ ")"
         (Var("assert_false"), [cond]) ->
-          "(if (" ++ emit-expr(cond, declared) ++ ") then throw(\"expected false but got true\") else ())"
+          "hc-assert(!" ++ emit-expr(cond, declared) ++ ")"
         (Var("assert_eq"), [expected, actual]) ->
           val e-code = emit-expr(expected, declared)
           val a-code = emit-expr(actual, declared)
-          "(if (" ++ e-code ++ ") != (" ++ a-code ++ ") then throw(\"expected \" ++ (" ++ e-code ++ ").show ++ \" but got \" ++ (" ++ a-code ++ ").show) else ())"
+          "hc-assert((" ++ e-code ++ ") == (" ++ a-code ++ "))"
         (Var("assert_ne"), [expected, actual]) ->
           val e-code = emit-expr(expected, declared)
           val a-code = emit-expr(actual, declared)
-          "(if (" ++ e-code ++ ") == (" ++ a-code ++ ") then throw(\"expected values to differ but both are \" ++ (" ++ e-code ++ ").show) else ())"
+          "hc-assert((" ++ e-code ++ ") != (" ++ a-code ++ "))"
         (Var("assert_contains"), [lst, elem]) ->
           val l-code = emit-expr(lst, declared)
           val e-code = emit-expr(elem, declared)
-          "(if !(" ++ l-code ++ ".any(fn(hc__el) hc__el == " ++ e-code ++ ")) then throw(\"expected list to contain \" ++ (" ++ e-code ++ ").show) else ())"
+          "hc-assert(" ++ l-code ++ ".any(fn(hc__el) hc__el == " ++ e-code ++ "))"
         (Var("assert_empty"), [lst]) ->
           val l-code = emit-expr(lst, declared)
-          "(if !(" ++ l-code ++ ".is-nil) then throw(\"expected empty list but got \" ++ (" ++ l-code ++ ").length.show ++ \" element(s)\") else ())"
+          "hc-assert(" ++ l-code ++ ".is-nil)"
         (Var("assert_not_empty"), [lst]) ->
           val l-code = emit-expr(lst, declared)
-          "(if (" ++ l-code ++ ".is-nil) then throw(\"expected non-empty list but got []\") else ())"
+          "hc-assert(!" ++ l-code ++ ".is-nil)"
 
         // Map operations — maps are list<(k, v)>
         (Var("map_get"), [m, key]) ->
@@ -1237,6 +1240,11 @@ fun node-uses-sort( n : node ) : div bool
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-sort(a))
     _                     -> False
 
+val assert-helper-code : string =
+  "fun hc-assert( b : bool ) : exn ()\n" ++
+  "  if !b then throw(\"assertion failed\")\n" ++
+  "\n"
+
 val sort-helper-code : string =
   "fun hc-merge-with( xs, ys, cmp )\n" ++
   "  match xs\n" ++
@@ -1438,6 +1446,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
+  val assert-helper = assert-helper-code
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
@@ -1473,6 +1482,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   try-result-effect ++
   try-maybe-effect ++
   sort-helper ++
+  assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   decls-code ++ decls-sep ++
