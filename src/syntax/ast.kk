@@ -289,7 +289,7 @@ pub fun pattern/show( p : pattern ) : div string
       if args.is-nil then name
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
     PStruct(sname, fps) ->
-      sname ++ " { " ++ fps.map(fn((f, p)) f ++ ": " ++ p.show).join(", ") ++ " }"
+      sname ++ " { " ++ fps.map(fn((f, fp)) f ++ ": " ++ fp.show).join(", ") ++ " }"
     PList(elems, rest) ->
       val es = elems.map(show).join(", ")
       match rest
