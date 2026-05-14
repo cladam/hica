@@ -296,11 +296,14 @@ fun lex-string( cs : list<char>, start : int, pos : int ) : div list<token>
     lex-plain-string(cs, start, pos)
 
 // Check whether a string body (after opening ") contains a '{' before the closing '"'
+// A lone '{' immediately before '"' (e.g. "{") is not interpolation.
 fun string-has-interp( cs : list<char> ) : bool
   match cs
     Nil            -> False
     Cons('"', _)   -> False
     Cons('\\', Cons(_, rest)) -> string-has-interp(rest) // skip escaped char
+    Cons('{', Cons('"', _))  -> False  // lone "{" is not interpolation
+    Cons('{', Cons('}', _))  -> False  // lone "{}" is not interpolation
     Cons('{', _)   -> True
     Cons(_, rest)  -> string-has-interp(rest)
 
