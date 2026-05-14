@@ -1,10 +1,10 @@
-fun sum(a: int, b: int) : int => a + b
+fun my_sum(a: int, b: int) : int => a + b
 
 fun double(n: int) : int => n * 2
 
 test "addition works" {
   assert(1 + 1 == 2)
-  assert(sum(3, 4) == 7)
+  assert(my_sum(3, 4) == 7)
 }
 
 test "double function" {
