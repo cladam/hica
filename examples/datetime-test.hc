@@ -25,6 +25,12 @@ fun main() {
   assert(is_valid_time("12:60:00") == false)
   assert(is_valid_time("12:30:60") == false)
   assert(is_valid_time("hello") == false)
+  // seconds-omitted forms
+  assert(is_valid_time("07:32") == true)
+  assert(is_valid_time("23:59") == true)
+  assert(is_valid_time("00:00") == true)
+  assert(is_valid_time("24:00") == false)
+  assert(is_valid_time("12:60") == false)
   println("  is_valid_time: ok")
 
   // --- is_local_date ---
@@ -36,6 +42,7 @@ fun main() {
   assert(is_local_time("07:32:00") == true)
   assert(is_local_time("07:32:00.999") == true)
   assert(is_local_time("not-time") == false)
+  assert(is_local_time("07:32") == true)
   println("  is_local_time: ok")
 
   // --- is_local_datetime ---
@@ -43,6 +50,8 @@ fun main() {
   assert(is_local_datetime("2024-05-15t07:32:00") == true)
   assert(is_local_datetime("2024-05-15 07:32:00") == true)
   assert(is_local_datetime("2024-05-15T07:32:00.123") == true)
+  assert(is_local_datetime("2024-05-15T07:32") == true)
+  assert(is_local_datetime("1979-05-27 07:32") == true)
   assert(is_local_datetime("hello") == false)
   println("  is_local_datetime: ok")
 
@@ -52,6 +61,9 @@ fun main() {
   assert(is_iso_datetime("2024-05-15T07:32:00-05:30") == true)
   assert(is_iso_datetime("2024-05-15T07:32:00.123Z") == true)
   assert(is_iso_datetime("2024-05-15T07:32:00.123+02:00") == true)
+  assert(is_iso_datetime("1979-05-27T07:32Z") == true)
+  assert(is_iso_datetime("1979-05-27 07:32Z") == true)
+  assert(is_iso_datetime("1979-05-27T07:32+02:00") == true)
   assert(is_iso_datetime("not-a-datetime") == false)
   println("  is_iso_datetime: ok")
 
@@ -89,6 +101,17 @@ fun main() {
   }
   println("  time_parts: ok")
 
+  // --- time_parts seconds-omitted ---
+  match time_parts("07:32") {
+    Ok(parts) => {
+      assert(parts.0 == 7)
+      assert(parts.1 == 32)
+      assert(parts.2 == 0)
+    },
+    Err(_) => assert(false)
+  }
+  println("  time_parts (HH:MM): ok")
+
   // --- datetime_date ---
   match datetime_date("2024-05-15T07:32:00Z") {
     Ok(d) => assert(d == "2024-05-15"),
@@ -106,6 +129,17 @@ fun main() {
     Err(_) => assert(false)
   }
   println("  datetime_time: ok")
+
+  // --- datetime_time seconds-omitted ---
+  match datetime_time("1979-05-27T07:32Z") {
+    Ok(t) => assert(t == "07:32"),
+    Err(_) => assert(false)
+  }
+  match datetime_time("1979-05-27T07:32+02:00") {
+    Ok(t) => assert(t == "07:32"),
+    Err(_) => assert(false)
+  }
+  println("  datetime_time (HH:MM): ok")
 
   // --- datetime_offset ---
   match datetime_offset("2024-05-15T07:32:00Z") {
@@ -128,6 +162,9 @@ fun main() {
   assert(datetime_kind("2024-05-15T07:32:00") == "local-datetime")
   assert(datetime_kind("2024-05-15T07:32:00Z") == "offset-datetime")
   assert(datetime_kind("2024-05-15T07:32:00+02:00") == "offset-datetime")
+  assert(datetime_kind("07:32") == "local-time")
+  assert(datetime_kind("1979-05-27T07:32") == "local-datetime")
+  assert(datetime_kind("1979-05-27T07:32Z") == "offset-datetime")
   assert(datetime_kind("garbage") == "invalid")
   println("  datetime_kind: ok")
 

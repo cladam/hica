@@ -9,7 +9,7 @@
 //   Offset datetime:  2024-05-15T07:32:00Z   or  2024-05-15T07:32:00+02:00
 //   Local datetime:   2024-05-15T07:32:00
 //   Local date:       2024-05-15
-//   Local time:       07:32:00   or  07:32:00.123456
+//   Local time:       07:32:00   or  07:32:00.123456  or  07:32 (seconds omitted)
 //
 // This source file is part of the hica open source project
 // Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
@@ -75,11 +75,19 @@ fun is_valid_date(s: string) : bool =>
     }
   }
 
-// Validate a time string: HH:MM:SS or HH:MM:SS.fraction
-fun is_valid_time(s: string) : bool =>
-  if str_length(s) < 8 { false }
-  else if s[2:3] != ":" || s[5:6] != ":" { false }
-  else if !all_digits(s[0:2]) || !all_digits(s[3:5]) || !all_digits(s[6:8]) { false }
+// Validate HH:MM (seconds omitted)
+fun is_valid_time_short(s: string) : bool =>
+  match parse_int(s[0:2]) {
+    Some(h) => match parse_int(s[3:5]) {
+      Some(m) => in_range(h, 0, 23) && in_range(m, 0, 59),
+      None => false
+    },
+    None => false
+  }
+
+// Validate HH:MM:SS with optional fractional seconds
+fun is_valid_time_full(s: string) : bool =>
+  if !all_digits(s[6:8]) { false }
   else {
     let hh = parse_int(s[0:2])
     let mm = parse_int(s[3:5])
@@ -104,6 +112,15 @@ fun is_valid_time(s: string) : bool =>
     }
   }
 
+// Validate a time string: HH:MM:SS, HH:MM:SS.fraction, or HH:MM (seconds omitted)
+fun is_valid_time(s: string) : bool =>
+  if str_length(s) < 5 { false }
+  else if s[2:3] != ":" { false }
+  else if !all_digits(s[0:2]) || !all_digits(s[3:5]) { false }
+  else if str_length(s) == 5 { is_valid_time_short(s) }
+  else if str_length(s) >= 8 && s[5:6] == ":" { is_valid_time_full(s) }
+  else { false }
+
 // Validate an offset: Z, +HH:MM, or -HH:MM
 fun is_valid_offset(s: string) : bool =>
   if s == "Z" || s == "z" { true }
@@ -124,37 +141,45 @@ fun is_valid_offset(s: string) : bool =>
     }
   }
 
-// Validate an ISO 8601 offset datetime: YYYY-MM-DDThh:mm:ss[.frac]Z/±HH:MM
+// Check if rest (time+offset) is valid with Z/z offset
+fun check_z_offset(rest: string) : bool {
+  let zi = match index_of(rest, "Z") { Some(i) => i, None => match index_of(rest, "z") { Some(i) => i, None => 0 } }
+  let t = rest[0:zi]
+  is_valid_time(t) && is_valid_offset(rest[zi:])
+}
+
+// Check if rest (time+offset) is valid with +/-HH:MM offset
+fun check_numeric_offset(rest: string) : bool {
+  if str_length(rest) < 11 { false }
+  else {
+    let sign_pos = str_length(rest) - 6
+    let sign_char = rest[sign_pos:sign_pos + 1]
+    if sign_char != "+" && sign_char != "-" { false }
+    else {
+      let t = rest[0:sign_pos]
+      let o = rest[sign_pos:]
+      is_valid_time(t) && is_valid_offset(o)
+    }
+  }
+}
+
+// Validate an ISO 8601 offset datetime: YYYY-MM-DDThh:mm[:ss[.frac]]Z/±HH:MM
 fun is_iso_datetime(s: string) : bool =>
-  if str_length(s) < 20 { false }
+  if str_length(s) < 17 { false }
   else {
     let sep = s[10:11]
     if sep != "T" && sep != "t" && sep != " " { false }
+    else if !is_valid_date(s[0:10]) { false }
     else {
-      let date_part = s[0:10]
       let rest = s[11:]
-      if !is_valid_date(date_part) { false }
-      else {
-        // Find offset start: look for Z, +, or - after position 8
-        let time_str = if contains(rest, "Z") || contains(rest, "z") {
-          let zi = match index_of(rest, "Z") { Some(i) => i, None => match index_of(rest, "z") { Some(i) => i, None => 0 } }
-          let t = rest[0:zi]
-          if is_valid_time(t) && is_valid_offset(rest[zi:]) { true } else { false }
-        } else if str_length(rest) >= 14 && (rest[str_length(rest) - 6:str_length(rest) - 5] == "+" || rest[str_length(rest) - 6:str_length(rest) - 5] == "-") {
-          let t = rest[0:str_length(rest) - 6]
-          let o = rest[str_length(rest) - 6:]
-          if is_valid_time(t) && is_valid_offset(o) { true } else { false }
-        } else {
-          false
-        }
-        time_str
-      }
+      if contains(rest, "Z") || contains(rest, "z") { check_z_offset(rest) }
+      else { check_numeric_offset(rest) }
     }
   }
 
-// Validate a local datetime: YYYY-MM-DDThh:mm:ss[.frac] (no offset)
+// Validate a local datetime: YYYY-MM-DDThh:mm[:ss[.frac]] (no offset)
 fun is_local_datetime(s: string) : bool =>
-  if str_length(s) < 19 { false }
+  if str_length(s) < 16 { false }
   else {
     let sep = s[10:11]
     if sep != "T" && sep != "t" && sep != " " { false }
@@ -190,9 +215,19 @@ fun date_parts(s: string) : result<(int, int, int), string> =>
   }
 
 // Parse a time string into (hour, minute, second) or Err
-// Fractional seconds are truncated.
+// Fractional seconds are truncated. Seconds-omitted times return 0 for seconds.
 fun time_parts(s: string) : result<(int, int, int), string> =>
   if !is_valid_time(s) { Err("invalid time: " + s) }
+  else if str_length(s) == 5 {
+    // HH:MM — seconds omitted
+    match parse_int(s[0:2]) {
+      Some(h) => match parse_int(s[3:5]) {
+        Some(m) => Ok((h, m, 0)),
+        None => Err("invalid minute")
+      },
+      None => Err("invalid hour")
+    }
+  }
   else {
     match parse_int(s[0:2]) {
       Some(h) => match parse_int(s[3:5]) {
@@ -211,32 +246,34 @@ fun datetime_date(s: string) : result<string, string> =>
   if str_length(s) >= 10 && is_valid_date(s[0:10]) { Ok(s[0:10]) }
   else { Err("no valid date in: " + s) }
 
+// Strip offset from a time+offset string to get just the time portion
+fun strip_offset(rest: string) : string =>
+  if contains(rest, "Z") || contains(rest, "z") {
+    match index_of(rest, "Z") { Some(i) => rest[0:i], None => match index_of(rest, "z") { Some(i) => rest[0:i], None => rest } }
+  } else if str_length(rest) >= 11 && (rest[str_length(rest) - 6:str_length(rest) - 5] == "+" || rest[str_length(rest) - 6:str_length(rest) - 5] == "-") {
+    rest[0:str_length(rest) - 6]
+  } else {
+    rest
+  }
+
 // Extract the time portion from a local or offset datetime string
 fun datetime_time(s: string) : result<string, string> =>
-  if str_length(s) >= 19 {
+  if str_length(s) < 16 { Err("string too short for datetime") }
+  else {
     let sep = s[10:11]
-    if sep == "T" || sep == "t" || sep == " " {
-      let rest = s[11:]
-      // Strip offset if present
-      let time_part = if contains(rest, "Z") || contains(rest, "z") {
-        match index_of(rest, "Z") { Some(i) => rest[0:i], None => match index_of(rest, "z") { Some(i) => rest[0:i], None => rest } }
-      } else if str_length(rest) > 8 && (rest[str_length(rest) - 6:str_length(rest) - 5] == "+" || rest[str_length(rest) - 6:str_length(rest) - 5] == "-") {
-        rest[0:str_length(rest) - 6]
-      } else {
-        rest
-      }
+    if sep != "T" && sep != "t" && sep != " " { Err("no datetime separator found") }
+    else {
+      let time_part = strip_offset(s[11:])
       if is_valid_time(time_part) { Ok(time_part) }
       else { Err("invalid time portion") }
     }
-    else { Err("no datetime separator found") }
   }
-  else { Err("string too short for datetime") }
 
 // Extract the offset portion from an offset datetime, or None for local
 fun datetime_offset(s: string) : maybe<string> =>
   if contains(s, "Z") { Some("Z") }
   else if contains(s, "z") { Some("Z") }
-  else if str_length(s) >= 25 && (s[str_length(s) - 6:str_length(s) - 5] == "+" || s[str_length(s) - 6:str_length(s) - 5] == "-") {
+  else if str_length(s) >= 22 && (s[str_length(s) - 6:str_length(s) - 5] == "+" || s[str_length(s) - 6:str_length(s) - 5] == "-") {
     let o = s[str_length(s) - 6:]
     if is_valid_offset(o) { Some(o) } else { None }
   }
