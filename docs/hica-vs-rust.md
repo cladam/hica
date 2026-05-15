@@ -144,7 +144,7 @@ fun main() {
 }
 ```
 
-For `maybe` types, hica also has a `?` operator that works like Rust's — unwrap or return early:
+For `maybe` types, hica also has a `?` operator that works like Rust's: unwrap or return early:
 
 ```rust
 fun add_strings(a: string, b: string) : maybe<int> {
@@ -272,7 +272,7 @@ fun sum(xs: list<int>) : int => match xs {
 }
 ```
 
-Both languages use `..=` for inclusive range patterns, support struct destructuring, and have list/slice patterns in match. Rust uses `[first, rest @ ..]` syntax; hica uses `[first, ..rest]`. Rust's pattern matching is still more powerful (`if let`, `@` bindings, exclusive ranges with `..`, nested destructuring). hica covers the common cases — including or-patterns, guards, ranges, struct patterns, and list slice patterns — with fewer constructs and edge cases to learn.
+Both languages use `..=` for inclusive range patterns, support struct destructuring, and have list/slice patterns in match. Rust uses `[first, rest @ ..]` syntax; hica uses `[first, ..rest]`. Rust's pattern matching is still more powerful (`if let`, `@` bindings, exclusive ranges with `..`, nested destructuring). hica covers the common cases (including or-patterns, guards, ranges, struct patterns, and list slice patterns) with fewer constructs and edge cases to learn.
 
 ## Custom Data Types
 
@@ -361,7 +361,7 @@ fun area(s: Shape) : float => match s {
 | `#[derive(Debug)]` for printing | Auto-generated `show` |
 | `impl` blocks for methods | Free functions |
 
-Both languages have exhaustive matching — the compiler ensures every variant is handled. Rust adds generic type parameters (`Option<T>`, `Result<T, E>`), nested destructuring, and `if let` / `let else` for partial matching. hica covers the common cases with less syntax: no qualified paths (`Shape::`), no `derive`, no `impl` blocks.
+Both languages have exhaustive matching: the compiler ensures every variant is handled. Rust adds generic type parameters (`Option<T>`, `Result<T, E>`), nested destructuring, and `if let` / `let else` for partial matching. hica covers the common cases with less syntax: no qualified paths (`Shape::`), no `derive`, no `impl` blocks.
 
 ## Maps / Dictionaries
 
@@ -401,7 +401,7 @@ fun main() {
 | `map.contains_key(&key)` | `map_contains_key(m, key)` |
 | `map.len()` | `map_size(m)` |
 
-Rust's `HashMap` is a mutable hash table with O(1) average lookup and full generic support. hica maps are immutable association lists — no imports, built-in literal syntax, and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. Rust gives performance and flexibility; hica gives simplicity and immutability by default.
+Rust's `HashMap` is a mutable hash table with O(1) average lookup and full generic support. hica maps are immutable association lists: no imports, built-in literal syntax, and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. Rust gives performance and flexibility; hica gives simplicity and immutability by default.
 
 ## Immutability
 
@@ -435,7 +435,7 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
     .collect();
 ```
 
-hica has both a pipe operator `|>` and dot-call syntax — they're equivalent and both work with any function:
+hica has both a pipe operator `|>` and dot-call syntax. They're equivalent and both work with any function:
 
 ```rust
 fun main() {
@@ -453,7 +453,7 @@ fun main() {
 }
 ```
 
-Unlike Rust, hica's dot-call isn't limited to methods defined in `impl` blocks — any function can be called with dot syntax. `a.f(b)` desugars to `f(a, b)`.
+Unlike Rust, hica's dot-call isn't limited to methods defined in `impl` blocks; any function can be called with dot syntax. `a.f(b)` desugars to `f(a, b)`.
 
 ## Loops
 
@@ -511,7 +511,7 @@ fun main() {
 }
 ```
 
-Rust's operators are familiar to C programmers and work on every integer type (`u8`, `i32`, `u64`, etc.). hica has a single `int` type with named functions — less flexible, but no concerns about integer width mismatches.
+Rust's operators are familiar to C programmers and work on every integer type (`u8`, `i32`, `u64`, etc.). hica has a single `int` type with named functions. Less flexible, but no concerns about integer width mismatches.
 
 hica adds bit-level pattern matching with `?` wildcards, inspired by hardware description languages:
 
@@ -523,7 +523,7 @@ match opcode {
 }
 ```
 
-Rust has no direct equivalent — you'd write explicit mask-and-compare guards.
+Rust has no direct equivalent; you'd write explicit mask-and-compare guards.
 
 ## Compilation and Performance
 
