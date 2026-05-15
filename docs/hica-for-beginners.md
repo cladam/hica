@@ -89,7 +89,7 @@ fun add(a: int, b: int) : int => a + b
 
 ## Testing your code
 
-Once you've written a function, how do you know it works? Use `test` blocks. They sit right next to your functions — no separate files, no imports:
+Once you've written a function, how do you know it works? Use `test` blocks. They sit right next to your functions. No separate files, no imports:
 
 ```rust
 fun double(x) => x * 2
@@ -285,7 +285,7 @@ fun main() {
 
 ### The pipe operator and dot-call syntax
 
-hica gives you two ways to chain functions left to right. Pick whichever reads better to you — they're equivalent:
+hica gives you two ways to chain functions left to right. Pick whichever reads better to you. They're equivalent:
 
 ```rust
 fun main() {
@@ -330,7 +330,7 @@ fun main() {
 }
 ```
 
-`head` and `last` return `Maybe` since the list might be empty. `sort_by` takes a comparison function — return `true` when the first argument should come first. See the [Standard Library](standard-library) for the full list including `flat_map`, `scan`, `chunks`, and more.
+`head` and `last` return `Maybe` since the list might be empty. `sort_by` takes a comparison function: return `true` when the first argument should come first. See the [Standard Library](standard-library) for the full list including `flat_map`, `scan`, `chunks`, and more.
 
 ## Tuples: quick grouping
 
@@ -572,7 +572,7 @@ fun main() {
 }
 ```
 
-Think of `?` as asking "did this work?" — if not, bail out.
+Think of `?` as asking "did this work?" If not, bail out.
 
 ## Strings
 
@@ -585,7 +585,7 @@ s[1:4]    // "ell" (a string)
 s[-1]     // 'o' (negative indexing)
 ```
 
-Use backslash escapes for special characters — `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, and `\t` for a tab:
+Use backslash escapes for special characters: `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, and `\t` for a tab:
 
 ```rust
 println("She said \"hi\"")     // She said "hi"
@@ -637,13 +637,13 @@ The inner function `(x) => x + n` captures `n` from the enclosing scope. This is
 
 ## Importing modules
 
-As your programs grow, you'll want to split code across files. Any `.hc` file can be a module — just mark the functions you want to share with `pub`:
+As your programs grow, you'll want to split code across files. Any `.hc` file can be a module. Just mark the functions you want to share with `pub`:
 
 ```rust
 // helpers.hc
 pub fun double(x) => x * 2
 pub fun triple(x) => x * 3
-fun secret() => 42   // private — not visible outside this file
+fun secret() => 42   // private, not visible outside this file
 ```
 
 Then import from another file:
@@ -665,11 +665,11 @@ from "helpers" import { double }
 
 fun main() {
   println(double(5))   // works
-  // triple(5)         // error — not imported
+  // triple(5)         // error: not imported
 }
 ```
 
-And `pub import` re-exports to your own importers — handy for building libraries.
+And `pub import` re-exports to your own importers, handy for building libraries.
 
 ## Putting it all together
 

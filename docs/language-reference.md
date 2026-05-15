@@ -68,7 +68,7 @@ fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }
 ```
 
 Functions can also call each other (mutual recursion). The compiler
-detects cycles automatically — no forward declarations needed:
+detects cycles automatically. No forward declarations needed:
 
 ```rust
 fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }
@@ -105,7 +105,7 @@ count = count + 1
 println(count)
 ```
 
-`var` is locally scoped and effect-safe — mutable variables cannot leak out of the function they're declared in.
+`var` is locally scoped and effect-safe: mutable variables cannot leak out of the function they're declared in.
 
 ### The last-line rule
 
@@ -286,7 +286,7 @@ fun decode(opcode) => match opcode {
 }
 ```
 
-The `?` wildcard means "don't care" — the bit at that position is not checked. This is useful for matching bit fields in protocols, instruction encodings, or hardware registers:
+The `?` wildcard means "don't care": the bit at that position is not checked. This is useful for matching bit fields in protocols, instruction encodings, or hardware registers:
 
 ```rust
 fun classify_instruction(byte) => match byte {
@@ -493,7 +493,7 @@ struct Point { x: int, y: int }
 fun main() {
   let p = Point { x: 3, y: 4 }
   let q = Point { ...p, x: 10 }     // Point(x: 10, y: 4)
-  let r = Point { ...p }            // copy — Point(x: 3, y: 4)
+  let r = Point { ...p }            // copy: Point(x: 3, y: 4)
 }
 ```
 
@@ -526,7 +526,7 @@ type Color {
 }
 ```
 
-Variants can carry data — each variant specifies its own fields:
+Variants can carry data. Each variant specifies its own fields:
 
 ```rust
 type Shape {
@@ -554,7 +554,7 @@ fun describe(s: Shape) : string => match s {
 }
 ```
 
-The compiler checks exhaustiveness — if you forget a variant, you get a warning:
+The compiler checks exhaustiveness: if you forget a variant, you get a warning:
 
 ```
 warning: non-exhaustive match: missing Circle(…)
@@ -671,7 +671,7 @@ fun main() {
 
 ### Random Numbers
 
-Generate random integers with `random(min, max)`. The result is in the range `[min, max]` — both ends included:
+Generate random integers with `random(min, max)`. The result is in the range `[min, max]`, both ends included:
 
 ```rust
 fun main() {
@@ -754,7 +754,7 @@ fun main() {
   let b = 5.double().add_one()
   println(b)
 
-  // They're identical — use whichever reads better
+  // They're identical, use whichever reads better
   println(a == b)
 }
 ```
@@ -808,7 +808,7 @@ fun main() {
 }
 ```
 
-**32-bit constraint:** Bitwise operations internally use 32-bit signed integers. Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). This is the same behaviour as C's `int` — suitable for flags, masks, and protocol work, but not for arbitrary-precision bit manipulation.
+**32-bit constraint:** Bitwise operations internally use 32-bit signed integers. Values are clamped to the `int32` range (−2,147,483,648 to 2,147,483,647). This is the same behaviour as C's `int`, suitable for flags, masks, and protocol work, but not for arbitrary-precision bit manipulation.
 
 ### Error propagation (`?`)
 
@@ -889,7 +889,7 @@ hica test my_file.hc
 - Tests are declared at the top level (alongside functions and structs)
 - Each test has a string name and a block body
 - Tests can call any function defined in the same file
-- No imports needed — `assert` and `assert_eq` are built-in
+- No imports needed. `assert` and `assert_eq` are built-in
 - Exit code is 0 on success, 1 on failure
 
 ## Modules & Imports
@@ -923,9 +923,9 @@ Use `import` to bring all `pub` items from another file into scope:
 import "greet"
 
 fun main() {
-  hello("world")     // works — hello is pub
-  goodbye("world")   // works — goodbye is pub
-  // secret()        // error — secret is not pub
+  hello("world")     // works: hello is pub
+  goodbye("world")   // works: goodbye is pub
+  // secret()        // error: secret is not pub
 }
 ```
 
@@ -942,8 +942,8 @@ Use `from ... import { ... }` to import only specific names:
 from "greet" import { hello }
 
 fun main() {
-  hello("world")     // works — explicitly imported
-  // goodbye("world")  // error — not imported
+  hello("world")     // works: explicitly imported
+  // goodbye("world")  // error: not imported
 }
 ```
 
@@ -965,5 +965,5 @@ Anyone who imports `prelude` gets the `pub` items from both `math_helpers` and `
 
 - Imports are resolved **relative to the importing file**, not the working directory
 - **Circular imports** are detected and reported as errors
-- Each imported file is compiled to its own Koka module — names do not collide across files
+- Each imported file is compiled to its own Koka module, so names do not collide across files
 - The import graph is processed before the main file, so imported functions are available throughout your code

@@ -12,7 +12,7 @@ title: Style Guide - hica
 
 A style guide is about consistency. Consistency within a project is important.
 Consistency within a single file is *the most* important. However, know when
-to be inconsistent — sometimes a rule just doesn't fit. When in doubt, look at
+to be inconsistent. Sometimes a rule just doesn't fit. When in doubt, look at
 the surrounding code and match its style. Readability always wins.
 
 ### 1. The Hica Philosophy
@@ -128,12 +128,12 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
  - **Line breaks before operators:** When an expression spans multiple lines, break *before* the operator. This keeps operators visually aligned with their operands:
 
    ```rust
-   // Good — operator at start of continuation
+   // Good: operator at start of continuation
    let total = base_price
      + tax
      + shipping
 
-   // Avoid — operator at end of line
+   // Avoid: operator at end of line
    let total = base_price +
      tax +
      shipping
@@ -210,14 +210,14 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 
  - **Prefer `?` over nested match:** When a function returns `maybe`, use `?` to unwrap intermediate values instead of nesting `match` expressions:
    ```rust
-   // Good — flat and readable
+   // Good: flat and readable
    fun add_strings(a: string, b: string) : maybe<int> {
      let x = parse_int(a)?
      let y = parse_int(b)?
      Some(x + y)
    }
 
-   // Avoid — deeply nested
+   // Avoid: deeply nested
    fun add_strings(a: string, b: string) : maybe<int> {
      match parse_int(a) {
        None => None,

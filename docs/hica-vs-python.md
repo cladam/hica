@@ -98,7 +98,7 @@ while count < 10 {
 }
 ```
 
-`var` is locally scoped and effect-safe — the mutable state can't leak outside the function. This gives you the convenience of mutation when you need it, without the risks of shared mutable state.
+`var` is locally scoped and effect-safe: the mutable state can't leak outside the function. This gives you the convenience of mutation when you need it, without the risks of shared mutable state.
 
 ## Functions and Closures
 
@@ -211,7 +211,7 @@ fun main() {
 | `s.removeprefix("v")` | `removeprefix(s, "v")` | Strip prefix |
 | `s.removesuffix(".txt")` | `removesuffix(s, ".txt")` | Strip suffix |
 
-Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`) — but hica also supports dot-call syntax, so you can write `s.trim().to_upper()` just like method chaining. The pipe operator works too: `s |> trim |> to_upper`. Both styles are equivalent; use whichever you prefer.
+Python uses method syntax (`s.strip()`), hica uses function syntax (`trim(s)`), but hica also supports dot-call syntax, so you can write `s.trim().to_upper()` just like method chaining. The pipe operator works too: `s |> trim |> to_upper`. Both styles are equivalent; use whichever you prefer.
 
 ## Parsing & Type Conversion
 
@@ -305,7 +305,7 @@ def area(shape):
         return 3.14159 * shape.radius ** 2
     elif isinstance(shape, Rect):
         return shape.w * shape.h
-    # Easy to forget a case — no compiler warning!
+    # Easy to forget a case, no compiler warning!
 ```
 
 **hica** has first-class enum types with exhaustiveness checking:
@@ -330,7 +330,7 @@ If you forget a variant, the compiler warns you:
 warning: non-exhaustive match: missing Point
 ```
 
-Python's `isinstance` chains are error-prone and have no compile-time safety. hica's `match` is exhaustive — every case must be handled. This is one of hica's strongest advantages over Python for modelling data that comes in different shapes.
+Python's `isinstance` chains are error-prone and have no compile-time safety. hica's `match` is exhaustive: every case must be handled. This is one of hica's strongest advantages over Python for modelling data that comes in different shapes.
 
 ## Dictionaries / Maps
 
@@ -368,7 +368,7 @@ fun main() {
 | `key in d` | `map_contains_key(m, key)` |
 | `len(d)` | `map_size(m)` |
 
-Python dicts are mutable hash tables with O(1) lookup. hica maps are immutable association lists — simpler and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. For small maps this is fine; for large data sets, Python's dict is more efficient.
+Python dicts are mutable hash tables with O(1) lookup. hica maps are immutable association lists: simpler and composable with all list functions (`filter`, `map`, `fold`), but O(n) lookup. For small maps this is fine; for large data sets, Python's dict is more efficient.
 
 ## Pattern Matching
 

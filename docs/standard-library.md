@@ -188,7 +188,7 @@ Since maps are lists of tuples, all list operations (`filter`, `map`, `fold`, et
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max]` — both ends included |
+| `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max]`, both ends included |
 
 Using `random` gives your program the `ndet` (non-determinism) effect.
 
