@@ -11,11 +11,50 @@ If you already know Python, JavaScript, or Rust, you'll feel at home quickly. If
 
 ## Getting started
 
-You'll need [Koka](https://koka-lang.github.io/koka/doc/book.html#install) (version 3.2+) installed. Then build the compiler:
+### Prerequisites
+
+Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3.2 or newer.
+
+### Install hica
+
+#### Linux / macOS / Chromebook
 
 ```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | sh
+```
+
+This downloads the latest release binary and installs it to `~/.local/bin`.
+Make sure that directory is on your `PATH`.
+
+To install elsewhere:
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+```
+
+#### Windows (PowerShell)
+
+```powershell
+irm https://cladam.github.io/hica/install.ps1 | iex
+```
+
+This installs hica to `%LOCALAPPDATA%\hica` and adds it to your user PATH.
+Override the install directory with `$env:HICA_INSTALL_DIR`.
+
+Verify the installation:
+
+```sh
+hica --version
+```
+
+#### Build from source
+
+```sh
+git clone https://github.com/cladam/hica.git
+cd hica
 koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
+./hica --version
 ```
 
 Create a file called `hello.hc` and run it:
