@@ -397,9 +397,9 @@ Written in hica itself:
 
 ## Datetime (`prelude/datetime.hc`) — v0.1.0
 
-> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database — just validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
+> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica currently supports validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
 
-Written in hica itself. Supports the four TOML/ISO 8601 datetime variants:
+Written in hica itself. Supports the four ISO 8601 datetime variants:
 
 - **Offset datetime:** `2024-05-15T07:32:00Z` or `2024-05-15T07:32:00+02:00`
 - **Local datetime:** `2024-05-15T07:32:00`

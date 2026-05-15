@@ -137,14 +137,7 @@ A progressive set of 39 lessons that teach hica one concept at a time. Each less
 
 ## Getting Started
 
-Make sure you have the hica compiler built:
-
-```sh
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
-```
-
-Then work through the lessons in order. Each one builds on the previous:
+Make sure you have the hica compiler built, then work through the lessons in order. Each one builds on the previous:
 
 ```sh
 ./hica run learn/01-hello.hc
