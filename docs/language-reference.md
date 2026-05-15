@@ -378,7 +378,7 @@ for i in 0..10 {
 | `int` | `42`, `-7` | Integer numbers |
 | `float` | `3.14`, `-0.5` | Floating-point numbers |
 | `string` | `"hello"` | Text strings |
-| `char` | `'a'`, `'!'` | Single characters |
+| `char` | `'a'`, `'!'` | Single characters (see `chr`, `ord` in [Standard Library](standard-library.md#char--string-conversions)) |
 | `bool` | `true`, `false` | Boolean values |
 
 ### Strings

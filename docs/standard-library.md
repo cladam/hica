@@ -295,12 +295,23 @@ fun main() {
 |----------|-----------|-------------|
 | `chars(s)` | `(string) -> list<char>` | Convert a string to a list of characters |
 | `from_chars(cs)` | `(list<char>) -> string` | Convert a list of characters back to a string |
+| `chr(code)` | `(int) -> char` | Construct a char from a Unicode code point |
+| `ord(c)` | `(char) -> int` | Get the Unicode code point of a char |
+| `char_to_string(c)` | `(char) -> string` | Convert a single char to a string |
 
 ```rust
 fun main() {
   let cs = chars("hello")
   println(cs)              // ['h', 'e', 'l', 'l', 'o']
   println(from_chars(cs))  // "hello"
+
+  // Construct chars from code points
+  println(chr(65))         // A
+  println(ord('A'))        // 65
+
+  // Build strings from code points
+  let hi = from_chars([chr(72), chr(105)])
+  println(hi)              // Hi
 }
 ```
 
