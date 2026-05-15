@@ -133,5 +133,8 @@ pub fun extern-env() : type-env
     ("to_float",  TFun([TInt], TFloat)),
 
     // Char/string conversions
-    ("chars",      TFun([TString], TList(TChar))),
-    ("from_chars", TFun([TList(TChar)], TString)) ]
+    ("chars",           TFun([TString], TList(TChar))),
+    ("from_chars",      TFun([TList(TChar)], TString)),
+    ("chr",             TFun([TInt], TChar)),
+    ("ord",             TFun([TChar], TInt)),
+    ("char_to_string",  TFun([TChar], TString)) ]

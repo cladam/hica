@@ -381,7 +381,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TInt)    -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TFloat)  -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
-            Just(TChar)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+            Just(TChar)   -> "println(" ++ emit-expr(arg, declared) ++ ".string)"
             Just(TMaybe(_)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TResult(_, _)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TStruct(sn))  -> "println(" ++ sn.struct-type-name ++ "/show(" ++ emit-expr(arg, declared) ++ "))"
@@ -627,6 +627,12 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           emit-expr(s, declared) ++ ".list"
         (Var("from_chars"), [cs]) ->
           emit-expr(cs, declared) ++ ".string"
+        (Var("chr"), [n]) ->
+          emit-expr(n, declared) ++ ".char"
+        (Var("ord"), [c]) ->
+          emit-expr(c, declared) ++ ".int"
+        (Var("char_to_string"), [c]) ->
+          emit-expr(c, declared) ++ ".string"
 
         _ ->
           val callee-code = match callee.expr
@@ -804,7 +810,7 @@ fun emit-interp-part( p : node, declared : list<string> ) : div string
         Just(TInt)    -> "int/show(" ++ inner ++ ")"
         Just(TFloat)  -> "float64/show(" ++ inner ++ ")"
         Just(TBool)   -> "bool/show(" ++ inner ++ ")"
-        Just(TChar)   -> "char/show(" ++ inner ++ ")"
+        Just(TChar)   -> inner ++ ".string"
         Just(TString) -> inner
         Just(TTuple(_)) -> inner ++ ".show"
         Just(TList(_))  -> inner ++ ".show"
