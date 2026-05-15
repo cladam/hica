@@ -41,12 +41,6 @@ irm https://cladam.github.io/hica/install.ps1 | iex
 This installs hica to `%LOCALAPPDATA%\hica` and adds it to your user PATH.
 Override the install directory with `$env:HICA_INSTALL_DIR`.
 
-Verify the installation:
-
-```sh
-hica --version
-```
-
 #### Build from source
 
 ```sh
@@ -54,7 +48,12 @@ git clone https://github.com/cladam/hica.git
 cd hica
 koka -O2 -ilib/klap -isrc src/main.kk -o hica
 chmod +x hica
-./hica --version
+```
+
+Verify the installation:
+
+```sh
+hica --version
 ```
 
 Create a file called `hello.hc` and run it:
