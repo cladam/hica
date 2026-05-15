@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.14.0" 
+val version = "0.14.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -351,9 +351,11 @@ fun load-prelude()
   var decl-result : list<fun-decl> := []
   var struct-result : list<struct-def> := []
   var type-result : list<type-def> := []
+  val base = app-path().nobase
   prelude-files.foreach fn(f)
-    if is-file(f.path) then
-      val source = read-text-file(f.path)
+    val fp = (base / f).string
+    if is-file(fp.path) then
+      val source = read-text-file(fp.path)
       val tokens = lex(source)
       val prog = run-parser-program(tokens)
       decl-result := decl-result ++ prog.decls

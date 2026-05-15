@@ -309,9 +309,9 @@ fun offset_to_minutes(s: string) : result<int, string> =>
 // ---------------------------------------------------------------------------
 
 // Helper: look up a value from a small list by index
-fun nth(xs: list<int>, i: int) : int => match xs {
+fun list_int_nth(xs: list<int>, i: int) : int => match xs {
   [] => 0,
-  [x, ..rest] => if i == 0 { x } else { nth(rest, i - 1) }
+  [x, ..rest] => if i == 0 { x } else { list_int_nth(rest, i - 1) }
 }
 
 // Day of week for a valid date. Returns "monday" through "sunday".
@@ -324,7 +324,7 @@ fun day_of_week(s: string) : result<string, string> =>
         // Sakamoto's algorithm
         let y = if parts.1 < 3 { parts.0 - 1 } else { parts.0 }
         let t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4]
-        let idx = (y + y / 4 - y / 100 + y / 400 + nth(t, parts.1 - 1) + parts.2) % 7
+        let idx = (y + y / 4 - y / 100 + y / 400 + list_int_nth(t, parts.1 - 1) + parts.2) % 7
         let names = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
         match idx {
           0 => Ok("sunday"),
