@@ -1918,3 +1918,41 @@ pub fun main() : io ()
       // Should hoist the find call to val hc__mm and match on it
       assert/is-true(code.contains("val hc__mm"))
       assert/is-true(code.contains("match hc__mm"))
+
+    // --- chr / ord / char_to_string ---
+    dtest("chr type-checks int to char")
+      val ds = check-diagnostics("fun main() => chr(65)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("chr emits .char")
+      val code = emit-typed-program("fun main() => chr(65)")
+      assert/is-true(code.contains("65.char"))
+
+    dtest("ord type-checks char to int")
+      val ds = check-diagnostics("fun main() => ord('A')")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("ord emits .int")
+      val code = emit-typed-program("fun main() => ord('A')")
+      assert/is-true(code.contains("'A'.int"))
+
+    dtest("char_to_string type-checks char to string")
+      val ds = check-diagnostics("fun main() => char_to_string('A')")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("char_to_string emits .string")
+      val code = emit-typed-program("fun main() => char_to_string('A')")
+      assert/is-true(code.contains("'A'.string"))
+
+    dtest("chr rejects string argument")
+      val ds = check-diagnostics("fun main() => chr(\"A\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
+
+    dtest("ord rejects int argument")
+      val ds = check-diagnostics("fun main() => ord(42)")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length > 0)
