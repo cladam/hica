@@ -191,6 +191,53 @@ Written in Hica. Source: [`prelude/io.hc`](io.hc)
 | `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines |
 | `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
 
+### `datetime.hc` — dates & times (v0.1.0)
+
+String-based datetime validation, decomposition, comparison, and weekday calculation. 
+All datetimes are represented as ISO 8601 strings, no rich types or timezone database. 
+A future version may introduce structured types.
+
+Written in hica. Source: [`prelude/datetime.hc`](datetime.hc)
+
+#### Validation
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_valid_date(s)` | `(string) -> bool` | Validate `YYYY-MM-DD` (handles leap years) |
+| `is_valid_time(s)` | `(string) -> bool` | Validate `HH:MM:SS[.frac]` |
+| `is_valid_offset(s)` | `(string) -> bool` | Validate `Z`, `+HH:MM`, `-HH:MM` |
+| `is_local_date(s)` | `(string) -> bool` | Check local date format |
+| `is_local_time(s)` | `(string) -> bool` | Check local time format |
+| `is_local_datetime(s)` | `(string) -> bool` | Check `YYYY-MM-DDThh:mm:ss[.frac]` |
+| `is_iso_datetime(s)` | `(string) -> bool` | Check offset datetime |
+| `datetime_kind(s)` | `(string) -> string` | Classify: `"local-date"`, `"local-time"`, `"local-datetime"`, `"offset-datetime"`, `"invalid"` |
+
+#### Decomposition
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `date_parts(s)` | `(string) -> result<(int,int,int), string>` | `(year, month, day)` |
+| `time_parts(s)` | `(string) -> result<(int,int,int), string>` | `(hour, minute, second)` |
+| `datetime_date(s)` | `(string) -> result<string, string>` | Extract date portion |
+| `datetime_time(s)` | `(string) -> result<string, string>` | Extract time portion |
+| `datetime_offset(s)` | `(string) -> maybe<string>` | Extract offset, or `None` |
+
+#### Comparison
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `date_cmp(d1, d2)` | `(string, string) -> int` | -1, 0, or 1 |
+| `time_cmp(t1, t2)` | `(string, string) -> int` | -1, 0, or 1 |
+| `datetime_cmp(d1, d2)` | `(string, string) -> int` | Compare local datetimes |
+| `is_before(d1, d2)` | `(string, string) -> bool` | Works on dates, times, datetimes |
+
+#### Offset & Weekday
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `offset_to_minutes(s)` | `(string) -> result<int, string>` | `"+02:00"` → `120` |
+| `day_of_week(s)` | `(string) -> result<string, string>` | `"monday"` through `"sunday"` |
+
 ## How to add a prelude function
 
 **1. Write your function in a `.hc` file inside `prelude/`.**
@@ -235,13 +282,13 @@ Koka's own stdlib. Extern functions like `println` pass through unchanged.
 
 ## Design principles
 
-- **Written in Hica** — if a function *can* be expressed in Hica, it
-  *should* be. Only I/O and polymorphic built-ins use extern signatures.
-- **No magic** — prelude functions are ordinary Hica code. They follow the
+- **Written in hica**: if a function *can* be expressed in hica, it *should* be. 
+  Only I/O and polymorphic built-ins use extern signatures.
+- **No magic**: prelude functions are ordinary hica code. They follow the
   same rules, get the same type checking, and produce the same errors.
-- **Small and focused** — include only universally useful functions. Domain-
+- **Small and focused**: include only universally useful functions. Domain-
   specific helpers belong in user code, not the prelude.
-- **Anyone can contribute** — adding a function is just writing Hica code
+- **Anyone can contribute**: adding a function is just writing hica code
   and adding a line to a list.
 
 ## Ideas for future prelude functions
@@ -274,6 +321,6 @@ people reach for every day:
   rich collection operations, scope functions (`let`, `run`, `apply`),
   and extension functions that feel built-in.
 
-The goal isn't to match their size — it's to notice the patterns. The
+The goal isn't to match their size, it's to notice the patterns. The
 functions that appear in *all* of these libraries (`abs`, `min`, `max`,
 `print`, `len`, `map`, `filter`) are the ones users expect to just work.

@@ -395,6 +395,95 @@ Written in hica itself:
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
 | `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
+## Datetime (`prelude/datetime.hc`) — v0.1.0
+
+> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database — just validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
+
+Written in hica itself. Supports the four TOML/ISO 8601 datetime variants:
+
+- **Offset datetime:** `2024-05-15T07:32:00Z` or `2024-05-15T07:32:00+02:00`
+- **Local datetime:** `2024-05-15T07:32:00`
+- **Local date:** `2024-05-15`
+- **Local time:** `07:32:00` or `07:32:00.123456`
+
+### Validation
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_valid_date(s)` | `(string) -> bool` | Validate `YYYY-MM-DD` (handles leap years) |
+| `is_valid_time(s)` | `(string) -> bool` | Validate `HH:MM:SS` or `HH:MM:SS.frac` |
+| `is_valid_offset(s)` | `(string) -> bool` | Validate `Z`, `+HH:MM`, or `-HH:MM` |
+| `is_local_date(s)` | `(string) -> bool` | Check local date format |
+| `is_local_time(s)` | `(string) -> bool` | Check local time format |
+| `is_local_datetime(s)` | `(string) -> bool` | Check `YYYY-MM-DDThh:mm:ss[.frac]` |
+| `is_iso_datetime(s)` | `(string) -> bool` | Check offset datetime (with `Z`/`±HH:MM`) |
+| `datetime_kind(s)` | `(string) -> string` | Classify: `"local-time"`, `"local-date"`, `"local-datetime"`, `"offset-datetime"`, or `"invalid"` |
+
+### Decomposition
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `date_parts(s)` | `(string) -> result<(int, int, int), string>` | Decompose into `(year, month, day)` |
+| `time_parts(s)` | `(string) -> result<(int, int, int), string>` | Decompose into `(hour, minute, second)` |
+| `datetime_date(s)` | `(string) -> result<string, string>` | Extract the date portion |
+| `datetime_time(s)` | `(string) -> result<string, string>` | Extract the time portion (offset stripped) |
+| `datetime_offset(s)` | `(string) -> maybe<string>` | Extract the offset, or `None` for local |
+
+### Comparison
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `date_cmp(d1, d2)` | `(string, string) -> int` | Returns -1, 0, or 1 |
+| `time_cmp(t1, t2)` | `(string, string) -> int` | Returns -1, 0, or 1 |
+| `datetime_cmp(d1, d2)` | `(string, string) -> int` | Compare local datetimes; returns -1, 0, or 1 |
+| `is_before(d1, d2)` | `(string, string) -> bool` | Works on dates, times, and local datetimes |
+
+### Offset & Weekday
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `offset_to_minutes(s)` | `(string) -> result<int, string>` | `"+02:00"` → `120`, `"Z"` → `0` |
+| `day_of_week(s)` | `(string) -> result<string, string>` | Returns `"monday"` through `"sunday"` |
+
+### Internal Helpers
+
+These are also available (prelude functions are implicitly public):
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `all_digits(s)` | `(string) -> bool` | True if every character is a digit |
+| `in_range(n, lo, hi)` | `(int, int, int) -> bool` | Inclusive range check |
+| `days_in_month(year, month)` | `(int, int) -> int` | Days in a month (handles leap years) |
+
+```rust
+fun main() {
+  // Classify a TOML value
+  println(datetime_kind("2024-05-15T07:32:00Z"))   // "offset-datetime"
+  println(datetime_kind("07:32:00"))                // "local-time"
+
+  // Decompose a date
+  match date_parts("2024-05-15") {
+    Ok(parts) => println("{parts.0}-{parts.1}-{parts.2}"),
+    Err(e) => println(e)
+  }
+
+  // Compare dates
+  println(is_before("2024-01-01", "2024-12-31"))    // true
+
+  // Offset conversion
+  match offset_to_minutes("+05:30") {
+    Ok(m) => println(m),   // 330
+    Err(e) => println(e)
+  }
+
+  // Weekday
+  match day_of_week("2026-05-15") {
+    Ok(d) => println(d),   // "friday"
+    Err(e) => println(e)
+  }
+}
+```
+
 ## Examples
 
 ### Map and filter

@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 38 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 39 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 ./hica run learn/01-hello.hc
@@ -52,6 +52,7 @@ A progressive set of 38 lessons that teach hica one concept at a time. Each less
 | 36 | [`36-try.hc`](https://github.com/cladam/hica/blob/main/learn/36-try.hc) | `?` operator (early return)    | When a function returns `maybe`, the `?` operator saves you from writing nested matches. |
 | 37 | [`37-list-extras.hc`](https://github.com/cladam/hica/blob/main/learn/37-list-extras.hc) | List extras                | `head`, `tail`, `last`, `flat_map`, `sort_by`, `sum`, `product`, `unique`, `intersperse`, `zip_with`, `scan`, `chunks` |
 | 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
+| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` |
 
 ## Language features shown
 

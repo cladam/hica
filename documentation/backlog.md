@@ -215,6 +215,40 @@ pure functions are written in hica itself.
 | `chars(s)` | `(string) -> list<char>` | **done** (extern) | String to char list; emits `s.list` |
 | `from_chars(cs)` | `(list<char>) -> string` | **done** (extern) | Char list to string; emits `cs.string` |
 
+### Datetime Functions (`prelude/datetime.hc`) — v0.1.0
+
+String-based datetime validation, decomposition, comparison, and weekday calculation.
+All functions are pure (no effects). Datetimes are represented as ISO 8601 strings.
+No rich types or timezone database yet — deferred to a future version that may
+leverage Koka's `std/time`.
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `is_valid_date(s)` | `(string) -> bool` | **done** (hica) | Validate `YYYY-MM-DD`, handles leap years |
+| `is_valid_time(s)` | `(string) -> bool` | **done** (hica) | Validate `HH:MM:SS[.frac]` |
+| `is_valid_offset(s)` | `(string) -> bool` | **done** (hica) | Validate `Z`, `+HH:MM`, `-HH:MM` |
+| `is_local_date(s)` | `(string) -> bool` | **done** (hica) | Alias for `is_valid_date` |
+| `is_local_time(s)` | `(string) -> bool` | **done** (hica) | Alias for `is_valid_time` |
+| `is_local_datetime(s)` | `(string) -> bool` | **done** (hica) | Check `YYYY-MM-DDThh:mm:ss[.frac]` |
+| `is_iso_datetime(s)` | `(string) -> bool` | **done** (hica) | Check offset datetime with `Z`/`±HH:MM` |
+| `datetime_kind(s)` | `(string) -> string` | **done** (hica) | Classify variant: `"local-date"`, `"local-time"`, `"local-datetime"`, `"offset-datetime"`, `"invalid"` |
+| `date_parts(s)` | `(string) -> result<(int,int,int), string>` | **done** (hica) | Decompose into `(year, month, day)` |
+| `time_parts(s)` | `(string) -> result<(int,int,int), string>` | **done** (hica) | Decompose into `(hour, minute, second)` |
+| `datetime_date(s)` | `(string) -> result<string, string>` | **done** (hica) | Extract date portion |
+| `datetime_time(s)` | `(string) -> result<string, string>` | **done** (hica) | Extract time portion (offset stripped) |
+| `datetime_offset(s)` | `(string) -> maybe<string>` | **done** (hica) | Extract offset, or `None` for local |
+| `date_cmp(d1, d2)` | `(string, string) -> int` | **done** (hica) | Returns -1, 0, or 1 |
+| `time_cmp(t1, t2)` | `(string, string) -> int` | **done** (hica) | Returns -1, 0, or 1 |
+| `datetime_cmp(d1, d2)` | `(string, string) -> int` | **done** (hica) | Compare local datetimes |
+| `is_before(d1, d2)` | `(string, string) -> bool` | **done** (hica) | Works on dates, times, local datetimes |
+| `offset_to_minutes(s)` | `(string) -> result<int, string>` | **done** (hica) | `"+02:00"` → `120`, `"Z"` → `0` |
+| `day_of_week(s)` | `(string) -> result<string, string>` | **done** (hica) | Sakamoto's algorithm; returns `"monday"` etc. |
+| `to_unix(s)` | `(string) -> result<int, string>` | **—** | Deferred to Phase 3 — needs calendar math or `std/time` |
+| `from_unix(n)` | `(int) -> string` | **—** | Deferred to Phase 3 |
+| ISO 8601 durations | — | **—** | Not required by TOML/YAML core schemas; future consideration |
+
+Internal helpers also available: `all_digits`, `in_range`, `days_in_month`, `nth`.
+
 ---
 
 ## Known Limitations

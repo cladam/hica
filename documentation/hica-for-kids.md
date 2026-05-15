@@ -42,7 +42,8 @@ software.
 31. [Under the Hood: The Translator](#31-under-the-hood-the-translator)
 32. [Projects](#32-projects)
 33. [Sharing Code Between Files](#33-sharing-code-between-files)
-34. [Glossary](#34-glossary)
+34. [Dates & Times: What Day Is It?](#34-dates--times-what-day-is-it)
+35. [Glossary](#35-glossary)
 
 ---
 
@@ -2747,7 +2748,90 @@ sound!
 
 ---
 
-## 34. Glossary
+## 34. Dates & Times: What Day Is It?
+
+Hica has built-in functions for working with dates and times. They use
+**strings** that look like this:
+
+- A **date**: `"2026-05-15"` — year, month, day, separated by dashes
+- A **time**: `"07:32:00"` — hours, minutes, seconds, separated by colons
+- A **datetime**: `"2026-05-15T07:32:00"` — a date and time joined by `T`
+
+Think of it like writing a date on a letter — you write it in a standard
+format so everyone can read it.
+
+### Is this date real?
+
+```rust
+fun main() {
+  println(is_valid_date("2024-05-15"))   // true
+  println(is_valid_date("2024-02-30"))   // false — February doesn't have 30 days!
+  println(is_valid_date("2024-13-01"))   // false — there's no month 13
+}
+```
+
+Hica knows about **leap years** too:
+
+```rust
+fun main() {
+  println(is_valid_date("2024-02-29"))   // true  — 2024 is a leap year
+  println(is_valid_date("2023-02-29"))   // false — 2023 is not
+}
+```
+
+### What kind of date is this?
+
+The `datetime_kind` function tells you what you're looking at:
+
+```rust
+fun main() {
+  println(datetime_kind("2024-05-15"))                // "local-date"
+  println(datetime_kind("07:32:00"))                   // "local-time"
+  println(datetime_kind("2024-05-15T07:32:00"))        // "local-datetime"
+  println(datetime_kind("2024-05-15T07:32:00Z"))       // "offset-datetime"
+  println(datetime_kind("banana"))                     // "invalid"
+}
+```
+
+### Breaking a date apart
+
+You can split a date into its pieces — year, month, and day:
+
+```rust
+fun main() {
+  match date_parts("2026-05-15") {
+    Ok(d) => println("Year: {d.0}, Month: {d.1}, Day: {d.2}"),
+    Err(e) => println(e)
+  }
+}
+```
+
+### Which comes first?
+
+```rust
+fun main() {
+  println(is_before("2024-01-01", "2024-12-31"))   // true
+  println(is_before("2024-12-31", "2024-01-01"))   // false
+}
+```
+
+### What day of the week?
+
+```rust
+fun main() {
+  match day_of_week("2026-05-15") {
+    Ok(d) => println("Today is " + d),   // "Today is friday"
+    Err(e) => println(e)
+  }
+}
+```
+
+**🎯 Challenge:** Write a program that asks the user for their birthday
+(as `YYYY-MM-DD`) and tells them what day of the week they were born!
+
+---
+
+## 35. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2796,6 +2880,14 @@ sound!
 | `show_fixed(v, n)` | Format a float with exactly n decimal places — `show_fixed(3.14159, 2)` gives `"3.14"` |
 | `parse_int(s)` | Try to turn a string into an integer — returns `Some(n)` or `None` |
 | `parse_float(s)` | Try to turn a string into a float — returns `Some(n)` or `None` |
+| `is_valid_date(s)` | Check if a string is a real date like `"2024-05-15"` |
+| `is_valid_time(s)` | Check if a string is a real time like `"07:32:00"` |
+| `datetime_kind(s)` | Tell you what kind of datetime a string is |
+| `date_parts(s)` | Break a date into year, month, day |
+| `time_parts(s)` | Break a time into hour, minute, second |
+| `is_before(d1, d2)` | True if the first date/time comes before the second |
+| `day_of_week(s)` | What day of the week is this date? Returns `"monday"` etc. |
+| `offset_to_minutes(s)` | Convert a timezone offset to minutes — `"+02:00"` gives `120` |
 | `-x` | Negate a number (flip positive/negative) |
 | `!x` | Negate a boolean (flip true/false) |
 | `&&` | AND — both sides must be true |

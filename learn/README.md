@@ -52,6 +52,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 36 | `36-try.hc`            | The `?` operator           | Early return on failure, unwrapping `maybe` values |
 | 37 | `37-list-extras.hc`    | List extras                | `head`, `tail`, `last`, `flat_map`, `sort_by`, `sum`, `product`, `unique`, `intersperse`, `zip_with`, `scan`, `chunks` |
 | 38 | `38-math-extras.hc`    | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
+| 39 | `39-datetime.hc` | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` |
 
 ## Language features shown
 
@@ -154,7 +155,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 32 lessons, try these challenges:
+Once you finish all 39 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers
@@ -164,10 +165,6 @@ Once you finish all 32 lessons, try these challenges:
 ## Running a lesson
 
 ```sh
-# Build the Hica compiler (one time)
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
-
 # Run any lesson
 ./hica run learn/01-hello.hc
 ```
