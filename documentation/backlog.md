@@ -294,6 +294,19 @@ Issues that exist today but are not yet fixed:
 
 ---
 
+## Playground & JS Backend
+
+| Feature | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| JS codegen backend (`codegen-js.kk`) | **—** | High | Emit JavaScript directly from hica AST, bypassing Koka. Enables 100% client-side playground on GitHub Pages |
+| JS runtime preamble | **—** | Medium | Minimal JS implementations of hica prelude (`println`, `show`, list ops, maybe/result). Bundled inline in output |
+| CLI `--target=js` flag | **—** | Low | Route `hica build --target=js foo.hc` to `emit-js-program` instead of `emit-program` |
+| Playground frontend | **—** | Medium | CodeMirror 6 + hica syntax highlighting + Web Worker execution + virtual console |
+| Share via URL hash | **—** | Low | `lz-string` compress editor state into URL fragment |
+| Playground deployment | **—** | Low | Static files in `docs/playground/`; served by GitHub Pages |
+
+---
+
 ## What We Defer
 
 These are explicitly **not** in scope near-term:
