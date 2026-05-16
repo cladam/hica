@@ -160,10 +160,12 @@ fun main()
 // ---------------------------------------------------------------------------
 
 fun cmd-build( file : string )
-  build(file)
+  val (extra-includes, koka-flags) = read-manifest-koka()
+  build(file, extra-includes=extra-includes, koka-flags=koka-flags)
 
 fun cmd-run( file : string, user-args : list<string> )
-  build(file, opt-level="0")
+  val (extra-includes, koka-flags) = read-manifest-koka()
+  build(file, opt-level="0", extra-includes=extra-includes, koka-flags=koka-flags)
   run-koka(file, user-args)
 
 fun cmd-check( file : string )
@@ -209,6 +211,7 @@ fun cmd-fmt( file : string, check-only : bool )
       println("fmt: " ++ file ++ " — formatted")
 
 fun cmd-test( file : string )
+  val (extra-includes, koka-flags) = read-manifest-koka()
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -252,8 +255,8 @@ fun cmd-test( file : string )
       val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
-      val inc-dirs = import-dirs(prog.imports, dir.path)
-      compile-koka(file, mod-name, inc-dirs, "0")
+      val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+      compile-koka(file, mod-name, inc-dirs, "0", koka-flags)
       run-tests(file)
 
 fun cmd-clean( file : string )
@@ -380,7 +383,7 @@ fun load-prelude()
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
-fun build( file : string, opt-level : string = "2" )
+fun build( file : string, opt-level : string = "2", extra-includes : list<string> = [], koka-flags : string = "" )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -421,8 +424,8 @@ fun build( file : string, opt-level : string = "2" )
   val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
   val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-kk-if-changed(out-kk, koka-code, file)
-  val inc-dirs = import-dirs(prog.imports, dir.path)
-  compile-koka(file, mod-name, inc-dirs, opt-level)
+  val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+  compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags)
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -526,16 +529,17 @@ fun compile-module( imp-file : path, visited : list<string> )
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
-fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2" )
+fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2", koka-flags : string = "" )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / (mod-name ++ exe-ext()).path).show
   val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("")
   val opt-flag = "-O" ++ opt-level
-  val exit-code = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file ++ dev-null())
+  val extra = if koka-flags.is-empty then "" else " " ++ koka-flags
+  val exit-code = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file ++ dev-null())
   if exit-code != 0 then
     // Re-run with output visible so the user sees the error
-    val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file)
+    val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
   else
     if !is-windows() then
@@ -588,6 +592,19 @@ fun resolve-entry() : <fsys,exn,div> maybe<string>
     val content = read-text-file(manifest-name.path)
     ini-field(content, "entry")
   else Nothing
+
+// Read [koka] section from hica.ini: include dirs and extra flags
+fun read-manifest-koka() : <fsys,exn,div> (list<string>, string)
+  if is-file(manifest-name.path) then
+    val content = read-text-file(manifest-name.path)
+    val includes = match ini-field(content, "include")
+      Just(s) -> s.split(";").map(fn(p) p.trim).filter(fn(p) !p.is-empty)
+      Nothing -> []
+    val flags = match ini-field(content, "flags")
+      Just(s) -> s
+      Nothing -> ""
+    (includes, flags)
+  else ([], "")
 
 fun ini-field( content : string, key : string ) : div maybe<string>
   // Parse "key = value" or 'key = "value"' lines in a simple ini/toml file
