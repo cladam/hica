@@ -313,6 +313,16 @@ fun lex-plain-string( cs : list<char>, start : int, pos : int ) : div list<token
     Nil -> [Token(TkError("unterminated string"), Span(start, pos))]
     Cons('"', rest) ->
       Cons(Token(TkString(""), Span(start, pos + 1)), lex-from(rest, pos + 1))
+    Cons('\\', Cons('{', rest)) ->
+      match lex-plain-string(rest, start, pos + 2)
+        Cons(Token(TkString(s), sp), toks) ->
+          Cons(Token(TkString("{" ++ s), sp), toks)
+        other -> other
+    Cons('\\', Cons('}', rest)) ->
+      match lex-plain-string(rest, start, pos + 2)
+        Cons(Token(TkString(s), sp), toks) ->
+          Cons(Token(TkString("}" ++ s), sp), toks)
+        other -> other
     Cons('\\', Cons(escaped, rest)) ->
       match lex-plain-string(rest, start, pos + 2)
         Cons(Token(TkString(s), sp), toks) ->
@@ -359,6 +369,12 @@ fun collect-string-part( cs : list<char>, pos : int ) : (string, int, list<char>
   match cs
     Nil           -> ("", pos, Nil)
     Cons('"', _)  -> ("", pos, cs)
+    Cons('\\', Cons('{', rest)) ->
+      val (s, end, remaining) = collect-string-part(rest, pos + 2)
+      ("{" ++ s, end, remaining)
+    Cons('\\', Cons('}', rest)) ->
+      val (s, end, remaining) = collect-string-part(rest, pos + 2)
+      ("}" ++ s, end, remaining)
     Cons('\\', Cons(escaped, rest)) ->
       val (s, end, remaining) = collect-string-part(rest, pos + 2)
       ("\\" ++ escaped.string ++ s, end, remaining)
