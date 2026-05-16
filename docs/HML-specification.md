@@ -1,4 +1,9 @@
-# HML v0.3.0
+---
+layout: default
+title: HML Specification - hica
+---
+
+# HML v0.3.0 (2026-05-16)
 
 Hica Markup Language.
 
@@ -197,7 +202,7 @@ Keys may be bare, quoted, or dotted.
 **Limitation:** A dotted key creates an implicit element that cannot accept
 attributes. If an element later requires attributes (e.g., an `id`), the dotted
 key must be refactored to explicit `@element(...)` syntax. This is an intentional
-tradeoff: dotted keys optimize for brevity in flat configuration, not for
+tradeoff: dotted keys optimise for brevity in flat configuration, not for
 full element expressiveness.
 
 **Merge rule:** Dotted keys and explicit elements for the same name within the

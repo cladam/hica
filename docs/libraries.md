@@ -38,3 +38,19 @@ TOML parser for hica.
 - **Repository**: [github.com/cladam/toml](https://github.com/cladam/toml)
 - **Install**: `git submodule add https://github.com/cladam/toml.git lib/toml`
 - **Import**: `import "./lib/toml/src/toml"`
+
+### hml
+
+HML, Hica Markup Language parser
+
+- **Repository**: [github.com/cladam/hml](https://github.com/cladam/hml)
+- **Install**: `git submodule add https://github.com/cladam/hml.git lib/hml`
+- **Import**: `import "./lib/toml/src/hml"`
+
+### http
+
+HTTP library written in Koka, based on libcurl
+
+- **Repository**: [github.com/cladam/http](https://github.com/cladam/http)
+- **Install**: `git submodule add https://github.com/cladam/http.git lib/http`
+- **Import**: `import "./lib/toml/src/http"`
