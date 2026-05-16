@@ -183,10 +183,25 @@ fun emit-show-call( t : hica-type, expr-str : string ) : div string
     _       -> expr-str ++ ".show"
 
 // ---------------------------------------------------------------------------
+// Source mapping: compute line number from byte offset
+// ---------------------------------------------------------------------------
+
+fun offset-to-line( source : string, offset : int ) : int
+  if source.is-empty then 0
+  else
+    var line := 1
+    var i    := 0
+    source.list.foreach fn(c)
+      if i < offset then
+        if c == '\n' then line := line + 1
+        i := i + 1
+    line
+
+// ---------------------------------------------------------------------------
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
-pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [] ) : div string
+pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0 ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -231,9 +246,11 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
-  p.decls.map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n") ++ "\n"
+  p.decls.take(prelude-count).map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n") ++
+  (if prelude-count > 0 && p.decls.length > prelude-count then "\n\n" else "") ++
+  p.decls.drop(prelude-count).map(fn(d) emit-decl(d, declared, rec-names, source)).join("\n\n") ++ "\n"
 
-fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> = [] ) : div string
+fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> = [], source : string = "" ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
@@ -253,6 +270,9 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   elif has-try-maybe then
     "  with handler\n    ctl hica-early-none() -> Nothing\n" ++ body-code
   else body-code
+  val line-comment = if source.is-empty || d.span.start >= source.count then ""
+    else "// .hc:" ++ offset-to-line(source, d.span.start).show ++ "\n"
+  line-comment ++
   pub-prefix ++ "fun " ++ marshal-name(d.name, declared) ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
   wrapped-body
 

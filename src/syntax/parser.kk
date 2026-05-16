@@ -1125,7 +1125,7 @@ fun offset-to-linecol( source : string, offset : int ) : (int, int)
         i := i + 1
     (line, col)
 
-pub fun run-parser( tokens : list<token>, source : string = "", action : () -> <div,parser,console> node ) : <div,console> node
+pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> node, source : string = "" ) : <div,console> node
   var toks := tokens
   with handler
     fun peek()

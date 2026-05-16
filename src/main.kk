@@ -405,7 +405,7 @@ fun build( file : string )
   val imported-type-count = imported-types.length
   val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
   val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-  val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names)
+  val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
   val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ file ++ " -> " ++ out-kk.show)
@@ -503,7 +503,7 @@ fun compile-module( imp-file : path, visited : list<string> )
   val imp-type-count = imp-types.length
   val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
   val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-  val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names)
+  val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
   val out-kk = dir.path / (mod-name ++ ".kk").path
   write-text-file(out-kk, koka-code)
   println("compiled " ++ imp-file.show ++ " -> " ++ out-kk.show)

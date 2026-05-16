@@ -277,15 +277,15 @@ Issues that exist today but are not yet fixed:
   Callers of the wrapper get cryptic Koka type errors. **Workaround:** inline
   the helper into the recursive group, or make it part of mutual recursion.
   Reported by TOML and YAML teams.
-- **`"".split("")` causes infinite loop** — Splitting an empty string by an
-  empty separator hangs at runtime (silent infinite loop). **Workaround:**
-  guard with `str_length == 0` check before calling `split`. Reported by YAML team.
+- **~~`""`.split(`""`) causes infinite loop~~** — Fixed. Codegen now guards
+  empty separator: splits into characters instead of calling Koka's `.split("")`
+  which loops infinitely.
 - **~~`let` inside `if/else` branches generates broken Koka~~** — Fixed in
   v0.11.2. `let` bindings inside `if` or `else` branches now generate correct
   scoped Koka code.
-- **Parse errors report byte offsets, not line numbers** — Error messages show
-  byte position instead of `line:col`, making it hard to locate issues.
-  Reported by YAML team.
+- **~~Parse errors report byte offsets, not line numbers~~** — Fixed. Parser
+  now converts byte offsets to `line:col` using the source text. Error messages
+  display human-readable positions (e.g. `3:11` instead of `36`).
 - **Koka errors don't map back to `.hc` source** — Type errors reference
   generated `.kk` files; users must mentally translate. Source maps or
   `.hc` line annotations in generated code would help. Reported by YAML team.
