@@ -110,7 +110,7 @@ fun emit-struct-def( sd : struct-def ) : div string
 // Type (enum) definition emission
 // ---------------------------------------------------------------------------
 
-fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
+fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<type-def> = [] ) : div string
   val tname = td.name.to-lower
   val pub-str = if td.is-pub then "pub " else ""
   val type-str = pub-str ++ "type " ++ tname ++ "\n" ++
@@ -121,7 +121,15 @@ fun emit-type-def( td : type-def, structs : list<struct-def> ) : div string
   // Emit a show function for the type
   val is-rec = td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.references-type(td.name)))
   val refs-rec-struct = td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.references-recursive-struct(structs)))
-  val effect-ann = if is-rec || refs-rec-struct then " : div string" else " : string"
+  // Check for mutual recursion: does this type reference another type that references back?
+  val refs-rec-type = td.variants.any(fn(vd) vd.fields.any(fn((_, ft))
+    all-types.any(fn(other)
+      other.name != td.name &&
+      ft.references-type(other.name) &&
+      other.variants.any(fn(ov) ov.fields.any(fn((_, oft)) oft.references-type(td.name)))
+    )
+  ))
+  val effect-ann = if is-rec || refs-rec-struct || refs-rec-type then " : div string" else " : string"
   val show-arms = td.variants.map fn(vd)
     if vd.fields.is-nil then
       "    " ++ vd.name ++ " -> \"" ++ vd.name ++ "\""
@@ -224,7 +232,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code
-  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
+  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
@@ -681,18 +689,36 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "if " ++ emit-expr(cond, declared) ++ " then\n" ++
           emit-branch(then-e, declared)
         _ ->
+          val cond-code = emit-expr(cond, declared)
           if then-e.expr.needs-block || else-e.expr.needs-block then
-            "if " ++ emit-expr(cond, declared) ++ " then\n" ++
+            val else-part = match else-e.expr
+              If(_, _, _) -> "else " ++ emit-expr(else-e, declared)
+              _ -> "else\n" ++ emit-branch(else-e, declared)
+            "if " ++ cond-code ++ " then\n" ++
             emit-branch(then-e, declared) ++ "\n" ++
-            "else\n" ++
-            emit-branch(else-e, declared)
+            else-part
           else
-            "if " ++ emit-expr(cond, declared) ++ " then " ++ emit-expr(then-e, declared) ++ " else " ++ emit-expr(else-e, declared)
+            val then-code = emit-expr(then-e, declared)
+            val else-code = emit-expr(else-e, declared)
+            val single = "if " ++ cond-code ++ " then " ++ then-code ++ " else " ++ else-code
+            if !then-code.contains("\n") && !else-code.contains("\n") && single.count <= 200 then
+              single
+            else
+              val else-part = match else-e.expr
+                If(_, _, _) -> "else " ++ else-code
+                _ -> "else\n" ++ indent-all(else-code)
+              "if " ++ cond-code ++ " then\n" ++
+              indent-all(then-code) ++ "\n" ++
+              else-part
     Block(stmts) ->
       stmts.map(fn(s) emit-expr(s, declared)).join("\n")
     Match(scrut, arms) ->
       val expanded = arms.flatmap(fn(a) expand-or-arm(a))
-      "match " ++ emit-expr(scrut, declared) ++ "\n" ++
+      val scrut-code = emit-expr(scrut, declared)
+      val (scrut-pre, scrut-str) = if scrut-code.contains("\n") then
+        ("val hc__scrut = " ++ scrut-code ++ "\n", "hc__scrut")
+      else ("", scrut-code)
+      scrut-pre ++ "match " ++ scrut-str ++ "\n" ++
       expanded.map(fn(a)
         val (pat-str, guard-str) = match a.pattern
           _ ->
@@ -1498,7 +1524,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
-  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs)).join("\n\n")
+  val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   // Emit user functions (excluding main — tests replace main)
   val user-decls = p.decls.filter(fn(d) d.name != "main")

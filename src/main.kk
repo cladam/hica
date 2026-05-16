@@ -24,11 +24,25 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.15.0" 
+val version = "0.15.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
   c inline "(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())"
+
+// Write .kk only if content changed — preserves Koka's build cache
+fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
+  val mod-name = out-kk.stemname
+  if is-file(out-kk) then
+    val existing = read-text-file(out-kk)
+    if existing == koka-code then
+      println(hc-file ++ " — unchanged, skipping " ++ out-kk.show)
+    else
+      write-text-file(out-kk, koka-code)
+      println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
+  else
+    write-text-file(out-kk, koka-code)
+    println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
 
 // Detect Windows via the OS environment variable (set to "Windows_NT" on Windows)
 fun is-windows()
@@ -150,7 +164,7 @@ fun cmd-build( file : string )
   build(file)
 
 fun cmd-run( file : string, user-args : list<string> )
-  build(file)
+  build(file, opt-level="0")
   run-koka(file, user-args)
 
 fun cmd-check( file : string )
@@ -238,9 +252,9 @@ fun cmd-test( file : string )
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
       val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
-      write-text-file(out-kk, koka-code)
+      write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path)
-      compile-koka(file, mod-name, inc-dirs)
+      compile-koka(file, mod-name, inc-dirs, "0")
       run-tests(file)
 
 fun cmd-clean( file : string )
@@ -367,7 +381,7 @@ fun load-prelude()
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
-fun build( file : string )
+fun build( file : string, opt-level : string = "2" )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -407,10 +421,9 @@ fun build( file : string )
   val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
   val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
   val out-kk  = dir.path / (mod-name ++ ".kk").path
-  write-text-file(out-kk, koka-code)
-  println("compiled " ++ file ++ " -> " ++ out-kk.show)
+  write-kk-if-changed(out-kk, koka-code, file)
   val inc-dirs = import-dirs(prog.imports, dir.path)
-  compile-koka(file, mod-name, inc-dirs)
+  compile-koka(file, mod-name, inc-dirs, opt-level)
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -505,22 +518,22 @@ fun compile-module( imp-file : path, visited : list<string> )
   val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
   val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
   val out-kk = dir.path / (mod-name ++ ".kk").path
-  write-text-file(out-kk, koka-code)
-  println("compiled " ++ imp-file.show ++ " -> " ++ out-kk.show)
+  write-kk-if-changed(out-kk, koka-code, imp-file.show)
 
 // ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
-fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [] )
+fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2" )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
   val out-bin = (dir.path / (mod-name ++ exe-ext()).path).show
   val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("")
-  val exit-code = run-system("koka -O2 -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file ++ dev-null())
+  val opt-flag = "-O" ++ opt-level
+  val exit-code = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file ++ dev-null())
   if exit-code != 0 then
     // Re-run with output visible so the user sees the error
-    val _ = run-system("koka -O2 -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file)
+    val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
   else
     if !is-windows() then
