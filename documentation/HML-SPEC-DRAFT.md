@@ -7,8 +7,8 @@ By Claes Adamsson, et al.
 ## Objectives
 
 HML aims to be a structured document and configuration language that preserves
-the semantic distinction between identity/metadata and structural content — the
-core strength of XML — while eliminating visual noise. HML should be readable at
+the semantic distinction between identity/metadata and structural content (the
+core strength of XML) while eliminating visual noise. HML should be readable at
 a glance, parseable without ambiguity, and mappable to both tree structures and
 hash tables.
 
@@ -57,8 +57,8 @@ An element is the primary structural unit of HML. It represents a named node in
 the document tree. Elements begin with the `@` sigil followed by a name.
 
 An element may have:
-- **Attributes** — metadata in parentheses `(...)`
-- **Body** — content in braces `{...}`
+- **Attributes**: metadata in parentheses `(...)`
+- **Body**: content in braces `{...}`
 - Both, or neither.
 
 ```
@@ -98,7 +98,7 @@ names use dot-notation:
 ## Attribute
 
 Attributes are key-value pairs enclosed in parentheses after the element name.
-They represent the **identity and metadata** of an element — information that
+They represent the **identity and metadata** of an element: information that
 describes *what* the element is rather than *what it contains*.
 
 ```
@@ -130,7 +130,7 @@ Attributes without a value are **boolean flags** that default to `true`:
 ## Property
 
 A property is a key-value pair within an element body. Properties represent the
-**content** of an element — the data it holds.
+**content** of an element, i.e. the data it holds.
 
 ```
 @database {
@@ -204,7 +204,7 @@ full element expressiveness.
 same scope must not coexist. The following is invalid:
 
 ```
-// INVALID — cannot mix dotted keys with explicit element for same name
+// INVALID: cannot mix dotted keys with explicit element for same name
 @config {
     database.host: "localhost"
     @database {
@@ -438,7 +438,7 @@ This maps to:
 
 ## Text Content (Mixed Content)
 
-Text content requires an **explicit wrapper element** — it is not allowed
+Text content requires an **explicit wrapper element**; it is not allowed
 implicitly in any element body. This prevents ambiguity where a typo in a
 property key (e.g., forgetting a colon: `timeout 30s`) would silently parse as
 text instead of raising a syntax error.
@@ -447,9 +447,9 @@ text instead of raising a syntax error.
 
 The following element names are built-in text-mode elements:
 
-- `@body` — general prose container
-- `@p` — paragraph
-- `@text` — inline text span
+- `@body`: general prose container
+- `@p`: paragraph
+- `@text`: inline text span
 
 Additional text elements may be declared via the `#text` directive:
 
@@ -461,7 +461,7 @@ When a schema language is available, schemas may also designate elements as
 text-mode. In the absence of both a `#text` directive and a schema, only the
 three built-in names are valid text containers.
 
-### Text Mode Behavior
+### Text Mode Behaviour
 
 Text elements switch the parser into text mode within their braces. Inline
 elements within text are delimited with the short form `@name{content}`:
@@ -486,7 +486,7 @@ Text content rules:
 - Text content is only valid inside text-mode elements (built-in or declared via
   `#text` directive or schema).
 - A line that matches `key: value` inside a text element is still parsed as a
-  property. To include a literal colon in text, no special escaping is needed —
+  property. To include a literal colon in text, no special escaping is needed;
   the parser only treats it as a property if the left side is a valid key token.
 - Inline elements use the compact form: `@name{text}` or `@name(attrs){text}`
   (no space before the brace).
@@ -520,7 +520,7 @@ A namespace declaration at the top of the document can establish short prefixes:
 
 ## Directives
 
-Lines beginning with `#` (outside strings) are **directives** — file-level
+Lines beginning with `#` (outside strings) are **directives**, file-level
 metadata that instructs parsers and tooling:
 
 ```
@@ -619,7 +619,7 @@ HML:
 ### JSON Mapping Convention
 
 When mapping HML to JSON, attributes are distinguished from properties by
-prefixing their keys with `@`. This convention is **informational** — tooling
+prefixing their keys with `@`. This convention is **informational**; tooling
 may use alternative mappings (e.g., a separate `"_attrs"` object), but the `@`
 prefix is the recommended default for interoperability:
 
@@ -639,25 +639,25 @@ prefix is the recommended default for interoperability:
 
 ## Design Principles
 
-1. **Metadata vs. Content** — Attributes `(...)` hold identity; bodies `{...}`
+1. **Metadata vs. Content.** Attributes `(...)` hold identity; bodies `{...}`
    hold substance. This distinction is enforced by syntax, not convention.
 
-2. **Low Visual Noise** — No closing tags, no angle brackets, no redundant
+2. **Low Visual Noise.** No closing tags, no angle brackets, no redundant
    punctuation. The `@` sigil is the only structural marker needed.
 
-3. **Vertical Readability** — Brace alignment creates natural visual hierarchy.
+3. **Vertical Readability.** Brace alignment creates natural visual hierarchy.
    The eye follows structure downward without scanning for matching end-tags.
 
-4. **Progressive Complexity** — Simple configs look like key-value files. Rich
+4. **Progressive Complexity.** Simple configs look like key-value files. Rich
    documents add elements and text. The syntax scales without mode-switching.
 
-5. **Unambiguous Parsing** — The `@` sigil always introduces structure. The
+5. **Unambiguous Parsing.** The `@` sigil always introduces structure. The
    parser never needs lookahead beyond a single token to determine context.
 
 ## ABNF Grammar
 
 ```abnf
-; HML v0.2.0 Grammar
+; HML v0.3.0 Grammar
 
 document       = *directive *(element / property / comment / newline)
 
@@ -760,12 +760,12 @@ CDATA construct would add unnecessary syntactic noise.
 **`#include` is a standard directive.** See the `#include` section above.
 
 **Property order is preserved but not semantically significant.** Parsers must
-maintain insertion order when serializing or iterating properties (matching the
-behavior users expect from JSON objects and TOML tables). However, two documents
+maintain insertion order when serialising or iterating properties (matching the
+behaviour users expect from JSON objects and TOML tables). However, two documents
 with the same properties in different order are considered equivalent for
 validation and comparison purposes.
 
 ## Open Questions
 
 - Should HML support a streaming/event-based parse mode for very large documents?
-- Should there be a canonical serialization form for diffing and signing?
+- Should there be a canonical serialisation form for diffing and signing?
