@@ -32,11 +32,10 @@ extern hica-exit( code : int ) : a
 
 // Write .kk only if content changed — preserves Koka's build cache
 fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
-  val mod-name = out-kk.stemname
   if is-file(out-kk) then
     val existing = read-text-file(out-kk)
     if existing == koka-code then
-      println(hc-file ++ " — unchanged, skipping " ++ out-kk.show)
+      println("compiled " ++ hc-file ++ " -> " ++ out-kk.show ++ " (unchanged)")
     else
       write-text-file(out-kk, koka-code)
       println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
