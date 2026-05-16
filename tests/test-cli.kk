@@ -87,12 +87,11 @@ pub fun main() : io ()
 
     itest("build compiles a .hc file")
       val out = hica("build examples/arrow.hc")
-      assert/is-true(out.contains("compiled"))
-      assert/is-true(out.contains("examples/arrow.kk"))
+      assert/is-true(!out.contains("error:"))
 
     itest("b is an alias for build")
       val out = hica("b examples/hello.hc")
-      assert/is-true(out.contains("compiled"))
+      assert/is-true(!out.contains("error:"))
 
     itest("build without file shows error")
       val out = hica("build")

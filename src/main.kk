@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.15.1" 
+val version = "0.15.2" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -34,8 +34,7 @@ extern hica-exit( code : int ) : a
 fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
   if is-file(out-kk) then
     val existing = read-text-file(out-kk)
-    if existing == koka-code then
-      println("compiled " ++ hc-file ++ " -> " ++ out-kk.show ++ " (unchanged)")
+    if existing == koka-code then ()
     else
       write-text-file(out-kk, koka-code)
       println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
