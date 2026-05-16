@@ -1,4 +1,4 @@
-# HML v0.2.0
+# HML v0.3.0
 
 Hica Markup Language.
 
@@ -200,6 +200,21 @@ key must be refactored to explicit `@element(...)` syntax. This is an intentiona
 tradeoff: dotted keys optimize for brevity in flat configuration, not for
 full element expressiveness.
 
+**Merge rule:** Dotted keys and explicit elements for the same name within the
+same scope must not coexist. The following is invalid:
+
+```
+// INVALID — cannot mix dotted keys with explicit element for same name
+@config {
+    database.host: "localhost"
+    @database {
+        port: 5432
+    }
+}
+```
+
+Use one form or the other, not both.
+
 ## Values
 
 Every property value or attribute value must be one of the following types:
@@ -320,11 +335,14 @@ h    - hours
 d    - days
 ```
 
+Zero durations are valid (e.g., `0s`, `0ms`).
+
 Compound durations are not supported. Use the smallest needed unit:
 
 ```
 // VALID
 timeout: 90s
+no_delay: 0s
 
 // INVALID
 timeout: 1m30s
@@ -425,9 +443,28 @@ implicitly in any element body. This prevents ambiguity where a typo in a
 property key (e.g., forgetting a colon: `timeout 30s`) would silently parse as
 text instead of raising a syntax error.
 
-Designated text elements (such as `@body`, `@p`, `@text`) switch the parser into
-text mode within their braces. Inline elements within text are delimited with the
-short form `@name{content}`:
+### Built-in Text Elements
+
+The following element names are built-in text-mode elements:
+
+- `@body` — general prose container
+- `@p` — paragraph
+- `@text` — inline text span
+
+Additional text elements may be declared via the `#text` directive:
+
+```
+#text: section, aside, caption
+```
+
+When a schema language is available, schemas may also designate elements as
+text-mode. In the absence of both a `#text` directive and a schema, only the
+three built-in names are valid text containers.
+
+### Text Mode Behavior
+
+Text elements switch the parser into text mode within their braces. Inline
+elements within text are delimited with the short form `@name{content}`:
 
 ```
 @article(category: "engineering") {
@@ -446,8 +483,8 @@ short form `@name{content}`:
 ```
 
 Text content rules:
-- Text content is only valid inside designated text-mode elements (`@body`,
-  `@p`, `@text`, or schema-declared text elements).
+- Text content is only valid inside text-mode elements (built-in or declared via
+  `#text` directive or schema).
 - A line that matches `key: value` inside a text element is still parsed as a
   property. To include a literal colon in text, no special escaping is needed —
   the parser only treats it as a property if the left side is a valid key token.
@@ -487,13 +524,14 @@ Lines beginning with `#` (outside strings) are **directives** — file-level
 metadata that instructs parsers and tooling:
 
 ```
-#hml 0.2
+#hml 0.3
 #schema: "https://hica.dev/schemas/component.hml"
 #encoding: "utf-8"
 #namespace k8s: "https://kubernetes.io/schema/v1"
 ```
 
-Directives must appear before any elements or properties.
+Directives must appear before any elements or properties, with the exception of
+`#include` which may appear anywhere in the document (see below).
 
 ### Required Directives
 
@@ -507,6 +545,7 @@ None. All directives are optional.
 | `#schema`   | Points to a validation schema                |
 | `#encoding` | Declares character encoding (default: UTF-8) |
 | `#namespace`| Declares a namespace prefix binding          |
+| `#text`     | Declares additional text-mode element names   |
 | `#include`  | Includes another HML file at point of insertion |
 
 ### The `#include` Directive
@@ -577,7 +616,12 @@ HML:
 }
 ```
 
-### JSON Equivalent
+### JSON Mapping Convention
+
+When mapping HML to JSON, attributes are distinguished from properties by
+prefixing their keys with `@`. This convention is **informational** — tooling
+may use alternative mappings (e.g., a separate `"_attrs"` object), but the `@`
+prefix is the recommended default for interoperability:
 
 ```json
 {
@@ -626,13 +670,21 @@ element-name   = bare-key *("." bare-key)
 
 attributes     = "(" [attr-list] ")"
 attr-list      = attribute *("," attribute) [","]
-attribute      = key [":" ws value]
+attribute      = key [":" ws scalar-value]
+
+scalar-value   = string / integer / float / boolean / duration
+               / date-time / null
 
 body           = "{" body-content "}"
-body-content   = *(element / property / text-content / comment / newline)
+body-content   = *(element / property / comment / newline)
+
+text-body      = "{" text-body-content "}"
+text-body-content = *(text-content / element / property / comment / newline)
+; text-body is used for text-mode elements (built-in or #text-declared).
+; Regular body does NOT permit text-content.
 
 property       = key ":" ws value newline
-; NOTE: Property takes precedence over text-content.
+; NOTE: Property takes precedence over text-content in text-body.
 ; A line matching key ":" ws value is always a property, never text.
 
 key            = bare-key / quoted-key / dotted-key
@@ -674,11 +726,15 @@ array-values   = value *("," value) [","]
 null           = "null"
 
 text-content   = 1*text-char *(inline-element 1*text-char)
+text-char      = %x20-3F / %x41-5A / %x5C / %x5E-7A / %x7C / %x7E-7F
+               / UTF8-non-ascii
+               ; any printable character except @ (0x40), { (0x7B), } (0x7D)
 
 comment        = "//" *non-newline newline
 
 ws             = *(" " / %x09)
 newline        = %x0A / %x0D.0A
+non-newline    = %x09 / %x20-7E / UTF8-non-ascii
 sign           = "+" / "-"
 digits         = DIGIT *("_" DIGIT)
 ```
@@ -703,6 +759,13 @@ CDATA construct would add unnecessary syntactic noise.
 
 **`#include` is a standard directive.** See the `#include` section above.
 
+**Property order is preserved but not semantically significant.** Parsers must
+maintain insertion order when serializing or iterating properties (matching the
+behavior users expect from JSON objects and TOML tables). However, two documents
+with the same properties in different order are considered equivalent for
+validation and comparison purposes.
+
 ## Open Questions
 
-- Should property order be semantically significant?
+- Should HML support a streaming/event-based parse mode for very large documents?
+- Should there be a canonical serialization form for diffing and signing?
