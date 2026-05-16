@@ -272,11 +272,9 @@ Issues that exist today but are not yet fixed:
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred
   independently. Call-site constraints don't refine a callee's inferred types.
-- **`div` effect leakage through non-recursive wrappers** — A non-recursive
-  helper function that calls a recursive function does not get `div` propagated.
-  Callers of the wrapper get cryptic Koka type errors. **Workaround:** inline
-  the helper into the recursive group, or make it part of mutual recursion.
-  Reported by TOML and YAML teams.
+- **~~`div` effect leakage through non-recursive wrappers~~** — Fixed. Codegen
+  now computes transitive `div` names via fixpoint: any function that calls a
+  `div`-needing function (directly or transitively) gets `div` annotated.
 - **~~`""`.split(`""`) causes infinite loop~~** — Fixed. Codegen now guards
   empty separator: splits into characters instead of calling Koka's `.split("")`
   which loops infinitely.
