@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.16.0" 
+val version = "0.17.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -317,7 +317,13 @@ fun scaffold-project( project-dir : path, name : string )
     "name = \"" ++ name ++ "\"",
     "version = \"0.1.0\"",
     "license = \"MIT\"",
-    "entry = \"main.hc\""
+    "entry = \"main.hc\"",
+    "",
+    "[description]",
+    "summary = \"A hica project\"",
+    "author = \"\"",
+    "homepage = \"\"",
+    "repository = \"\""
   ].join("\n") ++ "\n"
   val readme-content = [
     "# " ++ name,
@@ -592,6 +598,17 @@ fun resolve-entry() : <fsys,exn,div> maybe<string>
     val content = read-text-file(manifest-name.path)
     ini-field(content, "entry")
   else Nothing
+
+// Read [description] section from hica.ini
+fun read-manifest-description() : <fsys,exn,div> (string, string, string, string)
+  if is-file(manifest-name.path) then
+    val content = read-text-file(manifest-name.path)
+    val summary    = match ini-field(content, "summary")    { Just(s) -> s; Nothing -> "" }
+    val author     = match ini-field(content, "author")     { Just(s) -> s; Nothing -> "" }
+    val homepage   = match ini-field(content, "homepage")   { Just(s) -> s; Nothing -> "" }
+    val repository = match ini-field(content, "repository") { Just(s) -> s; Nothing -> "" }
+    (summary, author, homepage, repository)
+  else ("", "", "", "")
 
 // Read [koka] section from hica.ini: include dirs and extra flags
 fun read-manifest-koka() : <fsys,exn,div> (list<string>, string)
