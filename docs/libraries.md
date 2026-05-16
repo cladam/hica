@@ -41,7 +41,7 @@ TOML parser for hica.
 
 ### hml
 
-HML, Hica Markup Language parser
+HML, Hica Markup Language parser for hica.
 
 - **Repository**: [github.com/cladam/hml](https://github.com/cladam/hml)
 - **Install**: `git submodule add https://github.com/cladam/hml.git lib/hml`
