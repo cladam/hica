@@ -18,6 +18,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
+| Brace escape in strings (`\{`, `\}`) | **—** | Low | Allow `\{` and `\}` as escapes in interpolated strings to produce literal `{`/`}` without needing `\u007B` or `join()` workarounds. Reported by TOML team |
 | String utility functions | **done** | Low | `str_length`, `contains`, `trim`, `trim_start`, `trim_end`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`, `index_of(str, substr)` → `maybe<int>`. Extern sigs backed by Koka `std/core/string` + higher-level helpers written in hica (`prelude/strings.hc`): `is_empty`, `is_blank`, `words`, `lines`, `unwords`, `unlines`, `count_substr`, `repeat_str`, `pad_left`, `pad_right`, `center`, `surround`, `capitalise`, `capwords`, `removeprefix`, `removesuffix` |
 | String indexing & slicing (`s[0]`, `s[1:]`) | **done** | Low | Reuses `ListIndex`/`ListSlice` AST; checker branches on `TString` (returns `char` for index, `string` for slice); codegen emits `.list[i].unjust` / `.list.drop().take().string`. Enabled new prelude functions: `capitalise`, `capwords`, `removeprefix`, `removesuffix` |
 | String comparison (`<`, `>`, `<=`, `>=`) | **done** | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
@@ -271,6 +272,23 @@ Issues that exist today but are not yet fixed:
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred
   independently. Call-site constraints don't refine a callee's inferred types.
+- **`div` effect leakage through non-recursive wrappers** — A non-recursive
+  helper function that calls a recursive function does not get `div` propagated.
+  Callers of the wrapper get cryptic Koka type errors. **Workaround:** inline
+  the helper into the recursive group, or make it part of mutual recursion.
+  Reported by TOML and YAML teams.
+- **`"".split("")` causes infinite loop** — Splitting an empty string by an
+  empty separator hangs at runtime (silent infinite loop). **Workaround:**
+  guard with `str_length == 0` check before calling `split`. Reported by YAML team.
+- **`let` inside `if/else` branches generates broken Koka** — `let` bindings
+  inside `if` or `else` branches emit invalid Koka code. **Workaround:** hoist
+  computations before the `if`, or use helper functions. Reported by TOML team.
+- **Parse errors report byte offsets, not line numbers** — Error messages show
+  byte position instead of `line:col`, making it hard to locate issues.
+  Reported by YAML team.
+- **Koka errors don't map back to `.hc` source** — Type errors reference
+  generated `.kk` files; users must mentally translate. Source maps or
+  `.hc` line annotations in generated code would help. Reported by YAML team.
 - **~~Prelude-defined enum constructors not visible in user code~~** — Fixed.
   `load-prelude()` now collects `prog.types` alongside `structs` and `decls`.
   Prelude enums are merged into the type registry and visible for construction
