@@ -106,6 +106,7 @@ Legend: **done** = shipped, **—** = not started
 | Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | **done** | High | Multi-file compilation, module graph. Three forms: `import "path"` (all pub items), `from "path" import { names }` (selective), `pub import "path"` (re-export). File resolution relative to importer, cycle detection, each module compiled to own Koka module |
 | `pub` visibility | **done** | Medium | Emit Koka `pub` |
+| Parser state record (reduce parameter threading) | **—** | Medium | Recursive-descent parsers currently thread state as extra parameters (e.g. `text_elems`, `dotted_names`). Adding a new piece of state means touching every recursive call in multiple functions. A `struct ParserState { ... }` passed-and-returned would reduce this friction. HML retro: "Parameter threading is brutal — 30% of session time" |
 
 ---
 
@@ -122,6 +123,7 @@ Legend: **done** = shipped, **—** = not started
 | Module keyword clash fix | **done** | — | `match.hc` → `hc-match.kk` |
 | Structured error output with source snippets | **done** | Medium | Line:col + source line + caret underline |
 | Desugaring pass | **done** | Medium | Separate `transform/desugar.kk` pass between parse and type check. Rewrites PRange → PVar + guard, PBits → PVar + bit_and guard. Simplifies codegen |
+| Koka keyword blocklist in checker | **—** | Low | Checker should reject identifiers that are Koka reserved words (`raw`, `prefix`, `infix`, `behind`, `linear`, etc.) and emit a clear error at check time. Currently surfaces late as invalid Koka output. HML retro: "you write valid Hica, it compiles to invalid Koka. Hard to predict" |
 
 ---
 
@@ -139,6 +141,7 @@ Legend: **done** = shipped, **—** = not started
 | `hica init` | **done** | — | Initialise in current directory |
 | `hica fmt` / `hica fmt --check` | **done** | Medium | Token-stream formatter. Enforces style-guide rules: trailing whitespace, operator spacing, blank line normalisation, bracket spacing, comma/colon formatting. `--check` returns exit 1 if changes needed. Short alias: `hica f` |
 | `hica test [file]` | **done** | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail with ANSI colors. Exit code 1 on failure. No modules, no annotations, no imports needed. Short alias: `hica t` |
+| `hica clean --cache` / auto-invalidate | **—** | Medium | Stale `.kk` cache files cause phantom errors after edits. Currently requires manual `rm src/*.kk`. Auto-invalidate on recompile (hash source, compare before reusing `.kk`), or expose `hica clean --cache` to purge intermediate files. HML retro: "became muscle memory — this is a tooling gap that will trip up every new user" |
 
 ### The "fmt" Implementation Goal
 
@@ -179,6 +182,7 @@ pure functions are written in hica itself.
 | Function | Type | Impl | Notes |
 |----------|------|------|-------|
 | `head(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | First element; emits Koka `xs.head` |
+| `head_or(xs, default)` | `(list<a>, a) -> a` | **—** (hica) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
 | `tail(xs)` | `(list<a>) -> list<a>` | **done** (extern) | All but first; emits Koka `xs.tail` |
 | `last(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | Last element; emits Koka `xs.last` |
 | `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | **done** (extern) | Map + flatten; emits Koka `xs.flatmap(f)` |
@@ -278,9 +282,10 @@ Issues that exist today but are not yet fixed:
 - **~~`""`.split(`""`) causes infinite loop~~** — Fixed. Codegen now guards
   empty separator: splits into characters instead of calling Koka's `.split("")`
   which loops infinitely.
-- **~~`let` inside `if/else` branches generates broken Koka~~** — Fixed in
-  v0.11.2. `let` bindings inside `if` or `else` branches now generate correct
-  scoped Koka code.
+- **~~`let` inside `if/else` branches generates broken Koka~~** — Partially
+  fixed in v0.11.2. Simple cases work, but certain patterns (e.g. `let` followed
+  by further expressions in nested branches) still generate broken Koka.
+  HML retro confirms workaround still needed: extract helper functions.
 - **~~Parse errors report byte offsets, not line numbers~~** — Fixed. Parser
   now converts byte offsets to `line:col` using the source text. Error messages
   display human-readable positions (e.g. `3:11` instead of `36`).
