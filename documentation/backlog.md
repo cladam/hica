@@ -280,9 +280,9 @@ Issues that exist today but are not yet fixed:
 - **`"".split("")` causes infinite loop** — Splitting an empty string by an
   empty separator hangs at runtime (silent infinite loop). **Workaround:**
   guard with `str_length == 0` check before calling `split`. Reported by YAML team.
-- **`let` inside `if/else` branches generates broken Koka** — `let` bindings
-  inside `if` or `else` branches emit invalid Koka code. **Workaround:** hoist
-  computations before the `if`, or use helper functions. Reported by TOML team.
+- **~~`let` inside `if/else` branches generates broken Koka~~** — Fixed in
+  v0.11.2. `let` bindings inside `if` or `else` branches now generate correct
+  scoped Koka code.
 - **Parse errors report byte offsets, not line numbers** — Error messages show
   byte position instead of `line:col`, making it hard to locate issues.
   Reported by YAML team.

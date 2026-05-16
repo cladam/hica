@@ -409,7 +409,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("to_lower"), [s]) ->
           emit-expr(s, declared) ++ ".to-lower"
         (Var("split"), [s, sep]) ->
-          emit-expr(s, declared) ++ ".split(" ++ emit-expr(sep, declared) ++ ")"
+          val s-str = emit-expr(s, declared)
+          val sep-str = emit-expr(sep, declared)
+          "(if " ++ sep-str ++ ".is-empty then " ++ s-str ++ ".list.map(fn(c) c.string) else " ++ s-str ++ ".split(" ++ sep-str ++ "))"
         (Var("replace"), [s, old, new_]) ->
           emit-expr(s, declared) ++ ".replace-all(" ++ emit-expr(old, declared) ++ ", " ++ emit-expr(new_, declared) ++ ")"
         (Var("join"), [xs, sep]) ->
