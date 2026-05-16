@@ -156,7 +156,7 @@ fun cmd-run( file : string, user-args : list<string> )
 fun cmd-check( file : string )
   val source = read-text-file(file.path)
   val tokens = lex(source)
-  val prog   = run-parser-program(tokens)
+  val prog   = run-parser-program(tokens, source)
   val dir    = file.path.dirname
   val prelude = load-prelude()
   val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
@@ -201,7 +201,7 @@ fun cmd-test( file : string )
   val dir  = file.path.dirname
   val source = read-text-file(file.path)
   val tokens = lex(source)
-  val prog   = run-parser-program(tokens)
+  val prog   = run-parser-program(tokens, source)
   if prog.tests.is-empty then
     println("no tests found in " ++ file)
   else
@@ -357,7 +357,7 @@ fun load-prelude()
     if is-file(fp.path) then
       val source = read-text-file(fp.path)
       val tokens = lex(source)
-      val prog = run-parser-program(tokens)
+      val prog = run-parser-program(tokens, source)
       decl-result := decl-result ++ prog.decls
       struct-result := struct-result ++ prog.structs
       type-result := type-result ++ prog.types
@@ -373,7 +373,7 @@ fun build( file : string )
   val dir  = file.path.dirname
   val source = read-text-file(file.path)
   val tokens = lex(source)
-  val prog   = run-parser-program(tokens)
+  val prog   = run-parser-program(tokens, source)
   // Load prelude .hc files and merge with user program
   val prelude = load-prelude()
   // Compile imported modules and collect pub declarations
@@ -472,7 +472,7 @@ fun compile-module( imp-file : path, visited : list<string> )
   val dir = imp-file.dirname
   val source = read-text-file(imp-file)
   val tokens = lex(source)
-  val prog = run-parser-program(tokens)
+  val prog = run-parser-program(tokens, source)
   // Load prelude for this module
   val prelude = load-prelude()
   // Recursively compile this module's imports

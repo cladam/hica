@@ -1107,7 +1107,25 @@ pub fun parse-program() : <div,parser> program
 // Runner: handle the parser effect over a token list
 // ---------------------------------------------------------------------------
 
-pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> node ) : <div,console> node
+// Compute (line, column) from a 0-based character offset.
+// Both line and column are 1-based in the output.
+fun offset-to-linecol( source : string, offset : int ) : (int, int)
+  if source.is-empty then (0, offset)
+  else
+    var line := 1
+    var col  := 1
+    var i    := 0
+    source.list.foreach fn(c)
+      if i < offset then
+        if c == '\n' then
+          line := line + 1
+          col  := 1
+        else
+          col := col + 1
+        i := i + 1
+    (line, col)
+
+pub fun run-parser( tokens : list<token>, source : string = "", action : () -> <div,parser,console> node ) : <div,console> node
   var toks := tokens
   with handler
     fun peek()
@@ -1134,11 +1152,12 @@ pub fun run-parser( tokens : list<token>, action : () -> <div,parser,console> no
       val sp = match toks
         Cons(t, _) -> t.span
         Nil        -> Span(0, 0)
-      println("parse error at " ++ sp.start.show ++ ": " ++ msg)
+      val (line, col) = offset-to-linecol(source, sp.start)
+      println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
       Node(sp, Literal(LitBool(False)))
   action()
 
-pub fun run-parser-program( tokens : list<token> ) : <div,console> program
+pub fun run-parser-program( tokens : list<token>, source : string = "" ) : <div,console> program
   var toks := tokens
   with handler
     fun peek()
@@ -1165,6 +1184,7 @@ pub fun run-parser-program( tokens : list<token> ) : <div,console> program
       val sp = match toks
         Cons(t, _) -> t.span
         Nil        -> Span(0, 0)
-      println("parse error at " ++ sp.start.show ++ ": " ++ msg)
+      val (line, col) = offset-to-linecol(source, sp.start)
+      println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
       Node(sp, Literal(LitBool(False)))
   parse-program()
