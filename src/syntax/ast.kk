@@ -407,11 +407,13 @@ pub struct import-decl
   path   : string                    // e.g. "greet" or "lib/utils"
   names  : maybe<list<string>>       // Nothing = all pub, Just([...]) = selective
   is-pub : bool                      // pub import re-exports
+  is-extern : bool = False           // extern import passes through to Koka
 
 pub fun import-decl/show( d : import-decl ) : div string
   val pub-str = if d.is-pub then "pub " else ""
+  val ext-str = if d.is-extern then "extern " else ""
   match d.names
-    Nothing     -> pub-str ++ "import \"" ++ d.path ++ "\""
+    Nothing     -> pub-str ++ ext-str ++ "import \"" ++ d.path ++ "\""
     Just(ns)    -> "from \"" ++ d.path ++ "\" import { " ++ ns.join(", ") ++ " }"
 
 pub struct program

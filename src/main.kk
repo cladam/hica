@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.15.1" 
+val version = "0.16.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -445,36 +445,39 @@ fun resolve-import( imp-path : string, base-dir : path ) : path
 fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
   imp-list.foldl(([], [], [], []), fn(acc, imp)
     val (prev-decls, prev-structs, prev-types, prev-names) = acc
-    val imp-file = resolve-import(imp.path, base-dir)
-    val imp-path-str = imp-file.show
-    // Cycle detection
-    if visited.any(fn(v) v == imp-path-str) then
-      println("error: circular import detected: " ++ imp-path-str)
-      acc
-    elif !is-file(imp-file) then
-      println("error: imported file not found: " ++ imp-path-str)
-      acc
+    // Extern imports pass through to Koka — skip .hc resolution
+    if imp.is-extern then acc
     else
-      // Compile the imported module to .kk
-      compile-module(imp-file, visited)
-      // Parse the module to collect pub declarations for the checker
-      val mod-source = read-text-file(imp-file)
-      val mod-tokens = lex(mod-source)
-      val mod-prog = run-parser-program(mod-tokens)
-      // Collect pub declarations (for selective imports, filter by name)
-      val pub-decls = mod-prog.decls.filter(fn(d) d.is-pub)
-      val pub-names-all = pub-decls.map(fn(d) d.name)
-      val filtered-decls = match imp.names
-        Nothing  -> pub-decls
-        Just(ns) -> pub-decls.filter(fn(d) ns.any(fn(n) n == d.name))
-      val filtered-names = match imp.names
-        Nothing  -> pub-names-all
-        Just(ns) -> ns
-      // Collect re-exported symbols from the module's pub imports
-      val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
-      val imp-dir = imp-file.dirname.path
-      val (re-decls, re-structs, re-types, re-names) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
-      (prev-decls ++ filtered-decls ++ re-decls, prev-structs ++ mod-prog.structs ++ re-structs, prev-types ++ mod-prog.types ++ re-types, prev-names ++ filtered-names ++ re-names)
+      val imp-file = resolve-import(imp.path, base-dir)
+      val imp-path-str = imp-file.show
+      // Cycle detection
+      if visited.any(fn(v) v == imp-path-str) then
+        println("error: circular import detected: " ++ imp-path-str)
+        acc
+      elif !is-file(imp-file) then
+        println("error: imported file not found: " ++ imp-path-str)
+        acc
+      else
+        // Compile the imported module to .kk
+        compile-module(imp-file, visited)
+        // Parse the module to collect pub declarations for the checker
+        val mod-source = read-text-file(imp-file)
+        val mod-tokens = lex(mod-source)
+        val mod-prog = run-parser-program(mod-tokens)
+        // Collect pub declarations (for selective imports, filter by name)
+        val pub-decls = mod-prog.decls.filter(fn(d) d.is-pub)
+        val pub-names-all = pub-decls.map(fn(d) d.name)
+        val filtered-decls = match imp.names
+          Nothing  -> pub-decls
+          Just(ns) -> pub-decls.filter(fn(d) ns.any(fn(n) n == d.name))
+        val filtered-names = match imp.names
+          Nothing  -> pub-names-all
+          Just(ns) -> ns
+        // Collect re-exported symbols from the module's pub imports
+        val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
+        val imp-dir = imp-file.dirname.path
+        val (re-decls, re-structs, re-types, re-names) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
+        (prev-decls ++ filtered-decls ++ re-decls, prev-structs ++ mod-prog.structs ++ re-structs, prev-types ++ mod-prog.types ++ re-types, prev-names ++ filtered-names ++ re-names)
   )
 
 // Compile a single imported module to a .kk file

@@ -916,19 +916,23 @@ fun parse-struct-lit-fields() : <div,parser> list<(string, node)>
 //   import "path"                      — import all pub items
 //   from "path" import { a, b }        — selective import
 //   pub import "path"                  — re-export all pub items
+//   extern import "path"               — passthrough to Koka (no .hc resolution)
 fun parse-import-decl() : <div,parser> import-decl
   val sp = current-span()
-  // Check for `pub import`
+  // Check for `pub import` or `extern import`
   val is-pub = match peek()
     TkPub -> { advance(); True }
     _     -> False
+  val is-extern = match peek()
+    TkExtern -> { advance(); True }
+    _        -> False
   match peek()
     TkImport ->
       advance()
       val path-str = match peek()
         TkString(s) -> { advance(); s }
         _           -> { parse-error("expected string path after import"); "" }
-      Import-decl(Span(sp.start, current-span().end), path-str, Nothing, is-pub)
+      Import-decl(Span(sp.start, current-span().end), path-str, Nothing, is-pub, is-extern)
     TkFrom ->
       advance()
       val path-str = match peek()
@@ -1079,7 +1083,7 @@ pub fun parse-program() : <div,parser> program
   var tests := []
   var imports := []
   // Parse imports at the top of the file
-  while { match peek() { TkImport -> True; TkFrom -> True; _ -> False } }
+  while { match peek() { TkImport -> True; TkFrom -> True; TkExtern -> True; _ -> False } }
     imports := Cons(parse-import-decl(), imports)
   // Parse remaining declarations
   while { match peek() { TkEof -> False; _ -> True } }
@@ -1087,10 +1091,12 @@ pub fun parse-program() : <div,parser> program
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
       TkType   -> types := Cons(parse-type-decl(), types)
       TkTest   -> tests := Cons(parse-test-decl(), tests)
+      TkExtern -> imports := Cons(parse-import-decl(), imports)
       TkPub    ->
         // pub import "path" — re-export
         match peek-next()
           TkImport -> imports := Cons(parse-import-decl(), imports)
+          TkExtern -> imports := Cons(parse-import-decl(), imports)
           TkStruct ->
             advance()
             val sd = parse-struct-decl()

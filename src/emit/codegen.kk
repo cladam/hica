@@ -268,7 +268,7 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     Just(t) ->
       val ts = emit-type(t)
       if ts == "" then ""
-      elif needs-div then " : div " ++ ts
+      elif needs-div then ""  // let Koka infer effects (div + fsys, etc.)
       else " : " ++ ts
     Nothing -> ""
   val pub-prefix = if d.is-pub then "pub " else ""

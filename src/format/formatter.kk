@@ -236,6 +236,7 @@ fun acc-keyword( acc : list<char> ) : bool
     "fun"    -> True
     "return" -> True
     "import" -> True
+    "extern" -> True
     "pub"    -> True
     "from"   -> True
     "in"     -> True
