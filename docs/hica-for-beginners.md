@@ -623,13 +623,14 @@ s[1:4]    // "ell" (a string)
 s[-1]     // 'o' (negative indexing)
 ```
 
-Use backslash escapes for special characters: `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, and `\t` for a tab:
+Use backslash escapes for special characters: `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, `\t` for a tab, and `\{` / `\}` for literal braces (useful in interpolated strings):
 
 ```rust
 println("She said \"hi\"")     // She said "hi"
 println("line1\nline2")        // two lines
 println("col1\tcol2")          // tab-separated
 println("path\\to\\file")      // path\to\file
+println("use \{braces\}")      // use {braces}
 ```
 
 Escapes work inside interpolated strings too: `"hello, {name}!\nbye!"`.

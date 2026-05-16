@@ -330,7 +330,7 @@ Primitive string functions backed by Koka's string library:
 | `trim_end(s)` | `(string) -> string` | Remove trailing whitespace |
 | `to_upper(s)` | `(string) -> string` | Convert to uppercase |
 | `to_lower(s)` | `(string) -> string` | Convert to lowercase |
-| `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator |
+| `split(s, sep)` | `(string, string) -> list<string>` | Split a string by separator. Empty separator splits into individual characters |
 | `replace(s, old, new)` | `(string, string, string) -> string` | Replace all occurrences |
 | `join(xs, sep)` | `(list<string>, string) -> string` | Join a list of strings with separator |
 | `index_of(s, sub)` | `(string, string) -> maybe<int>` | Index of first occurrence of `sub`, or `None` |

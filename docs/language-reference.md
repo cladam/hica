@@ -401,12 +401,15 @@ Use backslash to include special characters in strings:
 | `\\` | Backslash |
 | `\n` | Newline |
 | `\t` | Tab |
+| `\{` | Literal `{` (prevents interpolation) |
+| `\}` | Literal `}` |
 
 ```rust
 println("She said \"hello\"")
 println("line one\nline two")
 println("col1\tcol2")
 println("C:\\Users\\file.txt")
+println("use \{braces\} literally")
 ```
 
 Escapes work in both plain and interpolated strings:

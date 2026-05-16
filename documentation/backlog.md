@@ -18,7 +18,7 @@ Legend: **done** = shipped, **—** = not started
 | Pipe operator `\|>` | **done** | Low | Desugar `a \|> f` → `f(a)` in parser |
 | String concatenation (`+` on strings) | **done** | Low | Checker + codegen |
 | String interpolation (`"score: {n}"`) | **done** | Medium | Lexer + parser + codegen |
-| Brace escape in strings (`\{`, `\}`) | **—** | Low | Allow `\{` and `\}` as escapes in interpolated strings to produce literal `{`/`}` without needing `\u007B` or `join()` workarounds. Reported by TOML team |
+| Brace escape in strings (`\{`, `\}`) | **done** | Low | `\{` and `\}` in strings produce literal `{`/`}`. Lexer handles both plain and interpolated strings. Reported by TOML team |
 | String utility functions | **done** | Low | `str_length`, `contains`, `trim`, `trim_start`, `trim_end`, `split`, `replace`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `join(list, sep)`, `index_of(str, substr)` → `maybe<int>`. Extern sigs backed by Koka `std/core/string` + higher-level helpers written in hica (`prelude/strings.hc`): `is_empty`, `is_blank`, `words`, `lines`, `unwords`, `unlines`, `count_substr`, `repeat_str`, `pad_left`, `pad_right`, `center`, `surround`, `capitalise`, `capwords`, `removeprefix`, `removesuffix` |
 | String indexing & slicing (`s[0]`, `s[1:]`) | **done** | Low | Reuses `ListIndex`/`ListSlice` AST; checker branches on `TString` (returns `char` for index, `string` for slice); codegen emits `.list[i].unjust` / `.list.drop().take().string`. Enabled new prelude functions: `capitalise`, `capwords`, `removeprefix`, `removesuffix` |
 | String comparison (`<`, `>`, `<=`, `>=`) | **done** | Low | Lexicographic ordering on strings. Checker allows comparison ops on `TString`; Koka `compare` handles strings natively. Needed by hica-semver's prerelease identifier comparison |
@@ -284,9 +284,9 @@ Issues that exist today but are not yet fixed:
 - **~~Parse errors report byte offsets, not line numbers~~** — Fixed. Parser
   now converts byte offsets to `line:col` using the source text. Error messages
   display human-readable positions (e.g. `3:11` instead of `36`).
-- **Koka errors don't map back to `.hc` source** — Type errors reference
-  generated `.kk` files; users must mentally translate. Source maps or
-  `.hc` line annotations in generated code would help. Reported by YAML team.
+- **~~Koka errors don't map back to `.hc` source~~** — Fixed. Generated `.kk`
+  files now include `// .hc:N` comments before each user-declared function,
+  mapping Koka error lines back to original `.hc` source lines.
 - **~~Prelude-defined enum constructors not visible in user code~~** — Fixed.
   `load-prelude()` now collects `prog.types` alongside `structs` and `decls`.
   Prelude enums are merged into the type registry and visible for construction
