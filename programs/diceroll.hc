@@ -24,17 +24,12 @@ fun roll_dice(n: int) {
   }
   println("")
   println("Total:   " + show(total))
-  println("Average: " + show(total / n))
+  println("Average: " + show_fixed(to_float(total) / to_float(n), 1))
 }
 
 fun main() {
   let args = get_args()
-  let n = if length(args) == 0 { 3 }
-  else {
-    match parse_int(args[0]) {
-      Some(v) => v,
-      None => 3
-    }
-  }
+  let n = if args.length() == 0 { 3 }
+  else { unwrap_maybe_or(parse_int(args[0]), 3) }
   roll_dice(n)
 }

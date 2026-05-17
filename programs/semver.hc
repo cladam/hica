@@ -1,5 +1,5 @@
 // hica-semver: SemVer 2.0.0 parsing & comparison
-// Uses: struct, split, index_of, removeprefix, parse_int, string slicing, var, loop, break
+// Uses: struct, split, index_of, removeprefix, parse_int, string slicing, slice patterns
 
 struct SemVer {
   major: int, 
@@ -39,34 +39,16 @@ fun cmp_ids(a, b) {
   }
 }
 
-// Compare prerelease identifier lists using loop + break
-fun cmp_pre(a_ids, b_ids) {
-  var ap = a_ids
-  var bp = b_ids
-  var result = 0
-  loop {
-    if length(ap) == 0 && length(bp) == 0 {
-      break
-    }
-    else if length(ap) == 0 {
-      result = -1
-      break
-    }
-    else if length(bp) == 0 {
-      result = 1
-      break
-    }
-    else {
-      let c = cmp_ids(ap[0], bp[0])
-      if c != 0 {
-        result = c
-        break
-      }
-      ap = drop(ap, 1)
-      bp = drop(bp, 1)
+// Compare prerelease identifier lists using slice patterns
+fun cmp_pre(a_ids, b_ids) => match a_ids {
+  [] => if length(b_ids) == 0 { 0 } else { -1 },
+  [a, ..a_rest] => match b_ids {
+    [] => 1,
+    [b, ..b_rest] => {
+      let c = cmp_ids(a, b)
+      if c != 0 { c } else { cmp_pre(a_rest, b_rest) }
     }
   }
-  result
 }
 
 fun cmp_versions(a: SemVer, b: SemVer) {
