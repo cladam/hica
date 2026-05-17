@@ -1,9 +1,9 @@
 // yml2hml.hc — Convert YAML files to HML format
 //
 // Usage:
-//   hica run examples/yml2hml.hc -- input.yml
-//   hica run examples/yml2hml.hc -- input.yml output.hml
-//   hica run examples/yml2hml.hc -- --validate input.yml
+//   hica run programs/yml2hml.hc -- input.yml
+//   hica run programs/yml2hml.hc -- input.yml output.hml
+//   hica run programs/yml2hml.hc -- --help
 //
 // Supports:
 //   - Scalars: strings (quoted/bare), integers, floats, booleans, null
@@ -530,39 +530,34 @@ fun yaml_to_hml(input: string) : string {
     join(result.0, "\n")
 }
 
-fun main() {
-    let args = get_args()
-    if length(args) == 0 {
-        println("Usage: yml2hml [--validate] <input.yml> [output.hml]")
-        println("")
-        println("Converts a YAML file to HML format.")
-        println("If no output file is given, prints to stdout.")
-        println("Use --validate to parse the result with the HML parser.")
-    } else {
-        let validate = length(args) > 0 && args[0] == "--validate"
-        let file_args = if validate { drop(args, 1) } else { args }
-        if length(file_args) == 0 {
-            println("Error: no input file specified")
-        } else {
-            let input_path = file_args[0]
-            match read_file(input_path) {
-                Ok(content) => {
-                    let hml_output = yaml_to_hml(content)
-                    if length(file_args) >= 2 {
-                        let output_path = file_args[1]
-                        write_file(output_path, hml_output + "\n")
-                        println("Converted {input_path} -> {output_path}")
-                    } else {
-                        println(hml_output)
-                    }
-                    if validate {
-                        println("")
-                        println("--- Validation ---")
-                        println("TODO: --validate requires the hml module (not yet published)")
-                    }
+fun make_spec() =>
+    cli("yml2hml", "1.0.0", "convert YAML files to HML format")
+        |> arg("input", "YAML file to convert", true)
+        |> arg("output", "output HML file (default: stdout)", false)
+
+fun convert(r) {
+    let input_path = r.cli_positionals[0]
+    match read_file(input_path) {
+        Ok(content) => {
+            let hml_output = yaml_to_hml(content)
+            match get_positional(r, 1) {
+                Some(output_path) => {
+                    write_file(output_path, hml_output + "\n")
+                    println("Converted {input_path} -> {output_path}")
                 },
-                Err(e) => println("Error reading {input_path}: {e}")
+                None => println(hml_output)
             }
-        }
+        },
+        Err(e) => eprintln("error: could not read {input_path}: {e}")
+    }
+}
+
+fun main() {
+    let spec = make_spec()
+    match cli_parse(spec) {
+        Help          => println(cli_help(spec)),
+        Version       => println(cli_version_str(spec)),
+        CliError(msg) => eprintln("error: {msg}"),
+        Parsed(r)     => convert(r)
     }
 }
