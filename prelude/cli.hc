@@ -1,16 +1,34 @@
 // hica – CLI argument parsing prelude
 //
-// A lightweight CLI parsing library inspired by klap/clap and XS cli_args.
+// A lightweight CLI parsing library inspired by klap/clap.
 // Covers the 80% case: flags, options, positional args, subcommands,
-// help, and version.
+// help, version, combined short flags (-vf), and typed option values.
 //
-// Usage with pipe-friendly builders:
+// Usage:
 //   let spec = cli("myapp", "1.0.0", "does cool stuff")
 //     |> flag("verbose", "v", "enable verbose output")
 //     |> option("output", "o", "output file")
 //     |> option_default("format", "f", "output format", "json")
 //     |> arg("input", "input file", true)
 //     |> command("check", check_spec)
+//
+//   match cli_parse(spec) {
+//     Parsed(r) => {
+//       if has_flag(r, "verbose") { println("verbose!") }
+//       let fmt = get_opt_or(r, "format", "json")
+//       let count = get_opt_int_or(r, "count", 1)
+//       let name = get_positional(r, 0)
+//     },
+//     Help          => println(cli_help(spec)),
+//     Version       => println(cli_version_str(spec)),
+//     CliError(msg) => eprintln("error: {msg}")
+//   }
+//
+//   // Or use cli_parse_or_exit for the common case:
+//   let r = cli_parse_or_exit(spec)
+//
+// Short flags can be combined: -vf is equivalent to -v -f.
+// An option short can appear last: -vo out.txt or -oout.txt.
 //
 // This source file is part of the hica open source project
 // Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
