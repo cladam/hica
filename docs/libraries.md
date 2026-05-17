@@ -141,10 +141,10 @@ Note: `http` is a Koka library (C FFI), so it uses `extern import` instead of a 
 
 #### base64
 
-Base64 encoding and decoding for hica. Pure functions with no effects — encode strings to standard base64 (RFC 4648) with padding, or URL-safe base64 without padding. Decoding returns `result<string, string>` for clean error handling.
+Base64 encoding and decoding for hica. Pure functions with no effects, encode strings to standard base64 (RFC 4648) with padding, or URL-safe base64 without padding. Decoding returns `result<string, string>` for clean error handling.
 
 - **Repository**: [github.com/cladam/base64](https://github.com/cladam/base64)
-- **Version**: v0.1.1
+- **Version**: v1.0.1
 - **Install**: `git submodule add https://github.com/cladam/base64.git lib/base64`
 - **Import**: `import "./lib/base64/src/base64"`
 
