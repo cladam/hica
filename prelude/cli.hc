@@ -386,8 +386,8 @@ fun cli_parse(spec) =>
 
 fun cli_parse_or_exit(spec) =>
   match cli_parse(spec) {
-    Parsed(r)   => r,
-    Help        => { println(cli_help(spec)); cli_empty() },
-    Version     => { println(cli_version_str(spec)); cli_empty() },
-    CliError(msg) => { eprintln("error: {msg}"); eprintln("try --help for usage"); cli_empty() }
+    Parsed(r)     => r,
+    Help          => { println(cli_help(spec)); exit(0); cli_empty() },
+    Version       => { println(cli_version_str(spec)); exit(0); cli_empty() },
+    CliError(msg) => { eprintln("error: {msg}"); eprintln("try --help for usage"); exit(1); cli_empty() }
   }

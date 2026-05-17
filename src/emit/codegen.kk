@@ -231,6 +231,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
+  val exit-helper = if program-uses-exit(p) then exit-helper-code else ""
   val assert-helper = assert-helper-code
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
@@ -251,6 +252,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   try-result-effect ++
   try-maybe-effect ++
   sort-helper ++
+  exit-helper ++
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
@@ -458,6 +460,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "get-args()"
         (Var("get_env"), [key]) ->
           "get-env-value(" ++ emit-expr(key, declared) ++ ")"
+        (Var("exit"), [code]) ->
+          "hica-exit(" ++ emit-expr(code, declared) ++ ")"
         (Var("eprintln"), [arg]) ->
           match arg.typ
             Just(TString) -> "trace(" ++ emit-expr(arg, declared) ++ ")"
@@ -1313,6 +1317,41 @@ val assert-helper-code : string =
   "fun hc-assert( b : bool ) : exn ()\n" ++
   "  if !b then throw(\"assertion failed\")\n" ++
   "\n"
+
+val exit-helper-code : string =
+  "extern hica-exit( code : int ) : a\n" ++
+  "  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n" ++
+  "\n"
+
+// Check whether the program uses exit() — needs the C extern helper.
+fun program-uses-exit( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-exit(d.body))
+
+fun node-uses-exit( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-exit-fn = match callee.expr
+        Var("exit") -> True
+        _           -> False
+      is-exit-fn || node-uses-exit(callee) || args.any(fn(a) node-uses-exit(a))
+    Let(_, _, init, body) -> node-uses-exit(init) || node-uses-exit(body)
+    VarDecl(_, _, init, body) -> node-uses-exit(init) || node-uses-exit(body)
+    Assign(_, value)      -> node-uses-exit(value)
+    Fun(_, body)          -> node-uses-exit(body)
+    Binary(_, lhs, rhs)   -> node-uses-exit(lhs) || node-uses-exit(rhs)
+    Unary(_, operand)     -> node-uses-exit(operand)
+    If(c, t, e)           -> node-uses-exit(c) || node-uses-exit(t) || node-uses-exit(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-exit(s))
+    Match(scrut, arms)    -> node-uses-exit(scrut) || arms.any(fn(a) node-uses-exit(a.body) || a.guard.map(node-uses-exit).default(False))
+    Repeat(count, body)   -> node-uses-exit(count) || node-uses-exit(body)
+    ForIn(_, s, e, body)  -> node-uses-exit(s) || node-uses-exit(e) || node-uses-exit(body)
+    ForEach(_, coll, body) -> node-uses-exit(coll) || node-uses-exit(body)
+    While(cond, body)      -> node-uses-exit(cond) || node-uses-exit(body)
+    Loop(body)             -> node-uses-exit(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-exit(p))
+    LetTuple(_, init, body) -> node-uses-exit(init) || node-uses-exit(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-exit(a))
+    _                     -> False
 
 val sort-helper-code : string =
   "fun hc-merge-with( xs, ys, cmp )\n" ++

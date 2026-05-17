@@ -22,6 +22,7 @@ The prelude is hica's built-in standard library. Every function defined here is 
 |----------|-----------|-------------|
 | `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
 | `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
+| `exit(code)` | `(int) -> ()` | Exit the process with the given exit code |
 
 ## File I/O
 

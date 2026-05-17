@@ -60,6 +60,7 @@ pub fun extern-env() : type-env
     ("get_args",    TFun([], TList(TString))),
     ("get_env",     TFun([TString], TMaybe(TString))),
     ("eprintln",    TFun([TVar("_a")], TUnit)),
+    ("exit",        TFun([TInt], TUnit)),
 
     // User input
     ("input",       TFun([TString], TString)),

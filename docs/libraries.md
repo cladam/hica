@@ -115,8 +115,6 @@ HTTP client library built on libcurl. Supports GET, POST, PUT, DELETE, PATCH, HE
 - **Install**: `git submodule add https://github.com/cladam/http.git lib/http`
 - **Import**: `extern import "http"` + `import http_client`
 
-Because http wraps a native C library through Koka’s FFI, it uses extern import rather than source-path imports.
-
 ```rust
 extern import "http"
 import http_client
