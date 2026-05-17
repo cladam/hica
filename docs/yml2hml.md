@@ -49,88 +49,89 @@ yml2hml config.yml output.hml
 
 ## Example
 
-Given a GitHub Actions workflow (`build.yml`):
+Given a [tbdflow](https://github.com/cladam/tbdflow) configuration file (`.tbdflow.yml`):
 
 ```yaml
-name: Build, Test, and Release
-
-permissions:
-  contents: read
-
-on:
-  push:
-    branches: [ "main" ]
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
-    paths-ignore:
-      - 'README.md'
-      - 'docs/**'
-
-jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            artifact: hica-linux-x86_64
-          - os: macos-latest
-            artifact: hica-macos-arm64
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Build
-        run: |
-          koka -O2 -ilib/klap -isrc src/main.kk -o hica
-        shell: bash
+main_branch_name: main
+stale_branch_threshold_days: 1
+monorepo:
+  enabled: false
+  project_dirs: []
+review:
+  enabled: false
+  strategy: github-issue
+  labels:
+    pending: review-pending
+    concern: review-concern
+    accepted: review-accepted
+    dismissed: review-dismissed
+radar:
+  enabled: true
+  level: file
+  on_sync: true
+  on_commit: off
+  ignore_patterns:
+  - '*.lock'
+  - '*-lock.*'
+  - CHANGELOG.md
+branch_types:
+  feat: feat/
+  fix: fix/
+  docs: docs/
+  chore: chore/
+lint:
+  conventional_commit_type:
+    enabled: true
+    allowed_types:
+    - feat
+    - fix
+    - docs
+    - refactor
+    - test
+    - chore
 ```
 
-Running `yml2hml build.yml` produces:
+Running `yml2hml .tbdflow.yml` produces:
 
 ```
-name: "Build, Test, and Release"
-@permissions {
-    contents: "read"
+main-branch-name: "main"
+stale-branch-threshold-days: 1
+@monorepo {
+    enabled: false
+    project-dirs: []
 }
-@on {
-    @push {
-        branches: ["main"]
-        tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
-        paths-ignore: ["README.md", "docs/**"]
+@review {
+    enabled: false
+    strategy: "github-issue"
+    @labels {
+        pending: "review-pending"
+        concern: "review-concern"
+        accepted: "review-accepted"
+        dismissed: "review-dismissed"
     }
 }
-@jobs {
-    @build {
-        @strategy {
-            @matrix {
-                @include {
-                    os: "ubuntu-latest"
-                    artifact: "hica-linux-x86_64"
-                }
-                @include {
-                    os: "macos-latest"
-                    artifact: "hica-macos-arm64"
-                }
-            }
-        }
-        runs-on: "${{ matrix.os }}"
-        @steps {
-            uses: "actions/checkout@v4"
-            @with {
-                submodules: true
-            }
-        }
-        @steps {
-            name: "Build"
-            run: """
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-"""
-            shell: "bash"
-        }
+@radar {
+    enabled: true
+    level: "file"
+    on-sync: true
+    on-commit: false
+    ignore-patterns: ["*.lock", "*-lock.*", "CHANGELOG.md"]
+}
+@branch-types {
+    feat: "feat/"
+    fix: "fix/"
+    docs: "docs/"
+    chore: "chore/"
+}
+@lint {
+    @conventional-commit-type {
+        enabled: true
+        allowed-types: ["feat", "fix", "docs", "refactor", "test", "chore"]
     }
 }
 ```
+
+Notice how yml2hml automatically converts underscore keys (`main_branch_name`) to HML's dash convention (`main-branch-name`), nested objects become `@element` blocks, and scalar lists become arrays.
 
 ## What it handles
 
