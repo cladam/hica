@@ -1,0 +1,213 @@
+feature "Hica CLI — core commands"
+
+import "shared/hica_tasks.chor"
+
+actors {
+    Terminal
+    FileSystem
+}
+
+settings {
+    timeout_seconds = 60
+    stop_on_failure = false
+}
+
+# ─────────────────────────────────────────────
+# Scenario 1: Version and help
+# ─────────────────────────────────────────────
+scenario "Version and help output" {
+
+    test VerifyVersion "hica --version prints version" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && ./hica --version"
+        then:
+            Terminal last_command succeeded
+            Terminal output_starts_with "hica"
+    }
+
+    test VerifyHelp "hica --help prints usage" {
+        given:
+            Test has_succeeded VerifyVersion
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && ./hica --help"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "Usage: hica"
+            Terminal output_contains "Commands:"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 2: Running programs
+# ─────────────────────────────────────────────
+scenario "Running Hica programs" {
+
+    test RunHello "hica run prints Hello, world!" {
+        given:
+            Test can_start
+        when:
+            hica_run("examples/hello.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "Hello, world!"
+    }
+
+    test RunFizzbuzz "hica run fizzbuzz produces correct output" {
+        given:
+            Test has_succeeded RunHello
+        when:
+            hica_run("examples/fizzbuzz.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "fizz"
+            Terminal output_contains "buzz"
+            Terminal output_contains "fizzbuzz"
+    }
+
+    test RunLists "hica run lists example works" {
+        given:
+            Test has_succeeded RunHello
+        when:
+            hica_run("examples/lists.hc")
+        then:
+            Terminal last_command succeeded
+    }
+
+    test RunMatch "hica run match example works" {
+        given:
+            Test has_succeeded RunHello
+        when:
+            hica_run("examples/match.hc")
+        then:
+            Terminal last_command succeeded
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 3: Check and format
+# ─────────────────────────────────────────────
+scenario "Static analysis and formatting" {
+
+    test CheckHello "hica check reports OK" {
+        given:
+            Test can_start
+        when:
+            hica_check("examples/hello.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "ok"
+    }
+
+    test FmtCheckHello "hica fmt --check reports OK" {
+        given:
+            Test has_succeeded CheckHello
+        when:
+            hica_fmt_check("examples/hello.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "ok"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 4: Build to binary
+# ─────────────────────────────────────────────
+scenario "Building binaries" {
+
+    test BuildFizzbuzz "hica build produces a binary" {
+        given:
+            Test can_start
+        when:
+            hica_build("examples/fizzbuzz.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "compiled"
+            FileSystem file_exists "${PROJECT_ROOT}/examples/fizzbuzz"
+    }
+
+    test RunBuiltBinary "the built binary runs correctly" {
+        given:
+            Test has_succeeded BuildFizzbuzz
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && ./examples/fizzbuzz"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "fizzbuzz"
+    }
+
+    after {
+        Terminal run "rm -f ${PROJECT_ROOT}/examples/fizzbuzz ${PROJECT_ROOT}/examples/fizzbuzz.kk"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 5: Test runner
+# ─────────────────────────────────────────────
+scenario "Running inline tests" {
+
+    test RunTestsWithFailure "hica test reports pass and fail" {
+        given:
+            Test can_start
+        when:
+            # hica test exits non-zero when any test fails, use capture variant
+            hica_test_capture("examples/math.hc")
+        then:
+            Terminal output_contains "this will fail"
+            Terminal output_contains "test if 12 is double of 6"
+            # split assertion to avoid ANSI color codes between "failed" and ", 1"
+            Terminal output_contains "1 test(s) failed"
+            Terminal output_contains "1 passed"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 6: Project scaffolding
+# ─────────────────────────────────────────────
+scenario "Creating a new project" {
+
+    test ScaffoldProject "hica new creates project structure" {
+        given:
+            # ensure clean state from any previous run
+            Terminal run "rm -rf /tmp/choreo-test-proj"
+        when:
+            hica_new("/tmp/choreo-test-proj")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "created project"
+            FileSystem file_exists "/tmp/choreo-test-proj/main.hc"
+            FileSystem file_exists "/tmp/choreo-test-proj/hica.ini"
+            FileSystem file_exists "/tmp/choreo-test-proj/README.md"
+    }
+
+    test ScaffoldedProjectRuns "scaffolded project can be run" {
+        given:
+            Test has_succeeded ScaffoldProject
+        when:
+            hica_run("/tmp/choreo-test-proj/main.hc")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "hello from choreo-test-proj"
+    }
+
+    after {
+        Terminal run "rm -rf /tmp/choreo-test-proj"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 7: Error handling
+# ─────────────────────────────────────────────
+scenario "Error handling for bad input" {
+
+    test MissingFile "hica run on missing file reports error" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && ./hica run nonexistent.hc"
+        then:
+            # hica currently exits 0 but prints error to stdout
+            Terminal output_contains "No such file or directory"
+    }
+}

@@ -1,0 +1,192 @@
+[
+  {
+    "uri": "tests/choreo/test-hica-cli.chor",
+    "keyword": "Feature",
+    "name": "Hica CLI — core commands",
+    "elements": [
+      {
+        "keyword": "Scenario",
+        "name": "Version and help output",
+        "steps": [
+          {
+            "name": "VerifyVersion",
+            "description": "hica --version prints version",
+            "result": {
+              "status": "passed",
+              "durationInMs": 43547
+            }
+          },
+          {
+            "name": "VerifyHelp",
+            "description": "hica --help prints usage",
+            "result": {
+              "status": "passed",
+              "durationInMs": 43491
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Running Hica programs",
+        "steps": [
+          {
+            "name": "RunHello",
+            "description": "hica run prints Hello, world!",
+            "result": {
+              "status": "passed",
+              "durationInMs": 43381
+            }
+          },
+          {
+            "name": "RunFizzbuzz",
+            "description": "hica run fizzbuzz produces correct output",
+            "result": {
+              "status": "passed",
+              "durationInMs": 37068
+            }
+          },
+          {
+            "name": "RunLists",
+            "description": "hica run lists example works",
+            "result": {
+              "status": "passed",
+              "durationInMs": 30685
+            }
+          },
+          {
+            "name": "RunMatch",
+            "description": "hica run match example works",
+            "result": {
+              "status": "passed",
+              "durationInMs": 23063
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Static analysis and formatting",
+        "steps": [
+          {
+            "name": "CheckHello",
+            "description": "hica check reports OK",
+            "result": {
+              "status": "passed",
+              "durationInMs": 16168
+            }
+          },
+          {
+            "name": "FmtCheckHello",
+            "description": "hica fmt --check reports OK",
+            "result": {
+              "status": "passed",
+              "durationInMs": 16004
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Building binaries",
+        "steps": [
+          {
+            "name": "BuildFizzbuzz",
+            "description": "hica build produces a binary",
+            "result": {
+              "status": "passed",
+              "durationInMs": 15892
+            }
+          },
+          {
+            "name": "RunBuiltBinary",
+            "description": "the built binary runs correctly",
+            "result": {
+              "status": "passed",
+              "durationInMs": 7119
+            }
+          }
+        ],
+        "after": [
+          {
+            "name": "Terminal runs 'rm -f ../../examples/fizzbuzz ../../examples/fizzbuzz.kk'",
+            "result": {
+              "status": "passed",
+              "durationInMs": 0
+            }
+          }
+        ]
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Running inline tests",
+        "steps": [
+          {
+            "name": "RunTestsWithFailure",
+            "description": "hica test reports pass and fail",
+            "result": {
+              "status": "failed",
+              "durationInMs": 6733,
+              "errorMessage": "Synchronous test conditions not met"
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Creating a new project",
+        "steps": [
+          {
+            "name": "ScaffoldProject",
+            "description": "hica new creates project structure",
+            "result": {
+              "status": "passed",
+              "durationInMs": 221
+            }
+          },
+          {
+            "name": "ScaffoldedProjectRuns",
+            "description": "scaffolded project can be run",
+            "result": {
+              "status": "skipped",
+              "durationInMs": 0
+            }
+          }
+        ],
+        "after": [
+          {
+            "name": "Terminal runs 'rm -rf /tmp/choreo-test-proj'",
+            "result": {
+              "status": "passed",
+              "durationInMs": 0
+            }
+          }
+        ]
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Error handling for bad input",
+        "steps": [
+          {
+            "name": "MissingFile",
+            "description": "hica run on missing file fails",
+            "result": {
+              "status": "skipped",
+              "durationInMs": 0
+            }
+          }
+        ],
+        "after": []
+      }
+    ],
+    "summary": {
+      "tests": 14,
+      "failures": 1,
+      "totalTimeInSeconds": 43.550034
+    }
+  }
+]

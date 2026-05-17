@@ -1,0 +1,43 @@
+# Shared Choreo tasks for testing the Hica compiler
+# Import this file in any .chor test that needs common Hica operations.
+# Run choreo from the project root: choreo run -f tests/choreo/test-hica-cli.chor
+
+var PROJECT_ROOT = "../.."
+
+task hica_run(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica run ${file}"
+}
+
+task hica_build(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica build ${file}"
+}
+
+task hica_check(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica check ${file}"
+}
+
+task hica_fmt_check(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica fmt ${file} --check"
+}
+
+task hica_test(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica test ${file}"
+}
+
+# Run hica test but always exit 0 — for testing expected failures
+task hica_test_capture(file) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica test ${file} || true"
+}
+
+task hica_new(name) {
+    Terminal run "cd ${PROJECT_ROOT} && ./hica new ${name}"
+}
+
+task verify_succeeded() {
+    Terminal last_command succeeded
+    Terminal stderr_is_empty
+}
+
+task verify_failed() {
+    Terminal last_command failed
+}
