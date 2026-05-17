@@ -203,6 +203,34 @@ fun get_opt_or(r: CliResult, name: string, default: string) =>
     None => default
   }
 
+fun get_opt_int(r: CliResult, name: string) =>
+  match get_opt(r, name) {
+    Some(v) => parse_int(v),
+    None => None
+  }
+
+fun get_opt_int_or(r: CliResult, name: string, default: int) : int =>
+  match get_opt_int(r, name) {
+    Some(v) => v,
+    None => default
+  }
+
+fun get_opt_float(r: CliResult, name: string) =>
+  match get_opt(r, name) {
+    Some(v) => parse_float(v),
+    None => None
+  }
+
+fun get_opt_float_or(r: CliResult, name: string, default: float) : float =>
+  match get_opt_float(r, name) {
+    Some(v) => v,
+    None => default
+  }
+
+fun get_positional(r: CliResult, index: int) =>
+  if index < length(r.cli_positionals) { Some(r.cli_positionals[index]) }
+  else { None }
+
 fun get_positionals(r: CliResult) => r.cli_positionals
 
 fun get_command(r: CliResult) => r.cli_command
