@@ -117,6 +117,18 @@ jobs:
         shell: bash
         continue-on-error: true  # 3 tests fail due to path handling in hica run/test on Windows
 
+      - name: Install choreo (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cargo install choreo
+        shell: bash
+
+      - name: Run choreo acceptance tests (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          choreo run -f tests/choreo/test-hica-cli.chor
+        shell: bash
+
       - name: Strip binary (Linux)
         if: runner.os == 'Linux'
         run: strip hica
