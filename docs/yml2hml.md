@@ -7,27 +7,37 @@ title: yml2hml — YAML to HML Converter - hica
 
 `yml2hml` is a standalone tool written in hica that converts YAML files to [HML](HML-specification) format. It demonstrates how hica handles real-world parsing, recursive data structures, and formatted output.
 
-## Download
+## Run from source
 
-A pre-built macOS binary is available:
-
-<a href="{{ '/assets/bin/yml2hml' | relative_url }}" class="download-link" download>
-  ⬇ Download yml2hml (macOS arm64)
-</a>
-
-Make it executable after downloading:
-
-```sh
-chmod +x yml2hml
-```
-
-Or run it directly from source (requires hica and Koka):
+Requires hica and Koka:
 
 ```sh
 hica run programs/yml2hml.hc -- input.yml
 ```
 
+Or build a standalone binary:
+
+```sh
+hica build programs/yml2hml.hc
+./programs/yml2hml input.yml
+```
+
 ## Usage
+
+```
+$ yml2hml --help
+yml2hml 1.0.0 — convert YAML files to HML format
+
+USAGE: yml2hml [OPTIONS] <input> [output]
+
+OPTIONS:
+  -h, --help            Show this help
+      --version         Show version
+
+ARGS:
+  <input>               YAML file to convert (required)
+  <output>              output HML file (default: stdout)
+```
 
 ```sh
 # Print HML to stdout
@@ -158,7 +168,8 @@ koka -O2 -ilib/klap -isrc src/main.kk -o hica
 - **Closures** — `map(items, (item) => hml_value(strip(item)))` for transformations
 - **Dot-call syntax** — `trimmed.strip()`, `items.length()` for readability
 - **File I/O** — `read_file`, `write_file` with `Result` error handling
-- **CLI args** — `get_args()` for command-line interface
+- **CLI prelude** — `cli() |> arg()` builder for `--help`, `--version`, and argument validation
+- **CLI args** — `cli_parse`, `Parsed(r)`, `get_positional` for structured argument handling
 
 ## Source
 
