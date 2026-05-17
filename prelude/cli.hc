@@ -271,6 +271,8 @@ fun parse_loop(spec: CliSpec, args: list<string>) {
   var sub_args: list<string> = []
   var remaining = args
   var error = ""
+  var short_chars: list<string> = []
+  var si = 0
 
   while is_empty(error) && length(remaining) > 0 {
     let a = remaining[0]
@@ -304,13 +306,25 @@ fun parse_loop(spec: CliSpec, args: list<string>) {
       }
     }
     else if starts_with(a, "-") {
-      let s = removeprefix(a, "-")
-      match find_flag_short(spec.app_flags, s) {
-        Some(f) => { flags = flags + [f.flag_name] },
-        None    => match find_opt_short(spec.app_options, s) {
-          Some(o) => if length(remaining) == 0 { error = "option -{s} requires a value" }
-                     else { options = options + [(o.opt_name, remaining[0])]; remaining = drop(remaining, 1) },
-          None    => { error = "unknown option: -{s}" }
+      short_chars = map(chars(removeprefix(a, "-")), (c) => char_to_string(c))
+      si = 0
+      while si < length(short_chars) && is_empty(error) {
+        let c = short_chars[si]
+        match find_flag_short(spec.app_flags, c) {
+          Some(f) => { flags = flags + [f.flag_name]; si = si + 1 },
+          None => match find_opt_short(spec.app_options, c) {
+            Some(o) => if si + 1 < length(short_chars) {
+              options = options + [(o.opt_name, join(drop(short_chars, si + 1), ""))]
+              si = length(short_chars)
+            }
+            else if length(remaining) == 0 { error = "option -{c} requires a value"; si = si + 1 }
+            else {
+              options = options + [(o.opt_name, remaining[0])]
+              remaining = drop(remaining, 1)
+              si = si + 1
+            },
+            None => { error = "unknown option: -{c}"; si = si + 1 }
+          }
         }
       }
     }
