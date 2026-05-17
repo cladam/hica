@@ -296,6 +296,12 @@ Issues that exist today but are not yet fixed:
   `load-prelude()` now collects `prog.types` alongside `structs` and `decls`.
   Prelude enums are merged into the type registry and visible for construction
   and pattern matching in user code.
+- **Struct update syntax broken with `var` reassignment** — `{ ...s, field: val }`
+  works in `let` bindings but not in `var` reassignment (`s = S { ...s, f: v }`).
+  Codegen emits `s := { val hc__base = s; S(...) }` — Koka rejects the block
+  expression on the right-hand side of `:=`. Discovered in `programs/diff.hc`
+  where hunks are iteratively updated. **Workaround:** spell out all fields
+  explicitly (`S { a: s.a, b: new_val, ... }`).
 
 ---
 
