@@ -397,6 +397,57 @@ Written in hica itself:
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
 | `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
+## Glob & Character Classification (`prelude/glob.hc`)
+
+Written in hica itself. Provides character-level classification and glob pattern matching.
+
+### Character Classification
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `is_digit(c)` | `(char) -> bool` | True if `c` is `0`–`9` |
+| `is_upper(c)` | `(char) -> bool` | True if `c` is `A`–`Z` |
+| `is_lower(c)` | `(char) -> bool` | True if `c` is `a`–`z` |
+| `is_alpha(c)` | `(char) -> bool` | True if `c` is a letter |
+| `is_alnum(c)` | `(char) -> bool` | True if `c` is a letter or digit |
+| `is_space(c)` | `(char) -> bool` | True if `c` is whitespace (space, tab, newline, carriage return) |
+| `is_punct(c)` | `(char) -> bool` | True if `c` is punctuation (printable, non-alnum, non-space) |
+
+### String-Level Helpers
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `all_digits(s)` | `(string) -> bool` | True if every character is a digit |
+| `all_alpha(s)` | `(string) -> bool` | True if every character is a letter |
+| `all_upper(s)` | `(string) -> bool` | True if every character is uppercase |
+| `all_lower(s)` | `(string) -> bool` | True if every character is lowercase |
+| `all_alnum(s)` | `(string) -> bool` | True if every character is alphanumeric |
+
+### Glob Matching
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `glob_match(pattern, s)` | `(string, string) -> bool` | Match with `*` (any chars, not `/`) and `?` (one char) |
+| `glob_match_path(pattern, path)` | `(string, string) -> bool` | Path-aware matching with `**` (zero or more directories) |
+
+```rust
+fun main() {
+  // Character classification
+  println(is_digit(chr(48)))          // true ('0')
+  println(is_alpha(chr(65)))          // true ('A')
+  println(all_digits("12345"))        // true
+  println(all_upper("HELLO"))         // true
+
+  // Simple glob
+  println(glob_match("*.txt", "readme.txt"))   // true
+  println(glob_match("h?llo", "hello"))        // true
+
+  // Path glob with **
+  println(glob_match_path("src/**/*.hc", "src/lib/util.hc"))   // true
+  println(glob_match_path("**/*.txt", "a/b/c/file.txt"))       // true
+}
+```
+
 ## Datetime (`prelude/datetime.hc`) — v0.1.0
 
 > **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica currently supports validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.

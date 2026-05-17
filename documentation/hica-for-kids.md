@@ -43,7 +43,8 @@ software.
 32. [Projects](#32-projects)
 33. [Sharing Code Between Files](#33-sharing-code-between-files)
 34. [Dates & Times: What Day Is It?](#34-dates--times-what-day-is-it)
-35. [Glossary](#35-glossary)
+35. [Pattern Matching with Globs](#35-pattern-matching-with-globs)
+36. [Glossary](#36-glossary)
 
 ---
 
@@ -2831,7 +2832,97 @@ fun main() {
 
 ---
 
-## 35. Glossary
+## 35. Pattern Matching with Globs: The Treasure Map
+
+Imagine you have a treasure map, and you're looking for files that match a
+pattern — like "all the text files" or "any picture in any folder". That's what
+**glob matching** does!
+
+Hica has built-in functions for this, plus helpers that tell you what kind of
+character you're looking at.
+
+### What Kind of Character Is It?
+
+Every character has a type. Hica can check it for you:
+
+```rust
+fun main() {
+  // Is it a digit? (0-9)
+  println(is_digit(chr(48)))    // true  — that's '0'
+  println(is_digit(chr(65)))    // false — that's 'A'
+
+  // Is it a letter? (a-z or A-Z)
+  println(is_alpha(chr(65)))    // true  — 'A'
+  println(is_alpha(chr(48)))    // false — '0'
+
+  // Is it uppercase or lowercase?
+  println(is_upper(chr(65)))    // true  — 'A'
+  println(is_lower(chr(97)))    // true  — 'a'
+}
+```
+
+You can also check whole strings at once:
+
+```rust
+fun main() {
+  println(all_digits("12345"))   // true  — every character is a digit
+  println(all_digits("123a5"))   // false — 'a' is not a digit!
+  println(all_upper("HELLO"))    // true
+  println(all_lower("hello"))    // true
+}
+```
+
+> **Think of it like sorting mail:** "Is every letter in this word uppercase?"
+> `all_upper` checks the whole word for you!
+
+### Glob Patterns: Wildcards!
+
+A **glob pattern** is like a search with wildcards:
+
+- `*` means "any characters" (but not across folders)
+- `?` means "exactly one character"
+
+```rust
+fun main() {
+  // * matches anything
+  println(glob_match("*.txt", "readme.txt"))    // true
+  println(glob_match("*.txt", "photo.png"))     // false
+
+  // ? matches exactly one letter
+  println(glob_match("h?llo", "hello"))         // true
+  println(glob_match("h?llo", "hallo"))         // true
+  println(glob_match("h?llo", "hllo"))          // false — ? needs one character!
+}
+```
+
+### Path Globs: The Double Star `**`
+
+When searching through folders, `**` means "any number of folders deep":
+
+```rust
+fun main() {
+  // ** matches folders at any depth
+  println(glob_match_path("**/*.txt", "file.txt"))            // true
+  println(glob_match_path("**/*.txt", "docs/notes.txt"))      // true
+  println(glob_match_path("**/*.txt", "a/b/c/deep.txt"))      // true
+
+  // Combine with folder prefixes
+  println(glob_match_path("src/**/*.hc", "src/lib/util.hc"))  // true
+  println(glob_match_path("src/**/*.hc", "test/main.hc"))     // false — wrong folder!
+}
+```
+
+> **Think of `*` as "look on this shelf" and `**` as "search the whole library!"**
+
+### Challenge
+
+Write a program that checks if a filename is a "safe name" — only letters,
+digits, a dot, and `.txt` or `.hc` at the end. Use `is_alnum`, `glob_match`,
+and `chars` together!
+
+---
+
+## 36. Glossary
 
 | Word | What it means |
 | --- | --- |
@@ -2888,6 +2979,16 @@ fun main() {
 | `is_before(d1, d2)` | True if the first date/time comes before the second |
 | `day_of_week(s)` | What day of the week is this date? Returns `"monday"` etc. |
 | `offset_to_minutes(s)` | Convert a timezone offset to minutes — `"+02:00"` gives `120` |
+| `is_digit(c)` | True if `c` is a digit (`0`–`9`) |
+| `is_alpha(c)` | True if `c` is a letter (`a`–`z` or `A`–`Z`) |
+| `is_upper(c)` | True if `c` is an uppercase letter |
+| `is_lower(c)` | True if `c` is a lowercase letter |
+| `is_alnum(c)` | True if `c` is a letter or digit |
+| `all_digits(s)` | True if every character in `s` is a digit |
+| `all_upper(s)` | True if every character in `s` is uppercase |
+| `all_lower(s)` | True if every character in `s` is lowercase |
+| `glob_match(p, s)` | Match a string against a glob pattern (`*` and `?`) |
+| `glob_match_path(p, s)` | Match a path against a glob pattern (supports `**`) |
 | `-x` | Negate a number (flip positive/negative) |
 | `!x` | Negate a boolean (flip true/false) |
 | `&&` | AND — both sides must be true |

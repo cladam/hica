@@ -53,6 +53,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 37 | `37-list-extras.hc`    | List extras                | `head`, `tail`, `last`, `flat_map`, `sort_by`, `sum`, `product`, `unique`, `intersperse`, `zip_with`, `scan`, `chunks` |
 | 38 | `38-math-extras.hc`    | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
 | 39 | `39-datetime.hc` | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` |
+| 40 | `40-glob.hc`     | Glob matching & char classification | `is_digit`, `is_alpha`, `is_upper`, `is_lower`, `all_digits`, `all_upper`, `glob_match`, `glob_match_path` |
 
 ## Language features shown
 
@@ -142,6 +143,10 @@ Each lesson is a standalone `.hc` file you can run:
 | `sqrt`, `floor`, `ceil`        | `38-math-extras.hc`                   |
 | `round`, `to_float`            | `38-math-extras.hc`                   |
 | `chars`, `from_chars`          | `38-math-extras.hc`                   |
+| `is_digit`, `is_alpha`, etc.   | `40-glob.hc`                          |
+| `all_digits`, `all_upper`      | `40-glob.hc`                          |
+| `glob_match`                   | `40-glob.hc`                          |
+| `glob_match_path`              | `40-glob.hc`                          |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
 | Type annotations (`: int`)     | `examples/type-annotations.hc`        |
 | `println()`                    | `01-hello.hc`, `09-repeat.hc`         |
@@ -155,7 +160,7 @@ Every file has:
 
 ## Next steps
 
-Once you finish all 39 lessons, try these challenges:
+Once you finish all 40 lessons, try these challenges:
 
 - Modify `06-match.hc` to label 0–5 individually and group everything else
 - Write a `max(a, b)` function that returns the larger of two numbers

@@ -33,6 +33,10 @@ fun main() {
 }
 
 // ============================================================
-// Challenge: Write a function `is_digit(c)` that returns
-// true if c is in ['0','1','2','3','4','5','6','7','8','9'].
+// Challenge: `is_digit(c)` is now built into the prelude!
+// Try it: println(is_digit(chr(48)))  — prints true
+//
+// Can you write `is_vowel(c)` that returns true for
+// 'a', 'e', 'i', 'o', 'u' (and their uppercase forms)?
+// Hint: use is_lower, to_lower, or a list check.
 // ============================================================
