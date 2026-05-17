@@ -257,6 +257,54 @@ Internal helpers also available: `all_digits`, `in_range`, `days_in_month`, `nth
 
 ---
 
+## Libraries
+
+Optional libraries that extend hica beyond the prelude. Each is a standalone
+importable module following the multi-file pattern established by the yaml library
+(types, parser, api, barrel module).
+
+Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, etc.).
+
+### Data Formats
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **json** | **—** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel |
+| **xml** | **—** | High | XML parsing. Less common but still needed for configs, feeds, legacy APIs |
+
+### Text Processing
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **regex** | **—** | Medium | String pattern matching. Wrap Koka's `std/text/regex`. Functions: `regex_match`, `regex_find`, `regex_replace`, `regex_split` |
+| **base64** | **—** | Low | Encode/decode base64. Pure functions, no effects — good showcase of hica's functional style |
+
+### Networking & Web
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **url** | **—** | Low | Parse/build URLs. Functions: `parse_url`, `url_host`, `url_path`, `url_query`, `encode_uri`, `decode_uri`. Pure string operations |
+
+### CLI & Terminal
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **term-color** | **—** | Low | ANSI terminal colors. Functions: `red(s)`, `green(s)`, `bold(s)`, `dim(s)`. Tiny scope, immediately useful for CLI tool authors. Inspired by `colored` crate |
+| **prompt** | **—** | Medium | Interactive CLI prompts: `confirm("Continue?")`, `select(choices)`, `prompt("Name:")`. Inspired by `dialoguer` crate. Needs `console` effect |
+| **progress** | **—** | Medium | Progress bars and spinners for long-running CLI tasks. Inspired by `indicatif` crate |
+
+### Utilities
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **uuid** | **—** | Low | UUID v4 generation. Single function: `uuid()` → `string`. Needs `ndet` effect |
+| **semver** | **—** | Low | Semantic version parsing and comparison. `parse_semver(s)`, `semver_cmp(a, b)`, `satisfies(version, range)`. hica-semver already exists as a prototype |
+| **glob** | **—** | Medium | File glob pattern matching. `glob_match(pattern, path)`, `glob_files(pattern)`. Inspired by `glob` crate. Useful for file-processing CLI tools |
+| **datetime** (v2) | **—** | Medium | Promote `prelude/datetime.hc` to a full library. Add `to_unix`, `from_unix`, timezone support via Koka `std/time` |
+| **compress** | **—** | High | Gzip/deflate compression. `gzip(data)`, `gunzip(data)`. Inspired by `flate2` crate. Would need `--cclib=z` |
+
+---
+
 ## Known Limitations
 
 Issues that exist today but are not yet fixed:
