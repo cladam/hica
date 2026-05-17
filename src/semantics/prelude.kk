@@ -41,6 +41,7 @@ pub fun extern-env() : type-env
     // String utilities — backed by Koka std/core/string
     ("str_length",  TFun([TString], TInt)),
     ("contains",    TFun([TString, TString], TBool)),
+    ("str_contains", TFun([TString, TString], TBool)),
     ("starts_with", TFun([TString, TString], TBool)),
     ("ends_with",   TFun([TString, TString], TBool)),
     ("trim",        TFun([TString], TString)),

@@ -324,6 +324,7 @@ Primitive string functions backed by Koka's string library:
 |----------|-----------|-------------|
 | `str_length(s)` | `(string) -> int` | Number of characters in a string |
 | `contains(s, sub)` | `(string, string) -> bool` | True if `s` contains `sub` |
+| `str_contains(s, sub)` | `(string, string) -> bool` | Alias for `contains` |
 | `starts_with(s, pre)` | `(string, string) -> bool` | True if `s` starts with `pre` |
 | `ends_with(s, suf)` | `(string, string) -> bool` | True if `s` ends with `suf` |
 | `trim(s)` | `(string) -> string` | Remove leading and trailing whitespace |

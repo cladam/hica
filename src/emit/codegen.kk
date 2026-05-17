@@ -424,6 +424,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           emit-expr(s, declared) ++ ".count"
         (Var("contains"), [s, sub]) ->
           emit-expr(s, declared) ++ ".contains(" ++ emit-expr(sub, declared) ++ ")"
+        (Var("str_contains"), [s, sub]) ->
+          emit-expr(s, declared) ++ ".contains(" ++ emit-expr(sub, declared) ++ ")"
         (Var("starts_with"), [s, pre]) ->
           emit-expr(s, declared) ++ ".starts-with(" ++ emit-expr(pre, declared) ++ ").is-just"
         (Var("ends_with"), [s, suf]) ->
