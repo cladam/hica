@@ -1,0 +1,43 @@
+{
+  "name": "hica",
+  "displayName": "Hica",
+  "description": "Language support for the Hica programming language",
+  "version": "0.1.0",
+  "publisher": "cladam",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cladam/hica"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:hica"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "hica",
+        "aliases": ["Hica", "hica"],
+        "extensions": [".hc"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/hica-light.png",
+          "dark": "./icons/hica-dark.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "hica",
+        "scopeName": "source.hica",
+        "path": "./syntaxes/hica.tmLanguage.json"
+      }
+    ]
+  }
+}

@@ -20,13 +20,7 @@
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-// Check if every character in a string is a digit
-fun all_digits(s: string) : bool =>
-  if str_length(s) == 0 { false }
-  else {
-    let chars = split(s, "")
-    all(chars, (c) => c >= "0" && c <= "9")
-  }
+// all_digits is provided by prelude/glob.hc
 
 // Parse a substring as an integer, returning None on failure
 fun parse_part(s: string, start: int, len: int) : maybe<int> =>
