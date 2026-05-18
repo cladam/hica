@@ -13,9 +13,9 @@ The hica compiler
 
 Options:
       --check            Check formatting without modifying the file
-      --target=TARGET    Output target: koka (default) or js
-      --help                 display this help and exit
-      --version              output version information and exit
+      --target=TARGET    Output target for build: koka (default) or js
+      --help             Display this help and exit
+      --version          Output version information and exit
 
 Commands:
   build, b               Compile a .hc file and build a binary
@@ -42,10 +42,16 @@ hica run examples/hello.hc
 
 ### `hica build` (alias: `b`)
 
-Compile a `.hc` file to Koka. Outputs a `.kk` file alongside the source:
+Compile a `.hc` file. By default targets Koka, outputting a `.kk` file alongside the source:
 
 ```sh
 hica build examples/arrow.hc
+```
+
+Use `--target=js` to emit JavaScript instead:
+
+```sh
+hica build --target=js examples/arrow.hc
 ```
 
 ### `hica check` (alias: `c`)
@@ -150,4 +156,67 @@ Initialise a hica project in the current directory:
 mkdir my-project && cd my-project
 hica init
 ```
+
+### `hica repl`
+
+Start an interactive Read-Eval-Print Loop:
+
+```sh
+hica repl
+```
+
+For history navigation, line editing, and tab completion, wrap with `rlwrap`:
+
+```sh
+rlwrap hica repl
+```
+
+Optionally preload a file to make its definitions available in the session:
+
+```sh
+hica repl lib/helpers.hc
+```
+
+**Example session:**
+
+```
+hica=> 1 + 2
+3
+hica=> _ * 10
+30
+hica=> let x = 5
+5
+hica=> x + _
+35
+hica=> "hello" + " world"
+hello world
+hica=> fun double(n) { n * 2 }
+  defined: double
+hica=> double(21)
+42
+```
+
+**Features:**
+
+| Feature | Description |
+|---------|-------------|
+| `_` variable | Holds the result of the last evaluated expression |
+| `let` bindings | `let x = 5` persists across the session |
+| Function defs | `fun f(x) { ... }` available for subsequent calls |
+| Structs & types | `struct` and `type` declarations persist |
+| Multiline input | Unbalanced `{`, `(`, `[` triggers continuation (`...>`) |
+| History file | Input saved to `~/.hica_history` |
+| Startup file | `~/.hicarc` loaded automatically on start (if present) |
+| Error recovery | Type errors display cleanly; session continues |
+
+**REPL commands:**
+
+| Command | Description |
+|---------|-------------|
+| `:help` (`:h`) | Show available commands |
+| `:defs` | List all defined functions |
+| `:reset` | Clear all definitions and bindings |
+| `:history` | Show recent input history |
+| `:load FILE` | Load and evaluate a `.hc` file |
+| `:quit` (`:q`) | Exit the REPL (also Ctrl-D) |
 

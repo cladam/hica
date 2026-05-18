@@ -85,6 +85,7 @@ Hello, world!
 | `hica build <file>` | Compile a `.hc` file and build a binary |
 | `hica check <file>` | Analyse a `.hc` file and report errors |
 | `hica fmt <file>` | Format a `.hc` file according to the style guide |
+| `hica repl` | Start an interactive REPL |
 | `hica clean` | Remove generated build artifacts |
 | `hica new <name>` | Create a new hica project |
 | `hica init` | Initialise a project in the current directory |

@@ -64,6 +64,28 @@ Create a file called `hello.hc` and run it:
 
 That's all. No project setup, no config files. One file, one command.
 
+### Try it interactively
+
+Don't want to create a file yet? Start the REPL and type expressions directly:
+
+```sh
+hica repl
+```
+
+```
+hica=> 1 + 2
+3
+hica=> "hello" + " world"
+hello world
+hica=> let x = 10
+10
+hica=> x * 3
+30
+```
+
+The `_` variable always holds the last result. Type `:help` for commands, `:quit` to exit.
+For arrow-key history, use `rlwrap hica repl`.
+
 ---
 
 ## Your first program

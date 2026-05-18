@@ -107,6 +107,25 @@ chmod +x hica
 ./hica check examples/hello.hc
 ```
 
+### Try things interactively
+
+Start the REPL to experiment without creating a file:
+
+```sh
+./hica repl
+```
+
+```
+hica=> 1 + 2
+3
+hica=> _ * 10
+30
+hica=> "hi " + "there"
+hi there
+```
+
+Type `:quit` to exit. The `_` holds your last result.
+
 ---
 
 ## 4. Your First Program — Hello, World!
