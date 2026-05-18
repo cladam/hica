@@ -607,7 +607,8 @@ fun repl-show-defs( state : repl-state )
 fun repl-eval( input : string, prelude : program, state : repl-state, silent : bool = False )
   // Lex and parse as a REPL fragment
   val tokens = lex(input)
-  val fragment = run-parser-repl(tokens, input)
+  val (fragment, parse-errors) = run-parser-repl-tracked(tokens, input)
+  if parse-errors then return state
   match fragment
     ReplDecl(d) ->
       // Type check with accumulated context
@@ -672,13 +673,13 @@ fun repl-eval-let( binding-name : string, init : node, prelude : program, state 
     val typed-init = unwrap-vals(state.vals, typed-body)
     val init-type = typed-init.typ
     val js = "var " ++ binding-name ++ " = " ++ emit-js-expr(typed-init) ++ ";\n"
-    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) println(show(" ++ binding-name ++ "));\n"
+    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) { println(show(" ++ binding-name ++ ")); _ = " ++ binding-name ++ "; }\n" ++
+                  "try { require('fs').writeFileSync('/tmp/hica-repl-underscore.txt', JSON.stringify(_)); } catch(e) {}\n"
     val full-js = emit-js-repl-preamble() ++ state.js-defs ++ show-js
     if !silent then repl-run-js(full-js)
     // Store binding and update _ to hold the let's init value
-    val js-underscore = "_ = " ++ binding-name ++ ";\n"
     val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
-    state(vals = new-vals, js-defs = state.js-defs ++ js ++ js-underscore)
+    state(vals = new-vals, js-defs = state.js-defs ++ js)
 
 // Evaluate a bare expression in the REPL
 fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
@@ -702,10 +703,9 @@ fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
     val js-snippet = emit-js-repl-expr(typed-expr)
     val full-js = emit-js-repl-preamble() ++ state.js-defs ++ js-snippet
     repl-run-js(full-js)
-    // Store _ with TYPE (use dummy init since _ may self-reference)
-    val js-assign = "_ = " ++ emit-js-expr(typed-expr) ++ ";\n"
+    // Store _ with TYPE for type checking; _ persists in JS via file
     val new-vals = state.vals.filter(fn((n, _v, _t)) n != "_") ++ [("_", expr, expr-type)]
-    state(vals = new-vals, js-defs = state.js-defs ++ js-assign)
+    state(vals = new-vals)
 
 // Wrap an expression in a chain of let bindings from value state
 // For "_", use the stored init directly if it doesn't self-reference;

@@ -1247,3 +1247,38 @@ pub fun run-parser-repl( tokens : list<token>, source : string = "" ) : <div,con
       println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
       Node(sp, Literal(LitBool(False)))
   parse-repl-input()
+
+pub fun run-parser-repl-tracked( tokens : list<token>, source : string ) : <div,console> (repl-input, bool)
+  var toks := tokens
+  var had-errors := False
+  with handler
+    fun peek()
+      match toks
+        Cons(t, _) -> t.kind
+        Nil        -> TkEof
+    fun peek-next()
+      match toks
+        Cons(_, Cons(t2, _)) -> t2.kind
+        _ -> TkEof
+    fun peek-newline()
+      match toks
+        Cons(t, _) -> t.newline-before
+        Nil        -> False
+    fun advance()
+      match toks
+        Cons(t, rest) -> { toks := rest; t }
+        Nil           -> Token(TkEof, Span(0, 0))
+    fun current-span()
+      match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+    fun parse-error( msg )
+      val sp = match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+      val (line, col) = offset-to-linecol(source, sp.start)
+      println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
+      had-errors := True
+      Node(sp, Literal(LitBool(False)))
+  val result = parse-repl-input()
+  (result, had-errors)

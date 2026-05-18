@@ -39,12 +39,14 @@ pub fun emit-js-repl-type( td : type-def ) : div string
 pub fun emit-js-repl-expr( n : node ) : div string
   val code = emit-js-expr(n)
   "const __result = " ++ code ++ ";\n" ++
-  "if (__result !== undefined && __result !== null) { println(show(__result)); _ = __result; }\n"
+  "if (__result !== undefined && __result !== null) { println(show(__result)); _ = __result; }\n" ++
+  "try { require('fs').writeFileSync('/tmp/hica-repl-underscore.txt', JSON.stringify(_)); } catch(e) {}\n"
 
-// Emit the preamble — includes _ variable for last result
+// Emit the preamble — includes _ variable for last result (restored from file)
 pub fun emit-js-repl-preamble() : string
   js-runtime-preamble() ++
-  "var _ = undefined;\n"
+  "var _ = undefined;\n" ++
+  "try { _ = JSON.parse(require('fs').readFileSync('/tmp/hica-repl-underscore.txt', 'utf8')); } catch(e) {}\n"
 
 // Wrap a let-binding as a global var definition in the REPL
 pub fun emit-js-repl-let( name : string, init : node ) : div string
