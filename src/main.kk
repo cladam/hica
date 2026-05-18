@@ -24,7 +24,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.19.0" 
+val version = "0.20.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -367,7 +367,7 @@ fun cmd-help( sub : maybe<string> )
 // Prelude: load .hc library files written in Hica
 // ---------------------------------------------------------------------------
 
-val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/glob.hc", "prelude/lists.hc", "prelude/strings.hc", "prelude/datetime.hc", "prelude/cli.hc", "prelude/io.hc"]
+val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/glob.hc", "prelude/lists.hc", "prelude/strings.hc", "prelude/datetime.hc", "prelude/cli.hc", "prelude/io.hc", "prelude/actors.hc"]
 
 fun load-prelude()
   var decl-result : list<fun-decl> := []

@@ -325,6 +325,16 @@ Issues that exist today but are not yet fixed:
   The checker now rejects tuples with > 5 elements.
 - **No cross-function type propagation** — each function is inferred
   independently. Call-site constraints don't refine a callee's inferred types.
+- **Prelude functions not polymorphic across call sites** — a generic prelude
+  function like `process_messages(state, msgs, receive)` (which is just `fold`)
+  gets its type fixed on first use. A second call with different types fails:
+  ```hica
+  let x = process_messages(0, [Inc, Dec], counter_receive)      // OK: int
+  let y = process_messages("even", [1,2,3], (s, n) => ...)      // ERROR: expected int
+  ```
+  Root cause: Hica lacks let-polymorphism — each function gets one concrete type.
+  **Workaround:** use `fold` directly at each call site, or keep all usages
+  at the same type.
 - **~~`div` effect leakage through non-recursive wrappers~~** — Fixed. Codegen
   now computes transitive `div` names via fixpoint: any function that calls a
   `div`-needing function (directly or transitively) gets `div` annotated.

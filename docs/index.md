@@ -11,12 +11,12 @@ It is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka’s 
 
 ## Why hica?
 
-Most programming languages force you to choose: easy to learn **or** safe and fast. hica gives you both.
+Most programming languages force you to choose: easy to learn **or** safe and fast. hica shifts the trade-off boundary—global type inference gives you the low-friction syntax of a dynamic language, while the Koka backend compiles to native C11 for systems-level performance.
 
 - **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 - **Everything is an expression**: `if`, `match`, and blocks compose naturally because they return values.
 - **Compile-time safety**: Strong static typing without pervasive annotations.
-- **No garbage collector**: memory safety via Koka's Perceus (Functional But In-Place) reference counting.
+- **No tracing garbage collector**: deterministic compile-time memory management via Koka's Perceus engine. Because hica structures are immutable, there are no reference cycles; Perceus optimises reference counts at compile time, turning functional copies into in-place mutations when a value is uniquely owned.
 - **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
 
 > **hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
