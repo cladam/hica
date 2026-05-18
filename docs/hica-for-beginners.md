@@ -81,6 +81,8 @@ hica=> let x = 10
 10
 hica=> x * 3
 30
+hica=> _ + 12
+42
 ```
 
 The `_` variable always holds the last result. Type `:help` for commands, `:quit` to exit.
