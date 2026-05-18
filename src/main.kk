@@ -512,37 +512,37 @@ fun repl-eval-lines( file-lines : list<string>, prelude : program, state : repl-
 
 fun repl-loop( prelude : program, state : repl-state )
   print("hica=> ")
-  val input = readline()
-  if input == "" then  // EOF (Ctrl-D)
-    println("\nBye!")
-  else
-    val line = input.trim
-    if line == ":quit" || line == ":q" then
-      println("Bye!")
-    elif line == ":help" || line == ":h" then
-      repl-help()
-      repl-loop(prelude, state)
-    elif line == ":defs" then
-      repl-show-defs(state)
-      repl-loop(prelude, state)
-    elif line == ":reset" then
-      println("  state cleared")
-      repl-loop(prelude, empty-repl-state)
-    elif line == ":history" then
-      repl-show-history()
-      repl-loop(prelude, state)
-    elif line.starts-with(":load ").bool then
-      val filepath = line.slice.drop(6).string.trim
-      val new-state = repl-load-file(filepath, prelude, state)
-      repl-loop(prelude, new-state)
-    elif line.is-empty then
-      repl-loop(prelude, state)
-    else
-      // Check for multiline (unbalanced braces/parens)
-      val full-input = repl-read-multiline(line)
-      history-append(full-input)
-      val new-state = repl-eval(full-input, prelude, state)
-      repl-loop(prelude, new-state)
+  val result = try({ Just(readline()) }) fn(_exn) { Nothing }
+  match result
+    Nothing -> println("\nBye!")  // EOF (Ctrl-D or end of pipe)
+    Just(input) ->
+      val line = input.trim
+      if line == ":quit" || line == ":q" then
+        println("Bye!")
+      elif line == ":help" || line == ":h" then
+        repl-help()
+        repl-loop(prelude, state)
+      elif line == ":defs" then
+        repl-show-defs(state)
+        repl-loop(prelude, state)
+      elif line == ":reset" then
+        println("  state cleared")
+        repl-loop(prelude, empty-repl-state)
+      elif line == ":history" then
+        repl-show-history()
+        repl-loop(prelude, state)
+      elif line.starts-with(":load ").bool then
+        val filepath = line.slice.drop(6).string.trim
+        val new-state = repl-load-file(filepath, prelude, state)
+        repl-loop(prelude, new-state)
+      elif line.is-empty then
+        repl-loop(prelude, state)
+      else
+        // Check for multiline (unbalanced braces/parens)
+        val full-input = repl-read-multiline(line)
+        history-append(full-input)
+        val new-state = repl-eval(full-input, prelude, state)
+        repl-loop(prelude, new-state)
 
 // Multiline: if braces/parens/brackets are unbalanced, keep reading
 fun repl-read-multiline( acc : string ) : <div,console,exn> string
