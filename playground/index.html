@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hica Playground</title>
+  <style>
+    :root {
+      --bg: #1e1e2e;
+      --surface: #181825;
+      --overlay: #313244;
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --blue: #89b4fa;
+      --green: #a6e3a1;
+      --red: #f38ba8;
+      --mauve: #cba6f7;
+      --yellow: #f9e2af;
+      --teal: #94e2d5;
+      --peach: #fab387;
+      --flamingo: #f2cdcd;
+      --border: #45475a;
+      --accent-indigo: #4f46e5;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Toolbar */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-indigo);
+    }
+    .brand-tag {
+      font-size: 13px;
+      color: var(--subtext);
+    }
+    .toolbar-center {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-run {
+      background: var(--green);
+      color: var(--surface);
+      font-weight: 600;
+    }
+    .btn-run:hover { background: #b8f0b4; }
+    .btn-secondary {
+      background: var(--overlay);
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: #3b3d52; }
+    .status {
+      font-size: 12px;
+      color: var(--subtext);
+    }
+    .status.ok { color: var(--green); }
+    .status.error { color: var(--red); }
+
+    /* Main layout */
+    main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Editor pane */
+    #editor-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    #editor-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    #highlight-layer {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      margin: 0;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      tab-size: 2;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: auto;
+      background: var(--bg);
+      color: var(--text);
+      pointer-events: none;
+      border: none;
+    }
+    #editor {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      resize: none;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: transparent;
+      caret-color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 16px;
+      tab-size: 2;
+      overflow: auto;
+      z-index: 1;
+    }
+    /* Syntax token colors (Catppuccin Mocha) */
+    .tok-comment { color: #6c7086; font-style: italic; }
+    .tok-string { color: var(--green); }
+    .tok-escape { color: var(--peach); }
+    .tok-interpolation { color: var(--blue); }
+    .tok-number { color: var(--peach); }
+    .tok-keyword { color: var(--mauve); }
+    .tok-constant { color: var(--peach); }
+    .tok-type { color: var(--yellow); }
+    .tok-constructor { color: var(--teal); }
+    .tok-function-decl { color: var(--blue); }
+    .tok-function-call { color: var(--blue); }
+    .tok-operator { color: var(--teal); }
+    .tok-punctuation { color: var(--subtext); }
+
+    /* Resizer */
+    #resizer {
+      width: 4px;
+      background: var(--border);
+      cursor: col-resize;
+      flex-shrink: 0;
+    }
+    #resizer:hover { background: var(--blue); }
+
+    /* Output pane */
+    #output-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--surface);
+    }
+    #output-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      color: var(--text);
+      border-bottom-color: var(--blue);
+    }
+    #output {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    #output .error-line {
+      color: var(--red);
+    }
+    #output .hint {
+      color: var(--subtext);
+      font-style: italic;
+    }
+
+    /* Examples dropdown */
+    #examples-select {
+      background: var(--overlay);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Share button */
+    .btn-share { font-size: 12px; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      main { flex-direction: column; }
+      #resizer { width: auto; height: 4px; cursor: row-resize; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="https://github.com/cladam/hica" target="_blank" rel="noopener">
+    <span class="brand-name">hica</span>
+    <span class="brand-tag">Playground</span>
+  </a>
+  <div class="toolbar-center">
+    <select id="examples-select">
+      <option value="">Examples…</option>
+      <option value="hello">Hello World</option>
+      <option value="fizzbuzz">FizzBuzz</option>
+      <option value="recursion">Recursion</option>
+      <option value="closures">Closures</option>
+      <option value="match">Pattern Matching</option>
+      <option value="lists">Lists</option>
+      <option value="enums">Enums</option>
+      <option value="combinators">Maybe &amp; Result</option>
+      <option value="pipe">Pipe Chains</option>
+    </select>
+    <button class="btn btn-run" id="btn-run" title="Ctrl+Enter">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M2 1.5v11l10-5.5z"/></svg>
+      Run
+    </button>
+    <button class="btn btn-secondary btn-share" id="btn-share" title="Copy shareable link">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="3" cy="7" r="2"/><circle cx="11" cy="3" r="2"/><circle cx="11" cy="11" r="2"/><path d="M5 6l4-2M5 8l4 2"/></svg>
+      Share
+    </button>
+  </div>
+  <span class="status" id="status">Ready</span>
+</header>
+
+<main>
+  <div id="editor-pane">
+    <div id="editor-container">
+      <pre id="highlight-layer" aria-hidden="true"></pre>
+      <textarea id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">// Welcome to the hica playground!
+// Press Ctrl+Enter (or click Run) to execute.
+
+fun fizzbuzz(n) =>
+  if n % 15 == 0 { "fizzbuzz" }
+  else if n % 3 == 0 { "fizz" }
+  else if n % 5 == 0 { "buzz" }
+  else { show(n) }
+
+fun main() {
+  for i in 1..20 {
+    println(fizzbuzz(i))
+  }
+}</textarea>
+    </div>
+  </div>
+  <div id="resizer"></div>
+  <div id="output-pane">
+    <div id="output-tabs">
+      <button class="tab active" data-tab="output">Output</button>
+    </div>
+    <pre id="output"><span class="hint">Press Run (Ctrl+Enter) to execute your hica code.</span></pre>
+  </div>
+</main>
+
+<script src="hica-compiler.js"></script>
+<script>
+// --- Compiler bridge ---
+const hica = (function() {
+  // The IIFE bundle assigns to var __hica in its own scope;
+  // in a <script> tag, that becomes a global.
+  return typeof __hica !== 'undefined' ? __hica : null;
+})();
+
+if (!hica) {
+  document.getElementById('status').textContent = 'Error: compiler not loaded';
+  document.getElementById('status').className = 'status error';
+}
+
+// Prelude sources for type checking (passed to compile_to_js)
+// The JS preamble already has all runtime implementations, but the checker
+// needs to know about functions like abs, pow, is_even, etc.
+const PRELUDE_SOURCES = [];
+
+// --- Examples ---
+const EXAMPLES = {
+  hello: `// Hello World
+fun main() {
+  println("Hello, world!")
+}`,
+  fizzbuzz: `// FizzBuzz
+fun fizzbuzz(n) =>
+  if n % 15 == 0 { "fizzbuzz" }
+  else if n % 3 == 0 { "fizz" }
+  else if n % 5 == 0 { "buzz" }
+  else { show(n) }
+
+fun main() {
+  for i in 1..20 {
+    println(fizzbuzz(i))
+  }
+}`,
+  recursion: `// Recursion
+fun factorial(n) =>
+  if n <= 1 { 1 } else { n * factorial(n - 1) }
+
+fun fib(n) =>
+  if n <= 1 { n }
+  else { fib(n - 1) + fib(n - 2) }
+
+fun main() {
+  println(factorial(5))
+  println(fib(10))
+  println(fib(10) == 55)
+  println(factorial(5) == 120)
+}`,
+  closures: `// Closures & Higher-Order Functions
+fun apply_twice(f, x) => f(f(x))
+
+fun make_adder(n) => (x) => x + n
+
+fun main() {
+  let add5 = make_adder(5)
+  println(add5(10))
+
+  let doubled = map([1, 2, 3, 4, 5], (x) => x * x)
+  println(doubled)
+
+  let evens = filter([1, 2, 3, 4, 5, 6], (x) => x % 2 == 0)
+  println(evens)
+
+  let sum = fold([1, 2, 3, 4, 5], 0, (acc, x) => acc + x)
+  println(sum)
+
+  println(apply_twice((x) => x * 10, 7))
+}`,
+  match: `// Pattern Matching
+fun describe(n) => match n {
+  0     => "zero",
+  1 | 2 => "small",
+  n if n < 0 => "negative",
+  _     => "big"
+}
+
+fun main() {
+  println(describe(0))
+  println(describe(1))
+  println(describe(-5))
+  println(describe(42))
+}`,
+  lists: `// List Operations
+fun main() {
+  let nums = [1, 2, 3, 4, 5]
+  println(nums)
+
+  let doubled = map(nums, (x) => x * 2)
+  println(doubled)
+
+  let big = filter(nums, (x) => x > 3)
+  println(big)
+
+  let total = fold(nums, 0, (acc, x) => acc + x)
+  println(total)
+
+  println(reverse(nums))
+  println(take(nums, 3))
+  println(drop(nums, 3))
+}`,
+  enums: `// Enums & Algebraic Types
+type Shape {
+  Circle(radius: float),
+  Rect(width: float, height: float),
+  Point
+}
+
+fun area(s: Shape) : float => match s {
+  Circle(r)    => 3.14159 * r * r,
+  Rect(w, h)   => w * h,
+  Point        => 0.0
+}
+
+fun main() {
+  let s1 = Circle(5.0)
+  let s2 = Rect(3.0, 4.0)
+  println(s1)
+  println(s2)
+  println("Area of circle: {area(s1)}")
+  println("Area of rect: {area(s2)}")
+}`,
+  combinators: `// Maybe & Result Combinators
+fun safe_divide(a, b) =>
+  if b == 0 { Err("division by zero") }
+  else { Ok(a / b) }
+
+fun main() {
+  let x = Some(21) |> map_maybe((n) => n * 2)
+  println(x)
+
+  let z = Some("nope")
+    |> and_then((s) => parse_int(s))
+    |> map_maybe((n) => n + 1)
+  println(z)
+
+  println(unwrap_maybe_or(Some(5), 0))
+  println(unwrap_maybe_or(None, 0))
+
+  let r = safe_divide(100, 4) |> map_result((n) => n * 10)
+  println(r)
+
+  let e = safe_divide(1, 0) |> map_err((e) => "ERROR: " + e)
+  println(e)
+}`,
+  pipe: `// Pipe Chains
+fun double(n) => n * 2
+fun triple(n) => n * 3
+fun square(n) => n * n
+
+fun main() {
+  let result = 5 |> double |> triple |> show
+  println(result)
+
+  let nums = [1, 2, 3, 4, 5]
+  let processed = nums
+    |> filter((x) => x > 2)
+    |> map((x) => x * 10)
+  println(processed)
+}`
+};
+
+// --- UI wiring ---
+const editor    = document.getElementById('editor');
+const output    = document.getElementById('output');
+const status    = document.getElementById('status');
+const btnRun    = document.getElementById('btn-run');
+const btnShare  = document.getElementById('btn-share');
+const exSelect  = document.getElementById('examples-select');
+const tabs      = document.querySelectorAll('.tab');
+const highlight = document.getElementById('highlight-layer');
+
+// --- Syntax highlighting (from hica TextMate grammar) ---
+function highlightHica(code) {
+  // Tokenize line by line, handling multi-char constructs
+  const lines = code.split('\n');
+  return lines.map(line => tokenizeLine(line)).join('\n');
+}
+
+function tokenizeLine(line) {
+  let result = '';
+  let i = 0;
+  while (i < line.length) {
+    // Comment
+    if (line[i] === '/' && line[i+1] === '/') {
+      result += '<span class="tok-comment">' + esc(line.slice(i)) + '</span>';
+      return result;
+    }
+    // String
+    if (line[i] === '"') {
+      let j = i + 1;
+      let s = esc(line[i]);
+      while (j < line.length && line[j] !== '"') {
+        // Escape sequence
+        if (line[j] === '\\' && j + 1 < line.length) {
+          s += '<span class="tok-escape">' + esc(line[j] + line[j+1]) + '</span>';
+          j += 2;
+          continue;
+        }
+        // Interpolation {expr}
+        if (line[j] === '{') {
+          let depth = 1;
+          let k = j + 1;
+          while (k < line.length && depth > 0) {
+            if (line[k] === '{') depth++;
+            else if (line[k] === '}') depth--;
+            k++;
+          }
+          s += '<span class="tok-interpolation">' + esc(line.slice(j, k)) + '</span>';
+          j = k;
+          continue;
+        }
+        s += esc(line[j]);
+        j++;
+      }
+      if (j < line.length) s += esc(line[j++]); // closing quote
+      result += '<span class="tok-string">' + s + '</span>';
+      i = j;
+      continue;
+    }
+    // Char literal
+    if (line[i] === '\'' && i + 2 < line.length && line[i+2] === '\'') {
+      result += '<span class="tok-string">' + esc(line.slice(i, i+3)) + '</span>';
+      i += 3;
+      continue;
+    }
+    // Numbers (hex, binary, float, integer)
+    if (/[0-9]/.test(line[i]) && (i === 0 || /[^a-zA-Z_]/.test(line[i-1]))) {
+      let m;
+      const rest = line.slice(i);
+      if ((m = rest.match(/^0[xX][0-9a-fA-F_]+/))) {
+        result += '<span class="tok-number">' + esc(m[0]) + '</span>';
+        i += m[0].length; continue;
+      }
+      if ((m = rest.match(/^0[bB][01_]+/))) {
+        result += '<span class="tok-number">' + esc(m[0]) + '</span>';
+        i += m[0].length; continue;
+      }
+      if ((m = rest.match(/^[0-9][0-9_]*\.[0-9][0-9_]*/))) {
+        result += '<span class="tok-number">' + esc(m[0]) + '</span>';
+        i += m[0].length; continue;
+      }
+      if ((m = rest.match(/^[0-9][0-9_]*/))) {
+        result += '<span class="tok-number">' + esc(m[0]) + '</span>';
+        i += m[0].length; continue;
+      }
+    }
+    // Multi-char operators
+    const op2 = line.slice(i, i+3);
+    const op1 = line.slice(i, i+2);
+    if (op2 === '...' || op2 === '..=') {
+      result += '<span class="tok-operator">' + esc(op2) + '</span>';
+      i += 3; continue;
+    }
+    if (['|>', '=>', '->', '==', '!=', '<=', '>=', '&&', '||', '..'].indexOf(op1) >= 0) {
+      result += '<span class="tok-operator">' + esc(op1) + '</span>';
+      i += 2; continue;
+    }
+    // Single-char operators
+    if ('+-*/%=<>!?|'.indexOf(line[i]) >= 0) {
+      result += '<span class="tok-operator">' + esc(line[i]) + '</span>';
+      i++; continue;
+    }
+    // Words (identifiers, keywords, etc.)
+    if (/[a-zA-Z_]/.test(line[i])) {
+      let j = i;
+      while (j < line.length && /[a-zA-Z0-9_]/.test(line[j])) j++;
+      const word = line.slice(i, j);
+      // Peek ahead for function call
+      let afterWord = j;
+      while (afterWord < line.length && line[afterWord] === ' ') afterWord++;
+      const isCall = afterWord < line.length && line[afterWord] === '(';
+      // Check previous word for `fun` declaration
+      const before = result.replace(/<[^>]*>/g, '');
+      const isFunDecl = /\bfun\s*$/.test(before);
+      if (/^(if|else|match|for|in|while|loop|repeat|break|continue|fun|let|var|struct|type|extern|import|from|pub|test)$/.test(word)) {
+        result += '<span class="tok-keyword">' + word + '</span>';
+      } else if (/^(true|false|None)$/.test(word)) {
+        result += '<span class="tok-constant">' + word + '</span>';
+      } else if (/^(int|float|bool|string|char|list|maybe|result)$/.test(word)) {
+        result += '<span class="tok-type">' + word + '</span>';
+      } else if (/^(Some|Ok|Err)$/.test(word) || /^[A-Z][a-zA-Z0-9_]*$/.test(word)) {
+        result += '<span class="tok-constructor">' + word + '</span>';
+      } else if (isFunDecl) {
+        result += '<span class="tok-function-decl">' + word + '</span>';
+      } else if (isCall) {
+        result += '<span class="tok-function-call">' + word + '</span>';
+      } else {
+        result += word;
+      }
+      i = j;
+      continue;
+    }
+    // Punctuation
+    if (',;:.'.indexOf(line[i]) >= 0) {
+      result += '<span class="tok-punctuation">' + esc(line[i]) + '</span>';
+      i++; continue;
+    }
+    // Default
+    result += esc(line[i]);
+    i++;
+  }
+  return result;
+}
+
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function updateHighlight() {
+  // Add trailing newline so the pre matches textarea scroll height
+  highlight.innerHTML = highlightHica(editor.value) + '\n';
+}
+
+function syncScroll() {
+  highlight.scrollTop = editor.scrollTop;
+  highlight.scrollLeft = editor.scrollLeft;
+}
+
+editor.addEventListener('input', updateHighlight);
+editor.addEventListener('scroll', syncScroll);
+
+// Initial highlight
+updateHighlight();
+
+function setStatus(text, cls) {
+  status.textContent = text;
+  status.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+function setOutput(html) {
+  output.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function run() {
+  if (!hica) { setStatus('Compiler not loaded', 'error'); return; }
+
+  const source = editor.value;
+  setStatus('Compiling…');
+  btnRun.disabled = true;
+
+  // Use setTimeout to let the UI update before blocking
+  setTimeout(() => {
+    try {
+      const t0 = performance.now();
+      const result = hica.compile_to_js(source);
+      const compileMs = (performance.now() - t0).toFixed(0);
+
+      if (result._tag === 1) {
+        // Left = error
+        const errMsg = result.left;
+        setOutput('<span class="error-line">' + escapeHtml(errMsg) + '</span>');
+        setStatus('Error', 'error');
+      } else {
+        // Right = success
+        const js = result.right;
+
+        // Execute in isolated scope, capture output
+        const outputLines = [];
+        const sandboxPrintln = function(s) { outputLines.push(String(s)); };
+        const sandboxPrint = function(s) { outputLines.push(String(s)); };
+
+        try {
+          // Replace println/print and remove process.stdout references
+          const execCode = js
+            .replace(/^.*__hc_output.*$/m, 'const __hc_output = [];')
+            .replace(/function println\(s\)[^}]+\}/,
+              'function println(s) { const line = String(s); __sandbox_output.push(line); }')
+            .replace(/function print\(s\)[^}]+\}/,
+              'function print(s) { __sandbox_output.push(String(s)); }');
+
+          const fn = new Function('__sandbox_output', execCode);
+          const t1 = performance.now();
+          fn(outputLines);
+          const runMs = (performance.now() - t1).toFixed(0);
+
+          if (outputLines.length > 0) {
+            setOutput(escapeHtml(outputLines.join('\n')));
+          } else {
+            setOutput('<span class="hint">(no output)</span>');
+          }
+          setStatus('Done (' + compileMs + 'ms compile, ' + runMs + 'ms run)', 'ok');
+        } catch (runtimeErr) {
+          setOutput(
+            escapeHtml(outputLines.join('\n')) +
+            (outputLines.length > 0 ? '\n' : '') +
+            '<span class="error-line">Runtime error: ' + escapeHtml(String(runtimeErr)) + '</span>'
+          );
+          setStatus('Runtime error', 'error');
+        }
+      }
+    } catch (compilerErr) {
+      setOutput('<span class="error-line">Compiler error: ' + escapeHtml(String(compilerErr)) + '</span>');
+      setStatus('Internal error', 'error');
+    }
+    btnRun.disabled = false;
+  }, 10);
+}
+
+// Run button
+btnRun.addEventListener('click', run);
+
+// Ctrl+Enter
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    run();
+  }
+});
+
+// Tab handling in editor (insert spaces instead of moving focus)
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+  }
+});
+
+
+
+// Examples
+exSelect.addEventListener('change', () => {
+  const key = exSelect.value;
+  if (key && EXAMPLES[key]) {
+    editor.value = EXAMPLES[key];
+    updateHighlight();
+    exSelect.value = '';
+    // Auto-run the example
+    run();
+  }
+});
+
+// Share via URL hash
+btnShare.addEventListener('click', () => {
+  const source = editor.value;
+  const encoded = btoa(unescape(encodeURIComponent(source)));
+  const url = window.location.origin + window.location.pathname + '#code=' + encoded;
+  navigator.clipboard.writeText(url).then(() => {
+    setStatus('Link copied!', 'ok');
+    setTimeout(() => setStatus('Ready'), 2000);
+  }).catch(() => {
+    // Fallback
+    window.location.hash = '#code=' + encoded;
+    setStatus('URL updated', 'ok');
+  });
+});
+
+// Load from URL hash on startup
+(function loadFromHash() {
+  const hash = window.location.hash;
+  if (hash.startsWith('#code=')) {
+    try {
+      const decoded = decodeURIComponent(escape(atob(hash.slice(6))));
+      editor.value = decoded;
+      updateHighlight();
+    } catch(e) { /* ignore invalid hash */ }
+  }
+})();
+
+// Resizer
+(function initResizer() {
+  const resizer = document.getElementById('resizer');
+  const editorPane = document.getElementById('editor-pane');
+  const outputPane = document.getElementById('output-pane');
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const containerWidth = editorPane.parentElement.offsetWidth;
+    const newWidth = (e.clientX / containerWidth) * 100;
+    if (newWidth > 20 && newWidth < 80) {
+      editorPane.style.flex = 'none';
+      editorPane.style.width = newWidth + '%';
+      outputPane.style.flex = '1';
+    }
+  });
+
+  document.addEventListener('mouseup', () => { isResizing = false; });
+})();
+</script>
+
+</body>
+</html>
