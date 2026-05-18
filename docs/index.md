@@ -11,7 +11,7 @@ It is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka’s 
 
 ## Why hica?
 
-Most programming languages force you to choose: easy to learn **or** safe and fast. hica shifts the trade-off boundary—global type inference gives you the low-friction syntax of a dynamic language, while the Koka backend compiles to native C11 for systems-level performance.
+Most programming languages force you to choose: easy to learn **or** safe and fast. hica shifts the trade-off boundary; global type inference gives you the low-friction syntax of a dynamic language, while the Koka backend compiles to native C11 for systems-level performance.
 
 - **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 - **Everything is an expression**: `if`, `match`, and blocks compose naturally because they return values.

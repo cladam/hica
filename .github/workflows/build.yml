@@ -129,6 +129,12 @@ jobs:
           choreo run -f tests/choreo/test-hica-cli.chor
         shell: bash
 
+      - name: Run JS backend tests (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ./tests/test-js.sh ./hica
+        shell: bash
+
       - name: Strip binary (Linux)
         if: runner.os == 'Linux'
         run: strip hica

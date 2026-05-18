@@ -28,7 +28,7 @@ pub fun emit-js-program( p : program, mod-name : string = "main" ) : div string
   (if type-defs.is-empty then "" else type-defs ++ "\n\n") ++
   decls ++ "\n\n" ++
   "// Entry point\n" ++
-  "if (typeof main === 'function') main();\n"
+  "if (typeof main === 'function') { const __r = main(); if (__r !== undefined && __r !== null) println(show(__r)); }\n"
 
 // ---------------------------------------------------------------------------
 // Runtime preamble: minimal helpers that mirror hica's prelude
@@ -40,12 +40,30 @@ fun js-runtime-preamble() : string
   "const __hc_output = [];\n" ++
   "function println(s) { const line = String(s); __hc_output.push(line); if (typeof process !== 'undefined') process.stdout.write(line + '\\n'); }\n" ++
   "function print(s) { const t = String(s); __hc_output.push(t); if (typeof process !== 'undefined') process.stdout.write(t); }\n" ++
+  "function __tuple(...args) { const t = [...args]; t.__tuple = true; return t; }\n" ++
   "function show(v) {\n" ++
-  "  if (v === null || v === undefined) return 'None';\n" ++
-  "  if (Array.isArray(v)) return '[' + v.map(show).join(', ') + ']';\n" ++
-  "  if (typeof v === 'object' && v.__tag) return v.__tag + (v.__args ? '(' + v.__args.map(show).join(', ') + ')' : '');\n" ++
+  "  if (v === null || v === undefined) return 'Nothing';\n" ++
+  "  if (typeof v === 'boolean') return v ? 'True' : 'False';\n" ++
+  "  if (typeof v === 'string') return v;\n" ++
+  "  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toPrecision(17).replace(/0+$/, '').replace(/\\\\.$/, '.0');\n" ++
+  "  if (Array.isArray(v) && v.__tuple) return '(' + v.map(show_list_elem).join(',') + ')';\n" ++
+  "  if (Array.isArray(v)) return '[' + v.map(show_list_elem).join(',') + ']';\n" ++
+  "  if (typeof v === 'object' && v.__tag === 'Ok') return 'Right(' + show_list_elem(v.value) + ')';\n" ++
+  "  if (typeof v === 'object' && v.__tag === 'Err') return 'Left(' + show_list_elem(v.value) + ')';\n" ++
+  "  if (typeof v === 'object' && v.__tag) return v.__tag + (v.__args && v.__args.length > 0 ? '(' + v.__args.map(show).join(', ') + ')' : '');\n" ++
   "  if (typeof v === 'object') return JSON.stringify(v);\n" ++
   "  return String(v);\n" ++
+  "}\n" ++
+  "function show_maybe(v) { return v === null ? 'Nothing' : 'Just(' + show(v) + ')'; }\n" ++
+  "function show_result(r) {\n" ++
+  "  if (r && r.__tag === 'Ok') return 'Right(' + show_list_elem(r.value) + ')';\n" ++
+  "  if (r && r.__tag === 'Err') return 'Left(' + show_list_elem(r.value) + ')';\n" ++
+  "  return show(r);\n" ++
+  "}\n" ++
+  "function show_list_elem(v) {\n" ++
+  "  if (typeof v === 'string' && v.length === 1) return \"'\" + v + \"'\";\n" ++
+  "  if (typeof v === 'string') return '\"' + v + '\"';\n" ++
+  "  return show(v);\n" ++
   "}\n" ++
   "function abs(n) { return Math.abs(n); }\n" ++
   "function min(a, b) { return Math.min(a, b); }\n" ++
@@ -61,7 +79,7 @@ fun js-runtime-preamble() : string
   "function parse_int(s) { const n = parseInt(s, 10); return isNaN(n) ? null : n; }\n" ++
   "function parse_float(s) { const n = parseFloat(s); return isNaN(n) ? null : n; }\n" ++
   "function to_int(s) { const n = parseInt(s, 10); return isNaN(n) ? -1 : n; }\n" ++
-  "function enumerate(xs) { return xs.map((x, i) => [i, x]); }\n" ++
+  "function enumerate(xs) { return xs.map((x, i) => __tuple(i, x)); }\n" ++
   "function head(xs) { return xs.length > 0 ? xs[0] : null; }\n" ++
   "function tail(xs) { return xs.slice(1); }\n" ++
   "function length(xs) { return xs.length; }\n" ++
@@ -71,6 +89,11 @@ fun js-runtime-preamble() : string
   "function filter(xs, f) { return xs.filter(f); }\n" ++
   "function fold(xs, init, f) { return xs.reduce((acc, x) => f(acc, x), init); }\n" ++
   "function foreach(xs, f) { xs.forEach(f); }\n" ++
+  "function take(xs, n) { return xs.slice(0, n); }\n" ++
+  "function drop(xs, n) { return xs.slice(n); }\n" ++
+  "function zip(xs, ys) { return xs.map((x, i) => i < ys.length ? __tuple(x, ys[i]) : null).filter(p => p !== null); }\n" ++
+  "function concat(xss) { return [].concat(...xss); }\n" ++
+  "function cons(x, xs) { return [x, ...xs]; }\n" ++
   "function find(xs, f) { const r = xs.find(f); return r === undefined ? null : r; }\n" ++
   "function all(xs, f) { return xs.every(f); }\n" ++
   "function any(xs, f) { return xs.some(f); }\n" ++
@@ -84,6 +107,44 @@ fun js-runtime-preamble() : string
   "function is_none(v) { return v === null; }\n" ++
   "function unwrap(v) { if (v === null) throw new Error('unwrap on None'); return v; }\n" ++
   "function unwrap_or(v, d) { return v !== null ? v : d; }\n" ++
+  "function unwrap_maybe_or(v, d) { return v !== null ? v : d; }\n" ++
+  "function map_maybe(m, f) { return m !== null ? Some(f(m)) : null; }\n" ++
+  "function and_then(m, f) { return m !== null ? f(m) : null; }\n" ++
+  "function or_else(m, f) { return m !== null ? m : f(); }\n" ++
+  "function Ok(v) { return { __tag: 'Ok', value: v, __args: [v] }; }\n" ++
+  "function Err(v) { return { __tag: 'Err', value: v, __args: [v] }; }\n" ++
+  "function is_ok(r) { return r && r.__tag === 'Ok'; }\n" ++
+  "function is_err(r) { return r && r.__tag === 'Err'; }\n" ++
+  "function unwrap_result(r) { if (r.__tag === 'Ok') return r.value; throw new Error('unwrap on Err: ' + r.value); }\n" ++
+  "function unwrap_result_or(r, d) { return r.__tag === 'Ok' ? r.value : d; }\n" ++
+  "function map_result(r, f) { return r.__tag === 'Ok' ? Ok(f(r.value)) : r; }\n" ++
+  "function and_then_result(r, f) { return r.__tag === 'Ok' ? f(r.value) : r; }\n" ++
+  "function map_err(r, f) { return r.__tag === 'Err' ? Err(f(r.value)) : r; }\n" ++
+  "\n// Prelude: string helpers\n" ++
+  "function is_empty(s) { return s.length === 0; }\n" ++
+  "function is_blank(s) { return s.trim().length === 0; }\n" ++
+  "function words(s) { return s.split(' ').filter(w => w.length > 0); }\n" ++
+  "function lines(s) { return s.split('\\n'); }\n" ++
+  "function unwords(ws) { return ws.join(' '); }\n" ++
+  "function unlines(ls) { return ls.join('\\n'); }\n" ++
+  "function starts_with(s, pre) { return s.startsWith(pre); }\n" ++
+  "function ends_with(s, suf) { return s.endsWith(suf); }\n" ++
+  "function repeat_str(s, n) { return n <= 0 ? '' : s.repeat(n); }\n" ++
+  "function pad_left(s, w, ch) { return repeat_str(ch, Math.max(0, w - s.length)) + s; }\n" ++
+  "function pad_right(s, w, ch) { return s + repeat_str(ch, Math.max(0, w - s.length)); }\n" ++
+  "function index_of(s, sub) { const i = s.indexOf(sub); return i === -1 ? null : i; }\n" ++
+  "function count_substr(s, sub) { return s.split(sub).length - 1; }\n" ++
+  "function surround(s, w) { return w + s + w; }\n" ++
+  "\n// Prelude: operators\n" ++
+  "function is_positive(n) { return n > 0; }\n" ++
+  "function is_negative(n) { return n < 0; }\n" ++
+  "function is_zero(n) { return n === 0; }\n" ++
+  "function is_even(n) { return n % 2 === 0; }\n" ++
+  "function is_odd(n) { return n % 2 !== 0; }\n" ++
+  "function identity(x) { return x; }\n" ++
+  "function not_(b) { return !b; }\n" ++
+  "function to_float(n) { return n; }\n" ++
+  "function show_fixed(f, prec) { return f.toFixed(prec); }\n" ++
   "\n"
 
 // ---------------------------------------------------------------------------
@@ -135,14 +196,34 @@ fun emit-js-body( n : node ) : div string
       match stmts.reverse
         Cons(last, rest) ->
           val stmts-code = rest.reverse.map(emit-js-stmt).join("\n")
-          val last-code = if is-expression(last) then "return " ++ emit-js-expr(last) ++ ";"
-                          else emit-js-stmt(last)
+          val last-code = emit-js-return(last)
           if stmts-code.is-empty then last-code
           else stmts-code ++ "\n" ++ last-code
         Nil -> ""
-    _ ->
-      if is-expression(n) then "return " ++ emit-js-expr(n) ++ ";"
-      else emit-js-stmt(n)
+    _ -> emit-js-return(n)
+
+// Emit a node in return position: adds return to the tail expression
+fun emit-js-return( n : node ) : div string
+  match n.expr
+    Let(name, _, init, body) ->
+      "const " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-return(body)
+    VarDecl(name, _, init, body) ->
+      "let " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-return(body)
+    LetTuple(names, init, body) ->
+      "const [" ++ names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-return(body)
+    While(_, _)     -> emit-js-stmt(n)
+    ForIn(_, _, _, _)  -> emit-js-stmt(n)
+    ForEach(_, _, _)   -> emit-js-stmt(n)
+    Repeat(_, _)    -> emit-js-stmt(n)
+    Loop(_)         -> emit-js-stmt(n)
+    Break           -> "break;"
+    Continue        -> "continue;"
+    Assign(_, _)    -> emit-js-stmt(n)
+    If(cond, then-e, else-e) ->
+      "if (" ++ emit-js-expr(cond) ++ ") {\n" ++
+      indent(emit-js-return(then-e)) ++ "\n} else {\n" ++
+      indent(emit-js-return(else-e)) ++ "\n}"
+    _ -> "return " ++ emit-js-expr(n) ++ ";"
 
 // Emit body in statement context (no implicit return on last expr)
 fun emit-js-stmts( n : node ) : div string
@@ -163,7 +244,7 @@ fun emit-js-stmt( n : node ) : div string
     While(cond, body) ->
       "while (" ++ emit-js-expr(cond) ++ ") {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     ForIn(name, start, end_, body) ->
-      "for (let " ++ name ++ " = " ++ emit-js-expr(start) ++ "; " ++ name ++ " < " ++ emit-js-expr(end_) ++ "; " ++ name ++ "++) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
+      "for (let " ++ name ++ " = " ++ emit-js-expr(start) ++ "; " ++ name ++ " <= " ++ emit-js-expr(end_) ++ "; " ++ name ++ "++) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     ForEach(name, coll, body) ->
       "for (const " ++ name ++ " of " ++ emit-js-expr(coll) ++ ") {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     Repeat(count, body) ->
@@ -193,8 +274,9 @@ fun emit-js-expr( n : node ) : div string
       match op
         In  -> emit-js-expr(r) ++ ".includes(" ++ emit-js-expr(l) ++ ")"
         Add ->
-          // Both string concat and numeric add use + in JS
-          "(" ++ emit-js-expr(l) ++ " + " ++ emit-js-expr(r) ++ ")"
+          match l.typ
+            Just(TList(_)) -> emit-js-expr(l) ++ ".concat(" ++ emit-js-expr(r) ++ ")"
+            _ -> "(" ++ emit-js-expr(l) ++ " + " ++ emit-js-expr(r) ++ ")"
         _   -> "(" ++ emit-js-expr(l) ++ " " ++ emit-js-binop(op) ++ " " ++ emit-js-expr(r) ++ ")"
 
     Unary(Neg, o) -> "(-" ++ emit-js-expr(o) ++ ")"
@@ -216,6 +298,8 @@ fun emit-js-expr( n : node ) : div string
             [arg] ->
               match arg.typ
                 Just(TString) -> "println(" ++ emit-js-expr(arg) ++ ")"
+                Just(TMaybe(_)) -> "println(show_maybe(" ++ emit-js-expr(arg) ++ "))"
+                Just(TResult(_, _)) -> "println(show_result(" ++ emit-js-expr(arg) ++ "))"
                 _             -> "println(show(" ++ emit-js-expr(arg) ++ "))"
             _ -> "println(" ++ args-str ++ ")"
         Var(fname) -> fname ++ "(" ++ args-str ++ ")"
@@ -237,7 +321,7 @@ fun emit-js-expr( n : node ) : div string
       "(() => {\n" ++ indent(emit-js-body(n)) ++ "\n})()"
 
     Tuple(elems) ->
-      "[" ++ elems.map(emit-js-expr).join(", ") ++ "]"
+      "__tuple(" ++ elems.map(emit-js-expr).join(", ") ++ ")"
 
     TupleIndex(tup, idx) ->
       emit-js-expr(tup) ++ "[" ++ idx.show ++ "]"
@@ -246,7 +330,7 @@ fun emit-js-expr( n : node ) : div string
       "[" ++ elems.map(emit-js-expr).join(", ") ++ "]"
 
     ListIndex(lst, idx) ->
-      emit-js-expr(lst) ++ "[" ++ emit-js-expr(idx) ++ "]"
+      emit-js-expr(lst) ++ ".at(" ++ emit-js-expr(idx) ++ ")"
 
     ListSlice(lst, s, e) ->
       val start-str = match s
@@ -271,8 +355,8 @@ fun emit-js-expr( n : node ) : div string
 
     ESome(value) -> emit-js-expr(value)
     ENone        -> "null"
-    EOk(value)   -> "{ __tag: 'Ok', value: " ++ emit-js-expr(value) ++ " }"
-    EErr(value)  -> "{ __tag: 'Err', value: " ++ emit-js-expr(value) ++ " }"
+    EOk(value)   -> "Ok(" ++ emit-js-expr(value) ++ ")"
+    EErr(value)  -> "Err(" ++ emit-js-expr(value) ++ ")"
 
     EConstructor(name, args) ->
       if args.is-nil then name
@@ -282,7 +366,10 @@ fun emit-js-expr( n : node ) : div string
       "`" ++ parts.map(fn(p)
         match p.expr
           Literal(LitString(s)) -> s
-          _ -> "${" ++ emit-js-expr(p) ++ "}"
+          _ ->
+            match p.typ
+              Just(TString) -> "${" ++ emit-js-expr(p) ++ "}"
+              _             -> "${show(" ++ emit-js-expr(p) ++ ")}"
       ).join("") ++ "`"
 
     ETry(inner) ->
