@@ -35,20 +35,18 @@ pub fun emit-js-repl-struct( sd : struct-def ) : div string
 pub fun emit-js-repl-type( td : type-def ) : div string
   emit-js-type-def(td)
 
-// Emit an expression, evaluate it, and print the result
+// Emit an expression, evaluate it, print the result, and assign to _
 pub fun emit-js-repl-expr( n : node ) : div string
   val code = emit-js-expr(n)
   "const __result = " ++ code ++ ";\n" ++
-  "if (__result !== undefined && __result !== null) println(show(__result));\n" ++
-  "println('__REPL_DONE__');"
+  "if (__result !== undefined && __result !== null) { println(show(__result)); _ = __result; }\n"
 
-// Emit the preamble + a done marker (sent once at REPL start)
+// Emit the preamble — includes _ variable for last result
 pub fun emit-js-repl-preamble() : string
   js-runtime-preamble() ++
-  "println('__REPL_READY__');\n"
+  "var _ = undefined;\n"
 
 // Wrap a let-binding as a global var definition in the REPL
 pub fun emit-js-repl-let( name : string, init : node ) : div string
   "var " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++
-  "println(show(" ++ name ++ "));\n" ++
-  "println('__REPL_DONE__');"
+  "if (" ++ name ++ " !== undefined && " ++ name ++ " !== null) { println(show(" ++ name ++ ")); _ = " ++ name ++ "; }\n"

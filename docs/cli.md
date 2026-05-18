@@ -8,25 +8,26 @@ title: CLI Reference - hica
 ```
 $ hica --help
 
-Usage: hica [COMMAND] [FILE]
+Usage: hica [OPTIONS] [COMMAND] [FILE]
 The hica compiler
 
 Options:
+      --check            Check formatting without modifying the file
+      --target=TARGET    Output target: koka (default) or js
       --help                 display this help and exit
       --version              output version information and exit
 
 Commands:
-    build, b    Compile a .hc file and build a binary
-    run, r      Compile and run a .hc file
-    check, c    Analyse a .hc file and report errors
-    fmt, f      Format a .hc file
-    clean       Remove generated build artifacts
-    test, t     Run tests in a .hc file
-    new         Create a new hica project
-    init        Initialise a project in the current directory
-    help        Print this message
-
-See 'hica help <command>' for more information on a specific command.
+  build, b               Compile a .hc file and build a binary
+  run, r                 Compile and run a .hc file
+  check, c               Analyse a .hc file and report errors
+  fmt, f                 Format a .hc file
+  clean                  Remove generated build artifacts
+  test, t                Run tests in a .hc file
+  new                    Create a new hica project
+  init                   Initialise a hica project in the current directory
+  repl                   Start an interactive REPL
+  help                   Show help for a command
 ```
 
 ## Commands
@@ -150,17 +151,3 @@ mkdir my-project && cd my-project
 hica init
 ```
 
-## Building from Source
-
-Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
-
-```sh
-# Clone and build
-git clone https://github.com/cladam/hica.git
-cd hica
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
-
-# Verify installation
-./hica --version
-```

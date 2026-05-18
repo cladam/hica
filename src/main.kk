@@ -27,7 +27,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.21.0" 
+val version = "0.22.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -135,7 +135,7 @@ fun main()
     "help"  -> cmd-help(file)
     "new"   -> cmd-new(file)
     "init"  -> cmd-init()
-    "repl"  -> cmd-repl()
+    "repl"  -> cmd-repl-with-file(file)
     _ ->
       val resolved = match file
         Just(f) -> Just(f)
@@ -421,18 +421,97 @@ struct repl-state
   structs : list<struct-def>
   types   : list<type-def>
   js-defs : string
+  vals    : list<(string, node, maybe<hica-type>)>  // value bindings: (name, init-expr, type)
 
-val empty-repl-state = Repl-state([], [], [], "")
+val empty-repl-state = Repl-state([], [], [], "", [])
+
+// History file path
+fun history-path() : io path
+  homedir() / ".hica_history".path
+
+// Startup file path
+fun startup-path() : io path
+  homedir() / ".hicarc".path
+
+// Append a line to history file
+fun history-append( line : string )
+  val hp = history-path()
+  val existing = if is-file(hp) then read-text-file(hp) else ""
+  write-text-file(hp, existing ++ line ++ "\n")
 
 fun cmd-repl()
+  cmd-repl-with-file(Nothing)
+
+fun cmd-repl-with-file( file : maybe<string> )
   println("hica " ++ version ++ " REPL (exit with Ctrl-D or :quit)")
   println("Type expressions, declarations (fun, let, struct, type), or :help")
+  println("Tip: use 'rlwrap hica repl' for history navigation and tab completion")
   println("")
   val prelude = load-prelude()
-  repl-loop(prelude, empty-repl-state)
+  // Load startup file (~/.hicarc) if it exists
+  val state0 = repl-load-startup(prelude, empty-repl-state)
+  // Load preloaded file (-i flag) if provided
+  val state1 = match file
+    Just(f) -> repl-load-file(f, prelude, state0)
+    Nothing -> state0
+  repl-loop(prelude, state1)
+
+// Load definitions from startup file
+fun repl-load-startup( prelude : program, state : repl-state )
+  val sp = startup-path()
+  if is-file(sp) then
+    println("  loading " ++ sp.show)
+    val source = read-text-file(sp)
+    val file-lines = source.lines.filter(fn(l) !l.trim.is-empty && !l.trim.starts-with("//").bool)
+    repl-eval-lines(file-lines, prelude, state, silent = True)
+  else
+    state
+
+// Load definitions from a .hc file
+fun repl-load-file( filepath : string, prelude : program, state : repl-state )
+  if is-file(filepath.path) then
+    println("  loading " ++ filepath)
+    val source = read-text-file(filepath.path)
+    // Parse as full program, extract definitions
+    val tokens = lex(source)
+    val parsed = run-parser-program(tokens, source)
+    val merged-prog = Program(prelude.structs ++ state.structs ++ parsed.structs,
+                              types = prelude.types ++ state.types ++ parsed.types,
+                              decls = prelude.decls ++ state.decls ++ parsed.decls)
+    val desugared = desugar-program(merged-prog)
+    val (typed-prog, _diags) = collect-diagnostics
+      run-fresh
+        check-program(desugared)
+    // Emit JS for the file's declarations (skip main)
+    val prelude-n = prelude.decls.length + state.decls.length
+    val file-decls = typed-prog.decls.drop(prelude-n).filter(fn(d) d.name != "main")
+    val file-structs = parsed.structs
+    val file-types = parsed.types
+    val js-structs = file-structs.map(fn(sd) emit-js-repl-struct(sd)).join("\n")
+    val js-types = file-types.map(fn(td) emit-js-repl-type(td)).join("\n")
+    val js-decls = file-decls.map(fn(d) emit-js-repl-decl(d)).join("\n")
+    val js = js-structs ++ "\n" ++ js-types ++ "\n" ++ js-decls ++ "\n"
+    val names = file-decls.map(fn(d) d.name)
+    if !names.is-empty then
+      println("  loaded: " ++ names.join(", "))
+    state(decls = state.decls ++ file-decls,
+          structs = state.structs ++ file-structs,
+          types = state.types ++ file-types,
+          js-defs = state.js-defs ++ js)
+  else
+    println("  error: file not found: " ++ filepath)
+    state
+
+// Evaluate multiple lines silently (for startup file)
+fun repl-eval-lines( file-lines : list<string>, prelude : program, state : repl-state, silent : bool = False )
+  match file-lines
+    Nil -> state
+    Cons(l, rest) ->
+      val new-state = repl-eval(l, prelude, state, silent)
+      repl-eval-lines(rest, prelude, new-state, silent)
 
 fun repl-loop( prelude : program, state : repl-state )
-  print("hica> ")
+  print("hica=> ")
   val input = readline()
   if input == "" then  // EOF (Ctrl-D)
     println("\nBye!")
@@ -446,25 +525,76 @@ fun repl-loop( prelude : program, state : repl-state )
     elif line == ":defs" then
       repl-show-defs(state)
       repl-loop(prelude, state)
+    elif line == ":reset" then
+      println("  state cleared")
+      repl-loop(prelude, empty-repl-state)
+    elif line == ":history" then
+      repl-show-history()
+      repl-loop(prelude, state)
+    elif line.starts-with(":load ").bool then
+      val filepath = line.slice.drop(6).string.trim
+      val new-state = repl-load-file(filepath, prelude, state)
+      repl-loop(prelude, new-state)
     elif line.is-empty then
       repl-loop(prelude, state)
     else
-      val new-state = repl-eval(line, prelude, state)
+      // Check for multiline (unbalanced braces/parens)
+      val full-input = repl-read-multiline(line)
+      history-append(full-input)
+      val new-state = repl-eval(full-input, prelude, state)
       repl-loop(prelude, new-state)
 
+// Multiline: if braces/parens/brackets are unbalanced, keep reading
+fun repl-read-multiline( acc : string ) : <div,console,exn> string
+  val balance = brace-balance(acc)
+  if balance <= 0 then acc
+  else
+    print("...> ")
+    val next = readline()
+    if next == "" then acc  // EOF ends input
+    else repl-read-multiline(acc ++ "\n" ++ next)
+
+// Count unbalanced opening braces/parens/brackets
+fun brace-balance( s : string ) : int
+  var depth := 0
+  s.list.foreach fn(c)
+    if c == '{' || c == '(' || c == '[' then depth := depth + 1
+    elif c == '}' || c == ')' || c == ']' then depth := depth - 1
+  depth
+
+fun repl-show-history()
+  val hp = history-path()
+  if is-file(hp) then
+    val content = read-text-file(hp)
+    val hist-lines = content.lines
+    val recent = hist-lines.drop(max(0, hist-lines.length - 20))
+    recent.foreach(fn(l) println("  " ++ l))
+  else
+    println("  (no history)")
+
 fun repl-help()
-  println("  :help, :h    Show this help")
-  println("  :defs        Show current definitions")
-  println("  :quit, :q    Exit the REPL")
+  println("  :help, :h      Show this help")
+  println("  :defs          Show current definitions")
+  println("  :reset         Clear all definitions")
+  println("  :load FILE     Load definitions from a .hc file")
+  println("  :history       Show recent input history")
+  println("  :quit, :q      Exit the REPL")
   println("")
-  println("  Enter expressions to evaluate them:")
-  println("    hica> 1 + 2")
+  println("  Expressions are evaluated and the result is printed:")
+  println("    hica=> 1 + 2")
   println("    3")
   println("")
-  println("  Define functions:")
-  println("    hica> fun double(n: int) : int { n * 2 }")
-  println("    hica> double(21)")
+  println("  The _ variable holds the last expression result:")
+  println("    hica=> 6 * 7")
   println("    42")
+  println("    hica=> _ + 1")
+  println("    43")
+  println("")
+  println("  Multiline input: open braces continue on the next line:")
+  println("    hica=> fun fib(n: int) : int {")
+  println("    ...>   if n <= 1 { n } else { fib(n - 1) + fib(n - 2) }")
+  println("    ...>  }")
+  println("    defined: fib")
 
 fun repl-show-defs( state : repl-state )
   if state.decls.is-empty && state.structs.is-empty && state.types.is-empty then
@@ -474,7 +604,7 @@ fun repl-show-defs( state : repl-state )
     state.types.foreach(fn(t) println("  type " ++ t.name))
     state.decls.foreach(fn(d) println("  fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ")"))
 
-fun repl-eval( input : string, prelude : program, state : repl-state )
+fun repl-eval( input : string, prelude : program, state : repl-state, silent : bool = False )
   // Lex and parse as a REPL fragment
   val tokens = lex(input)
   val fragment = run-parser-repl(tokens, input)
@@ -496,44 +626,127 @@ fun repl-eval( input : string, prelude : program, state : repl-state )
         // Emit JS and accumulate
         val typed-decl = typed-prog.decls.last.default(d)
         val js = emit-js-repl-decl(typed-decl)
-        println("  defined: " ++ d.name)
+        if !silent then println("  defined: " ++ d.name)
         state(decls = state.decls ++ [typed-decl], js-defs = state.js-defs ++ js ++ "\n")
 
     ReplStruct(sd) ->
       val js = emit-js-repl-struct(sd)
-      println("  defined: struct " ++ sd.name)
+      if !silent then println("  defined: struct " ++ sd.name)
       state(structs = state.structs ++ [sd], js-defs = state.js-defs ++ js ++ "\n")
 
     ReplType(td) ->
       val js = emit-js-repl-type(td)
-      println("  defined: type " ++ td.name)
+      if !silent then println("  defined: type " ++ td.name)
       state(types = state.types ++ [td], js-defs = state.js-defs ++ js ++ "\n")
 
     ReplImport(_id) ->
       println("  imports not yet supported in REPL")
       state
 
-    ReplExpr(expr) ->
-      // Type check the expression in context
-      val wrapper = Fun-decl(no-span, "__repl_expr", [], expr)
-      val merged = Program(prelude.structs ++ state.structs,
-                           types = prelude.types ++ state.types,
-                           decls = prelude.decls ++ state.decls ++ [wrapper])
-      val desugared = desugar-program(merged)
-      val (typed-prog, diags) = collect-diagnostics
-        run-fresh
-          check-program(desugared)
-      val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
-      if !errors.is-empty then
-        errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
-        state
-      else
-        // Emit and evaluate via Node.js
-        val typed-expr = typed-prog.decls.last.default(wrapper).body
-        val js-snippet = emit-js-repl-expr(typed-expr)
-        val full-js = emit-js-repl-preamble() ++ state.js-defs ++ js-snippet
-        repl-run-js(full-js)
-        state
+    ReplExpr(enode) ->
+      // Detect top-level let binding → store as value decl
+      match enode.expr
+        Let(name, _ann, init, _body) ->
+          repl-eval-let(name, init, prelude, state, silent)
+        _ ->
+          repl-eval-expr(enode, prelude, state)
+
+// Evaluate a let binding in the REPL: store as a persistent value
+fun repl-eval-let( binding-name : string, init : node, prelude : program, state : repl-state, silent : bool = False )
+  // Type check init in context using a Let-chain wrapper
+  val wrapped = wrap-with-vals(state.vals, init)
+  val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+  val merged = Program(prelude.structs ++ state.structs,
+                       types = prelude.types ++ state.types,
+                       decls = prelude.decls ++ state.decls ++ [wrapper])
+  val desugared = desugar-program(merged)
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(dia) println(render-diagnostic(init.show, "<repl>", dia)))
+    state
+  else
+    val typed-body = typed-prog.decls.last.default(wrapper).body
+    val typed-init = unwrap-vals(state.vals, typed-body)
+    val init-type = typed-init.typ
+    val js = "var " ++ binding-name ++ " = " ++ emit-js-expr(typed-init) ++ ";\n"
+    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) println(show(" ++ binding-name ++ "));\n"
+    val full-js = emit-js-repl-preamble() ++ state.js-defs ++ show-js
+    if !silent then repl-run-js(full-js)
+    // Store binding and update _ to hold the let's init value
+    val js-underscore = "_ = " ++ binding-name ++ ";\n"
+    val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
+    state(vals = new-vals, js-defs = state.js-defs ++ js ++ js-underscore)
+
+// Evaluate a bare expression in the REPL
+fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
+  val wrapped = wrap-with-vals(state.vals, expr)
+  val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+  val merged = Program(prelude.structs ++ state.structs,
+                       types = prelude.types ++ state.types,
+                       decls = prelude.decls ++ state.decls ++ [wrapper])
+  val desugared = desugar-program(merged)
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(dia) println(render-diagnostic(expr.show, "<repl>", dia)))
+    state
+  else
+    val typed-body = typed-prog.decls.last.default(wrapper).body
+    val typed-expr = unwrap-vals(state.vals, typed-body)
+    val expr-type = typed-expr.typ
+    val js-snippet = emit-js-repl-expr(typed-expr)
+    val full-js = emit-js-repl-preamble() ++ state.js-defs ++ js-snippet
+    repl-run-js(full-js)
+    // Store _ with TYPE (use dummy init since _ may self-reference)
+    val js-assign = "_ = " ++ emit-js-expr(typed-expr) ++ ";\n"
+    val new-vals = state.vals.filter(fn((n, _v, _t)) n != "_") ++ [("_", expr, expr-type)]
+    state(vals = new-vals, js-defs = state.js-defs ++ js-assign)
+
+// Wrap an expression in a chain of let bindings from value state
+// For "_", use the stored init directly if it doesn't self-reference;
+// otherwise use a type-appropriate dummy literal
+fun wrap-with-vals( bindings : list<(string, node, maybe<hica-type>)>, body : node ) : div node
+  match bindings
+    Nil -> body
+    Cons(("_", init, typ), rest) ->
+      val safe-init = if contains-var(init, "_") then dummy-for-type(typ) else init
+      Node(no-span, Let("_", Nothing, safe-init, wrap-with-vals(rest, body)))
+    Cons((bname, init, _typ), rest) ->
+      Node(no-span, Let(bname, Nothing, init, wrap-with-vals(rest, body)))
+
+// Check if a node contains a reference to a given variable
+fun contains-var( n : node, vname : string ) : div bool
+  match n.expr
+    Var(nm) -> nm == vname
+    Binary(_op, l, r) -> contains-var(l, vname) || contains-var(r, vname)
+    Unary(_op, e) -> contains-var(e, vname)
+    Call(callee, args) -> contains-var(callee, vname) || args.any(fn(a) contains-var(a, vname))
+    Let(_nm, _ann, init, bdy) -> contains-var(init, vname) || contains-var(bdy, vname)
+    _ -> False
+
+// Create a dummy literal for a given type
+fun dummy-for-type( typ : maybe<hica-type> ) : node
+  match typ
+    Just(TInt) -> Node(no-span, Literal(LitInt(0)))
+    Just(TFloat) -> Node(no-span, Literal(LitFloat("0.0")))
+    Just(TString) -> Node(no-span, Literal(LitString("")))
+    Just(TBool) -> Node(no-span, Literal(LitBool(False)))
+    Just(TChar) -> Node(no-span, Literal(LitChar(" ")))
+    _ -> Node(no-span, Literal(LitInt(0)))
+
+// Unwrap a let-chain to get the innermost body
+fun unwrap-vals( bindings : list<(string, node, maybe<hica-type>)>, wrapped : node ) : node
+  match bindings
+    Nil -> wrapped
+    Cons(_, rest) ->
+      match wrapped.expr
+        Let(_n, _a, _i, inner) -> unwrap-vals(rest, inner)
+        _ -> wrapped
 
 fun repl-run-js( js-code : string )
   // Write to a temp file and run with node, capturing output
@@ -544,10 +757,8 @@ fun repl-run-js( js-code : string )
   if exit-code == 0 then
     if is-file(tmp-out) then
       val output = read-text-file(tmp-out)
-      val out-lines = output.trim.lines
-      out-lines.foreach fn(l)
-        if l != "__REPL_DONE__" && l != "__REPL_READY__" then
-          println(l)
+      if !output.trim.is-empty then
+        output.trim.lines.foreach(fn(l) println(l))
   else
     if is-file(tmp-out) then
       val output = read-text-file(tmp-out)
