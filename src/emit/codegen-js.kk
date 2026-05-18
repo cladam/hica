@@ -38,8 +38,8 @@ fun js-runtime-preamble() : string
   "// hica playground runtime\n" ++
   "'use strict';\n\n" ++
   "const __hc_output = [];\n" ++
-  "function println(s) { __hc_output.push(String(s)); }\n" ++
-  "function print(s) { __hc_output.push(String(s)); }\n" ++
+  "function println(s) { const line = String(s); __hc_output.push(line); if (typeof process !== 'undefined') process.stdout.write(line + '\\n'); }\n" ++
+  "function print(s) { const t = String(s); __hc_output.push(t); if (typeof process !== 'undefined') process.stdout.write(t); }\n" ++
   "function show(v) {\n" ++
   "  if (v === null || v === undefined) return 'None';\n" ++
   "  if (Array.isArray(v)) return '[' + v.map(show).join(', ') + ']';\n" ++
@@ -144,6 +144,12 @@ fun emit-js-body( n : node ) : div string
       if is-expression(n) then "return " ++ emit-js-expr(n) ++ ";"
       else emit-js-stmt(n)
 
+// Emit body in statement context (no implicit return on last expr)
+fun emit-js-stmts( n : node ) : div string
+  match n.expr
+    Block(stmts) -> stmts.map(emit-js-stmt).join("\n")
+    _            -> emit-js-stmt(n)
+
 fun emit-js-stmt( n : node ) : div string
   match n.expr
     Let(name, _, init, body) ->
@@ -155,15 +161,15 @@ fun emit-js-stmt( n : node ) : div string
     Assign(name, value) ->
       name ++ " = " ++ emit-js-expr(value) ++ ";"
     While(cond, body) ->
-      "while (" ++ emit-js-expr(cond) ++ ") {\n" ++ indent(emit-js-body(body)) ++ "\n}"
+      "while (" ++ emit-js-expr(cond) ++ ") {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     ForIn(name, start, end_, body) ->
-      "for (let " ++ name ++ " = " ++ emit-js-expr(start) ++ "; " ++ name ++ " < " ++ emit-js-expr(end_) ++ "; " ++ name ++ "++) {\n" ++ indent(emit-js-body(body)) ++ "\n}"
+      "for (let " ++ name ++ " = " ++ emit-js-expr(start) ++ "; " ++ name ++ " < " ++ emit-js-expr(end_) ++ "; " ++ name ++ "++) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     ForEach(name, coll, body) ->
-      "for (const " ++ name ++ " of " ++ emit-js-expr(coll) ++ ") {\n" ++ indent(emit-js-body(body)) ++ "\n}"
+      "for (const " ++ name ++ " of " ++ emit-js-expr(coll) ++ ") {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     Repeat(count, body) ->
-      "for (let __i = 0; __i < " ++ emit-js-expr(count) ++ "; __i++) {\n" ++ indent(emit-js-body(body)) ++ "\n}"
+      "for (let __i = 0; __i < " ++ emit-js-expr(count) ++ "; __i++) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     Loop(body) ->
-      "while (true) {\n" ++ indent(emit-js-body(body)) ++ "\n}"
+      "while (true) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     Break -> "break;"
     Continue -> "continue;"
     _ -> emit-js-expr(n) ++ ";"
@@ -299,14 +305,21 @@ fun emit-js-match( scrutinee : node, arms : list<match-arm> ) : div string
 
 fun emit-js-arm( scrut-var : string, arm : match-arm ) : div string
   val (cond, bindings) = emit-js-pattern-cond(scrut-var, arm.pattern)
-  val guard-str = match arm.guard
-    Just(g) -> " && " ++ emit-js-expr(g)
-    Nothing -> ""
   val body-code = emit-js-body(arm.body)
-  "  if (" ++ cond ++ guard-str ++ ") {\n" ++
-  (if bindings.is-empty then "" else indent(indent(bindings)) ++ "\n") ++
-  indent(indent(body-code)) ++ "\n" ++
-  "  }\n"
+  match arm.guard
+    Just(g) ->
+      // Guard references bound variables → bind first, then check guard
+      "  if (" ++ cond ++ ") {\n" ++
+      (if bindings.is-empty then "" else indent(indent(bindings)) ++ "\n") ++
+      "    if (" ++ emit-js-expr(g) ++ ") {\n" ++
+      indent(indent(indent(body-code))) ++ "\n" ++
+      "    }\n" ++
+      "  }\n"
+    Nothing ->
+      "  if (" ++ cond ++ ") {\n" ++
+      (if bindings.is-empty then "" else indent(indent(bindings)) ++ "\n") ++
+      indent(indent(body-code)) ++ "\n" ++
+      "  }\n"
 
 fun emit-js-pattern-cond( v : string, pat : pattern ) : div (string, string)
   match pat

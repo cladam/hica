@@ -20,6 +20,7 @@ import syntax/parser
 import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
+import emit/codegen-js
 import transform/desugar
 import format/formatter
 import klap
@@ -62,6 +63,7 @@ fun hica-cli() : command
     .arg(positional("COMMAND").help("Command to run").required)
     .arg(positional("FILE").help("Source .hc file"))
     .arg(flag("check").help("Check formatting without modifying the file"))
+    .arg(option("target").help("Output target: koka (default) or js"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Analyse a .hc file and report errors")
@@ -136,9 +138,10 @@ fun main()
         Nothing -> resolve-entry()
       match resolved
         Just(f) ->
+          val target = m.get-one-or("target", "koka")
           match cmd
-            "build" -> cmd-build(f)
-            "b"     -> cmd-build(f)
+            "build" -> cmd-build(f, target)
+            "b"     -> cmd-build(f, target)
             "run"   -> cmd-run(f, user-args)
             "r"     -> cmd-run(f, user-args)
             "check" -> cmd-check(f)
@@ -159,9 +162,51 @@ fun main()
 // Commands
 // ---------------------------------------------------------------------------
 
-fun cmd-build( file : string )
-  val (extra-includes, koka-flags) = read-manifest-koka()
-  build(file, extra-includes=extra-includes, koka-flags=koka-flags)
+fun cmd-build( file : string, target : string = "koka" )
+  if target == "js" then
+    build-js(file)
+  else
+    val (extra-includes, koka-flags) = read-manifest-koka()
+    build(file, extra-includes=extra-includes, koka-flags=koka-flags)
+
+// Build to JavaScript: lex → parse → check → emit JS
+fun build-js( file : string )
+  val stem = file.path.stemname
+  val mod-name = safe-module-name(stem)
+  val dir  = file.path.dirname
+  val source = read-text-file(file.path)
+  val tokens = lex(source)
+  val prog   = run-parser-program(tokens, source)
+  val prelude = load-prelude()
+  val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                       types = prelude.types ++ imported-types ++ prog.types,
+                       decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       imports = prog.imports)
+  val desugared = desugar-program(merged)
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
+    println("build: " ++ errors.length.show ++ " type error(s)")
+  else
+    // Strip imported decls/structs/types (same as build)
+    val prelude-count = prelude.decls.length
+    val imported-count = imported-decls.length
+    val user-typed-decls = typed-prog.decls.drop(prelude-count + imported-count)
+    val prelude-struct-count = prelude.structs.length
+    val imported-struct-count = imported-structs.length
+    val user-structs = typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
+    val prelude-type-count = prelude.types.length
+    val imported-type-count = imported-types.length
+    val user-types = typed-prog.types.drop(prelude-type-count + imported-type-count)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val js-code = emit-js-program(user-prog, mod-name)
+    val out-js = dir.path / (mod-name ++ ".js").path
+    write-text-file(out-js, js-code)
+    println("compiled " ++ file ++ " -> " ++ out-js.show ++ " (js)")
 
 fun cmd-run( file : string, user-args : list<string> )
   val (extra-includes, koka-flags) = read-manifest-koka()
