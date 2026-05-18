@@ -34,7 +34,7 @@ pub fun emit-js-program( p : program, mod-name : string = "main" ) : div string
 // Runtime preamble: minimal helpers that mirror hica's prelude
 // ---------------------------------------------------------------------------
 
-fun js-runtime-preamble() : string
+pub fun js-runtime-preamble() : string
   "// hica playground runtime\n" ++
   "'use strict';\n\n" ++
   "const __hc_output = [];\n" ++
@@ -151,7 +151,7 @@ fun js-runtime-preamble() : string
 // Struct emission → JS classes with named fields
 // ---------------------------------------------------------------------------
 
-fun emit-js-struct( sd : struct-def ) : div string
+pub fun emit-js-struct( sd : struct-def ) : div string
   val fields = sd.fields.map(fn((name, _)) name)
   "function " ++ sd.name ++ "(" ++ fields.join(", ") ++ ") {\n" ++
   "  return { " ++ fields.map(fn(f) f ++ ": " ++ f).join(", ") ++ " };\n" ++
@@ -164,7 +164,7 @@ fun emit-js-struct( sd : struct-def ) : div string
 // Enum/type emission → JS tagged objects
 // ---------------------------------------------------------------------------
 
-fun emit-js-type-def( td : type-def ) : div string
+pub fun emit-js-type-def( td : type-def ) : div string
   td.variants.map(fn(vd)
     if vd.fields.is-nil then
       "const " ++ vd.name ++ " = Object.freeze({ __tag: '" ++ vd.name ++ "' });"
@@ -190,7 +190,7 @@ fun emit-js-decl( d : fun-decl ) : div string
 // Body & statement emission
 // ---------------------------------------------------------------------------
 
-fun emit-js-body( n : node ) : div string
+pub fun emit-js-body( n : node ) : div string
   match n.expr
     Block(stmts) ->
       match stmts.reverse
@@ -259,7 +259,7 @@ fun emit-js-stmt( n : node ) : div string
 // Expression emission
 // ---------------------------------------------------------------------------
 
-fun emit-js-expr( n : node ) : div string
+pub fun emit-js-expr( n : node ) : div string
   match n.expr
     Literal(LitInt(i))      -> i.show
     Literal(LitFloat(f))    -> f
@@ -489,7 +489,7 @@ fun is-expression( n : node ) : div bool
     Continue           -> False
     _                  -> True
 
-fun indent( s : string ) : string
+pub fun indent( s : string ) : string
   s.lines.map(fn(l) "  " ++ l).join("\n")
 
 fun indent-all( s : string ) : string

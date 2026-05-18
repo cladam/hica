@@ -13,6 +13,7 @@ import std/os/dir
 import std/os/file
 import std/os/path
 import std/os/process
+import std/os/readline
 
 import syntax/ast
 import syntax/lexer
@@ -21,6 +22,7 @@ import diagnostics/diagnostics
 import semantics/checker
 import emit/codegen
 import emit/codegen-js
+import emit/codegen-js-repl
 import transform/desugar
 import format/formatter
 import klap
@@ -72,6 +74,7 @@ fun hica-cli() : command
     .subcommand("test, t", "Run tests in a .hc file")
     .subcommand("new", "Create a new hica project")
     .subcommand("init", "Initialise a hica project in the current directory")
+    .subcommand("repl", "Start an interactive REPL")
     .subcommand("help", "Show help for a command")
 
 fun build-cli() : command
@@ -132,6 +135,7 @@ fun main()
     "help"  -> cmd-help(file)
     "new"   -> cmd-new(file)
     "init"  -> cmd-init()
+    "repl"  -> cmd-repl()
     _ ->
       val resolved = match file
         Just(f) -> Just(f)
@@ -407,6 +411,147 @@ fun cmd-help( sub : maybe<string> )
     Just("new")   -> println(new-cli().format-help)
     Just("init")  -> println(init-cli().format-help)
     _             -> print-usage()
+
+// ---------------------------------------------------------------------------
+// REPL: interactive Read-Eval-Print Loop using JS codegen + Node.js
+// ---------------------------------------------------------------------------
+
+struct repl-state
+  decls   : list<fun-decl>
+  structs : list<struct-def>
+  types   : list<type-def>
+  js-defs : string
+
+val empty-repl-state = Repl-state([], [], [], "")
+
+fun cmd-repl()
+  println("hica " ++ version ++ " REPL (exit with Ctrl-D or :quit)")
+  println("Type expressions, declarations (fun, let, struct, type), or :help")
+  println("")
+  val prelude = load-prelude()
+  repl-loop(prelude, empty-repl-state)
+
+fun repl-loop( prelude : program, state : repl-state )
+  print("hica> ")
+  val input = readline()
+  if input == "" then  // EOF (Ctrl-D)
+    println("\nBye!")
+  else
+    val line = input.trim
+    if line == ":quit" || line == ":q" then
+      println("Bye!")
+    elif line == ":help" || line == ":h" then
+      repl-help()
+      repl-loop(prelude, state)
+    elif line == ":defs" then
+      repl-show-defs(state)
+      repl-loop(prelude, state)
+    elif line.is-empty then
+      repl-loop(prelude, state)
+    else
+      val new-state = repl-eval(line, prelude, state)
+      repl-loop(prelude, new-state)
+
+fun repl-help()
+  println("  :help, :h    Show this help")
+  println("  :defs        Show current definitions")
+  println("  :quit, :q    Exit the REPL")
+  println("")
+  println("  Enter expressions to evaluate them:")
+  println("    hica> 1 + 2")
+  println("    3")
+  println("")
+  println("  Define functions:")
+  println("    hica> fun double(n: int) : int { n * 2 }")
+  println("    hica> double(21)")
+  println("    42")
+
+fun repl-show-defs( state : repl-state )
+  if state.decls.is-empty && state.structs.is-empty && state.types.is-empty then
+    println("  (no definitions)")
+  else
+    state.structs.foreach(fn(s) println("  struct " ++ s.name))
+    state.types.foreach(fn(t) println("  type " ++ t.name))
+    state.decls.foreach(fn(d) println("  fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ")"))
+
+fun repl-eval( input : string, prelude : program, state : repl-state )
+  // Lex and parse as a REPL fragment
+  val tokens = lex(input)
+  val fragment = run-parser-repl(tokens, input)
+  match fragment
+    ReplDecl(d) ->
+      // Type check with accumulated context
+      val merged = Program(prelude.structs ++ state.structs,
+                           types = prelude.types ++ state.types,
+                           decls = prelude.decls ++ state.decls ++ [d])
+      val desugared = desugar-program(merged)
+      val (typed-prog, diags) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+      if !errors.is-empty then
+        errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
+        state
+      else
+        // Emit JS and accumulate
+        val typed-decl = typed-prog.decls.last.default(d)
+        val js = emit-js-repl-decl(typed-decl)
+        println("  defined: " ++ d.name)
+        state(decls = state.decls ++ [typed-decl], js-defs = state.js-defs ++ js ++ "\n")
+
+    ReplStruct(sd) ->
+      val js = emit-js-repl-struct(sd)
+      println("  defined: struct " ++ sd.name)
+      state(structs = state.structs ++ [sd], js-defs = state.js-defs ++ js ++ "\n")
+
+    ReplType(td) ->
+      val js = emit-js-repl-type(td)
+      println("  defined: type " ++ td.name)
+      state(types = state.types ++ [td], js-defs = state.js-defs ++ js ++ "\n")
+
+    ReplImport(_id) ->
+      println("  imports not yet supported in REPL")
+      state
+
+    ReplExpr(expr) ->
+      // Type check the expression in context
+      val wrapper = Fun-decl(no-span, "__repl_expr", [], expr)
+      val merged = Program(prelude.structs ++ state.structs,
+                           types = prelude.types ++ state.types,
+                           decls = prelude.decls ++ state.decls ++ [wrapper])
+      val desugared = desugar-program(merged)
+      val (typed-prog, diags) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+      if !errors.is-empty then
+        errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
+        state
+      else
+        // Emit and evaluate via Node.js
+        val typed-expr = typed-prog.decls.last.default(wrapper).body
+        val js-snippet = emit-js-repl-expr(typed-expr)
+        val full-js = emit-js-repl-preamble() ++ state.js-defs ++ js-snippet
+        repl-run-js(full-js)
+        state
+
+fun repl-run-js( js-code : string )
+  // Write to a temp file and run with node, capturing output
+  val tmp-js = "/tmp/hica-repl-eval.js".path
+  val tmp-out = "/tmp/hica-repl-out.txt".path
+  write-text-file(tmp-js, js-code)
+  val exit-code = run-system("node " ++ tmp-js.show ++ " > " ++ tmp-out.show ++ " 2>&1")
+  if exit-code == 0 then
+    if is-file(tmp-out) then
+      val output = read-text-file(tmp-out)
+      val out-lines = output.trim.lines
+      out-lines.foreach fn(l)
+        if l != "__REPL_DONE__" && l != "__REPL_READY__" then
+          println(l)
+  else
+    if is-file(tmp-out) then
+      val output = read-text-file(tmp-out)
+      println("  error: " ++ output.trim)
 
 // ---------------------------------------------------------------------------
 // Prelude: load .hc library files written in Hica

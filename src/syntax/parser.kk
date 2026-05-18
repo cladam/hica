@@ -1194,3 +1194,56 @@ pub fun run-parser-program( tokens : list<token>, source : string = "" ) : <div,
       println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
       Node(sp, Literal(LitBool(False)))
   parse-program()
+
+// ---------------------------------------------------------------------------
+// REPL fragment parser: parse a single declaration or expression
+// ---------------------------------------------------------------------------
+
+pub fun parse-repl-input() : <div,parser> repl-input
+  match peek()
+    TkFun    -> ReplDecl(parse-fun-decl())
+    TkPub    ->
+      match peek-next()
+        TkFun    -> ReplDecl(parse-fun-decl())
+        TkStruct -> { advance(); ReplStruct(parse-struct-decl()(is-pub = True)) }
+        TkType   -> { advance(); ReplType(parse-type-decl()(is-pub = True)) }
+        TkImport -> ReplImport(parse-import-decl())
+        _        -> ReplDecl(parse-fun-decl())
+    TkStruct -> ReplStruct(parse-struct-decl())
+    TkType   -> ReplType(parse-type-decl())
+    TkImport -> ReplImport(parse-import-decl())
+    TkFrom   -> ReplImport(parse-import-decl())
+    TkExtern -> ReplImport(parse-import-decl())
+    _        -> ReplExpr(parse-expr())
+
+pub fun run-parser-repl( tokens : list<token>, source : string = "" ) : <div,console> repl-input
+  var toks := tokens
+  with handler
+    fun peek()
+      match toks
+        Cons(t, _) -> t.kind
+        Nil        -> TkEof
+    fun peek-next()
+      match toks
+        Cons(_, Cons(t2, _)) -> t2.kind
+        _ -> TkEof
+    fun peek-newline()
+      match toks
+        Cons(t, _) -> t.newline-before
+        Nil        -> False
+    fun advance()
+      match toks
+        Cons(t, rest) -> { toks := rest; t }
+        Nil           -> Token(TkEof, Span(0, 0))
+    fun current-span()
+      match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+    fun parse-error( msg )
+      val sp = match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+      val (line, col) = offset-to-linecol(source, sp.start)
+      println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
+      Node(sp, Literal(LitBool(False)))
+  parse-repl-input()

@@ -430,6 +430,17 @@ pub fun program/show( prg : program ) : div string
   (import-strs ++ struct-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------
+// REPL input: a single fragment parsed from interactive input
+// ---------------------------------------------------------------------------
+
+pub type repl-input
+  ReplDecl( decl : fun-decl )
+  ReplStruct( sdef : struct-def )
+  ReplType( tdef : type-def )
+  ReplImport( idef : import-decl )
+  ReplExpr( expr : node )
+
+// ---------------------------------------------------------------------------
 // Type environment
 // ---------------------------------------------------------------------------
 
