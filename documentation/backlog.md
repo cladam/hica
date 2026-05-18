@@ -158,6 +158,18 @@ For hica fmt tool, these rules should be the "Gold Standard":
 
 ---
 
+## REPL
+
+| Feature | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| Basic REPL (`hica repl`) | **done** | High | Expressions, let bindings, fun/struct/type defs, multiline, `_` variable, `:help`/`:defs`/`:reset`/`:history`/`:load`/`:quit` |
+| Persistent subprocess for evaluation | **—** | Medium | Currently each expression spawns a fresh `node` process (cold start latency). Switch to a persistent Node.js subprocess: send JS snippets over stdin, read results from stdout. Eliminates per-eval process startup cost |
+| REPL tab completion | **—** | Low | Complete defined function/variable names on Tab. Requires `rlwrap` or built-in readline with completion callback |
+| `:type` command | **—** | Low | `:type expr` — show inferred type without evaluating |
+| `:time` command | **—** | Low | `:time expr` — evaluate and print elapsed time |
+
+---
+
 ## Stand-Outs
 
 Tactical changes to differentiate hica from similar-looking languages.
@@ -277,7 +289,7 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | **regex** | **—** | Medium | String pattern matching. Wrap Koka's `std/text/regex`. Functions: `regex_match`, `regex_find`, `regex_replace`, `regex_split` |
-| **base64** | **—** | Low | Encode/decode base64. Pure functions, no effects — good showcase of hica's functional style |
+| **base64** | **done** | Low | Encode/decode base64. Pure functions, no effects — good showcase of hica's functional style |
 
 ### Networking & Web
 
@@ -368,9 +380,9 @@ Issues that exist today but are not yet fixed:
 
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| JS codegen backend (`codegen-js.kk`) | **—** | High | Emit JavaScript directly from hica AST, bypassing Koka. Enables 100% client-side playground on GitHub Pages |
-| JS runtime preamble | **—** | Medium | Minimal JS implementations of hica prelude (`println`, `show`, list ops, maybe/result). Bundled inline in output |
-| CLI `--target=js` flag | **—** | Low | Route `hica build --target=js foo.hc` to `emit-js-program` instead of `emit-program` |
+| JS codegen backend (`codegen-js.kk`) | **done** | High | Emit JavaScript directly from hica AST, bypassing Koka. Enables 100% client-side playground on GitHub Pages |
+| JS runtime preamble | **done** | Medium | Minimal JS implementations of hica prelude (`println`, `show`, list ops, maybe/result). Bundled inline in output |
+| CLI `--target=js` flag | **done** | Low | Route `hica build --target=js foo.hc` to `emit-js-program` instead of `emit-program` |
 | Playground frontend | **—** | Medium | CodeMirror 6 + hica syntax highlighting + Web Worker execution + virtual console |
 | Share via URL hash | **—** | Low | `lz-string` compress editor state into URL fragment |
 | Playground deployment | **—** | Low | Static files in `docs/playground/`; served by GitHub Pages |
