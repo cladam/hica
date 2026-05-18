@@ -34,6 +34,10 @@ EXAMPLES=(
   examples/combinators.hc
   examples/lists.hc
   examples/pipe.hc
+  examples/slice-patterns.hc
+  examples/struct-patterns.hc
+  examples/structs.hc
+  examples/tuples.hc
 )
 
 cleanup() {

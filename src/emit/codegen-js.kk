@@ -51,6 +51,7 @@ pub fun js-runtime-preamble() : string
   "  if (typeof v === 'object' && v.__tag === 'Ok') return 'Right(' + show_list_elem(v.value) + ')';\n" ++
   "  if (typeof v === 'object' && v.__tag === 'Err') return 'Left(' + show_list_elem(v.value) + ')';\n" ++
   "  if (typeof v === 'object' && v.__tag) return v.__tag + (v.__args && v.__args.length > 0 ? '(' + v.__args.map(show).join(', ') + ')' : '');\n" ++
+  "  if (typeof v === 'object' && v.__show) return v.__show();\n" ++
   "  if (typeof v === 'object') return JSON.stringify(v);\n" ++
   "  return String(v);\n" ++
   "}\n" ++
@@ -145,6 +146,16 @@ pub fun js-runtime-preamble() : string
   "function not_(b) { return !b; }\n" ++
   "function to_float(n) { return n; }\n" ++
   "function show_fixed(f, prec) { return f.toFixed(prec); }\n" ++
+  "\n// I/O (Node.js only — no-op in browser)\n" ++
+  "function get_args() { return typeof process !== 'undefined' ? process.argv.slice(2) : []; }\n" ++
+  "function read_file(path) { try { const fs = require('fs'); return fs.readFileSync(path, 'utf8'); } catch(e) { return null; } }\n" ++
+  "function read_lines(path) { const s = read_file(path); return s !== null ? s.split('\\n') : []; }\n" ++
+  "function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return true; } catch(e) { return false; } }\n" ++
+  "function removeprefix(s, pre) { return s.startsWith(pre) ? s.slice(pre.length) : s; }\n" ++
+  "function removesuffix(s, suf) { return s.endsWith(suf) ? s.slice(0, s.length - suf.length) : s; }\n" ++
+  "function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n" ++
+  "function substring(s, start, end) { return s.slice(start, end); }\n" ++
+  "function to_string(v) { return show(v); }\n" ++
   "\n"
 
 // ---------------------------------------------------------------------------
@@ -153,11 +164,12 @@ pub fun js-runtime-preamble() : string
 
 pub fun emit-js-struct( sd : struct-def ) : div string
   val fields = sd.fields.map(fn((name, _)) name)
+  val show-body = "'" ++ sd.name ++ "(' + " ++ fields.map(fn(f) "'" ++ f ++ ": ' + show(this." ++ f ++ ")").join(" + ', ' + ") ++ " + ')'"
   "function " ++ sd.name ++ "(" ++ fields.join(", ") ++ ") {\n" ++
-  "  return { " ++ fields.map(fn(f) f ++ ": " ++ f).join(", ") ++ " };\n" ++
+  "  return { __struct: '" ++ sd.name ++ "', " ++ fields.map(fn(f) f ++ ": " ++ f).join(", ") ++ ", __show() { return " ++ show-body ++ "; } };\n" ++
   "}\n" ++
   "function " ++ sd.name.to-lower ++ "_show(p) {\n" ++
-  "  return '" ++ sd.name ++ "(' + " ++ fields.map(fn(f) "show(p." ++ f ++ ")").join(" + ', ' + ") ++ " + ')';\n" ++
+  "  return '" ++ sd.name ++ "(' + " ++ fields.map(fn(f) "'" ++ f ++ ": ' + show(p." ++ f ++ ")").join(" + ', ' + ") ++ " + ')';\n" ++
   "}"
 
 // ---------------------------------------------------------------------------
@@ -287,6 +299,9 @@ pub fun emit-js-expr( n : node ) : div string
     VarDecl(name, _, init, body) ->
       "(() => { let " ++ name ++ " = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
 
+    LetTuple(names, init, body) ->
+      "(() => { const [" ++ names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
+
     Fun(params, body) ->
       "((" ++ params.join(", ") ++ ") => {\n" ++ indent(emit-js-body(body)) ++ "\n})"
 
@@ -344,14 +359,19 @@ pub fun emit-js-expr( n : node ) : div string
     MapLit(entries) ->
       "[" ++ entries.map(fn((k, v)) "[" ++ emit-js-expr(k) ++ ", " ++ emit-js-expr(v) ++ "]").join(", ") ++ "]"
 
-    StructLit(_, fields) ->
-      "{ " ++ fields.map(fn((f, v)) f ++ ": " ++ emit-js-expr(v)).join(", ") ++ " }"
+    StructLit(sname, fields) ->
+      sname ++ "(" ++ fields.map(fn((_f, v)) emit-js-expr(v)).join(", ") ++ ")"
 
     FieldAccess(obj, field) ->
       emit-js-expr(obj) ++ "." ++ field
 
-    StructUpdate(_, base, fields, _) ->
-      "{ ..." ++ emit-js-expr(base) ++ ", " ++ fields.map(fn((f, v)) f ++ ": " ++ emit-js-expr(v)).join(", ") ++ " }"
+    StructUpdate(sname, base, fields, def-fields) ->
+      // Rebuild via constructor to preserve __show
+      val all-fields = def-fields.map fn(fname)
+        match fields.find(fn((n, _)) n == fname)
+          Just((_, v)) -> emit-js-expr(v)
+          Nothing      -> emit-js-expr(base) ++ "." ++ fname
+      sname ++ "(" ++ all-fields.join(", ") ++ ")"
 
     ESome(value) -> emit-js-expr(value)
     ENone        -> "null"
@@ -446,6 +466,33 @@ fun emit-js-pattern-cond( v : string, pat : pattern ) : div (string, string)
       val all-binds = conds.map(fn((_, b)) b).filter(fn(b) !b.is-empty)
       val cond = if all-conds.is-nil then "true" else all-conds.join(" && ")
       (cond, all-binds.join("\n"))
+    PList(elems, rest) ->
+      // Match fixed-length prefix with optional rest binding
+      val len = elems.length
+      val len-cond = match rest
+        Nothing  -> v ++ ".length === " ++ len.show
+        Just(_)  -> v ++ ".length >= " ++ len.show
+      val elem-results = elems.map-indexed(fn(i, ep)
+        emit-js-pattern-cond(v ++ "[" ++ i.show ++ "]", ep)
+      )
+      val elem-conds = elem-results.map(fn((c, _)) c).filter(fn(c) c != "true")
+      val elem-binds = elem-results.map(fn((_, b)) b).filter(fn(b) !b.is-empty)
+      val rest-bind = match rest
+        Just(PVar(rn)) -> ["const " ++ rn ++ " = " ++ v ++ ".slice(" ++ len.show ++ ");"]
+        Just(PWild)    -> []
+        _              -> []
+      val all-conds = [len-cond] ++ elem-conds
+      val all-binds = elem-binds ++ rest-bind
+      ("Array.isArray(" ++ v ++ ") && " ++ all-conds.join(" && "), all-binds.join("\n"))
+    PStruct(_sname, fps, _defs) ->
+      // Match struct fields by name
+      val field-results = fps.map(fn((fname, fpat))
+        emit-js-pattern-cond(v ++ "." ++ fname, fpat)
+      )
+      val field-conds = field-results.map(fn((c, _)) c).filter(fn(c) c != "true")
+      val field-binds = field-results.map(fn((_, b)) b).filter(fn(b) !b.is-empty)
+      val cond = if field-conds.is-nil then "true" else field-conds.join(" && ")
+      (cond, field-binds.join("\n"))
     POr(alts) ->
       val alt-conds = alts.map(fn(a) emit-js-pattern-cond(v, a).fst)
       ("(" ++ alt-conds.join(" || ") ++ ")", "")
