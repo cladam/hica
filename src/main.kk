@@ -26,8 +26,9 @@ import emit/codegen-js-repl
 import transform/desugar
 import format/formatter
 import klap
+import prelude-bundle
 
-val version = "0.24.2" 
+val version = "0.24.3" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -765,25 +766,19 @@ fun repl-run-js( js-code : string )
       println("  error: " ++ output.trim)
 
 // ---------------------------------------------------------------------------
-// Prelude: load .hc library files written in Hica
+// Prelude: parse embedded .hc sources (bundled into the binary)
 // ---------------------------------------------------------------------------
-
-val prelude-files = ["prelude/math.hc", "prelude/operators.hc", "prelude/glob.hc", "prelude/lists.hc", "prelude/strings.hc", "prelude/datetime.hc", "prelude/cli.hc", "prelude/io.hc", "prelude/actors.hc"]
 
 fun load-prelude()
   var decl-result : list<fun-decl> := []
   var struct-result : list<struct-def> := []
   var type-result : list<type-def> := []
-  val base = app-path().nobase
-  prelude-files.foreach fn(f)
-    val fp = (base / f).string
-    if is-file(fp.path) then
-      val source = read-text-file(fp.path)
-      val tokens = lex(source)
-      val prog = run-parser-program(tokens, source)
-      decl-result := decl-result ++ prog.decls
-      struct-result := struct-result ++ prog.structs
-      type-result := type-result ++ prog.types
+  embedded-prelude-sources().foreach fn(source)
+    val tokens = lex(source)
+    val prog = run-parser-program(tokens, source)
+    decl-result := decl-result ++ prog.decls
+    struct-result := struct-result ++ prog.structs
+    type-result := type-result ++ prog.types
   Program(struct-result, type-result, decl-result)
 
 // ---------------------------------------------------------------------------
