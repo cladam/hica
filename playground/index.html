@@ -358,7 +358,7 @@
     <h2>About the hica Playground</h2>
     <p>
       This playground compiles hica source code to JavaScript <strong>entirely in your browser</strong>.
-      No server is involved &mdash; the hica compiler itself is compiled to JS via
+      No server is involved. The hica compiler itself is compiled to JS via
       <a href="https://koka-lang.github.io" style="color:var(--blue)">Koka</a>'s
       <code>--target=js</code> and bundled into a single file.
     </p>
@@ -375,12 +375,12 @@
       <li>Standard math, string, and list functions</li>
     </ul>
 
-    <h3>Known limitations <span class="tag tag-no">not yet</span></h3>
+    <h3>Known limitations <span class="tag tag-no">not supported</span></h3>
     <ul>
       <li><code>max()</code>, <code>min()</code> with multiple arguments are limited</li>
       <li>Map functions (<code>map_get</code>, <code>map_set</code>, <code>map_keys</code>, etc.) are not available</li>
-      <li>File I/O (<code>read_file</code>, <code>write_file</code>) &mdash; no filesystem in the browser</li>
-      <li>CLI args (<code>get_args</code>) &mdash; no command line in the browser</li>
+      <li>File I/O (<code>read_file</code>, <code>write_file</code>)</li>
+      <li>CLI args (<code>get_args</code>) – no command line in the browser</li>
       <li>Interactive input (<code>readline</code>)</li>
       <li>Multi-module imports</li>
       <li>Algebraic effects / handlers</li>
@@ -392,6 +392,7 @@
       <li>Press <strong>Ctrl+Enter</strong> (or <strong>Cmd+Enter</strong>) to run</li>
       <li>Use the <strong>Examples</strong> dropdown to try working programs</li>
       <li>Click <strong>Share</strong> to copy a URL with your code embedded</li>
+      <li>See the <a href="/hica/docs/language-reference" style="color:var(--blue)">Language Reference</a> for full syntax documentation</li>
     </ul>
   </div>
 </div>
