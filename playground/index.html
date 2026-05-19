@@ -427,6 +427,7 @@ fun main() {
 </main>
 
 <script src="hica-compiler.js"></script>
+<script src="prelude-sources.js"></script>
 <script>
 // --- Compiler bridge ---
 const hica = (function() {
@@ -439,11 +440,6 @@ if (!hica) {
   document.getElementById('status').textContent = 'Error: compiler not loaded';
   document.getElementById('status').className = 'status error';
 }
-
-// Prelude sources for type checking (passed to compile_to_js)
-// The JS preamble already has all runtime implementations, but the checker
-// needs to know about functions like abs, pow, is_even, etc.
-const PRELUDE_SOURCES = [];
 
 // --- Examples ---
 const EXAMPLES = {
@@ -780,7 +776,12 @@ function run() {
   setTimeout(() => {
     try {
       const t0 = performance.now();
-      const result = hica.compile_to_js(source);
+      // Convert JS array to Koka linked list (Cons/Nil)
+      let preludeSources = null; // Nil
+      for (let i = PRELUDE_SOURCES.length - 1; i >= 0; i--) {
+        preludeSources = { head: PRELUDE_SOURCES[i], tail: preludeSources };
+      }
+      const result = hica.compile_to_js(source, preludeSources);
       const compileMs = (performance.now() - t0).toFixed(0);
 
       if (result._tag === 1) {
