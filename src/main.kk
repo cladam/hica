@@ -27,7 +27,7 @@ import transform/desugar
 import format/formatter
 import klap
 
-val version = "0.24.0" 
+val version = "0.24.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -961,7 +961,7 @@ fun run-koka( file : string, user-args : list<string> = [] )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
-  val bin-path = (dir.path / (mod-name ++ exe-ext()).path).show
+  val bin-path = (dir.path / (mod-name ++ exe-ext()).path).string
   val bin-file = if bin-path.starts-with("/").bool || bin-path.starts-with("./").bool || bin-path.starts-with("../").bool then bin-path else "./" ++ bin-path
   val args-str = if user-args.is-nil then "" else " " ++ user-args.map(shell-escape).join(" ")
   val exit-code = run-system(bin-file ++ args-str)
@@ -974,7 +974,7 @@ fun run-tests( file : string )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
-  val bin-path = (dir.path / (mod-name ++ exe-ext()).path).show
+  val bin-path = (dir.path / (mod-name ++ exe-ext()).path).string
   val bin-file = if bin-path.starts-with("/").bool || bin-path.starts-with("./").bool || bin-path.starts-with("../").bool then bin-path else "./" ++ bin-path
   val exit-code = run-system(bin-file)
   if exit-code != 0 then
