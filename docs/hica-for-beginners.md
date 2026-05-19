@@ -88,6 +88,10 @@ hica=> _ + 12
 The `_` variable always holds the last result. Type `:help` for commands, `:quit` to exit.
 For arrow-key history, use `rlwrap hica repl`.
 
+### Try it in the browser
+
+Don't want to install anything? The [hica Playground](/hica/playground) lets you write and run hica code directly in your browser: no setup required. It comes with example programs you can explore with one click.
+
 ---
 
 ## Your first program
@@ -755,8 +759,61 @@ fun main() {
 
 Functions, match guards, string interpolation, and a loop, all in a few lines. That's hica.
 
+---
+
+## 40 lessons — one concept at a time
+
+Each lesson is a standalone `.hc` file you can run and modify:
+
+```sh
+./hica run learn/01-hello.hc
+```
+
+| #  | File                  | Concept                          | What you'll learn                               |
+| -- | --------------------- | -------------------------------- | ----------------------------------------------- |
+| 01 | [`01-hello.hc`](https://github.com/cladam/hica/blob/main/learn/01-hello.hc)         | Hello, world!                    | `fun main()`, blocks, implicit return           |
+| 02 | [`02-arrow.hc`](https://github.com/cladam/hica/blob/main/learn/02-arrow.hc)         | Expression-bodied functions      | The `=>` arrow, single-expression functions     |
+| 03 | [`03-variables.hc`](https://github.com/cladam/hica/blob/main/learn/03-variables.hc)     | Variables and `let`              | `let` bindings, the last-line rule              |
+| 04 | [`04-functions.hc`](https://github.com/cladam/hica/blob/main/learn/04-functions.hc)     | Functions and chaining           | Multiple functions, calling one from another    |
+| 05 | [`05-if-else.hc`](https://github.com/cladam/hica/blob/main/learn/05-if-else.hc)       | Conditional expressions          | `if`/`else` as expressions, setting variables   |
+| 06 | [`06-match.hc`](https://github.com/cladam/hica/blob/main/learn/06-match.hc)         | Pattern matching                 | `match` with integer patterns, wildcards `_`, guards, or-patterns, ranges |
+| 07 | [`07-logic.hc`](https://github.com/cladam/hica/blob/main/learn/07-logic.hc)         | Boolean logic                    | `&&`, comparisons, combining conditions         |
+| 08 | [`08-fizzbuzz.hc`](https://github.com/cladam/hica/blob/main/learn/08-fizzbuzz.hc)      | Putting it all together          | `else if` chains, multi-step logic              |
+| 09 | [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc)        | Repeating things                 | `repeat(n) { body }`, running code n times      |
+| 10 | [`10-strings.hc`](https://github.com/cladam/hica/blob/main/learn/10-strings.hc)       | Strings                          | Concat, interpolation, escapes, indexing, slicing |
+| 11 | [`11-pipe.hc`](https://github.com/cladam/hica/blob/main/learn/11-pipe.hc)          | The pipe operator                | `\|>` to chain functions left to right          |
+| 12 | [`12-floats.hc`](https://github.com/cladam/hica/blob/main/learn/12-floats.hc)        | Floating-point numbers           | Float literals (`3.14`), float arithmetic       |
+| 13 | [`13-tuples.hc`](https://github.com/cladam/hica/blob/main/learn/13-tuples.hc)        | Tuples                           | `(a, b)` literals, `.0`/`.1`, destructuring     |
+| 14 | [`14-lists.hc`](https://github.com/cladam/hica/blob/main/learn/14-lists.hc)         | Lists                            | `[1, 2, 3]` literals, homogeneous elements      |
+| 15 | [`15-for.hc`](https://github.com/cladam/hica/blob/main/learn/15-for.hc)           | For loops                        | `for i in start..end { body }`, counted loops   |
+| 16 | [`16-recursion.hc`](https://github.com/cladam/hica/blob/main/learn/16-recursion.hc)     | Recursion                        | Functions calling themselves, base cases        |
+| 17 | [`17-chars.hc`](https://github.com/cladam/hica/blob/main/learn/17-chars.hc)         | Characters                       | `'c'` char literals, char lists, comparisons    |
+| 18 | [`18-maybe.hc`](https://github.com/cladam/hica/blob/main/learn/18-maybe.hc)         | Maybe                            | `Some(x)`, `None`, matching on optional values  |
+| 19 | [`19-result.hc`](https://github.com/cladam/hica/blob/main/learn/19-result.hc)        | Result                           | `Ok(x)`, `Err(e)`, handling success and failure |
+| 20 | [`20-closures.hc`](https://github.com/cladam/hica/blob/main/learn/20-closures.hc)      | Closures                         | Capturing variables, returning functions, HOFs  |
+| 21 | [`21-structs.hc`](https://github.com/cladam/hica/blob/main/learn/21-structs.hc)       | Structs                          | `struct` definitions, construction, field access |
+| 22 | [`22-env.hc`](https://github.com/cladam/hica/blob/main/learn/22-env.hc)           | Environment                      | `get_args()`, `get_env(key)`, `eprintln`         |
+| 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc)       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
+| 24 | [`24-while.hc`](https://github.com/cladam/hica/blob/main/learn/24-while.hc)         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
+| 25 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc)| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
+| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)       | File I/O                         | `read_file`, `write_file`, `read_lines`, `write_lines` |
+| 27 | [`27-input.hc`](https://github.com/cladam/hica/blob/main/learn/27-input.hc)         | User input                       | `input(prompt)`, combining with `parse_int`     |
+| 28 | [`28-random.hc`](https://github.com/cladam/hica/blob/main/learn/28-random.hc)        | Random numbers                   | `random(min, max)`, dice and coin examples      |
+| 29 | [`29-format.hc`](https://github.com/cladam/hica/blob/main/learn/29-format.hc)        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
+| 30 | [`30-maps.hc`](https://github.com/cladam/hica/blob/main/learn/30-maps.hc)          | Maps                             | `{"key": value}` literals, `map_get`, `map_set`, `map_remove` |
+| 31 | [`31-enums.hc`](https://github.com/cladam/hica/blob/main/learn/31-enums.hc)         | Enum types                       | `type` declarations, variants with data, pattern matching on enums |
+| 32 | [`32-combinators.hc`](https://github.com/cladam/hica/blob/main/learn/32-combinators.hc)   | Combinators                      | `map_maybe`, `and_then`, `map_result`, pipe-friendly chaining |
+| 33 | [`33-imports.hc`](https://github.com/cladam/hica/blob/main/learn/33-imports.hc)       | Imports                          | `import`, `from ... import { }`, `pub import`, modules |
+| 34 | [`34-struct-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/34-struct-patterns.hc) | Struct patterns            | Struct destructuring in `match`, partial patterns |
+| 35 | [`35-slice-patterns.hc`](https://github.com/cladam/hica/blob/main/learn/35-slice-patterns.hc) | Slice patterns              | List destructuring `[x, ..rest]`, recursive processing |
+| 36 | [`36-try.hc`](https://github.com/cladam/hica/blob/main/learn/36-try.hc) | `?` operator                   | Early return from maybe-returning functions |
+| 37 | [`37-list-extras.hc`](https://github.com/cladam/hica/blob/main/learn/37-list-extras.hc) | List extras                | `flat_map`, `sort_by`, `sum`, `unique`, `scan`, `chunks` |
+| 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `pow`, `sqrt`, `floor`, `ceil`, `round`, `to_float` |
+| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `date_parts`, `time_parts`, `day_of_week`, `is_before` |
+| 40 | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)     | Glob matching              | `is_digit`, `is_alpha`, `glob_match`, `glob_match_path` |
+
 ## Where to go next
 
-- **[Learn hica](/hica/docs/learn)**: 39 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Playground](/hica/playground)**: try hica in the browser, no installation needed.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.

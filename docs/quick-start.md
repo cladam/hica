@@ -133,6 +133,6 @@ See the [Language Reference](/hica/docs/language-reference#modules--imports) for
 
 ## Next Steps
 
-- **[Learn hica](/hica/docs/learn)**: 40 standalone programs, each teaching one concept. Run them, modify them, break them.
+- **[Playground](/hica/playground)**: try hica in the browser, no installation needed.
 - **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
 - **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.
