@@ -156,6 +156,22 @@ pub fun js-runtime-preamble() : string
   "function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n" ++
   "function substring(s, start, end) { return s.slice(start, end); }\n" ++
   "function to_string(v) { return show(v); }\n" ++
+  "function chars(s) { return [...s]; }\n" ++
+  "function char_to_string(c) { return c; }\n" ++
+  "function ord(c) { return typeof c === 'string' ? c.charCodeAt(0) : c; }\n" ++
+  "function chr(n) { return String.fromCharCode(n); }\n" ++
+  "function is_digit(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 48 && n <= 57; }\n" ++
+  "function is_upper(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 65 && n <= 90; }\n" ++
+  "function is_lower(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 97 && n <= 122; }\n" ++
+  "function is_alpha(c) { return is_upper(c) || is_lower(c); }\n" ++
+  "function is_alnum(c) { return is_alpha(c) || is_digit(c); }\n" ++
+  "function is_space(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n === 32 || n === 9 || n === 10 || n === 13; }\n" ++
+  "function is_punct(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return (n >= 33 && n <= 47) || (n >= 58 && n <= 64) || (n >= 91 && n <= 96) || (n >= 123 && n <= 126); }\n" ++
+  "function all_digits(s) { return s.length > 0 && [...s].every(c => is_digit(c)); }\n" ++
+  "function all_alpha(s) { return s.length > 0 && [...s].every(c => is_alpha(c)); }\n" ++
+  "function all_upper(s) { return s.length > 0 && [...s].every(c => is_upper(c)); }\n" ++
+  "function all_lower(s) { return s.length > 0 && [...s].every(c => is_lower(c)); }\n" ++
+  "function all_alnum(s) { return s.length > 0 && [...s].every(c => is_alnum(c)); }\n" ++
   "\n"
 
 // ---------------------------------------------------------------------------

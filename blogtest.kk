@@ -1021,19 +1021,21 @@ fun hc_write_lines(file_path : string, xs : list<string>)
 pub fun hc_process_messages(state, messages, receive)
   foldl(messages, state, receive)
 
+fun hc_has_digit(s : string)
+  any(s.list, fn(c) hc_is_digit(c))
+
 fun hc_validate(password : string)
   val long_enough : bool = (password.count >= 6)
-  val has_bang : bool = password.contains("!")
-  (long_enough && has_bang)
+  (long_enough && hc_has_digit(password))
 
 fun hctest0()
-  hc-assert(hc_validate("secret!123"))
+  hc-assert(hc_validate("secret123"))
 
 fun hctest1()
-  hc-assert(!hc_validate("noSpecialHere"))
+  hc-assert(!hc_validate("noNumbersHere"))
 
 fun hctest2()
-  hc-assert(!hc_validate("ab!"))
+  hc-assert(!hc_validate("ab1"))
 
 fun main()
   println("")
@@ -1049,10 +1051,10 @@ fun main()
       False
   val r1 = match try({ hctest1() })
     Ok(_) ->
-      println("  \x1b[32m\u2713\x1b[0m " ++ "rejects password without special char")
+      println("  \x1b[32m\u2713\x1b[0m " ++ "rejects password without digit")
       True
     Error(e) ->
-      println("  \x1b[31m\u2717\x1b[0m " ++ "rejects password without special char")
+      println("  \x1b[31m\u2717\x1b[0m " ++ "rejects password without digit")
       println("    " ++ e.message)
       False
   val r2 = match try({ hctest2() })

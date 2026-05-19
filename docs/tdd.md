@@ -52,7 +52,7 @@ Building a password validator from scratch.
 fun validate(password) => false
 
 test "valid password has 6+ characters" {
-  assert(validate("secret!123"))
+  assert(validate("secret123"))
 }
 ```
 
@@ -66,26 +66,35 @@ fun validate(password) => str_length(password) >= 6
 
 Passes.
 
-**Red again.** Passwords must also contain an exclamation mark:
+**Red again.** New requirement: passwords need at least one digit. Add a test for it — it fails against the current `validate`:
+
+```rust
+test "rejects password without digit" {
+  assert_false(validate("noNumbersHere"))
+}
+```
+
+**Green.** Update the implementation to pass all tests:
 
 
 ```rust
+fun has_digit(s) => any(chars(s), (c) => is_digit(c))
+
 fun validate(password) {
   let long_enough = str_length(password) >= 6
-  let has_bang = contains(password, "!")
-  long_enough && has_bang
+  long_enough && has_digit(password)
 }
 
 test "valid password has 6+ characters" {
-  assert(validate("secret!123"))
+  assert(validate("secret123"))
 }
 
-test "rejects password without special char" {
-  assert_false(validate("noSpecialHere"))
+test "rejects password without digit" {
+  assert_false(validate("noNumbersHere"))
 }
 
 test "rejects short password" {
-  assert_false(validate("ab!"))
+  assert_false(validate("ab1"))
 }
 ```
 
@@ -127,6 +136,7 @@ Use `assert_eq` over `assert`: "expected 5, got 6" tells you what happened, `ass
 ### A typical session
 
 ```sh
+hica repl                # explore an API before writing tests
 vim password.hc          # write a failing test
 hica test password.hc    # see it fail
 vim password.hc          # make it pass
@@ -135,8 +145,12 @@ hica check password.hc   # fast type-check between edits
 tbdflow commit -t feat -m "add password validation"
 ```
 
-`hica check` only type-checks, no compilation and near instant. I run it between every edit, like a spellchecker for logic.
+`hica check` only type-checks, no compilation and near instant. I run it between every edit, like a spellchecker for logic. `hica repl` is useful when you're not sure what a function returns — try it interactively, then write the test.
 
 ### One test per behaviour
 
 "Validates length" and "requires digit" are separate tests. If a test name needs "and" in it, split it.
+
+Happy testing!
+
+> *Throughput is a safety feature!* (now with tests)
