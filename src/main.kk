@@ -38,6 +38,40 @@ extern hica-exit( code : int ) : a
 fun stdin-isatty()
   run-system("test -t 0" ++ dev-null()) == 0
 
+// ---------------------------------------------------------------------------
+// Persistent Node.js subprocess for REPL evaluation
+// ---------------------------------------------------------------------------
+extern import
+  c file "node-subprocess-inline.c"
+
+extern node-start( script : string ) : io int
+  c "kk_hica_node_start"
+
+extern node-send-line( line : string ) : io ()
+  c "kk_hica_node_send_line"
+
+extern node-read-line() : io string
+  c "kk_hica_node_read_line"
+
+extern node-stop() : io ()
+  c "kk_hica_node_stop"
+
+extern node-alive() : io bool
+  c "kk_hica_node_alive"
+
+// Node.js server script: persistent evaluation context using vm module
+val node-repl-script = "const vm=require('vm');" ++
+  "const ctx=vm.createContext({console,process,require,setTimeout,clearTimeout,Buffer,global:globalThis});" ++
+  "const rl=require('readline').createInterface({input:process.stdin,terminal:false});" ++
+  "let buf='';" ++
+  "rl.on('line',(ln)=>{" ++
+    "if(ln==='__HICA_EVAL_END__'){" ++
+      "try{vm.runInContext(buf,ctx)}catch(e){process.stdout.write('__HICA_ERROR__'+e.message+'\\n')}" ++
+      "process.stdout.write('__HICA_EVAL_DONE__\\n');" ++
+      "buf=''}" ++
+    "else{buf+=ln+'\\n'}" ++
+  "});"
+
 // Write .kk only if content changed — preserves Koka's build cache
 fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
   if is-file(out-kk) then
@@ -487,6 +521,13 @@ fun cmd-repl-with-file( file : maybe<string> )
   if !is-wrapped then
     println("Tip: install 'rlwrap' for tab completion and history navigation")
   println("")
+  // Start persistent Node.js subprocess
+  val res = node-start(node-repl-script)
+  if res != 0 then
+    println("  error: could not start Node.js subprocess")
+    return ()
+  // Send runtime preamble
+  repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
   val prelude = load-prelude()
   // Load startup file (~/.hicarc) if it exists
   val state0 = repl-load-startup(prelude, empty-repl-state)
@@ -495,6 +536,7 @@ fun cmd-repl-with-file( file : maybe<string> )
     Just(f) -> repl-load-file(f, prelude, state0)
     Nothing -> state0
   repl-loop(prelude, state1)
+  node-stop()
 
 // Load definitions from startup file
 fun repl-load-startup( prelude : program, state : repl-state )
@@ -534,6 +576,8 @@ fun repl-load-file( filepath : string, prelude : program, state : repl-state )
     val names = file-decls.map(fn(d) d.name)
     if !names.is-empty then
       println("  loaded: " ++ names.join(", "))
+    // Send to persistent subprocess
+    repl-send-js(js)
     state(decls = state.decls ++ file-decls,
           structs = state.structs ++ file-structs,
           types = state.types ++ file-types,
@@ -567,6 +611,10 @@ fun repl-loop( prelude : program, state : repl-state )
         repl-loop(prelude, state)
       elif line == ":reset" then
         println("  state cleared")
+        // Restart subprocess with fresh state
+        node-stop()
+        val _ = node-start(node-repl-script)
+        repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
         repl-loop(prelude, empty-repl-state)
       elif line == ":history" then
         repl-show-history()
@@ -670,19 +718,22 @@ fun repl-eval( input : string, prelude : program, state : repl-state, silent : b
         errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
         state
       else
-        // Emit JS and accumulate
+        // Emit JS, send to subprocess, and accumulate
         val typed-decl = typed-prog.decls.last.default(d)
         val js = emit-js-repl-decl(typed-decl)
+        repl-send-js(js)
         if !silent then println("  defined: " ++ d.name)
         state(decls = state.decls ++ [typed-decl], js-defs = state.js-defs ++ js ++ "\n")
 
     ReplStruct(sd) ->
       val js = emit-js-repl-struct(sd)
+      repl-send-js(js)
       if !silent then println("  defined: struct " ++ sd.name)
       state(structs = state.structs ++ [sd], js-defs = state.js-defs ++ js ++ "\n")
 
     ReplType(td) ->
       val js = emit-js-repl-type(td)
+      repl-send-js(js)
       if !silent then println("  defined: type " ++ td.name)
       state(types = state.types ++ [td], js-defs = state.js-defs ++ js ++ "\n")
 
@@ -719,10 +770,8 @@ fun repl-eval-let( binding-name : string, init : node, prelude : program, state 
     val typed-init = unwrap-vals(state.vals, typed-body)
     val init-type = typed-init.typ
     val js = "var " ++ binding-name ++ " = " ++ emit-js-expr(typed-init) ++ ";\n"
-    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) { println(show(" ++ binding-name ++ ")); _ = " ++ binding-name ++ "; }\n" ++
-                  "try { require('fs').writeFileSync('/tmp/hica-repl-underscore.txt', JSON.stringify(_)); } catch(e) {}\n"
-    val full-js = emit-js-repl-preamble() ++ state.js-defs ++ show-js
-    if !silent then repl-run-js(full-js)
+    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) { println(show(" ++ binding-name ++ ")); _ = " ++ binding-name ++ "; }\n"
+    if !silent then repl-run-js(show-js)
     // Store binding and update _ to hold the let's init value
     val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
     state(vals = new-vals, js-defs = state.js-defs ++ js)
@@ -800,9 +849,8 @@ fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
     val typed-expr = unwrap-vals(state.vals, typed-body)
     val expr-type = typed-expr.typ
     val js-snippet = emit-js-repl-expr(typed-expr)
-    val full-js = emit-js-repl-preamble() ++ state.js-defs ++ js-snippet
-    repl-run-js(full-js)
-    // Store _ with TYPE for type checking; _ persists in JS via file
+    repl-run-js(js-snippet)
+    // Store _ with TYPE for type checking; _ persists in subprocess
     val new-vals = state.vals.filter(fn((n, _v, _t)) n != "_") ++ [("_", expr, expr-type)]
     state(vals = new-vals)
 
@@ -847,21 +895,37 @@ fun unwrap-vals( bindings : list<(string, node, maybe<hica-type>)>, wrapped : no
         Let(_n, _a, _i, inner) -> unwrap-vals(rest, inner)
         _ -> wrapped
 
+// Send JS code to the persistent Node.js subprocess and print output
 fun repl-run-js( js-code : string )
-  // Write to a temp file and run with node, capturing output
-  val tmp-js = "/tmp/hica-repl-eval.js".path
-  val tmp-out = "/tmp/hica-repl-out.txt".path
-  write-text-file(tmp-js, js-code)
-  val exit-code = run-system("node " ++ tmp-js.show ++ " > " ++ tmp-out.show ++ " 2>&1")
-  if exit-code == 0 then
-    if is-file(tmp-out) then
-      val output = read-text-file(tmp-out)
-      if !output.trim.is-empty then
-        output.trim.lines.foreach(fn(l) println(l))
+  // Send each line, then the eval sentinel
+  js-code.lines.foreach(fn(l) node-send-line(l))
+  node-send-line("__HICA_EVAL_END__")
+  // Read output lines until done sentinel
+  repl-read-node-output()
+
+fun repl-read-node-output()
+  val line = node-read-line()
+  if line == "__HICA_EVAL_DONE__" then ()
+  elif line == "" then ()  // EOF — subprocess died
+  elif line.starts-with("__HICA_ERROR__").bool then
+    println("  error: " ++ line.slice.drop(14).string)
+    repl-read-node-output()
   else
-    if is-file(tmp-out) then
-      val output = read-text-file(tmp-out)
-      println("  error: " ++ output.trim)
+    println(line)
+    repl-read-node-output()
+
+// Send JS code silently (no output reading — for preamble/defs sent at startup)
+fun repl-send-js( js-code : string )
+  js-code.lines.foreach(fn(l) node-send-line(l))
+  node-send-line("__HICA_EVAL_END__")
+  // Drain the DONE sentinel
+  repl-drain-sentinel()
+
+fun repl-drain-sentinel()
+  val line = node-read-line()
+  if line == "__HICA_EVAL_DONE__" then ()
+  elif line == "" then ()  // EOF
+  else repl-drain-sentinel()
 
 // ---------------------------------------------------------------------------
 // Prelude: parse embedded .hc sources (bundled into the binary)

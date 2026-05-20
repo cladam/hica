@@ -163,9 +163,9 @@ For hica fmt tool, these rules should be the "Gold Standard":
 | Feature | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | Basic REPL (`hica repl`) | **done** | High | Expressions, let bindings, fun/struct/type defs, multiline, `_` variable, `:help`/`:defs`/`:reset`/`:history`/`:load`/`:quit` |
-| Persistent subprocess for evaluation | **—** | Medium | Currently each expression spawns a fresh `node` process (cold start latency). Switch to a persistent Node.js subprocess: send JS snippets over stdin, read results from stdout. Eliminates per-eval process startup cost |
-| REPL tab completion | **—** | Low | Complete defined function/variable names on Tab. Requires `rlwrap` or built-in readline with completion callback |
-| `:type` command | **—** | Low | `:type expr` — show inferred type without evaluating |
+| Persistent subprocess for evaluation | **done** | Medium | Persistent Node.js subprocess with bidirectional pipes via `fork`/`pipe`/`exec`. JS snippets sent via stdin, output read from stdout. Uses `vm.runInContext` for proper declaration persistence. Eliminates per-eval process startup cost; `_` persists in subprocess memory (no temp files) |
+| REPL tab completion | **done** | Low | Auto-wraps with `rlwrap` when available and stdin is a tty. Writes completions file with prelude function names, REPL commands, and keywords. Falls back gracefully with tip when rlwrap not installed |
+| `:type` command | **done** | Low | `:type expr` / `:t expr` — shows inferred type without evaluating. Works on expressions, let bindings, function declarations, structs, and types |
 | `:time` command | **—** | Low | `:time expr` — evaluate and print elapsed time |
 
 ---

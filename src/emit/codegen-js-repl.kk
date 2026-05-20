@@ -38,9 +38,8 @@ pub fun emit-js-repl-type( td : type-def ) : div string
 // Emit an expression, evaluate it, print the result, and assign to _
 pub fun emit-js-repl-expr( n : node ) : div string
   val code = emit-js-expr(n)
-  "const __result = " ++ code ++ ";\n" ++
-  "if (__result !== undefined && __result !== null) { println(show(__result)); _ = __result; }\n" ++
-  "try { require('fs').writeFileSync('/tmp/hica-repl-underscore.txt', JSON.stringify(_)); } catch(e) {}\n"
+  "var __result = " ++ code ++ ";\n" ++
+  "if (__result !== undefined && __result !== null) { println(show(__result)); _ = __result; }\n"
 
 // Emit the preamble — includes _ variable for last result (restored from file)
 pub fun emit-js-repl-preamble() : string
