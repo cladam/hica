@@ -105,7 +105,7 @@ hica test examples/test-example.hc
 
 Tests are written with `test` blocks and assertions:
 
-```rust
+```hica
 fun double(n: int) : int => n * 2
 
 test "double works" {

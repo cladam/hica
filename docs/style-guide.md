@@ -46,7 +46,7 @@ the surrounding code and match its style. Readability always wins.
 ### 4. Whitespace
 
  - **No space** inside parentheses, brackets, or braces:
-   ```rust
+   ```hica
    // Good
    println(nums[0])
    let p = Point { x: 3, y: 4 }
@@ -56,7 +56,7 @@ the surrounding code and match its style. Readability always wins.
    ```
 
  - **No space** before the opening parenthesis of a function call:
-   ```rust
+   ```hica
    // Good
    println("hello")
 
@@ -65,7 +65,7 @@ the surrounding code and match its style. Readability always wins.
    ```
 
  - **One space** after commas, not before:
-   ```rust
+   ```hica
    // Good
    let nums = [1, 2, 3]
    fun add(a, b) => a + b
@@ -75,7 +75,7 @@ the surrounding code and match its style. Readability always wins.
    ```
 
  - **Type annotations:** Space after the colon, not before:
-   ```rust
+   ```hica
    // Good
    fun add(a: int, b: int) : int => a + b
    let x: int = 42
@@ -85,7 +85,7 @@ the surrounding code and match its style. Readability always wins.
    ```
 
  - **Operator precedence:** You may omit spaces around high-precedence operators when it aids readability:
-   ```rust
+   ```hica
    // Both acceptable
    let h = x*x + y*y
    let h = x * x + y * y
@@ -96,12 +96,12 @@ the surrounding code and match its style. Readability always wins.
 The `=>` arrow separates a function's signature from its body. Consistent placement of `=>` and `|>` is key to readable hica code.
 
  - **Single-line functions:** Keep on one line if it's short.
-   ```rust
+   ```hica
    fun double(n) => n * 2
    ```
 
  - **Multi-line functions:** Use braces for functions with multiple statements.
-   ```rust
+   ```hica
    fun handle_user(user) {
      let greeting = "Hello, {user.name}"
      println(greeting)
@@ -109,7 +109,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
    ```
 
  - **Expression functions:** Use `=>` when the body is a single expression, even if it spans multiple lines.
-   ```rust
+   ```hica
    fun fizzbuzz(n) =>
      if n % 15 == 0 { "fizzbuzz" }
      else if n % 3 == 0 { "fizz" }
@@ -118,7 +118,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
    ```
 
  - **Pipe Placement:** Always place the pipe |> at the **start** of the following line, indented.
-   ```rust
+   ```hica
    let result = raw_data
      |> parse_json()
      |> filter(is_valid)
@@ -127,7 +127,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
 
  - **Line breaks before operators:** When an expression spans multiple lines, break *before* the operator. This keeps operators visually aligned with their operands:
 
-   ```rust
+   ```hica
    // Good: operator at start of continuation
    let total = base_price
      + tax
@@ -144,7 +144,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
 Pattern matching is where Hica code can get "busy." Formatting is key to keeping it safe.
 
  - **Align the Arrows:** For better readability, try to align the => in match arms.
-   ```rust
+   ```hica
    match result {
      Ok(val)  => println("Success: {val}"),
      Err(msg) => println("Error: {msg}"),
@@ -153,7 +153,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    ```
 
  - **Guard Clauses:** Keep guards on the same line as the pattern.
-   ```rust
+   ```hica
    match n {
      n if n < 0 => "Negative",
      _          => "Positive"
@@ -163,7 +163,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 ### 7. Structs and Tuples
 
  - **Struct Definitions:** One field per line for anything more than two fields.
-   ```rust
+   ```hica
    struct Config {
      port: int,
      host: string,
@@ -172,7 +172,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    ```
 
  - **Tuple Access:** Avoid using .0, .1 for long-lived logic. Use **destructuring** to give values meaningful names.
-   ```rust
+   ```hica
    // Good
    let (width, height) = get_dimensions()
 
@@ -182,7 +182,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    ```
 
  - **Struct patterns:** Use struct destructuring in `match` when you need specific fields. List fields in declaration order:
-   ```rust
+   ```hica
    match p {
      Point { x: 0, y: 0 } => "origin",
      Point { x, y }       => "({x}, {y})"
@@ -190,7 +190,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    ```
 
  - **List slice patterns:** Prefer `[x, ..rest]` over manual `head`/`tail` calls. Put the empty case first:
-   ```rust
+   ```hica
    match xs {
      []          => 0,
      [x, ..rest] => x + sum(rest)
@@ -198,7 +198,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    ```
 
  - **Trailing commas:** Use a trailing comma on the last field when struct definitions or literals span multiple lines. This makes diffs cleaner when fields are added later:
-   ```rust
+   ```hica
    struct Config {
      port: int,
      host: string,
@@ -209,7 +209,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 ### 8. Error Propagation
 
  - **Prefer `?` over nested match:** When a function returns `maybe`, use `?` to unwrap intermediate values instead of nesting `match` expressions:
-   ```rust
+   ```hica
    // Good: flat and readable
    fun add_strings(a: string, b: string) : maybe<int> {
      let x = parse_int(a)?
@@ -235,7 +235,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
 
  - **Line Comments:** Use // for brief explanations.
  - **Inline comments:** Use sparingly. Separate from code by at least two spaces. Don't state the obvious:
-   ```rust
+   ```hica
    // Good
    let mask = 0xFF  // high byte only
 
@@ -243,7 +243,7 @@ Pattern matching is where Hica code can get "busy." Formatting is key to keeping
    let x = x + 1  // add one to x
    ```
  - **Function Docs:** Place a comment block immediately above a function to describe inputs/outputs if they aren't obvious.
-   ```rust
+   ```hica
    // calculate_area: (float, float) => float
    // Computes the area of a rectangle given dimensions.
    fun calculate_area(w, h) => w * h

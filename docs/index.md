@@ -46,7 +46,7 @@ By targeting Koka, hica doesn't need to reinvent:
 
 ## A Quick Example
 
-```rust
+```hica
 // filter keeps matching elements, map transforms each, fold reduces to a single value
 fun main() {
   let nums = [1, 2, 3, 4, 5]

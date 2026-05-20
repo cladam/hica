@@ -31,7 +31,7 @@ hash tables.
 A double slash marks the rest of the line as a comment, except when inside a
 string.
 
-```rust
+```hica
 // This is a full-line comment
 @server(port: 8080) {  // This is an inline comment
     name: "api"
@@ -46,7 +46,7 @@ are not permitted in comments.
 An HML document is a sequence of zero or more **elements** and/or **properties**
 at the top level. The root of the document is an implicit anonymous element.
 
-```rust
+```hica
 // Top-level properties
 version: "1.0"
 
@@ -66,7 +66,7 @@ An element may have:
 - **Body**: content in braces `{...}`
 - Both, or neither.
 
-```rust
+```hica
 // Element with attributes only (self-closing)
 @break
 @node(id: "n1", status: "healthy")
@@ -92,7 +92,7 @@ analogous to XML's self-closing tags.
 Element names follow the same rules as bare keys (see Keys below). Namespaced
 names use dot-notation:
 
-```rust
+```hica
 @k8s.pod(name: "worker") {
     @hica.limits {
         timeout: 10s
@@ -106,14 +106,14 @@ Attributes are key-value pairs enclosed in parentheses after the element name.
 They represent the **identity and metadata** of an element: information that
 describes *what* the element is rather than *what it contains*.
 
-```rust
+```hica
 @service(id: "auth-api", public: true, version: 3)
 ```
 
 Attributes are comma-separated. Trailing commas are permitted. Values follow the
 same type rules as property values (see Values below).
 
-```rust
+```hica
 // Trailing comma is valid
 @node(
     id: "n1",
@@ -124,7 +124,7 @@ same type rules as property values (see Values below).
 
 Attributes without a value are **boolean flags** that default to `true`:
 
-```rust
+```hica
 @field(required, unique) {
     name: "email"
     type: "string"
@@ -137,7 +137,7 @@ Attributes without a value are **boolean flags** that default to `true`:
 A property is a key-value pair within an element body. Properties represent the
 **content** of an element, i.e. the data it holds.
 
-```rust
+```hica
 @database {
     host: "localhost"
     port: 5432
@@ -151,7 +151,7 @@ a value. Whitespace around the colon is ignored.
 
 Multiple properties on the same line are invalid:
 
-```rust
+```hica
 // INVALID
 @config {
     host: "localhost" port: 5432
@@ -165,7 +165,7 @@ Keys may be bare, quoted, or dotted.
 **Bare keys** may contain ASCII letters, ASCII digits, underscores, and dashes
 (`A-Za-z0-9_-`).
 
-```rust
+```hica
 @server {
     host: "localhost"
     max-connections: 100
@@ -175,7 +175,7 @@ Keys may be bare, quoted, or dotted.
 
 **Quoted keys** allow broader character sets:
 
-```rust
+```hica
 @translations {
     "en-US": "Hello"
     "日本語": "こんにちは"
@@ -185,7 +185,7 @@ Keys may be bare, quoted, or dotted.
 
 **Dotted keys** create nested structure inline:
 
-```rust
+```hica
 @config {
     database.host: "localhost"
     database.port: 5432
@@ -208,7 +208,7 @@ full element expressiveness.
 **Merge rule:** Dotted keys and explicit elements for the same name within the
 same scope must not coexist. The following is invalid:
 
-```rust
+```hica
 // INVALID: cannot mix dotted keys with explicit element for same name
 @config {
     database.host: "localhost"
@@ -241,13 +241,13 @@ multi-line literal.
 
 **Basic strings** are surrounded by quotation marks (`"`).
 
-```rust
+```hica
 str: "I'm a string. \"You can quote me\"."
 ```
 
 Escape sequences:
 
-```rust
+```hica
 \b         - backspace       (U+0008)
 \t         - tab             (U+0009)
 \n         - linefeed        (U+000A)
@@ -261,7 +261,7 @@ Escape sequences:
 
 **Multi-line basic strings** are surrounded by three quotation marks:
 
-```rust
+```hica
 description: """
     This is a multi-line string.
     Leading whitespace is preserved.
@@ -272,14 +272,14 @@ A newline immediately following the opening `"""` is trimmed.
 
 **Literal strings** are surrounded by single quotes and allow no escaping:
 
-```rust
+```hica
 regex: '<\i\c*\s*>'
 winpath: 'C:\Users\docs'
 ```
 
 **Multi-line literal strings** are surrounded by three single quotes:
 
-```rust
+```hica
 template: '''
     No escaping here: \n is literal.
     Good for regex or templates.
@@ -288,7 +288,7 @@ template: '''
 
 ## Integer
 
-```rust
+```hica
 int1: 42
 int2: +99
 int3: -17
@@ -300,7 +300,7 @@ int7: 0b11010110
 
 ## Float
 
-```rust
+```hica
 flt1: 3.14
 flt2: -0.01
 flt3: 5e+22
@@ -312,7 +312,7 @@ flt7: nan
 
 ## Boolean
 
-```rust
+```hica
 enabled: true
 verbose: false
 ```
@@ -321,7 +321,7 @@ verbose: false
 
 HML natively supports duration literals, common in configuration:
 
-```rust
+```hica
 timeout: 30s
 interval: 500ms
 ttl: 24h
@@ -330,7 +330,7 @@ grace_period: 5m
 
 Valid duration suffixes:
 
-```rust
+```hica
 ns   - nanoseconds
 us   - microseconds
 ms   - milliseconds
@@ -344,7 +344,7 @@ Zero durations are valid (e.g., `0s`, `0ms`).
 
 Compound durations are not supported. Use the smallest needed unit:
 
-```rust
+```hica
 // VALID
 timeout: 90s
 no_delay: 0s
@@ -357,7 +357,7 @@ timeout: 1m30s
 
 HML uses RFC 3339 formatted date-times:
 
-```rust
+```hica
 created: 2024-05-27T07:32:00Z
 modified: 2024-05-27T00:32:00-07:00
 date_only: 2024-05-27
@@ -368,7 +368,7 @@ time_only: 07:32:00
 
 An explicit null value:
 
-```rust
+```hica
 @config {
     override: null
 }
@@ -378,7 +378,7 @@ An explicit null value:
 
 Arrays are square brackets with comma-separated values:
 
-```rust
+```hica
 ports: [8080, 8081, 8082]
 tags: ["web", "production", "v2"]
 matrix: [[1, 2], [3, 4]]
@@ -386,7 +386,7 @@ matrix: [[1, 2], [3, 4]]
 
 Arrays may span multiple lines with optional trailing commas:
 
-```rust
+```hica
 allowed_hosts: [
     "localhost",
     "api.example.com",
@@ -399,7 +399,7 @@ allowed_hosts: [
 An element may appear as a value in a property or attribute. This is the
 equivalent of TOML's inline tables:
 
-```rust
+```hica
 @upstream(url: "https://api.internal") {
     retry: @policy(max: 3, delay: 500ms)
 }
@@ -408,7 +408,7 @@ equivalent of TOML's inline tables:
 Inline elements follow the same rules as block elements but must appear on a
 single line when used as a value:
 
-```rust
+```hica
 primary: @endpoint(url: "https://a.example.com", weight: 10)
 fallback: @endpoint(url: "https://b.example.com", weight: 1)
 ```
@@ -418,7 +418,7 @@ fallback: @endpoint(url: "https://b.example.com", weight: 1)
 Multiple elements with the same name within a body form an implicit array,
 analogous to repeated XML elements:
 
-```rust
+```hica
 @cluster(region: "eu-west") {
     @node(id: "n1", status: "healthy")
     @node(id: "n2", status: "draining")
@@ -458,7 +458,7 @@ The following element names are built-in text-mode elements:
 
 Additional text elements may be declared via the `#text` directive:
 
-```rust
+```hica
 #text: section, aside, caption
 ```
 
@@ -471,7 +471,7 @@ three built-in names are valid text containers.
 Text elements switch the parser into text mode within their braces. Inline
 elements within text are delimited with the short form `@name{content}`:
 
-```rust
+```hica
 @article(category: "engineering") {
     title: "On Code Stillness"
 
@@ -503,7 +503,7 @@ Text content rules:
 Namespaces prevent naming collisions when multiple systems share a document.
 They use dot-notation in element names:
 
-```rust
+```hica
 @k8s.deployment(name: "api") {
     replicas: 3
 
@@ -518,7 +518,7 @@ They use dot-notation in element names:
 
 A namespace declaration at the top of the document can establish short prefixes:
 
-```rust
+```hica
 #namespace k8s: "https://kubernetes.io/schema/v1"
 #namespace hica: "https://hica.dev/schema/v1"
 ```
@@ -528,7 +528,7 @@ A namespace declaration at the top of the document can establish short prefixes:
 Lines beginning with `#` (outside strings) are **directives**, file-level
 metadata that instructs parsers and tooling:
 
-```rust
+```hica
 #hml 0.3
 #schema: "https://hica.dev/schemas/component.hml"
 #encoding: "utf-8"
@@ -558,7 +558,7 @@ None. All directives are optional.
 For large configuration environments, splitting definitions across multiple files
 is a necessity. The `#include` directive makes file composition native:
 
-```rust
+```hica
 #include "database.hml"
 #include "services.hml"
 
@@ -611,7 +611,7 @@ XML:
 ```
 
 HML:
-```rust
+```hica
 @service(id: "auth-api", public: true) {
     environment: "production"
 

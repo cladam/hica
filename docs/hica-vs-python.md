@@ -37,7 +37,7 @@ greet(42)  # TypeError at runtime
 
 **hica** catches most type errors at compile time:
 
-```rust
+```hica
 fun greet(name) => "Hello, " + name
 
 fun main() {
@@ -59,7 +59,7 @@ print(result)
 
 **hica:**
 
-```rust
+```hica
 fun double(x) => x * 2
 
 fun main() {
@@ -82,7 +82,7 @@ scores[0] = 100         # changes in place
 
 **hica** defaults to immutable with `let`. You create new values instead of mutating:
 
-```rust
+```hica
 let scores = [85, 92, 78]
 let updated = scores + [95]
 let doubled = map(scores, (x) => x * 2)
@@ -90,7 +90,7 @@ let doubled = map(scores, (x) => x * 2)
 
 When you need mutation, use `var`:
 
-```rust
+```hica
 var count = 0
 while count < 10 {
   println(count)
@@ -111,7 +111,7 @@ scores = list(map(double, [1, 2, 3, 4, 5]))
 
 **hica** has `fun` and full closures with the pipe operator:
 
-```rust
+```hica
 let double = (x) => x * 2
 let scores = [1, 2, 3, 4, 5] |> map((x) => x * 2)
 ```
@@ -134,7 +134,7 @@ except ValueError as e:
 
 **hica** uses `Result` types. The compiler forces you to handle both cases:
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -149,7 +149,7 @@ fun main() {
 
 For chaining, hica has combinators that reduce the verbosity:
 
-```rust
+```hica
 fun main() {
   let result = safe_divide(10, 2)
     |> map_result((n) => n * 10)                    // Ok(50)
@@ -160,7 +160,7 @@ fun main() {
 
 For functions that chain several fallible steps, the `?` operator keeps things flat:
 
-```rust
+```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   let x = parse_int(a)?   // None → return None early
   let y = parse_int(b)?
@@ -186,7 +186,7 @@ print(msg.replace("World", "Python"))  # "  Hello, Python!  "
 
 **hica** has the same operations as free functions:
 
-```rust
+```hica
 fun main() {
   let msg = "  Hello, World!  "
   println(trim(msg))
@@ -225,7 +225,7 @@ int("abc")          # ValueError at runtime
 
 **hica** has safe parse functions that return `maybe` instead of crashing:
 
-```rust
+```hica
 fun main() {
   println(parse_int("42"))     // Some(42)
   println(parse_int("abc"))    // None
@@ -260,7 +260,7 @@ print(p)         # Point(x=3, y=4)
 
 **hica** uses `struct`:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun main() {
@@ -272,7 +272,7 @@ fun main() {
 
 Python has classes with inheritance, methods, and dunder protocols. hica has simple immutable structs with free functions, no `self`, `__init__` or inheritance. Functions that operate on structs are just regular functions:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
@@ -310,7 +310,7 @@ def area(shape):
 
 **hica** has first-class enum types with exhaustiveness checking:
 
-```rust
+```hica
 type Shape {
   Circle(radius: float),
   Rect(width: float, height: float),
@@ -347,7 +347,7 @@ print(list(ages.keys()))  # ['kalle', 'lisa']
 
 **hica** has map literals with the same `{"key": value}` syntax, but maps are immutable lists of tuples:
 
-```rust
+```hica
 fun main() {
   let ages = {"kalle": 30, "olle": 25}
   let ages2 = ages.map_set("lisa", 35)
@@ -384,7 +384,7 @@ match command:
 
 **hica** makes `match` central. It works with integers, strings, `Some`/`None`, `Ok`/`Err`, wildcards, or-patterns, range patterns, and struct destructuring:
 
-```rust
+```hica
 fun describe(x) => match x {
   0       => "nothing",
   1 | 2   => "few",
@@ -410,7 +410,7 @@ fun classify(p: Point) : string => match p {
 
 hica also supports list slice patterns for recursive processing:
 
-```rust
+```hica
 fun sum(xs: list<int>) : int => match xs {
   []          => 0,
   [x, ..rest] => x + sum(rest)
@@ -437,7 +437,7 @@ while True:
 
 **hica** has the same constructs plus `repeat` and `loop`:
 
-```rust
+```hica
 for x in [1, -2, 3] {
   if x < 0 { continue }
   println(x)
@@ -469,7 +469,7 @@ complement = ~flags           # NOT
 
 **hica** uses named functions instead of operators:
 
-```rust
+```hica
 fun main() {
   let flags = 0b1010_1100
   let masked = bit_and(flags, 0x0F)
@@ -483,7 +483,7 @@ Python's operators are concise; hica's named functions are explicit and self-doc
 
 hica also supports bit-level pattern matching with `?` wildcards, which Python has no equivalent for:
 
-```rust
+```hica
 match byte {
   0b1100_???? => "high nibble is C",
   _           => "other"

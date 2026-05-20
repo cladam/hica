@@ -21,7 +21,7 @@ Because the target is Koka itself, hica programs can be compiled onward to **C**
 
 ## A Quick Taste
 
-```rust
+```hica
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }

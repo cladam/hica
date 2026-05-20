@@ -39,7 +39,7 @@ let x = add(2, 3); // x inferred as i32
 
 hica infers types across function boundaries. Annotations are optional rather than required:
 
-```rust
+```hica
 fun add(a, b) => a + b
 
 fun main() {
@@ -49,7 +49,7 @@ fun main() {
 
 You can add them when you want clarity:
 
-```rust
+```hica
 fun add(a: int, b: int) : int => a + b
 ```
 
@@ -68,7 +68,7 @@ fn main() {
 
 hica has no ownership system. Koka's Perceus reference counting handles memory automatically, so you never think about borrows, lifetimes, or moves:
 
-```rust
+```hica
 fun main() {
   let s1 = "hello"
   let s2 = s1
@@ -94,7 +94,7 @@ let take = move || println!("{}", name); // captures by move (FnOnce)
 
 hica has one closure type. Closures capture values implicitly, without exposing capture modes (no by-ref vs by-move distinction):
 
-```rust
+```hica
 fun make_adder(n) => (x) => x + n
 
 fun main() {
@@ -120,7 +120,7 @@ fn read_config() -> Result<Config, io::Error> {
 
 hica uses `match` explicitly:
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -135,7 +135,7 @@ fun main() {
 
 hica also has combinators for chaining without deeply nested `match`:
 
-```rust
+```hica
 fun main() {
   let result = safe_divide(10, 2)
     |> map_result((n) => n * 10)                    // Ok(50)
@@ -146,7 +146,7 @@ fun main() {
 
 For `maybe` types, hica also has a `?` operator that works like Rust's: unwrap or return early:
 
-```rust
+```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   let x = parse_int(a)?   // None → return None
   let y = parse_int(b)?
@@ -172,7 +172,7 @@ println!("{}", msg.replace("World", "Rust"));
 
 hica has one string type and free functions:
 
-```rust
+```hica
 fun main() {
   let msg = "  Hello, World!  "
   println(trim(msg))
@@ -208,7 +208,7 @@ let f: f64 = "3.14".parse().unwrap();      // 3.14
 
 hica uses `parse_int` and `parse_float`, returning `maybe`:
 
-```rust
+```hica
 fun main() {
   println(parse_int("42"))     // Some(42)
   println(parse_int("abc"))    // None
@@ -245,7 +245,7 @@ match score {
 
 hica supports integer, string, wildcard, `Maybe`/`Result`, tuple, or-patterns, range patterns, and struct destructuring:
 
-```rust
+```hica
 fun describe(x) => match x {
   0 => "zero",
   1 | 2 | 3 => "low",
@@ -300,7 +300,7 @@ fn main() {
 
 hica uses `struct` without `impl` blocks. Functions that operate on structs are regular free functions:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
@@ -339,7 +339,7 @@ impl Shape {
 
 hica has the same core concept with a lighter syntax:
 
-```rust
+```hica
 type Shape {
   Circle(radius: float),
   Rect(width: float, height: float),
@@ -381,7 +381,7 @@ fn main() {
 
 hica has built-in map literals with `{"key": value}` syntax. Maps are immutable lists of tuples:
 
-```rust
+```hica
 fun main() {
   let ages = {"kalle": 30, "olle": 25}
   println(ages.map_get("kalle"))     // Just(30)
@@ -415,7 +415,7 @@ y += 1;
 
 hica has no `mut`. All bindings are immutable. State changes are expressed by creating new values rather than mutating existing ones:
 
-```rust
+```hica
 fun main() {
   let nums = [1, 2, 3]
   let doubled = map(nums, (x) => x * 2)
@@ -437,7 +437,7 @@ let result: Vec<i32> = vec![1, 2, 3, 4, 5]
 
 hica has both a pipe operator `|>` and dot-call syntax. They're equivalent and both work with any function:
 
-```rust
+```hica
 fun main() {
   // Pipe style
   let a = [1, 2, 3, 4, 5]
@@ -474,7 +474,7 @@ Rust's `loop` can return a value via `break expr`. Labeled breaks (`'outer: loop
 
 hica has the same set: `while`, `for`, `repeat`, `loop`, `break`, and `continue`:
 
-```rust
+```hica
 for x in [1, -2, 3] {
   if x < 0 { continue }
   println(x)
@@ -501,7 +501,7 @@ let complement = !flags;         // NOT
 
 hica uses named functions. All operations work on 32-bit integers internally:
 
-```rust
+```hica
 fun main() {
   let flags = 0b1010_1100
   let masked = bit_and(flags, 0x0F)
@@ -515,7 +515,7 @@ Rust's operators are familiar to C programmers and work on every integer type (`
 
 hica adds bit-level pattern matching with `?` wildcards, inspired by hardware description languages:
 
-```rust
+```hica
 match opcode {
   0b11??_???? => "category 3",
   0b10??_???? => "category 2",

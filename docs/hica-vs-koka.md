@@ -45,7 +45,7 @@ fun main()
 
 hica uses braces, `=>` arrows, and `let`, patterns that developers recognise from Rust, TypeScript, and C#:
 
-```rust
+```hica
 fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }
 
 fun main() {
@@ -71,7 +71,7 @@ fun read-config() : <fsys, exn> string
 
 hica curates this power: you get the safety benefits of side-effect tracking (visible via `hica check`) without writing effect annotations yourself:
 
-```rust
+```hica
 fun greet() {
   println("hello")
 }
@@ -92,13 +92,13 @@ pub fun add(a : int, b : int) : int
 
 hica infers types across function boundaries. Annotations are always optional:
 
-```rust
+```hica
 pub fun add(a, b) => a + b
 ```
 
 You can add them when you want documentation:
 
-```rust
+```hica
 pub fun add(a: int, b: int) : int => a + b
 ```
 
@@ -116,7 +116,7 @@ fun main()
 
 hica uses `+` and has built-in string interpolation:
 
-```rust
+```hica
 fun main() {
   let name = "world"
   println("Hello, {name}! {42}")
@@ -141,7 +141,7 @@ fun main()
 
 hica has the same operations with lighter syntax and a pipe operator:
 
-```rust
+```hica
 fun main() {
   let result = [1, 2, 3, 4, 5]
     |> filter((x) => x % 2 == 0)
@@ -156,7 +156,7 @@ Koka has no built-in map literal syntax. You would use `std/data/dict` or build 
 
 hica has map literals:
 
-```rust
+```hica
 fun main() {
   let ages = {"kalle": 30, "olle": 25}
   println(ages.map_get("kalle"))   // Just(30)
@@ -173,7 +173,7 @@ val p2 = p(x = 10)
 
 hica:
 
-```rust
+```hica
 let p2 = Point { ...p, x: 10 }
 ```
 
@@ -183,7 +183,7 @@ The hica spread syntax is more explicit about what is happening.
 
 Both languages have exhaustive pattern matching. Koka's is more powerful (nested destructuring, guards on handlers, effect matching), whilst hica covers the common cases with a syntax closer to Rust:
 
-```rust
+```hica
 fun describe(x) => match x {
   0       => "zero",
   1 | 2   => "few",
@@ -199,7 +199,7 @@ fun sum(xs: list<int>) : int => match xs {
 
 hica also has bit-level pattern matching with `?` wildcards, something Koka does not have:
 
-```rust
+```hica
 match opcode {
   0b11??_???? => "category 3",
   0b10??_???? => "category 2",
@@ -219,7 +219,7 @@ fun main()
 
 hica has imperative-style loops with `break` and `continue` that work as you would expect:
 
-```rust
+```hica
 fun main() {
   for i in 1..10 {
     if i % 3 == 0 { continue }
@@ -250,7 +250,7 @@ import std/os/file
 
 hica uses string-based imports with selective imports and re-exports:
 
-```rust
+```hica
 import "std/os/path"
 from "std/os/file" import { read_file, write_file }
 pub import "mylib/utils"
@@ -268,7 +268,7 @@ fun safe-divide(a : int, b : int) : exn int
 
 hica uses `Result` and `Maybe` types with combinators, the same approach as Rust:
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -318,7 +318,7 @@ Add it as a submodule and import:
 git submodule add https://github.com/cladam/hml.git lib/hml
 ```
 
-```rust
+```hica
 import "./lib/hml/src/hml"
 ```
 

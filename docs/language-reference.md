@@ -11,7 +11,7 @@ A comprehensive reference for hica's syntax and semantics.
 
 ### Named functions
 
-```rust
+```hica
 fun add(a, b) {
   a + b
 }
@@ -19,13 +19,13 @@ fun add(a, b) {
 
 ### Expression-bodied functions (arrow syntax)
 
-```rust
+```hica
 fun double(x) => x * 2
 ```
 
 ### Type annotations
 
-```rust
+```hica
 fun add(a: int, b: int) : int => a + b
 ```
 
@@ -35,7 +35,7 @@ Type annotations are optional. Hindley-Milner inference handles most cases.
 
 Mark a function as `pub` to make it public (exported from the module):
 
-```rust
+```hica
 pub fun greet(name: string) : string => "Hello, " + name
 ```
 
@@ -43,14 +43,14 @@ Functions without `pub` are private to the module.
 
 ### Lambdas / closures
 
-```rust
+```hica
 let sq = (n) => n * n
 let add = (a, b) => a + b
 ```
 
 Closures capture variables from their enclosing scope:
 
-```rust
+```hica
 fun make_adder(n) => (x) => x + n
 
 fun main() {
@@ -63,14 +63,14 @@ fun main() {
 
 Functions can call themselves (self-recursion):
 
-```rust
+```hica
 fun factorial(n) => if n <= 1 { 1 } else { n * factorial(n - 1) }
 ```
 
 Functions can also call each other (mutual recursion). The compiler
 detects cycles automatically. No forward declarations needed:
 
-```rust
+```hica
 fun check_even(n) => if n == 0 { true } else { check_odd(n - 1) }
 
 fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
@@ -80,7 +80,7 @@ fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
 
 Variables are bound with `let` and are immutable:
 
-```rust
+```hica
 let x = 42
 let name = "Alicia"
 let pi = 3.14
@@ -88,7 +88,7 @@ let pi = 3.14
 
 Integer literals support binary (`0b`), hexadecimal (`0x`), and underscore separators for readability:
 
-```rust
+```hica
 let flags  = 0b1010        // binary → 10
 let colour = 0xFF          // hex → 255
 let big    = 1_000_000     // underscores are ignored → 1000000
@@ -99,7 +99,7 @@ let mask   = 0b1111_0000   // binary with separators → 240
 
 Use `var` to declare a mutable variable. Reassign it with `=`:
 
-```rust
+```hica
 var count = 0
 count = count + 1
 println(count)
@@ -111,7 +111,7 @@ println(count)
 
 The last expression in a { } block is its return value. No need to write "return". Use println() to see output.
 
-```rust
+```hica
 fun main() {
   let a = 10
   let b = 20
@@ -126,13 +126,13 @@ fun main() {
 
 `if`/`else` are expressions that return values:
 
-```rust
+```hica
 let sign = if x < 0 { "negative" } else { "non-negative" }
 ```
 
 ### Else-if chains
 
-```rust
+```hica
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
@@ -144,7 +144,7 @@ fun fizzbuzz(n) =>
 
 Pattern matching with integer, string, and wildcard patterns:
 
-```rust
+```hica
 fun describe(x) => match x {
   0 => "zero",
   1 => "one",
@@ -154,7 +154,7 @@ fun describe(x) => match x {
 
 Match guards add conditions to patterns with `if`:
 
-```rust
+```hica
 fun classify(n) => match n {
   x if x < 0   => "negative",
   0             => "zero",
@@ -165,7 +165,7 @@ fun classify(n) => match n {
 
 Guards work with all pattern types, including constructors:
 
-```rust
+```hica
 match parse_int(input) {
   Some(n) if n < 0 => "negative",
   Some(n)          => "valid: {n}",
@@ -175,7 +175,7 @@ match parse_int(input) {
 
 Works with `Maybe` and `Result` types:
 
-```rust
+```hica
 match safe_divide(10, 3) {
   Ok(n)  => println(n),
   Err(e) => println(e)
@@ -189,7 +189,7 @@ match find_user(id) {
 
 Or-patterns match multiple values in one arm with `|`:
 
-```rust
+```hica
 fun day_type(day) => match day {
   "Saturday" | "Sunday" => "weekend",
   _                     => "weekday"
@@ -204,7 +204,7 @@ fun classify(n) => match n {
 
 Range patterns match a contiguous range of integers with `..=` (inclusive on both ends):
 
-```rust
+```hica
 fun grade(score: int) => match score {
   0..=59   => "F",
   60..=69  => "D",
@@ -217,7 +217,7 @@ fun grade(score: int) => match score {
 
 Tuple destructuring patterns:
 
-```rust
+```hica
 fun describe(point) => match point {
   (0, 0) => "origin",
   (x, 0) => "on x-axis at {x}",
@@ -228,7 +228,7 @@ fun describe(point) => match point {
 
 Struct destructuring patterns:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun describe(p: Point) : string => match p {
@@ -241,7 +241,7 @@ fun describe(p: Point) : string => match p {
 
 Write just the field name (`x`) to bind it to a variable with that name, or `field: pattern` to match a specific value. Fields not mentioned in the pattern are ignored (treated as wildcards):
 
-```rust
+```hica
 struct Player { name: string, score: int, level: int }
 
 fun rank(p: Player) : string => match p {
@@ -252,7 +252,7 @@ fun rank(p: Player) : string => match p {
 
 List slice patterns destructure lists by shape. Use `[]` for empty, `[x]` for a single element, `[x, y]` for exactly two, and `[x, ..rest]` to split into head and tail:
 
-```rust
+```hica
 fun describe(xs: list<int>) : string => match xs {
   []           => "empty",
   [x]          => "just {x}",
@@ -263,7 +263,7 @@ fun describe(xs: list<int>) : string => match xs {
 
 Slice patterns make recursive list processing clean:
 
-```rust
+```hica
 fun sum(xs: list<int>) : int => match xs {
   []          => 0,
   [x, ..rest] => x + sum(rest)
@@ -272,13 +272,13 @@ fun sum(xs: list<int>) : int => match xs {
 
 Use `..` without a name to ignore the tail:
 
-```rust
+```hica
 [x, ..] => "starts with {x}"
 ```
 
 Bit patterns match integers by their binary representation using `0b` literals with `?` wildcards. Each `?` matches either 0 or 1:
 
-```rust
+```hica
 fun decode(opcode) => match opcode {
   0b1100_???? => "high nibble is C",
   0b0000_0001 => "exactly 1",
@@ -288,7 +288,7 @@ fun decode(opcode) => match opcode {
 
 The `?` wildcard means "don't care": the bit at that position is not checked. This is useful for matching bit fields in protocols, instruction encodings, or hardware registers:
 
-```rust
+```hica
 fun classify_instruction(byte) => match byte {
   0b11??_???? => "category 3",
   0b10??_???? => "category 2",
@@ -299,7 +299,7 @@ fun classify_instruction(byte) => match byte {
 
 Bit patterns combine with guards:
 
-```rust
+```hica
 match flags {
   0b????_1??? if flags > 100 => "high bit 3 set and large",
   0b????_1??? => "bit 3 set",
@@ -311,7 +311,7 @@ match flags {
 
 ### For-range loops
 
-```rust
+```hica
 for i in 0..10 {
   println(i)
 }
@@ -319,7 +319,7 @@ for i in 0..10 {
 
 ### For-in collection loops
 
-```rust
+```hica
 let names = ["Kalle", "Olle", "Lisa"]
 for name in names {
   println(name)
@@ -328,7 +328,7 @@ for name in names {
 
 ### Repeat
 
-```rust
+```hica
 repeat(5) {
   println("hello")
 }
@@ -336,7 +336,7 @@ repeat(5) {
 
 ### While loops
 
-```rust
+```hica
 var x = 5
 while x > 0 {
   println(x)
@@ -348,7 +348,7 @@ The condition must be a `bool`. The body runs until the condition becomes `false
 
 ### Loop (infinite)
 
-```rust
+```hica
 loop {
   println("running")
   if done { break }
@@ -361,7 +361,7 @@ Repeats forever until `break` is called.
 
 `break` exits the enclosing loop. `continue` skips to the next iteration. Both work in all loop types: `while`, `for`, `repeat`, and `loop`.
 
-```rust
+```hica
 for i in 0..10 {
   if i % 2 == 0 { continue }
   if i > 7 { break }
@@ -385,7 +385,7 @@ for i in 0..10 {
 
 Concatenation with `+` and interpolation with `"{expr}"`:
 
-```rust
+```hica
 let name = "world"
 let greeting = "Hello, " + name
 let msg = "2 + 2 = {2 + 2}"
@@ -404,7 +404,7 @@ Use backslash to include special characters in strings:
 | `\{` | Literal `{` (prevents interpolation) |
 | `\}` | Literal `}` |
 
-```rust
+```hica
 println("She said \"hello\"")
 println("line one\nline two")
 println("col1\tcol2")
@@ -414,21 +414,21 @@ println("use \{braces\} literally")
 
 Escapes work in both plain and interpolated strings:
 
-```rust
+```hica
 let name = "world"
 println("hello, {name}!\nbye!")
 ```
 
 Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
 
-```rust
+```hica
 println("apple" < "banana")    // true
 println("abc" <= "abc")        // true
 ```
 
 String utility functions are built in using hica's prelude library:
 
-```rust
+```hica
 fun main() {
   let s = "  Hello, World!  "
   println(str_length(s))
@@ -450,7 +450,7 @@ See the [Standard Library](standard-library.md) for the full list.
 
 ### Tuples
 
-```rust
+```hica
 let pair = (1, "hello")
 let x = pair.0    // 1
 let y = pair.1    // "hello"
@@ -463,7 +463,7 @@ let (a, b) = (10, 20)
 
 Named records with typed fields:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun main() {
@@ -476,7 +476,7 @@ fun main() {
 
 Structs work as function parameters and return types:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
@@ -490,7 +490,7 @@ Struct names must start with an uppercase letter. Fields are accessed with dot n
 
 Create a new struct from an existing one, overriding specific fields with `{ ...base, field: value }`:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun main() {
@@ -506,7 +506,7 @@ The original value is unchanged (structs are immutable). The compiler checks tha
 
 Use struct patterns to destructure a struct in `match` arms:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun classify(p: Point) : string => match p {
@@ -521,7 +521,7 @@ See [Pattern Matching](#match-expressions) for the full syntax.
 
 Define a type with named variants using `type`:
 
-```rust
+```hica
 type Color {
   Red,
   Green,
@@ -531,7 +531,7 @@ type Color {
 
 Variants can carry data. Each variant specifies its own fields:
 
-```rust
+```hica
 type Shape {
   Circle(radius: float),
   Rect(width: float, height: float),
@@ -541,7 +541,7 @@ type Shape {
 
 Construct enum values like function calls (no data → bare name, with data → parenthesised arguments):
 
-```rust
+```hica
 let c = Red
 let s = Circle(5.0)
 let r = Rect(3.0, 4.0)
@@ -549,7 +549,7 @@ let r = Rect(3.0, 4.0)
 
 Pattern match on enums to handle each variant:
 
-```rust
+```hica
 fun describe(s: Shape) : string => match s {
   Circle(r)  => "circle with radius {r}",
   Rect(w, h) => "{w} x {h} rectangle",
@@ -571,7 +571,7 @@ Enum names and variant names must start with an uppercase letter. `println` auto
 
 Homogeneous, immutable lists:
 
-```rust
+```hica
 let nums = [1, 2, 3, 4, 5]
 let empty = []
 let words = ["hello", "world"]
@@ -581,7 +581,7 @@ let words = ["hello", "world"]
 
 Key-value dictionaries using `{"key": value}` syntax:
 
-```rust
+```hica
 let ages = {"kalle": 30, "olle": 25, "lisa": 35}
 let empty = {:}
 ```
@@ -600,7 +600,7 @@ Map functions:
 | `map_contains_key(m, key)` | Check if a key exists |
 | `map_size(m)` | Number of entries |
 
-```rust
+```hica
 fun main() {
   let m = {"x": 1, "y": 2}
   println(m.map_get("x"))           // Just(1)
@@ -613,7 +613,7 @@ fun main() {
 
 Optional values:
 
-```rust
+```hica
 let x = Some(42)
 let y = None
 ```
@@ -622,7 +622,7 @@ let y = None
 
 Success or failure:
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -632,7 +632,7 @@ fun safe_divide(a, b) =>
 
 Instead of nesting `match` expressions, use combinators to transform and chain `Maybe` and `Result` values. All are pipe-friendly (value first):
 
-```rust
+```hica
 // Maybe: transform the inner value
 let doubled = Some(5) |> map_maybe((x) => x * 2)       // Some(10)
 
@@ -653,7 +653,7 @@ See the [Standard Library](standard-library) for the full list of combinators.
 
 Read a line from stdin with `input(prompt)`. The prompt is printed, and the user's response is returned as a `string`:
 
-```rust
+```hica
 fun main() {
   let name = input("What is your name? ")
   println("Hello, " + name + "!")
@@ -662,7 +662,7 @@ fun main() {
 
 Combine with `parse_int` or `parse_float` to read numbers:
 
-```rust
+```hica
 fun main() {
   let age_str = input("How old are you? ")
   match parse_int(age_str) {
@@ -676,7 +676,7 @@ fun main() {
 
 Generate random integers with `random(min, max)`. The result is in the range `[min, max]`, both ends included:
 
-```rust
+```hica
 fun main() {
   let die = random(1, 6)     // 1–6
   let coin = random(0, 1)    // 0 or 1
@@ -690,7 +690,7 @@ Using `random` gives your program the `ndet` (non-determinism) effect, which `hi
 
 Format floats to a fixed number of decimal places with `show_fixed(value, decimals)`:
 
-```rust
+```hica
 fun main() {
   println(show_fixed(3.14159, 2))       // "3.14"
   println(show_fixed(100.0 / 3.0, 1))   // "33.3"
@@ -699,7 +699,7 @@ fun main() {
 
 Combine with `pad_left` and `pad_right` for aligned output:
 
-```rust
+```hica
 fun main() {
   println(pad_left(show(42), 6, " "))     // "    42"
   println(pad_right("hi", 10, "."))       // "hi........"
@@ -744,7 +744,7 @@ Comparison operators work on `int`, `float`, and `string` (lexicographic orderin
 
 hica has two equivalent ways to chain function calls left to right:
 
-```rust
+```hica
 fun double(x) => x * 2
 fun add_one(x) => x + 1
 
@@ -764,7 +764,7 @@ fun main() {
 
 Both `a |> f` and `a.f()` desugar to `f(a)`. The pipe is compact for simple chains; dot-call reads naturally when passing extra arguments:
 
-```rust
+```hica
 fun main() {
   // Dot-call with arguments: a.f(b) desugars to f(a, b)
   let nums = [1, 2, 3, 4, 5]
@@ -788,7 +788,7 @@ Bitwise operations are provided as built-in functions. They work on 32-bit integ
 | `bit_shl(a, n)` | Shift left by `n` bits |
 | `bit_shr(a, n)` | Logical shift right by `n` bits |
 
-```rust
+```hica
 fun main() {
   let flags = 255
   let masked = bit_and(flags, 15)   // keep low nibble → 15
@@ -804,7 +804,7 @@ fun main() {
 
 With UFCS (dot-call syntax), bitwise functions chain naturally:
 
-```rust
+```hica
 fun main() {
   let result = 255.bit_and(15).bit_shl(2)
   println(result)   // 60
@@ -817,7 +817,7 @@ fun main() {
 
 The `?` operator unwraps a `maybe` value: if it is `Some(v)`, the expression evaluates to `v`; if it is `None`, the enclosing function returns `None` immediately. This replaces nested `match` expressions with a single postfix `?`.
 
-```rust
+```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   let x = parse_int(a)?     // None → return None early
   let y = parse_int(b)?
@@ -832,7 +832,7 @@ fun main() {
 
 Without `?`, the same logic requires nesting:
 
-```rust
+```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   match parse_int(a) {
     None => None,
@@ -855,7 +855,7 @@ Rules:
 
 Define tests alongside your code using `test` blocks:
 
-```rust
+```hica
 fun double(n: int) : int => n * 2
 
 test "double works" {
@@ -901,7 +901,7 @@ hica test my_file.hc
 
 Any `.hc` file is a module. Mark functions with `pub` to make them available to other files:
 
-```rust
+```hica
 // greet.hc
 pub fun hello(name: string) {
   println("hello, " + name + "!")
@@ -922,7 +922,7 @@ Only `pub` items are visible to importers. Functions without `pub` stay private 
 
 Use `import` to bring all `pub` items from another file into scope:
 
-```rust
+```hica
 import "greet"
 
 fun main() {
@@ -941,7 +941,7 @@ The path is relative to the importing file, without the `.hc` extension:
 
 Use `from ... import { ... }` to import only specific names:
 
-```rust
+```hica
 from "greet" import { hello }
 
 fun main() {
@@ -956,7 +956,7 @@ This is useful when a module exports many items but you only need a few, or when
 
 Prefix `import` with `pub` to re-export the imported items to your own importers:
 
-```rust
+```hica
 // prelude.hc
 pub import "math_helpers"
 pub import "string_helpers"

@@ -57,7 +57,7 @@ chmod +x hica
 
 Create `hello.hc`:
 
-```rust
+```hica
 fun main() {
   println("Hello, world!")
 }
@@ -115,12 +115,12 @@ The repo ships with ready-to-run [examples](https://github.com/cladam/hica/tree/
 
 Split code across files with `import`. Mark shared functions with `pub`:
 
-```rust
+```hica
 // helpers.hc
 pub fun double(x) => x * 2
 ```
 
-```rust
+```hica
 // main.hc
 import "helpers"
 

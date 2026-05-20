@@ -17,7 +17,7 @@ git submodule add https://github.com/cladam/yaml.git lib/yaml
 
 Then import it in your hica source:
 
-```rust
+```hica
 import "./lib/yaml/src/yaml"
 ```
 
@@ -36,7 +36,7 @@ A YAML parser and serializer for hica. Parses the YAML that real-world config fi
 - **Install**: `git submodule add https://github.com/cladam/yaml.git lib/yaml`
 - **Import**: `import "./lib/yaml/src/yaml"`
 
-```rust
+```hica
 import "./lib/yaml/src/yaml"
 
 fun main() {
@@ -66,7 +66,7 @@ A full TOML v1.1.0 parser for hica. Handles all TOML types including date-times,
 - **Install**: `git submodule add https://github.com/cladam/toml.git lib/toml`
 - **Import**: `import "./lib/toml/src/toml"`
 
-```rust
+```hica
 import "./lib/toml/src/toml"
 
 fun main() {
@@ -89,7 +89,7 @@ An HML (Hica Markup Language) parser. HML combines the semantic strength of XML 
 - **Install**: `git submodule add https://github.com/cladam/hml.git lib/hml`
 - **Import**: `import "./lib/hml/src/hml"`
 
-```rust
+```hica
 import "./lib/hml/src/hml"
 
 fun main() {
@@ -115,7 +115,7 @@ HTTP client library built on libcurl. Supports GET, POST, PUT, DELETE, PATCH, HE
 - **Install**: `git submodule add https://github.com/cladam/http.git lib/http`
 - **Import**: `extern import "http"` + `import http_client`
 
-```rust
+```hica
 extern import "http"
 import http_client
 
@@ -148,7 +148,7 @@ Base64 encoding and decoding for hica. Pure functions with no effects, encode st
 - **Install**: `git submodule add https://github.com/cladam/base64.git lib/base64`
 - **Import**: `import "./lib/base64/src/base64"`
 
-```rust
+```hica
 import "./lib/base64/src/base64"
 
 fun main() {

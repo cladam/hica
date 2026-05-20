@@ -96,7 +96,7 @@ Don't want to install anything? The [hica Playground](/hica/playground) lets you
 
 ## Your first program
 
-```rust
+```hica
 fun main() {
   println("Hello, world!")
 }
@@ -108,7 +108,7 @@ Every hica program starts at `main`. The last expression in a block is its retur
 
 Use `let` to create a variable. Variables declared with `let` are immutable: once set, they don't change:
 
-```rust
+```hica
 fun main() {
   let name = "Alicia"
   let age = 15
@@ -118,7 +118,7 @@ fun main() {
 
 When you need a variable that changes, use `var`:
 
-```rust
+```hica
 fun main() {
   var count = 0
   count = count + 1
@@ -134,7 +134,7 @@ Notice the `{name}` inside the string? That's **string interpolation**. Any expr
 
 Functions look like this:
 
-```rust
+```hica
 fun add(a, b) {
   a + b
 }
@@ -142,14 +142,14 @@ fun add(a, b) {
 
 When the body is just a single expression, you can use the arrow shorthand:
 
-```rust
+```hica
 fun double(x) => x * 2
 fun greet(name) => "Hello, " + name
 ```
 
 You don't need to write types; hica's Hindley-Milner type system infers them for you, including function arguments and return types. But you *can* add annotations when it makes things clearer or when you want the compiler to double-check your intent:
 
-```rust
+```hica
 fun add(a: int, b: int) : int => a + b
 ```
 
@@ -157,7 +157,7 @@ fun add(a: int, b: int) : int => a + b
 
 Once you've written a function, how do you know it works? Use `test` blocks. They sit right next to your functions. No separate files, no imports:
 
-```rust
+```hica
 fun double(x) => x * 2
 
 test "double works" {
@@ -182,7 +182,7 @@ running 1 test(s)...
 
 When a test fails, you see exactly what went wrong:
 
-```rust
+```hica
 test "oops" {
   assert_eq(double(3), 5)
 }
@@ -212,13 +212,13 @@ Get in the habit of writing tests alongside your functions. When you come back t
 
 `if`/`else` is an expression, meaning it produces a value:
 
-```rust
+```hica
 fun abs(x) => if x < 0 { -x } else { x }
 ```
 
 For longer chains, use `else if`:
 
-```rust
+```hica
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
@@ -230,7 +230,7 @@ fun fizzbuzz(n) =>
 
 When you have several cases to check, `match` is cleaner than nested `if`/`else`:
 
-```rust
+```hica
 fun describe(x) => match x {
   0 => "zero",
   1 => "one",
@@ -240,7 +240,7 @@ fun describe(x) => match x {
 
 The `_` is a wildcard: it catches everything else. Always include one so no case is missed. If you forget, the compiler tells you exactly what's missing. For example, matching on a `Maybe` without handling `Some`:
 
-```rust
+```hica
 fun main() {
   match Some(1) {
     None => "nothing"
@@ -260,7 +260,7 @@ This acts as a safety net. The compiler checks that you've covered every possibl
 
 Sometimes the pattern alone isn't enough. Add `if` after a pattern to refine it:
 
-```rust
+```hica
 fun classify(n) => match n {
   x if x < 0    => "negative",
   0             => "zero",
@@ -275,7 +275,7 @@ The variable `x` is bound by the pattern and available in the guard. This is muc
 
 You can match on the shape of a list with slice patterns. This is great for recursive functions:
 
-```rust
+```hica
 fun sum(xs: list<int>) : int => match xs {
   []          => 0,
   [x, ..rest] => x + sum(rest)
@@ -288,7 +288,7 @@ fun sum(xs: list<int>) : int => match xs {
 
 hica has five ways to repeat things:
 
-```rust
+```hica
 // Count from 0 to 4
 for i in 0..5 {
   println(i)
@@ -323,7 +323,7 @@ println(i)  // 1024
 
 All loops support `break` to exit early and `continue` to skip to the next iteration:
 
-```rust
+```hica
 for n in [1, -2, 3, -4, 5] {
   if n < 0 { continue }  // skip negatives
   println(n)
@@ -334,7 +334,7 @@ for n in [1, -2, 3, -4, 5] {
 
 Lists are ordered, homogeneous collections. The standard library gives you the usual toolkit:
 
-```rust
+```hica
 fun main() {
   let nums = [1, 2, 3, 4, 5]
 
@@ -353,7 +353,7 @@ fun main() {
 
 hica gives you two ways to chain functions left to right. Pick whichever reads better to you. They're equivalent:
 
-```rust
+```hica
 fun main() {
   // Pipe style
   let a = [1, 2, 3, 4, 5]
@@ -381,7 +381,7 @@ Rule of thumb:
 
 Beyond `map`/`filter`/`fold`, the standard library has everything you'd expect:
 
-```rust
+```hica
 fun main() {
   let nums = [3, 1, 4, 1, 5]
 
@@ -402,7 +402,7 @@ fun main() {
 
 When you need to bundle two or three values together, use a tuple:
 
-```rust
+```hica
 let pair = (1, "hello")
 println(pair.0)   // 1
 println(pair.1)   // "hello"
@@ -415,7 +415,7 @@ println(x + y)    // 30
 
 If you'd need a comment to explain what `.0` and `.1` mean, it's time for a struct:
 
-```rust
+```hica
 struct Point { x: int, y: int }
 
 fun distance_sq(p: Point) : int => p.x * p.x + p.y * p.y
@@ -430,13 +430,13 @@ Struct names start uppercase. Fields are accessed with dot notation. Functions t
 
 Since structs are immutable, you create a modified copy with update syntax:
 
-```rust
+```hica
 let moved = Point { ...p, x: 10 }   // y stays the same
 ```
 
 You can also destructure structs directly in `match`:
 
-```rust
+```hica
 fun classify(p: Point) : string => match p {
   Point { x: 0, y: 0 } => "origin",
   Point { x, y: 0 }    => "on x-axis",
@@ -450,7 +450,7 @@ Write just the field name to bind it as a variable. Fields you don't mention are
 
 A struct says "every value has these fields." An enum says "a value is one of these alternatives":
 
-```rust
+```hica
 type Shape {
   Circle(radius: float),
   Rect(width: float, height: float),
@@ -475,7 +475,7 @@ Each variant can carry different data (or none at all, like `Point`). Use `match
 
 Simple enums work like named constants:
 
-```rust
+```hica
 type Direction { North, South, East, West }
 
 fun opposite(d: Direction) : Direction => match d {
@@ -494,7 +494,7 @@ Rule of thumb:
 
 When you need to associate keys with values, like a phone book or a scoreboard then use a map:
 
-```rust
+```hica
 let scores = {"kalle": 95, "olle": 87, "lisa": 92}
 println(scores.map_get("kalle"))   // Just(95)
 println(scores.map_get("nobody"))  // Nothing
@@ -504,7 +504,7 @@ Maps use curly braces with `"key": value` pairs. Use `{:}` for an empty map.
 
 Update, add, and remove entries:
 
-```rust
+```hica
 let scores2 = scores.map_set("pelle", 88)
 let scores3 = scores2.map_remove("olle")
 println(scores3.map_keys())   // ["kalle", "lisa", "pelle"]
@@ -512,7 +512,7 @@ println(scores3.map_keys())   // ["kalle", "lisa", "pelle"]
 
 Under the hood, maps are lists of tuples. That means all list functions (`filter`, `map`, `fold`) work on maps too:
 
-```rust
+```hica
 let high_scores = scores.filter((entry) => entry.1 >= 90)
 println(high_scores)   // [("kalle", 95), ("lisa", 92)]
 ```
@@ -531,14 +531,14 @@ println(high_scores)   // [("kalle", 95), ("lisa", 92)]
 
 `input(prompt)` prints the prompt and reads a line from your input. It returns a `string`.
 
-```rust
+```hica
 let name = input("What is your name? ")
 println("Hello, " + name)
 ```
 
 For numbers, combine input with `parse_int` or `parse_float`:
 
-```rust
+```hica
 match parse_int(input("Age: ")) {
   Some(n) => println("You are {n}"),
   None    => println("Not a number!")
@@ -551,7 +551,7 @@ Not every operation succeeds. hica has two types for this.
 
 ### Maybe: it might not be there
 
-```rust
+```hica
 fun main() {
   match find([1, 3, 4, 7], (x) => x % 2 == 0) {
     Some(n) => println("Found even: {n}"),
@@ -562,7 +562,7 @@ fun main() {
 
 ### Result: it worked, or here's why it didn't
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -579,7 +579,7 @@ fun main() {
 
 When you have several operations that each might fail, nesting `match` gets deep. Combinators let you chain them with pipes instead:
 
-```rust
+```hica
 // Transform the value inside a Maybe
 let doubled = Some(5) |> map_maybe((x) => x * 2)   // Some(10)
 
@@ -592,7 +592,7 @@ let n = None |> unwrap_maybe_or(0)   // 0
 
 Result has its own set:
 
-```rust
+```hica
 let result = safe_divide(10, 2)
   |> map_result((n) => n * 10)       // Ok(50)
   |> and_then_result((n) => safe_divide(n, 5))  // Ok(10)
@@ -604,7 +604,7 @@ See the [Standard Library](standard-library) for the full list.
 
 `parse_int` and `parse_float` return `Maybe`, so you always know whether the conversion worked:
 
-```rust
+```hica
 match parse_int("42") {
   Some(n) => println("Got: {n}"),
   None    => println("Not a number")
@@ -613,7 +613,7 @@ match parse_int("42") {
 
 Guards combine naturally with parsing:
 
-```rust
+```hica
 match parse_int(input) {
   Some(n) if n < 0 => println("negative"),
   Some(n)          => println("valid: {n}"),
@@ -625,7 +625,7 @@ match parse_int(input) {
 
 When a function returns `maybe`, the `?` operator saves you from writing nested matches. It unwraps `Some(v)` into `v`, or returns `None` from the enclosing function immediately:
 
-```rust
+```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   let x = parse_int(a)?   // None → the whole function returns None
   let y = parse_int(b)?
@@ -644,7 +644,7 @@ Think of `?` as asking "did this work?" If not, bail out.
 
 Strings support concatenation (`+`), interpolation (`{expr}`), escape sequences, indexing, and slicing:
 
-```rust
+```hica
 let s = "hello"
 s[0]      // 'h' (a char)
 s[1:4]    // "ell" (a string)
@@ -653,7 +653,7 @@ s[-1]     // 'o' (negative indexing)
 
 Use backslash escapes for special characters: `\"` for a literal quote, `\\` for a backslash, `\n` for a newline, `\t` for a tab, and `\{` / `\}` for literal braces (useful in interpolated strings):
 
-```rust
+```hica
 println("She said \"hi\"")     // She said "hi"
 println("line1\nline2")        // two lines
 println("col1\tcol2")          // tab-separated
@@ -667,7 +667,7 @@ There's a full set of utility functions: `trim`, `split`, `replace`, `to_upper`,
 
 You can also convert between strings and character lists:
 
-```rust
+```hica
 let cs = chars("hello")        // ['h', 'e', 'l', 'l', 'o']
 let s = from_chars(cs)         // "hello"
 ```
@@ -676,7 +676,7 @@ let s = from_chars(cs)         // "hello"
 
 The prelude includes common integer math (`abs`, `min`, `max`, `gcd`, `lcm`, `pow`, `sign`) and float functions (`sqrt`, `floor`, `ceil`, `round`, `to_float`):
 
-```rust
+```hica
 fun main() {
   println(pow(2, 10))          // 1024
   println(sqrt(25.0))          // 5.0
@@ -690,7 +690,7 @@ fun main() {
 
 Functions are values. You can store them, pass them around, and return them:
 
-```rust
+```hica
 fun make_adder(n) => (x) => x + n
 
 fun main() {
@@ -706,7 +706,7 @@ The inner function `(x) => x + n` captures `n` from the enclosing scope. This is
 
 As your programs grow, you'll want to split code across files. Any `.hc` file can be a module. Just mark the functions you want to share with `pub`:
 
-```rust
+```hica
 // helpers.hc
 pub fun double(x) => x * 2
 pub fun triple(x) => x * 3
@@ -715,7 +715,7 @@ fun secret() => 42   // private, not visible outside this file
 
 Then import from another file:
 
-```rust
+```hica
 // main.hc
 import "helpers"
 
@@ -727,7 +727,7 @@ fun main() {
 
 The path is relative to the importing file, without `.hc`. Use `from ... import { }` to pick specific names:
 
-```rust
+```hica
 from "helpers" import { double }
 
 fun main() {
@@ -742,7 +742,7 @@ And `pub import` re-exports to your own importers, handy for building libraries.
 
 Here's a complete program that uses most of what you've learned:
 
-```rust
+```hica
 fun fizzbuzz(n) => match n {
   n if n % 15 == 0 => "fizzbuzz",
   n if n % 3 == 0  => "fizz",

@@ -97,7 +97,7 @@ chmod +x hica
 
 ### Expression-bodied functions
 
-```rust
+```hica
 fun double(x) => x * 2
 
 fun main() {
@@ -108,7 +108,7 @@ fun main() {
 
 ### If / else-if chains
 
-```rust
+```hica
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
@@ -118,7 +118,7 @@ fun fizzbuzz(n) =>
 
 ### Match expressions
 
-```rust
+```hica
 fun describe(x) => match x {
   0 => "zero",
   1 => "one",
@@ -128,7 +128,7 @@ fun describe(x) => match x {
 
 ### Lambdas
 
-```rust
+```hica
 fun apply(f, x) => f(x)
 
 fun main() {
@@ -139,7 +139,7 @@ fun main() {
 
 ### Type annotations
 
-```rust
+```hica
 fun add(a: int, b: int) : int => a + b
 
 fun main() {
@@ -150,7 +150,7 @@ fun main() {
 
 ### Maybe and Result types
 
-```rust
+```hica
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }

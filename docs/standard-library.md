@@ -42,7 +42,7 @@ The prelude is hica's built-in standard library. Every function defined here is 
 | `is_some(m)` | `(maybe<a>) -> bool` | True if `Some` |
 | `is_none(m)` | `(maybe<a>) -> bool` | True if `None` |
 
-```rust
+```hica
 fun main() {
   // Transform a maybe value
   let doubled = Some(5) |> map_maybe((x) => x * 2)
@@ -79,7 +79,7 @@ Written in hica itself:
 | `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines (throws on error) |
 | `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
 
-```rust
+```hica
 fun main() {
   // Write and read back
   write_file("greeting.txt", "hello, world!\n")
@@ -144,7 +144,7 @@ Written in hica itself:
 | `scan(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> list<b>` | Like `fold` but keeps all intermediate results |
 | `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | Split into groups of `n` |
 
-```rust
+```hica
 fun main() {
   println(sum([1, 2, 3, 4, 5]))           // 15
   println(sort_by([3, 1, 4], (a, b) => a <= b))  // [1, 3, 4]
@@ -170,7 +170,7 @@ Maps use `{"key": value}` syntax and are represented as `list<(k, v)>`. Use `{:}
 | `map_contains_key(m, key)` | `(list<(k, v)>, k) -> bool` | Check if a key exists |
 | `map_size(m)` | `(list<(k, v)>) -> int` | Number of entries |
 
-```rust
+```hica
 fun main() {
   let scores = {"kalle": 95, "olle": 87}
   println(scores.map_get("kalle"))       // Just(95)
@@ -193,7 +193,7 @@ Since maps are lists of tuples, all list operations (`filter`, `map`, `fold`, et
 
 Using `random` gives your program the `ndet` (non-determinism) effect.
 
-```rust
+```hica
 fun main() {
   let die = random(1, 6)
   println("You rolled a {die}")
@@ -213,7 +213,7 @@ Bitwise functions operate on 32-bit integers internally. Values are converted fr
 | `bit_shl(a, n)` | `(int, int) -> int` | Shift left by `n` bits |
 | `bit_shr(a, n)` | `(int, int) -> int` | Shift right by `n` bits |
 
-```rust
+```hica
 fun main() {
   let flags = 0b1010_1100
   let masked = bit_and(flags, 0x0F)   // keep low nibble → 12
@@ -233,7 +233,7 @@ fun main() {
 |----------|-----------|-------------|
 | `show_fixed(value, decimals)` | `(float, int) -> string` | Format a float with a fixed number of decimal places |
 
-```rust
+```hica
 fun main() {
   println(show_fixed(3.14159, 2))  // "3.14"
   println(show_fixed(100.0 / 3.0, 1))  // "33.3"
@@ -246,7 +246,7 @@ fun main() {
 |----------|-----------|-------------|
 | `input(prompt)` | `(string) -> string` | Display a prompt and read a line from stdin |
 
-```rust
+```hica
 fun main() {
   let name = input("What is your name? ")
   println("Hello, {name}!")
@@ -278,7 +278,7 @@ Written in hica itself:
 | `round(x)` | `(float) -> int` | Round to nearest integer |
 | `to_float(n)` | `(int) -> float` | Convert integer to float |
 
-```rust
+```hica
 fun main() {
   println(sqrt(16.0))     // 4.0
   println(floor(3.7))     // 3
@@ -300,7 +300,7 @@ fun main() {
 | `ord(c)` | `(char) -> int` | Get the Unicode code point of a char |
 | `char_to_string(c)` | `(char) -> string` | Convert a single char to a string |
 
-```rust
+```hica
 fun main() {
   let cs = chars("hello")
   println(cs)              // ['h', 'e', 'l', 'l', 'o']
@@ -344,7 +344,7 @@ Primitive string functions backed by Koka's string library:
 
 Strings support `<`, `>`, `<=`, `>=` for lexicographic comparison:
 
-```rust
+```hica
 fun main() {
   println("apple" < "banana")   // true
   println("zoo" > "abc")        // true
@@ -364,7 +364,7 @@ Strings support the same `[]` syntax as lists:
 | `s[i:]` | `string` | From index `i` to end |
 | `s[-1]` | `char` | Last character (negative indexing) |
 
-```rust
+```hica
 fun main() {
   let s = "hello"
   println(s[0])      // 'h'
@@ -430,7 +430,7 @@ Written in hica itself. Provides character-level classification and glob pattern
 | `glob_match(pattern, s)` | `(string, string) -> bool` | Match with `*` (any chars, not `/`) and `?` (one char) |
 | `glob_match_path(pattern, path)` | `(string, string) -> bool` | Path-aware matching with `**` (zero or more directories) |
 
-```rust
+```hica
 fun main() {
   // Character classification
   println(is_digit(chr(48)))          // true ('0')
@@ -508,7 +508,7 @@ These are also available (prelude functions are implicitly public):
 | `in_range(n, lo, hi)` | `(int, int, int) -> bool` | Inclusive range check |
 | `days_in_month(year, month)` | `(int, int) -> int` | Days in a month (handles leap years) |
 
-```rust
+```hica
 fun main() {
   // Classify a TOML value
   println(datetime_kind("2024-05-15T07:32:00Z"))   // "offset-datetime"
@@ -541,7 +541,7 @@ fun main() {
 
 ### Map and filter
 
-```rust
+```hica
 fun main() {
   let nums = [1, 2, 3, 4, 5]
   let evens = filter(nums, (x) => x % 2 == 0)
@@ -553,7 +553,7 @@ fun main() {
 
 ### Fold
 
-```rust
+```hica
 fun main() {
   let nums = [1, 2, 3, 4, 5]
   let total = fold(nums, 0, (acc, x) => acc + x)
@@ -565,7 +565,7 @@ fun main() {
 
 Both `|>` and dot-call syntax work with any standard library function:
 
-```rust
+```hica
 fun main() {
   // Pipe style
   let a = [1, 2, 3, 4, 5]
@@ -585,7 +585,7 @@ fun main() {
 
 ### String operations
 
-```rust
+```hica
 fun main() {
   let msg = "  Hello, World!  "
   println(trim(msg))
@@ -601,7 +601,7 @@ fun main() {
 
 ### String helpers from prelude
 
-```rust
+```hica
 fun main() {
   println(words("the  quick   fox"))
   println(pad_left("42", 6, "0"))

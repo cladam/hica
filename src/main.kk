@@ -28,7 +28,7 @@ import format/formatter
 import klap
 import prelude-bundle
 
-val version = "0.25.0" 
+val version = "0.25.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -36,7 +36,8 @@ extern hica-exit( code : int ) : a
 
 // Check if stdin is a terminal (not piped/redirected)
 fun stdin-isatty()
-  run-system("test -t 0" ++ dev-null()) == 0
+  if is-windows() then False
+  else run-system("test -t 0" ++ dev-null()) == 0
 
 // ---------------------------------------------------------------------------
 // Persistent Node.js subprocess for REPL evaluation
@@ -58,6 +59,23 @@ extern node-stop() : io ()
 
 extern node-alive() : io bool
   c "kk_hica_node_alive"
+
+// Pipe mode flag: true when persistent subprocess is available
+extern repl-pipe-mode() : io bool
+  c "kk_hica_pipe_mode"
+
+extern set-pipe-mode( v : bool ) : io ()
+  c "kk_hica_set_pipe_mode"
+
+// Fallback JS accumulator (preamble + defs for file-based REPL)
+extern fallback-js() : io string
+  c "kk_hica_fallback_js"
+
+extern fallback-js-clear() : io ()
+  c "kk_hica_fallback_js_clear"
+
+extern fallback-js-append( s : string ) : io ()
+  c "kk_hica_fallback_js_append"
 
 // Node.js server script: persistent evaluation context using vm module
 val node-repl-script = "const vm=require('vm');" ++
@@ -512,6 +530,10 @@ fun try-rlwrap( file : maybe<string> )
   val exit-code = run-system(rlwrap-cmd)
   hica-exit(exit-code)
 
+// ---------------------------------------------------------------------------
+// REPL subprocess mode tracking
+// ---------------------------------------------------------------------------
+
 fun cmd-repl-with-file( file : maybe<string> )
   // Try auto-wrapping with rlwrap for tab completion
   try-rlwrap(file)
@@ -524,8 +546,10 @@ fun cmd-repl-with-file( file : maybe<string> )
   // Start persistent Node.js subprocess
   val res = node-start(node-repl-script)
   if res != 0 then
-    println("  error: could not start Node.js subprocess")
-    return ()
+    set-pipe-mode(False)
+    fallback-js-clear()
+  else
+    set-pipe-mode(True)
   // Send runtime preamble
   repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
   val prelude = load-prelude()
@@ -536,7 +560,7 @@ fun cmd-repl-with-file( file : maybe<string> )
     Just(f) -> repl-load-file(f, prelude, state0)
     Nothing -> state0
   repl-loop(prelude, state1)
-  node-stop()
+  if repl-pipe-mode() then node-stop()
 
 // Load definitions from startup file
 fun repl-load-startup( prelude : program, state : repl-state )
@@ -611,9 +635,12 @@ fun repl-loop( prelude : program, state : repl-state )
         repl-loop(prelude, state)
       elif line == ":reset" then
         println("  state cleared")
-        // Restart subprocess with fresh state
-        node-stop()
-        val _ = node-start(node-repl-script)
+        if repl-pipe-mode() then
+          node-stop()
+          val _res = node-start(node-repl-script)
+          ()
+        else
+          fallback-js-clear()
         repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
         repl-loop(prelude, empty-repl-state)
       elif line == ":history" then
@@ -896,12 +923,26 @@ fun unwrap-vals( bindings : list<(string, node, maybe<hica-type>)>, wrapped : no
         _ -> wrapped
 
 // Send JS code to the persistent Node.js subprocess and print output
+// Falls back to file-based execution when subprocess is not available (Windows)
 fun repl-run-js( js-code : string )
-  // Send each line, then the eval sentinel
-  js-code.lines.foreach(fn(l) node-send-line(l))
-  node-send-line("__HICA_EVAL_END__")
-  // Read output lines until done sentinel
-  repl-read-node-output()
+  if repl-pipe-mode() then
+    // Send each line, then the eval sentinel
+    js-code.lines.foreach(fn(l) node-send-line(l))
+    node-send-line("__HICA_EVAL_END__")
+    // Read output lines until done sentinel
+    repl-read-node-output()
+  else
+    // Fallback: write full JS (preamble + defs + snippet) to temp file and run node
+    val full = fallback-js() ++ js-code
+    val tmp-dir = if is-windows() then get-env-value("TEMP").default(".")
+                  else "/tmp"
+    val tmp-js = (tmp-dir ++ "/hica-repl-eval.js").path
+    val tmp-out = (tmp-dir ++ "/hica-repl-out.txt").path
+    write-text-file(tmp-js, full)
+    val exit-code = run-system("node " ++ tmp-js.show ++ " > " ++ tmp-out.show ++ " 2>&1")
+    if is-file(tmp-out) then
+      val output = read-text-file(tmp-out).trim
+      if !output.is-empty then println(output)
 
 fun repl-read-node-output()
   val line = node-read-line()
@@ -916,10 +957,14 @@ fun repl-read-node-output()
 
 // Send JS code silently (no output reading — for preamble/defs sent at startup)
 fun repl-send-js( js-code : string )
-  js-code.lines.foreach(fn(l) node-send-line(l))
-  node-send-line("__HICA_EVAL_END__")
-  // Drain the DONE sentinel
-  repl-drain-sentinel()
+  if repl-pipe-mode() then
+    js-code.lines.foreach(fn(l) node-send-line(l))
+    node-send-line("__HICA_EVAL_END__")
+    // Drain the DONE sentinel
+    repl-drain-sentinel()
+  else
+    // Fallback: accumulate JS for file-based execution
+    fallback-js-append(js-code ++ "\n")
 
 fun repl-drain-sentinel()
   val line = node-read-line()
