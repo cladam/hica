@@ -34,11 +34,22 @@ hica=> [1, 2, 3] |> map(fn(x) { x * x })
 
 `_` holds the last expression result:
 
-```
+```hica
 hica=> 6 * 7
 42
 hica=> _ + 8
 50
+```
+
+Note: `_` captures the *return value*, not what was printed.
+`println("hi")` prints `hi` but returns `()`, so `_` becomes `()`.
+Use a bare expression to capture a value:
+
+```hica
+hica=> "hi"
+hi
+hica=> _ + " there"
+hi there
 ```
 
 ## Bindings

@@ -28,7 +28,7 @@ import format/formatter
 import klap
 import prelude-bundle
 
-val version = "0.25.1" 
+val version = "0.25.2" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -499,8 +499,13 @@ fun history-append( line : string )
 fun cmd-repl()
   cmd-repl-with-file(Nothing)
 
-// Completions file path for rlwrap
-val completions-path = "/tmp/hica-repl-completions.txt".path
+// Completions file path for rlwrap (default location: ~/.rlwrap/hica_completions)
+// rlwrap automatically reads this when wrapping a command named "hica"
+fun completions-path() : io path
+  val home = get-env-value("HOME").default("~")
+  val rlwrap-dir = (home ++ "/.rlwrap").path
+  ensure-dir(rlwrap-dir)
+  (home ++ "/.rlwrap/hica_completions").path
 
 // Write completions file with prelude names and REPL commands
 fun write-completions( prelude : program )
@@ -510,38 +515,40 @@ fun write-completions( prelude : program )
                   "break", "continue", "struct", "type", "true", "false", "None", "Some", "Ok", "Err",
                   "import", "pub", "return"]
   val all-words = commands ++ keywords ++ prelude-names
-  write-text-file(completions-path, all-words.join("\n") ++ "\n")
+  write-text-file(completions-path(), all-words.join("\n") ++ "\n")
 
-// Try to auto-wrap with rlwrap for tab completion and history
+// Auto-wrap with rlwrap for tab completion and history
 fun try-rlwrap( file : maybe<string> )
   // Don't wrap if: not a tty, already wrapped, or rlwrap not available
   if !stdin-isatty() then return ()
-  if get-env-value("RLWRAP_COMMAND_PID").default("") != "" then return ()
+  if get-env-value("HICA_RLWRAP").default("") != "" then return ()
   val check = run-system("which rlwrap" ++ dev-null())
   if check != 0 then return ()
-  // Write completions file before exec
+  // Write completions file before launching rlwrap so it can read it
   val prelude = load-prelude()
   write-completions(prelude)
-  // Build rlwrap command
+  val cp = completions-path()
+  // Build rlwrap command with explicit -f and env guard to prevent re-entry
   val file-arg = match file
     Just(f) -> " " ++ f
     Nothing -> ""
-  val rlwrap-cmd = "rlwrap -f " ++ completions-path.show ++ " hica repl" ++ file-arg
+  val exe = get-argv().head.default("hica")
+  val rlwrap-cmd = "export HICA_RLWRAP=1 && rlwrap --always-readline --no-children -n -f " ++ cp.show ++ " " ++ exe ++ " repl" ++ file-arg
   val exit-code = run-system(rlwrap-cmd)
-  hica-exit(exit-code)
+  if exit-code == 0 then hica-exit(0)
+  // rlwrap failed — fall through to plain REPL
 
 // ---------------------------------------------------------------------------
 // REPL subprocess mode tracking
 // ---------------------------------------------------------------------------
 
 fun cmd-repl-with-file( file : maybe<string> )
-  // Try auto-wrapping with rlwrap for tab completion
   try-rlwrap(file)
-  val is-wrapped = get-env-value("RLWRAP_COMMAND_PID").default("") != ""
+  val is-wrapped = get-env-value("HICA_RLWRAP").default("") != ""
   println("hica " ++ version ++ " REPL (exit with Ctrl-D or :quit)")
   println("Type expressions, declarations (fun, let, struct, type), or :help")
-  if !is-wrapped then
-    println("Tip: install 'rlwrap' for tab completion and history navigation")
+  if !is-wrapped && stdin-isatty() then
+    println("Tip: install rlwrap for tab completion and history")
   println("")
   // Start persistent Node.js subprocess
   val res = node-start(node-repl-script)
@@ -553,6 +560,8 @@ fun cmd-repl-with-file( file : maybe<string> )
   // Send runtime preamble
   repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
   val prelude = load-prelude()
+  // Write completions file for manual rlwrap usage
+  write-completions(prelude)
   // Load startup file (~/.hicarc) if it exists
   val state0 = repl-load-startup(prelude, empty-repl-state)
   // Load preloaded file (-i flag) if provided

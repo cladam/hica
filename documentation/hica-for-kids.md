@@ -9,46 +9,72 @@ software.
 
 ## Table of Contents
 
-1. [What is Hica?](#1-what-is-hica)
-2. [Why Hica for Kids?](#2-why-hica-for-kids)
-3. [Getting Started](#3-getting-started)
-4. [Your First Program — Hello, World!](#4-your-first-program--hello-world)
-5. [Variables: Labelled Boxes](#5-variables-labelled-boxes)
-6. [Data Types: What Goes in the Box?](#6-data-types-what-goes-in-the-box)
-7. [Operators: The Math Toolkit](#7-operators-the-math-toolkit)
-8. [Functions: Little Machines](#8-functions-little-machines)
-9. [The Magic Arrow (`=>`)](#9-the-magic-arrow-)
-10. [Testing: Did It Work?](#10-testing-did-it-work)
-11. [Making Decisions (The Fork in the Road)](#11-making-decisions-the-fork-in-the-road)
-12. [The Match Game](#12-the-match-game)
-13. [Boolean Logic: True or False?](#13-boolean-logic-true-or-false)
-14. [Repeating Things](#14-repeating-things)
-15. [Counting Loops](#15-counting-loops)
-16. [While Loops: Keep Going Until...](#16-while-loops-keep-going-until)
-17. [Loop, Break, and Continue](#17-loop-break-and-continue)
-18. [Building Strings](#18-building-strings)
-19. [The Pipe: Connecting Machines](#19-the-pipe-connecting-machines)
-20. [Tuples: Bundling Values Together](#20-tuples-bundling-values-together)
-21. [Lists: Collections of Things](#21-lists-collections-of-things)
-22. [Maybe: Something or Nothing](#22-maybe-something-or-nothing)
-23. [Result: It Worked or It Didn't](#23-result-it-worked-or-it-didnt)
-24. [Recursion: The Russian Doll Trick](#24-recursion-the-russian-doll-trick)
-25. [Closures: Functions That Remember](#25-closures-functions-that-remember)
-26. [Structs: Build Your Own Types](#26-structs-build-your-own-types)
-27. [Maps: The Lookup Book](#27-maps-the-lookup-book)
-28. [Enums: Choose Your Adventure](#28-enums-choose-your-adventure)
-29. [Asking for Input](#29-asking-for-input)
-30. [Random Numbers: Roll the Dice!](#30-random-numbers-roll-the-dice)
-31. [Under the Hood: The Translator](#31-under-the-hood-the-translator)
-32. [Projects](#32-projects)
-33. [Sharing Code Between Files](#33-sharing-code-between-files)
-34. [Dates & Times: What Day Is It?](#34-dates--times-what-day-is-it)
-35. [Pattern Matching with Globs](#35-pattern-matching-with-globs)
-36. [Glossary](#36-glossary)
+### 🏕️ World 1: The Training Grounds
+
+1. [What is Hica?](#level-1-what-is-hica)
+2. [Why Hica for Kids?](#level-2-why-hica-for-kids)
+3. [Getting Started](#level-3-getting-started)
+4. [Your First Program — Hello, World!](#level-4-your-first-program--hello-world)
+5. [Variables: Labelled Boxes](#level-5-variables-labelled-boxes)
+6. [Data Types: What Goes in the Box?](#level-6-data-types-what-goes-in-the-box)
+7. [Operators: The Math Toolkit](#level-7-operators-the-math-toolkit)
+
+### 🏗️ World 2: Building Machines
+
+8. [Functions: Little Machines](#level-8-functions-little-machines)
+9. [The Magic Arrow (`=>`)](#level-9-the-magic-arrow-)
+10. [Testing: Did It Work?](#level-10-testing-did-it-work)
+11. [Making Decisions (The Fork in the Road)](#level-11-making-decisions-the-fork-in-the-road)
+12. [The Match Game](#level-12-the-match-game)
+13. [Boolean Logic: True or False?](#level-13-boolean-logic-true-or-false)
+
+### ⏳ World 3: Time Loops & Word Magic
+
+14. [Repeating Things](#level-14-repeating-things)
+15. [Counting Loops](#level-15-counting-loops)
+16. [While Loops: Keep Going Until...](#level-16-while-loops-keep-going-until)
+17. [Loop, Break, and Continue](#level-17-loop-break-and-continue)
+18. [Building Strings](#level-18-building-strings)
+19. [The Pipe: Connecting Machines](#level-19-the-pipe-connecting-machines)
+
+### 🎒 World 4: The Ultimate Data Backpack
+
+20. [Tuples: Bundling Values Together](#level-20-tuples-bundling-values-together)
+21. [Lists: Collections of Things](#level-21-lists-collections-of-things)
+22. [Maybe: Something or Nothing](#level-22-maybe-something-or-nothing)
+23. [Result: It Worked or It Didn't](#level-23-result-it-worked-or-it-didnt)
+24. [Maps: The Lookup Book](#level-24-maps-the-lookup-book)
+
+### 🧙 World 5: Wizard Level Coding
+
+25. [Recursion: The Russian Doll Trick](#level-25-recursion-the-russian-doll-trick)
+26. [Closures: Functions That Remember](#level-26-closures-functions-that-remember)
+27. [Structs: Build Your Own Types](#level-27-structs-build-your-own-types)
+28. [Enums: Choose Your Adventure](#level-28-enums-choose-your-adventure)
+
+### 🌍 World 6: Real-World Quests
+
+29. [Asking for Input](#level-29-asking-for-input)
+30. [Random Numbers: Roll the Dice!](#level-30-random-numbers-roll-the-dice)
+31. [Under the Hood: The Translator](#level-31-under-the-hood-the-translator)
+32. [Projects](#level-32-projects)
+33. [Sharing Code Between Files](#level-33-sharing-code-between-files)
+34. [Dates & Times: What Day Is It?](#level-34-dates--times-what-day-is-it)
+35. [Pattern Matching with Globs](#level-35-pattern-matching-with-globs-the-treasure-map)
+
+### 📖 [Glossary](#glossary)
 
 ---
 
-## 1. What is Hica?
+## 🏕️ World 1: The Training Grounds
+
+> Welcome, adventurer! Every great coder starts here. In this world you'll
+> learn the basics: how to talk to the computer, store values in boxes, and
+> do simple math. By the end, you'll be writing real programs!
+
+---
+
+### Level 1. What is Hica?
 
 Hica is a programming language — a way of giving instructions to a computer.
 You write your instructions in a `.hc` file, and Hica turns them into a
@@ -66,7 +92,7 @@ turns it into the hardcore version for the computer.
 
 ---
 
-## 2. Why Hica for Kids?
+### Level 2. Why Hica for Kids?
 
 | Reason | What it means |
 | --- | --- |
@@ -79,40 +105,44 @@ turns it into the hardcore version for the computer.
 
 ---
 
-## 3. Getting Started
+### Level 3. Getting Started
 
 ### What you need
 
-1. Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install)
-   (version 3.2 or newer).
-2. Get the Hica source code.
+#### Install Koka
 
-### Build the compiler
+Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3.2 or newer.
 
-```sh
-koka -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
-```
-
-### Run a program
+#### Linux / macOS / Chromebook
 
 ```sh
-# Compile and run
-./hica run examples/hello.hc
-
-# Just compile (outputs to target/main.kk)
-./hica build examples/hello.hc
-
-# Check for errors without compiling
-./hica check examples/hello.hc
+curl -fsSL https://cladam.github.io/hica/install.sh | sh
 ```
+
+This downloads the latest release binary and installs it to `~/.local/bin`.
+Make sure that directory is on your `PATH`.
+
+To install elsewhere:
+
+```sh
+curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+```
+
+#### Windows (PowerShell)
+
+```powershell
+irm https://cladam.github.io/hica/install.ps1 | iex
+```
+
+This installs hica to `%LOCALAPPDATA%\hica` and adds it to your user PATH.
+Override the install directory with `$env:HICA_INSTALL_DIR`.
 
 ### Try things interactively
 
 Start the REPL to experiment without creating a file:
 
 ```sh
-./hica repl
+hica repl
 ```
 
 ```
@@ -126,9 +156,13 @@ hi there
 
 Type `:quit` to exit. The `_` holds your last result.
 
+### Try it in the browser
+
+Don't want to install anything? The [hica Playground](https://cladam.github.io/hica/playground/) lets you write and run hica code directly in your browser: no setup required. It comes with example programs you can explore with one click.
+
 ---
 
-## 4. Your First Program — Hello, World!
+### Level 4. Your First Program — Hello, World!
 
 The classic first program. In Hica, it's just two lines:
 
@@ -174,7 +208,7 @@ Pick whichever style you like — they all do the same thing!
 
 ---
 
-## 5. Variables: Labelled Boxes
+### Level 5. Variables: Labelled Boxes
 
 Imagine you have a box and you stick a label on it. That's what `let` does —
 it creates a named box and puts a value inside.
@@ -248,7 +282,7 @@ update a value — like counting things in a loop (you'll see this later!).
 
 ---
 
-## 6. Data Types: What Goes in the Box?
+### Level 6. Data Types: What Goes in the Box?
 
 Different boxes hold different things. Hica has five main types right now:
 
@@ -326,7 +360,7 @@ pizza. What types are they?
 
 ---
 
-## 7. Operators: The Math Toolkit
+### Level 7. Operators: The Math Toolkit
 
 Operators are the symbols that do things with your values.
 
@@ -374,7 +408,16 @@ hour (60 × 60).
 
 ---
 
-## 8. Functions: Little Machines
+
+## 🏗️ World 2: Building Machines
+
+> Now you know the basics — time to build! In this world you'll create
+> functions (little machines), test them, and make your programs smart
+> enough to choose different paths. You're becoming a real engineer!
+
+---
+
+### Level 8. Functions: Little Machines
 
 A function is like a machine in a factory. You put something in, it does some
 work, and something comes out.
@@ -416,7 +459,7 @@ fun main() {
 
 ---
 
-## 9. The Magic Arrow (`=>`)
+### Level 9. The Magic Arrow (`=>`)
 
 When a function does just one thing, you can use the **Hica Arrow** instead of
 writing curly braces. Think of it as: *"this goes in, that comes out."*
@@ -443,7 +486,7 @@ fun add_ten(n) {
 
 ---
 
-## 10. Testing: Did It Work?
+### Level 10. Testing: Did It Work?
 
 You've built a little machine (a function). But how do you **know** it works?
 You test it! In Hica, you write `test` blocks right next to your functions.
@@ -530,7 +573,7 @@ test "triple works" {
 
 ---
 
-## 11. Making Decisions (The Fork in the Road)
+### Level 11. Making Decisions (The Fork in the Road)
 
 In Hica, an `if` expression is like a fork in the road. You go left or right
 depending on a condition — and both paths must lead to a value.
@@ -577,7 +620,7 @@ It's like a chain of doors — you check each one until you find the right room.
 
 ---
 
-## 12. The Match Game
+### Level 12. The Match Game
 
 Sometimes you have many choices. Instead of nested `if` statements, Hica uses
 `match`. It's like a sorting machine — drop a value in, and it lands in the
@@ -733,7 +776,7 @@ and everything else is `"winter"`.
 
 ---
 
-## 13. Boolean Logic: True or False?
+### Level 13. Boolean Logic: True or False?
 
 You can combine questions with `&&` (AND) to check if *both* are true:
 
@@ -756,7 +799,16 @@ a ticket?" Both must be true to get in.
 
 ---
 
-## 14. Repeating Things
+
+## ⏳ World 3: Time Loops & Word Magic
+
+> Loops let you repeat things without writing the same code over and over.
+> Strings let you build messages and talk to the world. And the magic pipe
+> connects your machines into one smooth assembly line. Let's go!
+
+---
+
+### Level 14. Repeating Things
 
 Sometimes you want to do something more than once. Hica has `repeat` for that:
 
@@ -786,7 +838,7 @@ fun main() {
 
 ---
 
-## 15. Counting Loops
+### Level 15. Counting Loops
 
 What if you want to do something *and* know which round you're on?
 That's what `for` is for!
@@ -868,7 +920,7 @@ What numbers do you get?
 
 ---
 
-## 16. While Loops: Keep Going Until...
+### Level 16. While Loops: Keep Going Until...
 
 A `for` loop runs a set number of times. But sometimes you don't know *how
 many* times — you just want to keep going **until** something happens. That's
@@ -942,7 +994,7 @@ than 1000. Start with `var n = 1` and keep doubling: `n = n * 2`.
 
 ---
 
-## 17. Loop, Break, and Continue
+### Level 17. Loop, Break, and Continue
 
 ### The infinite loop
 
@@ -1020,7 +1072,7 @@ Hint: use `var i = 0`, increment it each time, and break when `i > 5`.
 
 ---
 
-## 18. Building Strings
+### Level 18. Building Strings
 
 Sometimes you want to build a message from pieces. Hica gives you two ways.
 
@@ -1204,7 +1256,7 @@ What about `word[-2]`?
 
 ---
 
-## 19. The Pipe: Connecting Machines
+### Level 19. The Pipe: Connecting Machines
 
 Remember how functions are like machines in a factory? The **pipe operator**
 `|>` is the conveyor belt that connects them!
@@ -1313,7 +1365,16 @@ fun main() {
 
 ---
 
-## 20. Tuples: Bundling Values Together
+
+## 🎒 World 4: The Ultimate Data Backpack
+
+> Every adventurer needs a backpack! In this world you'll learn about
+> collections — tuples, lists, maybe, results, and maps. These are the
+> containers that hold your data as your programs grow bigger.
+
+---
+
+### Level 20. Tuples: Bundling Values Together
 
 Sometimes you want to keep two (or more) values together — like an **x** and
 **y** position, or a name and an age. A **tuple** is a tiny bundle that holds
@@ -1365,7 +1426,7 @@ and `.1`.
 
 ---
 
-## 21. Lists: Collections of Things
+### Level 21. Lists: Collections of Things
 
 What if you have a whole bunch of values — not just two or three, but five,
 ten, or even a hundred? That's what **lists** are for.
@@ -1582,7 +1643,7 @@ print just the first element using `head`.
 
 ---
 
-## 22. Maybe: Something or Nothing
+### Level 22. Maybe: Something or Nothing
 
 Sometimes a value might exist, or it might not. Like looking for your keys —
 they're either in your pocket, or they're not!
@@ -1667,7 +1728,7 @@ inside (`Some`), it stamps it and puts it back.
 
 ---
 
-## 23. Result: It Worked or It Didn't
+### Level 23. Result: It Worked or It Didn't
 
 Sometimes things can go wrong. You try to divide by zero, open a file that
 doesn't exist, or parse a number from text that isn't a number.
@@ -1802,7 +1863,116 @@ that uses `find(xs, (n) => n > 0)?` to find the first positive number.
 
 ---
 
-## 24. Recursion: The Russian Doll Trick
+### Level 24. Maps: The Lookup Book
+
+Imagine a **dictionary**, you look up a word and find its meaning. Or a **phone book**, you look up a name and find a number. 
+In Hica, this is called a **map**.
+
+### Making a map
+
+Use curly braces with `"key": value` pairs:
+
+```rust
+let ages = {"kalle": 30, "olle": 25, "lisa": 35}
+println(ages)
+```
+
+Output: `[("kalle",30),("olle",25),("lisa",35)]`
+
+Think of it like a table with two columns:
+
+| Key       | Value |
+| --------- | ----- |
+| `"kalle"` | `30`  |
+| `"olle"`  | `25`  |
+| `"lisa"`  | `35`  |
+
+### Looking things up
+
+Use `map_get` to find a value by its key. It returns a **maybe** — because
+the key might not exist!
+
+```rust
+let ages = {"kalle": 30, "olle": 25}
+println(ages.map_get("kalle"))    // Just(30) — found it!
+println(ages.map_get("nobody"))   // Nothing — not there
+```
+
+### Adding and changing entries
+
+Use `map_set` to add a new key or change an existing one:
+
+```rust
+let ages = {"kalle": 30, "olle": 25}
+let ages2 = ages.map_set("lisa", 35)    // adds lisa
+let ages3 = ages2.map_set("olle", 26)   // updates olle
+println(ages3.map_keys())               // ["kalle", "olle", "lisa"]
+```
+
+Maps don't change, `map_set` gives you a **new** map with the change.
+The original stays the same.
+
+### Removing entries
+
+```rust
+let ages = {"kalle": 30, "olle": 25, "lisa": 35}
+let ages2 = ages.map_remove("olle")
+println(ages2.map_keys())   // ["kalle", "lisa"]
+```
+
+### Empty maps
+
+Use `{:}` to create an empty map, then build it up with `map_set`:
+
+```rust
+let m = {:}
+let m2 = m.map_set("x", 1).map_set("y", 2)
+println(m2)   // [("x",1),("y",2)]
+```
+
+### Map tools
+
+| Tool | What it does | Example |
+| --- | --- | --- |
+| `map_get(m, key)` | Look up a key | `m.map_get("kalle")` → `Just(30)` |
+| `map_set(m, key, val)` | Add or change | `m.map_set("lisa", 35)` |
+| `map_remove(m, key)` | Remove a key | `m.map_remove("olle")` |
+| `map_keys(m)` | All the keys | `m.map_keys()` → `["kalle", "olle"]` |
+| `map_values(m)` | All the values | `m.map_values()` → `[30, 25]` |
+| `map_contains_key(m, key)` | Is the key there? | `m.map_contains_key("kalle")` → `true` |
+| `map_size(m)` | How many entries? | `m.map_size()` → `2` |
+
+### The secret: maps are lists!
+
+Under the hood, a map is just a **list of tuples** — pairs of (key, value).
+That means you can use all the list tools on maps too:
+
+```rust
+let scores = {"kalle": 95, "olle": 60, "lisa": 88}
+let high = scores.filter((entry) => entry.1 >= 80)
+println(high)   // [("kalle",95),("lisa",88)]
+```
+
+**🎯 Try it:** Create a map of your favourite animals and their sounds
+(like `{"cat": "meow", "dog": "woof"}`). Look up one that exists and one
+that doesn't.
+
+**🎯 Try it:** Start with an empty map `{:}` and use `map_set` to add three
+friends and their ages. Then print `map_keys()` and `map_size()`.
+
+---
+
+
+## 🧙 World 5: Wizard Level Coding
+
+> You've made it to Wizard Level! Here you'll master the most powerful
+> spells in programming: recursion (the Russian doll trick), closures
+> (functions that remember), structs (custom types), and enums (choose
+> your adventure). These tools make you a true coding wizard!
+
+---
+
+### Level 25. Recursion: The Russian Doll Trick
 
 Imagine a Russian doll (matryoshka). You open it, and there's a smaller
 identical doll inside. Open that one, and there's an even smaller one. You keep
@@ -1920,7 +2090,7 @@ do anything special.
 
 ---
 
-## 25. Closures: Functions That Remember
+### Level 26. Closures: Functions That Remember
 
 You've learned that functions are like little machines. But what if a machine
 could **build another machine**? And what if that new machine could
@@ -2013,7 +2183,7 @@ What does `twice(double, 5)` give you?
 
 ---
 
-## 26. Structs: Build Your Own Types
+### Level 27. Structs: Build Your Own Types
 
 Tuples are great for bundling a few values together, but what if you have three,
 four, or more fields? And what if you can't remember whether `.0` is the name or
@@ -2137,106 +2307,7 @@ for kittens (age 0) vs older pets!
 
 ---
 
-## 27. Maps: The Lookup Book
-
-Imagine a **dictionary**, you look up a word and find its meaning. Or a **phone book**, you look up a name and find a number. 
-In Hica, this is called a **map**.
-
-### Making a map
-
-Use curly braces with `"key": value` pairs:
-
-```rust
-let ages = {"kalle": 30, "olle": 25, "lisa": 35}
-println(ages)
-```
-
-Output: `[("kalle",30),("olle",25),("lisa",35)]`
-
-Think of it like a table with two columns:
-
-| Key       | Value |
-| --------- | ----- |
-| `"kalle"` | `30`  |
-| `"olle"`  | `25`  |
-| `"lisa"`  | `35`  |
-
-### Looking things up
-
-Use `map_get` to find a value by its key. It returns a **maybe** — because
-the key might not exist!
-
-```rust
-let ages = {"kalle": 30, "olle": 25}
-println(ages.map_get("kalle"))    // Just(30) — found it!
-println(ages.map_get("nobody"))   // Nothing — not there
-```
-
-### Adding and changing entries
-
-Use `map_set` to add a new key or change an existing one:
-
-```rust
-let ages = {"kalle": 30, "olle": 25}
-let ages2 = ages.map_set("lisa", 35)    // adds lisa
-let ages3 = ages2.map_set("olle", 26)   // updates olle
-println(ages3.map_keys())               // ["kalle", "olle", "lisa"]
-```
-
-Maps don't change, `map_set` gives you a **new** map with the change.
-The original stays the same.
-
-### Removing entries
-
-```rust
-let ages = {"kalle": 30, "olle": 25, "lisa": 35}
-let ages2 = ages.map_remove("olle")
-println(ages2.map_keys())   // ["kalle", "lisa"]
-```
-
-### Empty maps
-
-Use `{:}` to create an empty map, then build it up with `map_set`:
-
-```rust
-let m = {:}
-let m2 = m.map_set("x", 1).map_set("y", 2)
-println(m2)   // [("x",1),("y",2)]
-```
-
-### Map tools
-
-| Tool | What it does | Example |
-| --- | --- | --- |
-| `map_get(m, key)` | Look up a key | `m.map_get("kalle")` → `Just(30)` |
-| `map_set(m, key, val)` | Add or change | `m.map_set("lisa", 35)` |
-| `map_remove(m, key)` | Remove a key | `m.map_remove("olle")` |
-| `map_keys(m)` | All the keys | `m.map_keys()` → `["kalle", "olle"]` |
-| `map_values(m)` | All the values | `m.map_values()` → `[30, 25]` |
-| `map_contains_key(m, key)` | Is the key there? | `m.map_contains_key("kalle")` → `true` |
-| `map_size(m)` | How many entries? | `m.map_size()` → `2` |
-
-### The secret: maps are lists!
-
-Under the hood, a map is just a **list of tuples** — pairs of (key, value).
-That means you can use all the list tools on maps too:
-
-```rust
-let scores = {"kalle": 95, "olle": 60, "lisa": 88}
-let high = scores.filter((entry) => entry.1 >= 80)
-println(high)   // [("kalle",95),("lisa",88)]
-```
-
-**🎯 Try it:** Create a map of your favourite animals and their sounds
-(like `{"cat": "meow", "dog": "woof"}`). Look up one that exists and one
-that doesn't.
-
-**🎯 Try it:** Start with an empty map `{:}` and use `map_set` to add three
-friends and their ages. Then print `map_keys()` and `map_size()`.
-
----
-
-## 28. Enums: Choose Your Adventure
+### Level 28. Enums: Choose Your Adventure
 
 Remember structs? A struct says "every value has the same fields." But what if
 a value could be **one of several different things**? That's an **enum** — short
@@ -2400,7 +2471,17 @@ that returns the number of seats (bikes have 1).
 
 ---
 
-## 29. Asking for Input
+
+## 🌍 World 6: Real-World Quests
+
+> Time to use everything you've learned on real missions! Ask the user
+> for input, roll dice, build projects, share code between files, and
+> work with dates. These are the skills that turn practice into real
+> programs you can share with friends.
+
+---
+
+### Level 29. Asking for Input
 
 So far, your programs have been one-way conversations — the computer talks,
 but you can't talk back. Let's change that! The `input` function prints a
@@ -2450,7 +2531,7 @@ fun main() {
 ```
 
 Notice how we use a **match guard** (`if n == secret`) — that's the pattern
-matching trick from chapter 11!
+matching trick from level 11!
 
 **🎯 Try it:** Write a program that asks for your name and your favourite
 colour, then prints `"Hi ___, your favourite colour is ___!"`.
@@ -2461,7 +2542,7 @@ operator string!
 
 ---
 
-## 30. Random Numbers: Roll the Dice!
+### Level 30. Random Numbers: Roll the Dice!
 
 What if your program could surprise you? With `random`, it can! The `random`
 function picks a number for you — a different one each time you run the
@@ -2523,7 +2604,7 @@ game!
 
 ### A real guessing game!
 
-Remember the guessing game in chapter 29? The secret number was hard-coded.
+Remember the guessing game in level 29? The secret number was hard-coded.
 Now we can make it truly random:
 
 ```rust
@@ -2564,7 +2645,7 @@ choice. Use `match` to decide who wins!
 
 ---
 
-## 31. Under the Hood: The Translator
+### Level 31. Under the Hood: The Translator
 
 This is the coolest part of Hica. When you run your program, three things
 happen behind the scenes:
@@ -2593,7 +2674,7 @@ anymore. No pauses, no slowdowns.
 
 ---
 
-## 32. Projects
+### Level 32. Projects
 
 Ready for something bigger? Try these!
 
@@ -2694,7 +2775,7 @@ Hint: use `repeat_str("*", 20)` for the top and bottom, and
 
 ---
 
-## 33. Sharing Code Between Files
+### Level 33. Sharing Code Between Files
 
 When your programs get bigger, you might want to put some functions in a
 separate file. That's what **imports** are for!
@@ -2768,7 +2849,7 @@ sound!
 
 ---
 
-## 34. Dates & Times: What Day Is It?
+### Level 34. Dates & Times: What Day Is It?
 
 Hica has built-in functions for working with dates and times. They use
 **strings** that look like this:
@@ -2851,7 +2932,7 @@ fun main() {
 
 ---
 
-## 35. Pattern Matching with Globs: The Treasure Map
+### Level 35. Pattern Matching with Globs: The Treasure Map
 
 Imagine you have a treasure map, and you're looking for files that match a
 pattern — like "all the text files" or "any picture in any folder". That's what
@@ -2941,7 +3022,7 @@ and `chars` together!
 
 ---
 
-## 36. Glossary
+## 📖 Glossary
 
 | Word | What it means |
 | --- | --- |

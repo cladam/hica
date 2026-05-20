@@ -158,19 +158,19 @@ Notice how yml2hml automatically converts underscore keys (`main_branch_name`) t
 
 `yml2hml` is also a showcase of hica language features:
 
-- **Enum types** — `type YamlLine { YKeyVal(...), YListItem(...), ... }` for classifying parsed lines
-- **Structs** — `struct ConvertState { remaining: list<string> }` for parser state
-- **Slice patterns** — `[" ", ..rest] =>` for counting indentation
-- **Or-patterns** — `"true" | "yes" | "on" =>` for YAML boolean mapping
-- **Pattern matching** — `match`/`Some`/`None` throughout for safe value handling
-- **String interpolation** — `"@{hkey} \{"` for building output
-- **Recursion** — `convert_block` recursively processes nested YAML structure
-- **Pipe operator** — `read_file(path) |> unwrap` for chaining
-- **Closures** — `map(items, (item) => hml_value(strip(item)))` for transformations
-- **Dot-call syntax** — `trimmed.strip()`, `items.length()` for readability
-- **File I/O** — `read_file`, `write_file` with `Result` error handling
-- **CLI prelude** — `cli() |> arg()` builder for `--help`, `--version`, and argument validation
-- **CLI args** — `cli_parse`, `Parsed(r)`, `get_positional` for structured argument handling
+- **Enum types**: `type YamlLine { YKeyVal(...), YListItem(...), ... }` for classifying parsed lines
+- **Structs**: `struct ConvertState { remaining: list<string> }` for parser state
+- **Slice patterns**: `[" ", ..rest] =>` for counting indentation
+- **Or-patterns**: `"true" | "yes" | "on" =>` for YAML boolean mapping
+- **Pattern matching**: `match`/`Some`/`None` throughout for safe value handling
+- **String interpolation**: `"@{hkey} \{"` for building output
+- **Recursion**: `convert_block` recursively processes nested YAML structure
+- **Pipe operator**: `read_file(path) |> unwrap` for chaining
+- **Closures**: `map(items, (item) => hml_value(strip(item)))` for transformations
+- **Dot-call syntax**: `trimmed.strip()`, `items.length()` for readability
+- **File I/O**: `read_file`, `write_file` with `Result` error handling
+- **CLI prelude**: `cli() |> arg()` builder for `--help`, `--version`, and argument validation
+- **CLI args**: `cli_parse`, `Parsed(r)`, `get_positional` for structured argument handling
 
 ## Source
 
