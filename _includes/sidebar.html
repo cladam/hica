@@ -89,13 +89,8 @@
       <h3 class="nav-category-title">Comparisons</h3>
       <ul>
         <li>
-          <a href="{{ '/docs/hica-vs-python' | relative_url }}" {% if page.url == "/docs/hica-vs-python/" %}class="active"{% endif %}>
-            Hica vs. Python
-          </a>
-        </li>
-        <li>
-          <a href="{{ '/docs/hica-vs-rust' | relative_url }}" {% if page.url == "/docs/hica-vs-rust/" %}class="active"{% endif %}>
-            Hica vs. Rust
+          <a href="{{ '/docs/comparisons' | relative_url }}" {% if page.url == "/docs/comparisons/" or page.url == "/docs/hica-vs-python/" or page.url == "/docs/hica-vs-rust/" or page.url == "/docs/hica-vs-koka/" %}class="active"{% endif %}>
+            Hica vs. Other Languages
           </a>
         </li>
       </ul>

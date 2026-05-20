@@ -357,6 +357,8 @@ Issues that exist today but are not yet fixed:
   fixed in v0.11.2. Simple cases work, but certain patterns (e.g. `let` followed
   by further expressions in nested branches) still generate broken Koka.
   HML retro confirms workaround still needed: extract helper functions.
+  **P0 for Lisp-in-Hica**: every eval branch needs local bindings; without
+  this fix, interpreter code inflates ~2x from helper function extraction.
 - **~~Parse errors report byte offsets, not line numbers~~** — Fixed. Parser
   now converts byte offsets to `line:col` using the source text. Error messages
   display human-readable positions (e.g. `3:11` instead of `36`).

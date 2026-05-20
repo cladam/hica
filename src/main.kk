@@ -28,11 +28,15 @@ import format/formatter
 import klap
 import prelude-bundle
 
-val version = "0.24.3" 
+val version = "0.25.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
   c inline "(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())"
+
+// Check if stdin is a terminal (not piped/redirected)
+fun stdin-isatty()
+  run-system("test -t 0" ++ dev-null()) == 0
 
 // Write .kk only if content changed — preserves Koka's build cache
 fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
@@ -443,10 +447,45 @@ fun history-append( line : string )
 fun cmd-repl()
   cmd-repl-with-file(Nothing)
 
+// Completions file path for rlwrap
+val completions-path = "/tmp/hica-repl-completions.txt".path
+
+// Write completions file with prelude names and REPL commands
+fun write-completions( prelude : program )
+  val prelude-names = prelude.decls.map(fn(d) d.name)
+  val commands = [":help", ":h", ":defs", ":reset", ":load", ":history", ":type", ":t", ":quit", ":q"]
+  val keywords = ["fun", "let", "var", "if", "else", "match", "while", "for", "in", "repeat", "loop",
+                  "break", "continue", "struct", "type", "true", "false", "None", "Some", "Ok", "Err",
+                  "import", "pub", "return"]
+  val all-words = commands ++ keywords ++ prelude-names
+  write-text-file(completions-path, all-words.join("\n") ++ "\n")
+
+// Try to auto-wrap with rlwrap for tab completion and history
+fun try-rlwrap( file : maybe<string> )
+  // Don't wrap if: not a tty, already wrapped, or rlwrap not available
+  if !stdin-isatty() then return ()
+  if get-env-value("RLWRAP_COMMAND_PID").default("") != "" then return ()
+  val check = run-system("which rlwrap" ++ dev-null())
+  if check != 0 then return ()
+  // Write completions file before exec
+  val prelude = load-prelude()
+  write-completions(prelude)
+  // Build rlwrap command
+  val file-arg = match file
+    Just(f) -> " " ++ f
+    Nothing -> ""
+  val rlwrap-cmd = "rlwrap -f " ++ completions-path.show ++ " hica repl" ++ file-arg
+  val exit-code = run-system(rlwrap-cmd)
+  hica-exit(exit-code)
+
 fun cmd-repl-with-file( file : maybe<string> )
+  // Try auto-wrapping with rlwrap for tab completion
+  try-rlwrap(file)
+  val is-wrapped = get-env-value("RLWRAP_COMMAND_PID").default("") != ""
   println("hica " ++ version ++ " REPL (exit with Ctrl-D or :quit)")
   println("Type expressions, declarations (fun, let, struct, type), or :help")
-  println("Tip: use 'rlwrap hica repl' for history navigation and tab completion")
+  if !is-wrapped then
+    println("Tip: install 'rlwrap' for tab completion and history navigation")
   println("")
   val prelude = load-prelude()
   // Load startup file (~/.hicarc) if it exists
@@ -536,6 +575,11 @@ fun repl-loop( prelude : program, state : repl-state )
         val filepath = line.slice.drop(6).string.trim
         val new-state = repl-load-file(filepath, prelude, state)
         repl-loop(prelude, new-state)
+      elif line.starts-with(":type ").bool || line.starts-with(":t ").bool then
+        val expr-str = if line.starts-with(":type ").bool then line.slice.drop(6).string.trim
+                       else line.slice.drop(3).string.trim
+        repl-type(expr-str, prelude, state)
+        repl-loop(prelude, state)
       elif line.is-empty then
         repl-loop(prelude, state)
       else
@@ -579,6 +623,7 @@ fun repl-help()
   println("  :reset         Clear all definitions")
   println("  :load FILE     Load definitions from a .hc file")
   println("  :history       Show recent input history")
+  println("  :type, :t EXPR Show the type of an expression")
   println("  :quit, :q      Exit the REPL")
   println("")
   println("  Expressions are evaluated and the result is printed:")
@@ -681,6 +726,59 @@ fun repl-eval-let( binding-name : string, init : node, prelude : program, state 
     // Store binding and update _ to hold the let's init value
     val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
     state(vals = new-vals, js-defs = state.js-defs ++ js)
+
+// Show the type of an expression without evaluating it
+fun repl-type( input : string, prelude : program, state : repl-state )
+  val tokens = lex(input)
+  val (fragment, parse-errors) = run-parser-repl-tracked(tokens, input)
+  if parse-errors then return ()
+  match fragment
+    ReplExpr(enode) ->
+      val expr = match enode.expr
+        Let(_name, _ann, init, _body) -> init
+        _ -> enode
+      val wrapped = wrap-with-vals(state.vals, expr)
+      val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+      val merged = Program(prelude.structs ++ state.structs,
+                           types = prelude.types ++ state.types,
+                           decls = prelude.decls ++ state.decls ++ [wrapper])
+      val desugared = desugar-program(merged)
+      val (typed-prog, diags) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+      if !errors.is-empty then
+        errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
+      else
+        val typed-body = typed-prog.decls.last.default(wrapper).body
+        val typed-expr = unwrap-vals(state.vals, typed-body)
+        match typed-expr.typ
+          Just(t) -> println("  " ++ t.show)
+          Nothing -> println("  (unknown type)")
+    ReplDecl(d) ->
+      // Type check to get inferred types
+      val merged = Program(prelude.structs ++ state.structs,
+                           types = prelude.types ++ state.types,
+                           decls = prelude.decls ++ state.decls ++ [d])
+      val desugared = desugar-program(merged)
+      val (typed-prog, diags) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
+      if !errors.is-empty then
+        errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
+      else
+        val typed-decl = typed-prog.decls.last.default(d)
+        val param-strs = typed-decl.params.zip(typed-decl.param-types).map(fn((n, t)) n ++ ": " ++ t.show)
+        val param-str = if param-strs.is-empty then typed-decl.params.join(", ") else param-strs.join(", ")
+        val ret-str = match typed-decl.ret-type { Just(t) -> " : " ++ t.show; Nothing -> "" }
+        println("  (" ++ param-str ++ ")" ++ ret-str)
+    ReplStruct(sd) ->
+      println("  struct " ++ sd.name)
+    ReplType(td) ->
+      println("  type " ++ td.name)
+    ReplImport(_) ->
+      println("  (import — no type info)")
 
 // Evaluate a bare expression in the REPL
 fun repl-eval-expr( expr : node, prelude : program, state : repl-state )

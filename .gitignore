@@ -19,6 +19,8 @@ documentation/tbdflow-port.md
 documentation/building-klap-in-hica.md
 documentation/playground.md
 documentation/lsp-plan.md
+documentation/building-lisp-in-hica.md
+documentation/building-sml-in-hica.md
 
 .koka/
 .DS_Store
