@@ -317,3 +317,54 @@ The proposed Hica syntax from `actors-ideation.md` maps cleanly:
 | `ask(c, GetCount)` | `c.ask-count()` |
 
 **Next steps**: Phase 2 (cooperative concurrency via yield effect), Hica syntax design for `actor`/`spawn`/`send` keywords, codegen implementation.
+
+---
+
+## Step 6: Translation Test — mental-process.hc
+
+**File**: `examples/mental-process.hc`
+**Date**: 20 May 2026
+**Goal**: Translate a Koka program using custom `effect brain` and `effect weekend` (with `ctl` handlers and `resume`) into idiomatic Hica using the Phase 1 actor model.
+
+### Original Koka design
+
+The Koka version defines two custom effects:
+- `effect brain` with `fun thoughts()` and `ctl flush-buffer()` (resumes after clearing state)
+- `effect weekend` with `fun is-sunny()` and `ctl step-away()` (never resumes — terminates)
+
+A recursive `mental-process()` calls `thoughts()`, checks the stack depth, and either overflows (flush + step-away) or processes the head thought and recurses.
+
+### Hica translation
+
+Effects become actors: message types (`BrainMsg`, `WeekendMsg`), state structs (`BrainState`, `WeekendState`), and receive functions (`brain_receive`, `weekend_receive`).
+
+```hica
+type BrainMsg { Think, FlushBuffer }
+struct BrainState { thoughts: list<string> }
+
+type WeekendMsg { StepAway }
+struct WeekendState { sunny: bool }
+```
+
+The orchestrator (`mental_process`) uses `process_messages` for the recursive-think path and inlines the overflow path.
+
+### Findings
+
+1. **Effects → actors maps well for state + messages**: The `effect brain` with `thoughts()` and `flush-buffer()` maps naturally to `BrainMsg { Think, FlushBuffer }` + `brain_receive(state, msg)`.
+
+2. **Non-resuming `ctl` has no actor equivalent**: The Koka `ctl step-away()` never calls `resume` — execution stops. In Hica's actor model, receive functions always return state. The overflow path had to be inlined as direct `println` calls to get unit return and avoid leaking the `WeekendState` as main's return value.
+
+3. **Two `process_messages` calls with different actor types in the same function cause type unification errors**: Hica's type inference pins the generic `process_messages` to the first actor type used, then rejects the second. Workaround: separate into different functions, or call receive functions directly.
+
+4. **Receive functions with side effects need inferred return types**: Adding an explicit `: BrainState` return annotation on `brain_receive` fails because Koka sees `console` effects from `println` but the annotation promises `total`. Removing the annotation lets Hica infer the correct effectful type.
+
+5. **Struct constructors use named-field syntax**: `BrainState { thoughts: [] }` not `BrainState([])`.
+
+6. **`let` inside `if/else` branches is still broken** — extracted `handle_overflow` as a separate function to avoid the codegen bug.
+
+### Implications for actor design
+
+- Phase 1 actors (state machines) handle the **state + message dispatch** part of effects well.
+- They do **not** model control flow effects (non-resuming `ctl`, `resume` with values). This is expected — Hica intentionally hides effect handlers.
+- For programs that mix state transitions with I/O, the receive function ends up doing side effects. This works but produces unused return values when the state isn't needed. A future `send` function (fire-and-forget, discards state) would help.
+- The type unification issue with multiple actor types in one function is a real ergonomic gap that would block multi-actor orchestration patterns.

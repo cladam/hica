@@ -93,7 +93,7 @@ lint:
 
 Running `yml2hml .tbdflow.yml` produces:
 
-```
+```hica
 main-branch-name: "main"
 stale-branch-threshold-days: 1
 @monorepo {

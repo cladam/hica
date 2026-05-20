@@ -242,8 +242,32 @@ fun main() {
 
 ## Next Steps
 
-- [ ] Write a `examples/actor-counter.hc` sketch (using current syntax to simulate)
-- [ ] Prototype in pure Koka: write the effect handler manually, see how it feels
+- [x] Write a `examples/actor-counter.hc` sketch (using current syntax to simulate)
+- [x] Prototype in pure Koka: write the effect handler manually, see how it feels
 - [ ] Design the `actor` AST node and discuss parse rules
 - [ ] Check Koka named effects for multi-instance support
 - [ ] Look at Daan Leijen's "Structured Asynchrony with Algebraic Effects" paper
+- [ ] Fix type unification issue: two `process_messages` calls with different actor types in one function
+- [ ] Add `send(actor, msg)` fire-and-forget helper that discards return state (returns unit)
+
+---
+
+## Findings from mental-process.hc Translation (20 May 2026)
+
+Translated a Koka program with `effect brain` + `effect weekend` (custom effects with `ctl`/`resume`) to Hica using Phase 1 actor model. See `examples/mental-process.hc` and `src/actors/lab-journal.md` Step 6.
+
+### What worked
+- Effect → actor mapping (message types + state struct + receive function) is natural
+- `process_messages(state, mailbox, receive_fn)` works for the recursive-think path
+- Struct field access (`brain.thoughts`, `weekend.sunny`) reads well in orchestration code
+
+### What didn't
+- **Non-resuming control effects** (`ctl step-away()` with no `resume`) have no actor equivalent — had to inline the terminal side effects
+- **Type unification**: two `process_messages` calls with different actor types in one function body fail — generic gets pinned to first type
+- **Return value leaking**: receive functions return state, but when the orchestrator doesn't need it, the value leaks to main's return (prints `WeekendState(sunny: True)`)
+- **Explicit return type + effects**: annotating `: BrainState` on a receive function that does `println` fails — must omit and let Hica infer
+
+### Design implications
+- A `send(actor_state, msg, receive_fn)` that returns `()` would fix the return-value leak
+- Multi-actor orchestration needs either: (a) fix type unification for polymorphic prelude functions, or (b) typed `send`/`ask` wrappers per actor type
+- The actor model handles the state+dispatch part of effects well, but intentionally cannot model control flow (non-resume, resume-with-value) — that's Koka territory
