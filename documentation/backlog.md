@@ -123,7 +123,7 @@ Legend: **done** = shipped, **—** = not started
 | Module keyword clash fix | **done** | — | `match.hc` → `hc-match.kk` |
 | Structured error output with source snippets | **done** | Medium | Line:col + source line + caret underline |
 | Desugaring pass | **done** | Medium | Separate `transform/desugar.kk` pass between parse and type check. Rewrites PRange → PVar + guard, PBits → PVar + bit_and guard. Simplifies codegen |
-| Koka keyword blocklist in checker | **—** | Low | Checker should reject identifiers that are Koka reserved words (`raw`, `prefix`, `infix`, `behind`, `linear`, etc.) and emit a clear error at check time. Currently surfaces late as invalid Koka output. HML retro: "you write valid Hica, it compiles to invalid Koka. Hard to predict" |
+| Koka keyword blocklist in checker | **done** | — | Checker emits warnings for Koka reserved words (`raw`, `prefix`, `value`, `control`, etc.) in user code. Prelude/imported code is skipped via skip counts. Codegen `marshal-field` auto-prefixes `hc-` on struct/enum field names that clash with Koka keywords. |
 
 ---
 

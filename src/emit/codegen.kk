@@ -91,14 +91,20 @@ fun emit-type( t : hica-type ) : div string
 fun struct-type-name( name : string ) : string
   name.to-lower
 
+// Marshal a struct/enum field name to avoid Koka keyword clashes.
+fun marshal-field( fname : string ) : string
+  if koka-keywords.any(fn(k) k == fname) || koka-reserved-names.any(fn(r) r == fname)
+    then "hc-" ++ fname
+  else fname
+
 fun emit-struct-def( sd : struct-def ) : div string
   val tname = sd.name.struct-type-name
   val pub-str = if sd.is-pub then "pub " else ""
   val struct-str = pub-str ++ "struct " ++ tname ++ "\n" ++
-    sd.fields.map(fn((fname, ftype)) "  " ++ fname ++ " : " ++ emit-type(ftype)).join("\n")
+    sd.fields.map(fn((fname, ftype)) "  " ++ marshal-field(fname) ++ " : " ++ emit-type(ftype)).join("\n")
   // Emit a show function for the struct
   val show-parts = sd.fields.map fn((fname, ftype))
-    "\"" ++ fname ++ ": \" ++ " ++ emit-show-call(ftype, "p." ++ fname)
+    "\"" ++ fname ++ ": \" ++ " ++ emit-show-call(ftype, "p." ++ marshal-field(fname))
   // Recursive structs need the `div` effect on show
   val is-rec = sd.fields.any(fn((_, ft)) ft.references-struct(sd.name))
   val effect-ann = if is-rec then " : div string" else " : string"
@@ -116,7 +122,7 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
   val type-str = pub-str ++ "type " ++ tname ++ "\n" ++
     td.variants.map(fn(vd)
       if vd.fields.is-nil then "  " ++ vd.name
-      else "  " ++ vd.name ++ "(" ++ vd.fields.map(fn((fname, ftype)) fname ++ " : " ++ emit-type(ftype)).join(", ") ++ ")"
+      else "  " ++ vd.name ++ "(" ++ vd.fields.map(fn((fname, ftype)) marshal-field(fname) ++ " : " ++ emit-type(ftype)).join(", ") ++ ")"
     ).join("\n")
   // Emit a show function for the type
   val is-rec = td.variants.any(fn(vd) vd.fields.any(fn((_, ft)) ft.references-type(td.name)))
@@ -136,11 +142,12 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
     elif vd.fields.length == 1 then
       match vd.fields
         Cons((fname, ftype), _) ->
-          "    " ++ vd.name ++ "(" ++ fname ++ ") -> \"" ++ vd.name ++ "(\" ++ " ++ emit-show-call(ftype, fname) ++ " ++ \")\""
+          val mf = marshal-field(fname)
+          "    " ++ vd.name ++ "(" ++ mf ++ ") -> \"" ++ vd.name ++ "(\" ++ " ++ emit-show-call(ftype, mf) ++ " ++ \")\""
         _ -> ""
     else
-      val param-names = vd.fields.map(fn((fname, _)) fname)
-      val show-parts = vd.fields.map(fn((fname, ftype)) emit-show-call(ftype, fname))
+      val param-names = vd.fields.map(fn((fname, _)) marshal-field(fname))
+      val show-parts = vd.fields.map(fn((fname, ftype)) emit-show-call(ftype, marshal-field(fname)))
       "    " ++ vd.name ++ "(" ++ param-names.join(", ") ++ ") -> \"" ++ vd.name ++ "(\" ++ " ++ show-parts.join(" ++ \", \" ++ ") ++ " ++ \")\""
   val show-fn = pub-str ++ "fun " ++ tname ++ "/show(v : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  match v\n" ++
@@ -845,13 +852,13 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       val args = def-fields.map fn(fname)
         match overrides.find(fn((nm, _)) nm == fname)
           Just((_, fval)) -> emit-expr(fval, declared)
-          Nothing -> "hc__base." ++ fname
+          Nothing -> "hc__base." ++ marshal-field(fname)
       "{ val hc__base = " ++ base-code ++ "; " ++ sname ++ "(" ++ args.join(", ") ++ ") }"
     FieldAccess(obj, fname) ->
       val obj-is-struct = match obj.typ
         Just(TStruct(_)) -> True
         _                -> False
-      val emitted-name = if obj-is-struct then fname else marshal-name(fname, declared)
+      val emitted-name = if obj-is-struct then marshal-field(fname) else marshal-name(fname, declared)
       emit-expr(obj, declared) ++ "." ++ emitted-name
     EConstructor(cname, cargs) ->
       if cargs.is-nil then cname

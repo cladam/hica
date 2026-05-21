@@ -47,7 +47,7 @@ pub fun compile-to-js( source : string, prelude-sources : list<string> = [] ) : 
   val desugared = desugar-program(merged)
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, prelude.decls.length, prelude.structs.length, prelude.types.length)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     val msgs = errors.map(fn(d) render-diagnostic(source, "<playground>", d))

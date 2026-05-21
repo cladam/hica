@@ -29,6 +29,7 @@ import format/formatter
 import klap
 import prelude-bundle
 import mcp
+import deps
 
 val version = "0.26.0" 
 
@@ -133,6 +134,9 @@ fun hica-cli() : command
     .subcommand("test, t", "Run tests in a .hc file")
     .subcommand("new", "Create a new hica project")
     .subcommand("init", "Initialise a hica project in the current directory")
+    .subcommand("add", "Add a dependency")
+    .subcommand("remove", "Remove a dependency")
+    .subcommand("fetch", "Fetch all dependencies")
     .subcommand("repl", "Start an interactive REPL")
     .subcommand("help", "Show help for a command")
 
@@ -176,6 +180,20 @@ fun init-cli() : command
   command("hica init")
     .about("Initialise a hica project in the current directory")
 
+fun add-cli() : command
+  command("hica add")
+    .about("Add a dependency")
+    .arg(positional("SPEC").help("Dependency: host/owner/repo@tag or path:../dir").required)
+
+fun remove-cli() : command
+  command("hica remove")
+    .about("Remove a dependency")
+    .arg(positional("NAME").help("Dependency name to remove").required)
+
+fun fetch-cli() : command
+  command("hica fetch")
+    .about("Fetch all dependencies")
+
 // Split a list at the first "--" element. Returns (before, after).
 fun split-at-double-dash( args : list<string> ) : (list<string>, list<string>)
   match args
@@ -200,6 +218,9 @@ fun main-cli( raw-args : list<string> )
     "help"  -> cmd-help(file)
     "new"   -> cmd-new(file)
     "init"  -> cmd-init()
+    "add"   -> cmd-add(file)
+    "remove" -> cmd-remove(file)
+    "fetch" -> cmd-fetch()
     "repl"  -> cmd-repl-with-file(file)
     _ ->
       val resolved = match file
@@ -236,7 +257,8 @@ fun cmd-build( file : string, target : string = "koka" )
     build-js(file)
   else
     val (extra-includes, koka-flags) = read-manifest-koka()
-    build(file, extra-includes=extra-includes, koka-flags=koka-flags)
+    val dep-includes = resolve-dep-includes()
+    build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
 
 // Build to JavaScript: lex → parse → check → emit JS
 fun build-js( file : string )
@@ -253,9 +275,12 @@ fun build-js( file : string )
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        imports = prog.imports)
   val desugared = desugar-program(merged)
+  val skip-decls = prelude.decls.length + imported-decls.length
+  val skip-structs = prelude.structs.length + imported-structs.length
+  val skip-types = prelude.types.length + imported-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, skip-decls, skip-structs, skip-types)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -279,7 +304,8 @@ fun build-js( file : string )
 
 fun cmd-run( file : string, user-args : list<string> )
   val (extra-includes, koka-flags) = read-manifest-koka()
-  build(file, opt-level="0", extra-includes=extra-includes, koka-flags=koka-flags)
+  val dep-includes = resolve-dep-includes()
+  build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
   run-koka(file, user-args)
 
 fun cmd-check( file : string )
@@ -293,9 +319,12 @@ fun cmd-check( file : string )
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls)
   val desugared = desugar-program(merged)
+  val skip-decls = prelude.decls.length + imported-decls.length
+  val skip-structs = prelude.structs.length + imported-structs.length
+  val skip-types = prelude.types.length + imported-types.length
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, skip-decls, skip-structs, skip-types)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -326,6 +355,7 @@ fun cmd-fmt( file : string, check-only : bool )
 
 fun cmd-test( file : string )
   val (extra-includes, koka-flags) = read-manifest-koka()
+  val dep-includes = resolve-dep-includes()
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -345,9 +375,12 @@ fun cmd-test( file : string )
     // Desugar
     val desugared = desugar-program(merged)
     // Type check
+    val skip-decls = prelude.decls.length + imported-decls.length
+    val skip-structs = prelude.structs.length + imported-structs.length
+    val skip-types = prelude.types.length + imported-types.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared)
+        check-program(desugared, skip-decls, skip-structs, skip-types)
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -369,7 +402,7 @@ fun cmd-test( file : string )
       val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
-      val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+      val inc-dirs = import-dirs(prog.imports, dir.path) ++ dep-includes ++ extra-includes
       compile-koka(file, mod-name, inc-dirs, "0", koka-flags)
       run-tests(file)
 
@@ -417,6 +450,67 @@ fun cmd-init()
     val name = cwd().stemname
     scaffold-project(".".path, name)
 
+fun cmd-add( spec-arg : maybe<string> )
+  match spec-arg
+    Nothing ->
+      println("error: missing dependency spec")
+      println(add-cli().format-help)
+    Just(spec) ->
+      if !is-file(manifest-name.path) then
+        println("error: no hica.ini found (run 'hica init' first)")
+      else
+        val dep = parse-dep-spec(spec)
+        val content = read-text-file(manifest-name.path)
+        val existing = parse-deps-section(content)
+        if existing.any(fn(d) d.name == dep.name) then
+          println("error: dependency '" ++ dep.name ++ "' already exists (remove it first)")
+        else
+          val new-content = add-dep-to-ini(content, dep)
+          write-text-file(manifest-name.path, new-content)
+          println("added " ++ format-dep(dep))
+          match fetch-dep(dep, ".".path)
+            Just(_) -> ()
+            Nothing -> ()
+
+fun cmd-remove( name-arg : maybe<string> )
+  match name-arg
+    Nothing ->
+      println("error: missing dependency name")
+      println(remove-cli().format-help)
+    Just(name) ->
+      if !is-file(manifest-name.path) then
+        println("error: no hica.ini found")
+      else
+        val content = read-text-file(manifest-name.path)
+        val existing = parse-deps-section(content)
+        if !existing.any(fn(d) d.name == name) then
+          println("error: dependency '" ++ name ++ "' not found")
+        else
+          val new-content = remove-dep-from-ini(content, name)
+          write-text-file(manifest-name.path, new-content)
+          println("removed " ++ name)
+
+fun cmd-fetch()
+  if !is-file(manifest-name.path) then
+    println("error: no hica.ini found")
+  else
+    val content = read-text-file(manifest-name.path)
+    val dep-list = parse-deps-section(content)
+    if dep-list.is-nil then
+      println("no dependencies")
+    else
+      val paths = fetch-all-deps(dep-list, ".".path)
+      println("fetched " ++ paths.length.show ++ " dependencies")
+
+// Resolve dependency include paths from hica.ini [dependencies] section
+fun resolve-dep-includes()
+  if is-file(manifest-name.path) then
+    val content = read-text-file(manifest-name.path)
+    val dep-list = parse-deps-section(content)
+    if dep-list.is-nil then []
+    else fetch-all-deps(dep-list, ".".path)
+  else []
+
 fun scaffold-project( project-dir : path, name : string )
   val main-file  = project-dir / "main.hc".path
   val manifest   = project-dir / "hica.ini".path
@@ -432,6 +526,8 @@ fun scaffold-project( project-dir : path, name : string )
     "version = \"0.1.0\"",
     "license = \"MIT\"",
     "entry = \"main.hc\"",
+    "",
+    "[dependencies]",
     "",
     "[description]",
     "summary = \"A hica project\"",
@@ -475,6 +571,9 @@ fun cmd-help( sub : maybe<string> )
     Just("t")     -> println(test-cli().format-help)
     Just("new")   -> println(new-cli().format-help)
     Just("init")  -> println(init-cli().format-help)
+    Just("add")   -> println(add-cli().format-help)
+    Just("remove") -> println(remove-cli().format-help)
+    Just("fetch") -> println(fetch-cli().format-help)
     _             -> print-usage()
 
 // ---------------------------------------------------------------------------
@@ -603,9 +702,10 @@ fun repl-load-file( filepath : string, prelude : program, state : repl-state )
                               types = prelude.types ++ state.types ++ parsed.types,
                               decls = prelude.decls ++ state.decls ++ parsed.decls)
     val desugared = desugar-program(merged-prog)
+    val skip-n = prelude.decls.length + state.decls.length
     val (typed-prog, _diags) = collect-diagnostics
       run-fresh
-        check-program(desugared)
+        check-program(desugared, skip-n, prelude.structs.length + state.structs.length, prelude.types.length + state.types.length)
     // Emit JS for the file's declarations (skip main)
     val prelude-n = prelude.decls.length + state.decls.length
     val file-decls = typed-prog.decls.drop(prelude-n).filter(fn(d) d.name != "main")
@@ -765,9 +865,10 @@ fun repl-eval( input : string, prelude : program, state : repl-state, silent : b
                            types = prelude.types ++ state.types,
                            decls = prelude.decls ++ state.decls ++ [d])
       val desugared = desugar-program(merged)
+      val repl-skip = prelude.decls.length + state.decls.length
       val (typed-prog, diags) = collect-diagnostics
         run-fresh
-          check-program(desugared)
+          check-program(desugared, repl-skip)
       val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
       if !errors.is-empty then
         errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
@@ -813,9 +914,10 @@ fun repl-eval-let( binding-name : string, init : node, prelude : program, state 
                        types = prelude.types ++ state.types,
                        decls = prelude.decls ++ state.decls ++ [wrapper])
   val desugared = desugar-program(merged)
+  val repl-skip = prelude.decls.length + state.decls.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, repl-skip)
   val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(dia) println(render-diagnostic(init.show, "<repl>", dia)))
@@ -847,9 +949,10 @@ fun repl-type( input : string, prelude : program, state : repl-state )
                            types = prelude.types ++ state.types,
                            decls = prelude.decls ++ state.decls ++ [wrapper])
       val desugared = desugar-program(merged)
+      val repl-skip = prelude.decls.length + state.decls.length
       val (typed-prog, diags) = collect-diagnostics
         run-fresh
-          check-program(desugared)
+          check-program(desugared, repl-skip)
       val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
       if !errors.is-empty then
         errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
@@ -865,9 +968,10 @@ fun repl-type( input : string, prelude : program, state : repl-state )
                            types = prelude.types ++ state.types,
                            decls = prelude.decls ++ state.decls ++ [d])
       val desugared = desugar-program(merged)
+      val repl-skip = prelude.decls.length + state.decls.length
       val (typed-prog, diags) = collect-diagnostics
         run-fresh
-          check-program(desugared)
+          check-program(desugared, repl-skip)
       val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
       if !errors.is-empty then
         errors.foreach(fn(dia) println(render-diagnostic(input, "<repl>", dia)))
@@ -892,9 +996,10 @@ fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
                        types = prelude.types ++ state.types,
                        decls = prelude.decls ++ state.decls ++ [wrapper])
   val desugared = desugar-program(merged)
+  val repl-skip = prelude.decls.length + state.decls.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, repl-skip)
   val errors = diags.filter(fn(dia) match dia.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(dia) println(render-diagnostic(expr.show, "<repl>", dia)))
@@ -1038,9 +1143,12 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   // Desugar
   val desugared = desugar-program(merged)
   // Type check
+  val skip-decls = prelude.decls.length + imported-decls.length
+  val skip-structs = prelude.structs.length + imported-structs.length
+  val skip-types = prelude.types.length + imported-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, skip-decls, skip-structs, skip-types)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -1140,9 +1248,12 @@ fun compile-module( imp-file : path, visited : list<string> )
   // Desugar
   val desugared = desugar-program(merged)
   // Type check
+  val skip-decls = prelude.decls.length + imp-decls.length
+  val skip-structs = prelude.structs.length + imp-structs.length
+  val skip-types = prelude.types.length + imp-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared)
+      check-program(desugared, skip-decls, skip-structs, skip-types)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
@@ -1283,6 +1394,9 @@ fun print-usage()
   println("    test, t     Run tests in a .hc file")
   println("    new         Create a new hica project")
   println("    init        Initialise a project in the current directory")
+  println("    add         Add a dependency")
+  println("    remove      Remove a dependency")
+  println("    fetch       Fetch all dependencies")
   println("    help        Print this message\n")
   println("See 'hica help <command>' for more information on a specific command.")
 

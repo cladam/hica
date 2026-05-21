@@ -13,6 +13,22 @@ import diagnostics/diagnostics
 import semantics/prelude
 
 // ---------------------------------------------------------------------------
+// Koka keyword blocklist: reject identifiers that would produce invalid Koka
+// ---------------------------------------------------------------------------
+
+val koka-keyword-blocklist = ["val", "elif", "then", "return", "with",
+  "handle", "handler", "effect", "alias", "module", "abstract", "fn",
+  "forall", "raw", "inline", "include", "co", "rec", "open", "extend",
+  "behind", "linear", "value", "reference", "named", "scoped", "context",
+  "initially", "finally", "override", "infix", "infixl", "infixr",
+  "prefix", "postfix", "mask", "control", "rcontrol", "except", "inject",
+  "yield"]
+
+fun check-not-koka-keyword( name : string, sp : span ) : diag ()
+  if koka-keyword-blocklist.any(fn(k) k == name) then
+    emit-warning(sp, "'" ++ name ++ "' is a reserved word in Koka — it will be auto-prefixed in generated code")
+
+// ---------------------------------------------------------------------------
 // Fresh type variable generation
 // ---------------------------------------------------------------------------
 
@@ -1125,13 +1141,28 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
   (s2, env', d')
 
 // Check an entire program: infer all declarations in order.
-pub fun check-program( p : program ) : <div,diag,fresh> program
+// skip-kw-check: number of leading declarations (prelude + imports) to skip
+// for Koka keyword warnings. These are trusted code, not user-authored.
+pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0 ) : <div,diag,fresh> program
   with handler
     fun get-structs() p.structs
   with handler
     fun get-types() p.types
   with handler
     fun in-loop() False
+  // Check user struct names and field names against Koka keyword blocklist
+  p.structs.drop(skip-kw-structs).foreach fn(sd)
+    check-not-koka-keyword(sd.name.to-lower, sd.span)
+    sd.fields.foreach(fn((fname, _)) check-not-koka-keyword(fname, sd.span))
+  // Check user type (enum) names and variant field names against Koka keyword blocklist
+  p.types.drop(skip-kw-types).foreach fn(td)
+    check-not-koka-keyword(td.name.to-lower, td.span)
+    td.variants.foreach fn(vd)
+      vd.fields.foreach(fn((fname, _)) check-not-koka-keyword(fname, td.span))
+  // Check user-declared function names and parameters
+  p.decls.drop(skip-kw-check).foreach fn(d)
+    check-not-koka-keyword(d.name, d.span)
+    d.params.foreach(fn(param) check-not-koka-keyword(param, d.span))
   val (s1, env1, decls') = infer-decls(extern-env(), empty-subst, p.decls)
   val tests' = infer-tests(env1, s1, p.tests)
   Program(p.structs, types = p.types, decls = decls', tests = tests')
