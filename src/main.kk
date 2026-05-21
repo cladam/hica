@@ -23,12 +23,14 @@ import semantics/checker
 import emit/codegen
 import emit/codegen-js
 import emit/codegen-js-repl
+import repl-docs
 import transform/desugar
 import format/formatter
 import klap
 import prelude-bundle
+import mcp
 
-val version = "0.25.2" 
+val version = "0.26.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -184,7 +186,13 @@ fun split-at-double-dash( args : list<string> ) : (list<string>, list<string>)
       (Cons(a, before), after)
 
 fun main()
-  val (hica-args, user-args) = split-at-double-dash(get-args())
+  // Hidden --mcp flag: start MCP server (not shown in --help)
+  val raw-args = get-args()
+  if raw-args.any(fn(a) a == "--mcp") then mcp-serve()
+  else main-cli(raw-args)
+
+fun main-cli( raw-args : list<string> )
+  val (hica-args, user-args) = split-at-double-dash(raw-args)
   val m = hica-cli().parse-or-exit(hica-args)
   val cmd  = m.get-one-or("COMMAND", "")
   val file = m.get-one("FILE")
@@ -510,11 +518,12 @@ fun completions-path() : io path
 // Write completions file with prelude names and REPL commands
 fun write-completions( prelude : program )
   val prelude-names = prelude.decls.map(fn(d) d.name)
-  val commands = [":help", ":h", ":defs", ":reset", ":load", ":history", ":type", ":t", ":quit", ":q"]
+  val commands = [":help", ":h", ":doc", ":defs", ":reset", ":load", ":history", ":type", ":t", ":quit", ":q"]
   val keywords = ["fun", "let", "var", "if", "else", "match", "while", "for", "in", "repeat", "loop",
                   "break", "continue", "struct", "type", "true", "false", "None", "Some", "Ok", "Err",
                   "import", "pub", "return"]
-  val all-words = commands ++ keywords ++ prelude-names
+  val topics = doc-topic-names()
+  val all-words = commands ++ keywords ++ topics ++ prelude-names
   write-text-file(completions-path(), all-words.join("\n") ++ "\n")
 
 // Auto-wrap with rlwrap for tab completion and history
@@ -639,6 +648,15 @@ fun repl-loop( prelude : program, state : repl-state )
       elif line == ":help" || line == ":h" then
         repl-help()
         repl-loop(prelude, state)
+      elif line == ":doc" then
+        println(doc-topic-list())
+        repl-loop(prelude, state)
+      elif line.starts-with(":doc ").bool then
+        val topic = line.slice.drop(5).string.trim
+        match lookup-doc(topic)
+          Just(text) -> println(text)
+          Nothing -> println("  Unknown topic: " ++ topic ++ ". Type :doc for a list.")
+        repl-loop(prelude, state)
       elif line == ":defs" then
         repl-show-defs(state)
         repl-loop(prelude, state)
@@ -703,6 +721,7 @@ fun repl-show-history()
 
 fun repl-help()
   println("  :help, :h      Show this help")
+  println("  :doc [TOPIC]   Browse language docs (topics, functions)")
   println("  :defs          Show current definitions")
   println("  :reset         Clear all definitions")
   println("  :load FILE     Load definitions from a .hc file")

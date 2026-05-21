@@ -244,7 +244,7 @@ fun main() {
     if line == "exit" || line == ":quit" || line == ":q" {
       save_history(hist)
       println("Saved {length(hist)} entries. Goodbye!")
-      break
+      exit(0)
     }
 
     // Help
@@ -279,5 +279,6 @@ fun main() {
     dispatch(pair.0, pair.1)
     hist = hist + [line]
     counter = counter + 1
+    continue
   }
 }
