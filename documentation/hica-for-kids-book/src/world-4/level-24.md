@@ -24,7 +24,7 @@ Think of it like a table with two columns:
 
 ### Looking things up
 
-Use `map_get` to find a value by its key. It returns a **maybe** — because
+Use `map_get` to find a value by its key. It returns a **maybe**: because
 the key might not exist!
 
 ```hica
@@ -79,7 +79,7 @@ println(m2)   // [("x",1),("y",2)]
 
 ### The secret: maps are lists!
 
-Under the hood, a map is just a **list of tuples** — pairs of (key, value).
+Under the hood, a map is just a **list of tuples**. Pairs of (key, value).
 That means you can use all the list tools on maps too:
 
 ```hica

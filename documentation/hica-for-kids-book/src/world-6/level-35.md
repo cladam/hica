@@ -1,7 +1,7 @@
 # Level 35. Pattern Matching with Globs: The Treasure Map
 
 Imagine you have a treasure map, and you're looking for files that match a
-pattern — like "all the text files" or "any picture in any folder". That's what
+pattern, like "all the text files" or "any picture in any folder". That's what
 **glob matching** does!
 
 Hica has built-in functions for this, plus helpers that tell you what kind of
@@ -82,6 +82,6 @@ fun main() {
 
 ### Challenge
 
-Write a program that checks if a filename is a "safe name" — only letters,
+Write a program that checks if a filename is a "safe name". Only letters,
 digits, a dot, and `.txt` or `.hc` at the end. Use `is_alnum`, `glob_match`,
 and `chars` together!

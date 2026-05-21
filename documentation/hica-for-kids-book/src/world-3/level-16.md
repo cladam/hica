@@ -1,7 +1,7 @@
 # Level 16. While Loops: Keep Going Until...
 
 A `for` loop runs a set number of times. But sometimes you don't know *how
-many* times — you just want to keep going **until** something happens. That's
+many* times. You just want to keep going **until** something happens. That's
 what `while` is for!
 
 ```hica
@@ -15,10 +15,10 @@ fun main() {
 }
 ```
 
-This prints `5, 4, 3, 2, 1, liftoff!` — it keeps running **while** `x > 0`,
+This prints `5, 4, 3, 2, 1, liftoff!`. It keeps running **while** `x > 0`,
 and each time around, `x` gets smaller by 1.
 
-Notice the `var` — we need a changeable box because the loop updates `x` each
+Notice the `var`. We need a changeable box because the loop updates `x` each
 time around. A `let` box can't change, so it wouldn't work here.
 
 ### How while works

@@ -13,7 +13,7 @@ fun double(n) {
 fun double(n) => n * 2
 ```
 
-The arrow is like a shortcut — one line, no braces, no fuss. Professional
+The arrow is like a shortcut: one line, no braces, no fuss. Professional
 programmers love shortcuts like this.
 
 **🎯 Try it:** Rewrite this block-body function using the arrow:

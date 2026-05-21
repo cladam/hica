@@ -40,4 +40,4 @@ fun main() {
 }
 ```
 
-Pick whichever style you like — they all do the same thing!
+Pick whichever style you like. They all do the same thing!

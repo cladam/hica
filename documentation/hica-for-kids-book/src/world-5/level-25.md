@@ -4,14 +4,14 @@ Imagine a Russian doll (matryoshka). You open it, and there's a smaller
 identical doll inside. Open that one, and there's an even smaller one. You keep
 going until you find the tiniest doll that doesn't open.
 
-**Recursion** is when a function calls *itself* — like those nested dolls.
+**Recursion** is when a function calls *itself*, like those nested dolls.
 
 ### How it works
 
 Every recursive function needs exactly two things:
 
-1. **A base case** — when to STOP (the tiniest doll that doesn't open)
-2. **A recursive case** — how to make the problem SMALLER (opening the next doll)
+1. **A base case**. When to STOP (the tiniest doll that doesn't open)
+2. **A recursive case**: how to make the problem SMALLER (opening the next doll)
 
 ### Factorial: the classic example
 
@@ -67,7 +67,7 @@ until there's nothing left. That "nothing left" is the base case.
 
 ### The golden rule: always have a base case!
 
-Without a base case, a recursive function would call itself forever — like
+Without a base case, a recursive function would call itself forever, like
 dolls that never end, or two mirrors facing each other. The program would
 never finish!
 
@@ -96,7 +96,7 @@ Use recursion when a problem can be broken into **smaller copies of itself**:
 ### Mutual recursion: two functions that take turns
 
 Sometimes two functions call **each other** instead of themselves. Imagine
-two friends playing catch — each one throws the ball to the other until
+two friends playing catch: each one throws the ball to the other until
 someone decides to stop.
 
 ```hica
@@ -109,7 +109,7 @@ fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
   which calls `check_odd(1)`, which calls `check_even(0)` → `true`!
 - They keep bouncing back and forth, making the number smaller each time.
 
-Hica figures out that these functions call each other — you don't need to
+Hica figures out that these functions call each other. You don't need to
 do anything special.
 
 **🎯 Try it:** Trace `check_odd(3)` on paper. What does each call look like?

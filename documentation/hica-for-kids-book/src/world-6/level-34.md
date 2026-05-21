@@ -3,11 +3,11 @@
 Hica has built-in functions for working with dates and times. They use
 **strings** that look like this:
 
-- A **date**: `"2026-05-15"` — year, month, day, separated by dashes
-- A **time**: `"07:32:00"` — hours, minutes, seconds, separated by colons
-- A **datetime**: `"2026-05-15T07:32:00"` — a date and time joined by `T`
+- A **date**: `"2026-05-15"`. Year, month, day, separated by dashes
+- A **time**: `"07:32:00"`. Hours, minutes, seconds, separated by colons
+- A **datetime**: `"2026-05-15T07:32:00"`: a date and time joined by `T`
 
-Think of it like writing a date on a letter — you write it in a standard
+Think of it like writing a date on a letter. You write it in a standard
 format so everyone can read it.
 
 ### Is this date real?
@@ -45,7 +45,7 @@ fun main() {
 
 ### Breaking a date apart
 
-You can split a date into its pieces — year, month, and day:
+You can split a date into its pieces. Year, month, and day:
 
 ```hica
 fun main() {

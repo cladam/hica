@@ -1,7 +1,7 @@
 # Level 12. The Match Game
 
 Sometimes you have many choices. Instead of nested `if` statements, Hica uses
-`match`. It's like a sorting machine — drop a value in, and it lands in the
+`match`. It's like a sorting machine: drop a value in, and it lands in the
 right slot!
 
 ```hica
@@ -22,7 +22,7 @@ other slots. You should always include it so nothing falls through!
 
 ### Match with conditions (guards)
 
-Sometimes a simple value isn't enough — you want to check a *condition* too.
+Sometimes a simple value isn't enough. You want to check a *condition* too.
 Add `if` after the pattern to create a **guard**:
 
 ```hica
@@ -41,12 +41,12 @@ fun main() {
 }
 ```
 
-The variable `x` captures the value, and `if x < 0` is the guard — like a
+The variable `x` captures the value, and `if x < 0` is the guard, like a
 bouncer who checks your ticket before letting you through the door.
 
 ### Or-patterns: matching several values at once
 
-Use `|` to match multiple values in one arm — like saying "this *or* that":
+Use `|` to match multiple values in one arm, like saying "this *or* that":
 
 ```hica
 fun day_type(day) => match day {
@@ -93,7 +93,7 @@ than writing `0 | 1 | 2 | ... | 59`!
 
 ### Matching tuples
 
-You can take apart a tuple right inside a match — this is called
+You can take apart a tuple right inside a match. This is called
 **tuple destructuring**:
 
 ```hica

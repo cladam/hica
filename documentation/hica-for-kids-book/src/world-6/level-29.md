@@ -1,6 +1,6 @@
 # Level 29. Asking for Input
 
-So far, your programs have been one-way conversations — the computer talks,
+So far, your programs have been one-way conversations: the computer talks,
 but you can't talk back. Let's change that! The `input` function prints a
 question and waits for the user to type an answer.
 
@@ -17,7 +17,7 @@ your answer, press Enter, and the program continues with whatever you typed.
 ### Reading numbers
 
 `input` always gives you a **string**. If you want a number, use `parse_int`
-or `parse_float` to convert it — and `match` to handle the case where the
+or `parse_float` to convert it, and `match` to handle the case where the
 user types something that isn't a number:
 
 ```hica
@@ -47,7 +47,7 @@ fun main() {
 }
 ```
 
-Notice how we use a **match guard** (`if n == secret`) — that's the pattern
+Notice how we use a **match guard** (`if n == secret`). That's the pattern
 matching trick from level 11!
 
 **🎯 Try it:** Write a program that asks for your name and your favourite

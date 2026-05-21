@@ -2,7 +2,7 @@
 
 ### The infinite loop
 
-Sometimes you want a loop that runs **forever** — until you decide to stop.
+Sometimes you want a loop that runs **forever**. Until you decide to stop.
 That's `loop`:
 
 ```hica
@@ -17,7 +17,7 @@ fun main() {
 }
 ```
 
-This prints `1, 2, 3, done!` — the `break` is like an **emergency exit**.
+This prints `1, 2, 3, done!`: the `break` is like an **emergency exit**.
 When the program hits `break`, it jumps out of the loop immediately.
 
 ### Break: the emergency exit

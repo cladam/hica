@@ -27,12 +27,12 @@ fun main() {
 }
 ```
 
-Floats and integers are different types — if a function uses `3.14 * r`,
+Floats and integers are different types. If a function uses `3.14 * r`,
 then `r` must also be a float (like `5.0`, not `5`).
 
 ### Strings (`string`)
 
-Text — words, sentences, emoji. Always wrapped in double quotes `" "`.
+Text: words, sentences, emoji. Always wrapped in double quotes `" "`.
 
 ```hica
 fun main() {
@@ -44,7 +44,7 @@ fun main() {
 
 ### Booleans (true / false)
 
-Like a light switch — on or off. Used for yes/no questions.
+Like a light switch: on or off. Used for yes/no questions.
 
 ```hica
 fun main() {
@@ -66,8 +66,8 @@ fun main() {
 ```
 
 Characters are different from strings:
-- `'a'` is a **character** — one single letter
-- `"a"` is a **string** — text that happens to be one letter long
+- `'a'` is a **character**: one single letter
+- `"a"` is a **string**. Text that happens to be one letter long
 
 Think of it like LEGO: a character is one brick, a string is a whole row of bricks.
 

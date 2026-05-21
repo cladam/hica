@@ -99,7 +99,7 @@ Think of it like photocopying a form and writing over just one field.
 
 ### Taking structs apart in match
 
-Remember `match`? You can use it to look inside a struct — like opening a
+Remember `match`? You can use it to look inside a struct, like opening a
 box and checking what's in each compartment:
 
 ```hica

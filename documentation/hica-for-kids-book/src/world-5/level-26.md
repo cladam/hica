@@ -4,7 +4,7 @@ You've learned that functions are like little machines. But what if a machine
 could **build another machine**? And what if that new machine could
 **remember** things from where it was built?
 
-That's what a **closure** is — a function that remembers values from its
+That's what a **closure** is: a function that remembers values from its
 surroundings.
 
 ### Closures capture their surroundings
@@ -25,7 +25,7 @@ closure remembers it. The answer is `70`.
 
 ### Functions that return functions
 
-Here's the really cool part — a function can **build a new function** and
+Here's the really cool part: a function can **build a new function** and
 hand it back to you:
 
 ```hica

@@ -20,7 +20,7 @@ serious, optimised C code. You get the **easy** writing experience and the
 ### Perceus: The Memory Cleaner
 
 When your program creates values (boxes), it uses memory. Some languages need a
-"garbage collector" that pauses your program to clean up — like stopping a race
+"garbage collector" that pauses your program to clean up, like stopping a race
 car to pick up litter. Hica uses **Perceus** instead: it counts exactly how
 many times each box is used and cleans it up the instant nobody needs it
 anymore. No pauses, no slowdowns.

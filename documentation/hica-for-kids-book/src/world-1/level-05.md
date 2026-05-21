@@ -20,8 +20,8 @@ let age: int = 11
 let name: string = "Alicia"
 ```
 
-This is called a **type annotation**. It's optional — the compiler is smart
-enough to figure it out — but sometimes it helps to be explicit.
+This is called a **type annotation**. It's optional: the compiler is smart
+enough to figure it out. But sometimes it helps to be explicit.
 
 ### Rules for variable names
 
@@ -47,7 +47,7 @@ fun main() {
 
 ### Changeable boxes with `var`
 
-Sometimes you need a box whose contents can change — like a scoreboard during
+Sometimes you need a box whose contents can change, like a scoreboard during
 a game. Use `var` instead of `let`:
 
 ```hica
@@ -59,8 +59,8 @@ fun main() {
 }
 ```
 
-With `let`, the box is **sealed** — you can never change what's inside.
-With `var`, the box has a **lid** — you can open it and swap the contents.
+With `let`, the box is **sealed**. You can never change what's inside.
+With `var`, the box has a **lid**. You can open it and swap the contents.
 
 | Keyword | Can change? | Think of it as... |
 | --- | --- | --- |
@@ -68,4 +68,4 @@ With `var`, the box has a **lid** — you can open it and swap the contents.
 | `var` | Yes (mutable) | A box with a lid |
 
 Most of the time, `let` is all you need. Use `var` when you really need to
-update a value — like counting things in a loop (you'll see this later!).
+update a value, like counting things in a loop (you'll see this later!).

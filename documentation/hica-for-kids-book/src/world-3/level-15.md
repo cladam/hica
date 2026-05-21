@@ -35,7 +35,7 @@ The two dots `..` mean "from here to there":
 
 ### FizzBuzz with a for loop
 
-Remember FizzBuzz? Now we can do the *real* version — loop through all the
+Remember FizzBuzz? Now we can do the *real* version. Loop through all the
 numbers!
 
 ```hica
@@ -52,7 +52,7 @@ fun main() {
 }
 ```
 
-Notice `show(n)` in the last branch — it turns a number into a string
+Notice `show(n)` in the last branch. It turns a number into a string
 (so `show(7)` gives `"7"`). We need it because every branch must return the
 same type, and the other branches already return strings.
 
@@ -60,7 +60,7 @@ That's only 10 lines of code and it prints all 100 fizzbuzz results!
 
 ### Using the loop variable
 
-The loop variable is a regular integer — you can do math with it:
+The loop variable is a regular integer. You can do math with it:
 
 ```hica
 fun main() {

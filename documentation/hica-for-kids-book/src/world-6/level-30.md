@@ -1,7 +1,7 @@
 # Level 30. Random Numbers: Roll the Dice!
 
 What if your program could surprise you? With `random`, it can! The `random`
-function picks a number for you — a different one each time you run the
+function picks a number for you: a different one each time you run the
 program.
 
 ### Rolling a die
@@ -16,7 +16,7 @@ fun main() {
 }
 ```
 
-This works just like `for i in 1..6` — both ends are included. Simple!
+This works just like `for i in 1..6`, both ends are included. Simple!
 
 | Call | Possible results |
 | --- | --- |
@@ -24,7 +24,7 @@ This works just like `for i in 1..6` — both ends are included. Simple!
 | `random(0, 1)` | 0 or 1 (coin flip!) |
 | `random(1, 100)` | 1 through 100 |
 
-**🎯 Try it:** Run the die program several times — you'll get a different
+**🎯 Try it:** Run the die program several times. You'll get a different
 number each time!
 
 ### Coin flip
@@ -55,7 +55,7 @@ fun main() {
 }
 ```
 
-This rolls 3 dice, prints each one, and adds them up — just like a board
+This rolls 3 dice, prints each one, and adds them up. Just like a board
 game!
 
 ### A real guessing game!

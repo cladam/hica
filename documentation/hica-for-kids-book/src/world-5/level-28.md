@@ -1,10 +1,10 @@
 # Level 28. Enums: Choose Your Adventure
 
 Remember structs? A struct says "every value has the same fields." But what if
-a value could be **one of several different things**? That's an **enum** — short
+a value could be **one of several different things**? That's an **enum**. Short
 for "enumeration."
 
-Think of it like a "choose your adventure" book — at each point, the story can
+Think of it like a "choose your adventure" book. At each point, the story can
 take one of several different paths. An enum says: "this value is one of these
 options."
 
@@ -27,7 +27,7 @@ fun main() {
 ```
 
 `type` creates a new type. `Red`, `Green`, and `Blue` are the **variants** —
-the possible values. No numbers, no strings — just names. Clear and
+the possible values. No numbers, no strings. Just names. Clear and
 impossible to misspell (the compiler catches typos!).
 
 ### Enums with data
@@ -98,7 +98,7 @@ a 3 by 4 rectangle
 just a point
 ```
 
-The variables `r`, `w`, and `h` are bound by the pattern — they hold whatever
+The variables `r`, `w`, and `h` are bound by the pattern. They hold whatever
 data was packed into the variant. It's like opening the package and seeing
 what's inside!
 
@@ -110,7 +110,7 @@ If you forget a variant in your `match`, the compiler warns you:
 warning: non-exhaustive match: missing Point
 ```
 
-This is like a checklist — the compiler makes sure you've handled every
+This is like a checklist: the compiler makes sure you've handled every
 possible case. No surprises at runtime!
 
 ### Enums vs Structs

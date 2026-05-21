@@ -4,7 +4,7 @@ Sometimes you want to build a message from pieces. Hica gives you two ways.
 
 ### Gluing strings with `+`
 
-The `+` operator works on strings too — it stitches them together:
+The `+` operator works on strings too. It stitches them together:
 
 ```hica
 fun shout(word) => word + "!"
@@ -45,7 +45,7 @@ fun main() {
 }
 ```
 
-Think of `{}` as little windows into your code — whatever you put inside gets
+Think of `{}` as little windows into your code. Whatever you put inside gets
 turned into text and dropped into the string.
 
 **🎯 Try it:** Write a function `introduce(name, age)` that returns
@@ -53,7 +53,7 @@ turned into text and dropped into the string.
 
 ### String tools
 
-Hica comes with built-in tools for working with strings — no imports needed:
+Hica comes with built-in tools for working with strings: no imports needed:
 
 ```hica
 fun main() {
@@ -98,7 +98,7 @@ Think of these like tools in a toolbox:
 ### Special characters (escape sequences)
 
 What if you want to put a double-quote *inside* a string? You can't just
-write `"She said "hi""` — Hica would think the string ends at the second `"`.
+write `"She said "hi""`. Hica would think the string ends at the second `"`.
 
 The trick: put a backslash `\` before the special character. The backslash
 says "the next character is literal, not magic":
@@ -141,7 +141,7 @@ fun main() {
 ### Peeking inside strings (indexing and slicing)
 
 You can grab individual characters or pieces of a string using square brackets
-— just like picking cards out of a deck:
+, just like picking cards out of a deck:
 
 ```hica
 fun main() {
@@ -155,7 +155,7 @@ fun main() {
 Negative numbers count from the end: `-1` is the last character, `-2` is
 the second-to-last, and so on.
 
-You can also grab a **slice** — a piece of the string:
+You can also grab a **slice**: a piece of the string:
 
 ```hica
 fun main() {
@@ -174,7 +174,7 @@ fun main() {
 | `s[i:]` | From i to the end | `s[3:]` → `"lo"` |
 | `s[-1]` | Last character | `s[-1]` → `'o'` |
 
-Think of it like a ruler laid along the string — the numbers mark the gaps
+Think of it like a ruler laid along the string: the numbers mark the gaps
 *between* characters, and you pick the piece between two marks.
 
 **🎯 Try it:** Given `let word = "abcdef"`, what is `word[2:5]`?

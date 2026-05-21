@@ -1,6 +1,6 @@
 # Level 20. Tuples: Bundling Values Together
 
-Sometimes you want to keep two (or more) values together — like an **x** and
+Sometimes you want to keep two (or more) values together, like an **x** and
 **y** position, or a name and an age. A **tuple** is a tiny bundle that holds
 several values side by side.
 
@@ -36,7 +36,7 @@ println("{x}")  // 10
 println("{y}")  // 20
 ```
 
-This is called **destructuring** — you "take apart" the tuple and give each
+This is called **destructuring**. You "take apart" the tuple and give each
 piece its own name.
 
 ### When are tuples handy?

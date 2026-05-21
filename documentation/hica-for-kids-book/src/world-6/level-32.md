@@ -58,7 +58,7 @@ fun main() {
 }
 ```
 
-**Challenge:** Combine `describe` and `sign` — call one function from another!
+**Challenge:** Combine `describe` and `sign`. Call one function from another!
 
 ### Project 4: The Banner Maker
 
@@ -82,7 +82,7 @@ Output:
 ========HICA========
 ```
 
-**Challenge 1:** Use `surround` to add a border on the sides too — like
+**Challenge 1:** Use `surround` to add a border on the sides too, like
 `| ========HICA======== |`.
 
 **Challenge 2:** Can you make a box? Try printing a top line, a centered

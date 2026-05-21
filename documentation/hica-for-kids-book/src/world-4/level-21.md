@@ -1,6 +1,6 @@
 # Level 21. Lists: Collections of Things
 
-What if you have a whole bunch of values — not just two or three, but five,
+What if you have a whole bunch of values. Not just two or three, but five,
 ten, or even a hundred? That's what **lists** are for.
 
 A list is like a row of boxes, all holding the same kind of thing.
@@ -34,7 +34,7 @@ Every item in a list must be the same type. You can't mix numbers and strings:
 
 This is different from tuples, which *can* hold different types.
 
-### Lists vs Tuples — what's the difference?
+### Lists vs Tuples: what's the difference?
 
 | | Tuple | List |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ This is different from tuples, which *can* hold different types.
 
 Hica gives you three super-powers for working with lists:
 
-**`map` — transform every element**
+**`map`. Transform every element**
 
 ```hica
 let nums = [1, 2, 3]
@@ -58,7 +58,7 @@ println(doubled)   // [2, 4, 6]
 Think of `map` like a machine: each item goes in one side, gets changed, and
 comes out the other side.
 
-**`filter` — keep only the ones you want**
+**`filter`. Keep only the ones you want**
 
 ```hica
 let nums = [1, 2, 3, 4, 5]
@@ -69,7 +69,7 @@ println(big)   // [4, 5]
 `filter` checks each item: "Does this pass the test?" If yes, it stays.
 If no, it's gone.
 
-**`fold` — combine everything into one value**
+**`fold`. Combine everything into one value**
 
 ```hica
 let nums = [1, 2, 3, 4]
@@ -90,7 +90,7 @@ println(total)   // 10
 
 Hica has a few more handy tools for lists:
 
-**`length` — how many items?**
+**`length`: how many items?**
 
 ```hica
 let nums = [10, 20, 30]
@@ -99,7 +99,7 @@ println(length(nums))   // 3
 
 Like counting the boxes in a row.
 
-**`reverse` — flip the order**
+**`reverse`. Flip the order**
 
 ```hica
 let nums = [1, 2, 3]
@@ -108,14 +108,14 @@ println(reverse(nums))   // [3, 2, 1]
 
 Like reading a list backwards!
 
-**`cons` — add something to the front**
+**`cons`. Add something to the front**
 
 ```hica
 let nums = [2, 3, 4]
 println(cons(1, nums))   // [1, 2, 3, 4]
 ```
 
-`cons` is super fast — like putting a new box at the start of the row.
+`cons` is super fast, like putting a new box at the start of the row.
 If you want to add to the *end* instead, use `+`:
 
 ```hica
@@ -127,7 +127,7 @@ Adding to the end is slower because the computer has to walk the whole row
 first. For most programs it doesn't matter, but if speed is important,
 `cons` is the way to go!
 
-**`for x in list` — do something with each item**
+**`for x in list`. Do something with each item**
 
 The nicest way to walk through a list is with a `for` loop:
 
@@ -151,7 +151,7 @@ You can also use the function form: `foreach(names, (name) => println(name))`
 one. It's similar to `map`, but you use it when you want to *do* something
 (like print) rather than *transform* the values.
 
-**🎯 Try it:** Use `reverse` on `["a", "b", "c"]` — what do you get?
+**🎯 Try it:** Use `reverse` on `["a", "b", "c"]`: what do you get?
 
 **🎯 Try it:** Use `for` to print each number in `[10, 20, 30]`
 multiplied by 5.
@@ -160,7 +160,7 @@ multiplied by 5.
 
 Here are a few more useful list functions:
 
-**`head` and `last` — peek at the ends**
+**`head` and `last`. Peek at the ends**
 
 ```hica
 fun main() {
@@ -174,13 +174,13 @@ fun main() {
 `head` gives you the first item, `last` gives you the last. They return
 `Some(...)` or `None` because the list might be empty.
 
-**`tail` — everything except the first**
+**`tail`. Everything except the first**
 
 ```hica
 println(tail([1, 2, 3]))   // [2, 3]
 ```
 
-**`sum` — add them all up**
+**`sum`. Add them all up**
 
 ```hica
 println(sum([1, 2, 3, 4, 5]))   // 15
@@ -188,7 +188,7 @@ println(sum([1, 2, 3, 4, 5]))   // 15
 
 No need to write `fold` for the most common case!
 
-**`sort_by` — put things in order**
+**`sort_by`. Put things in order**
 
 ```hica
 let messy = [3, 1, 4, 1, 5, 9]
@@ -204,7 +204,7 @@ let biggest_first = sort_by(messy, (a, b) => a >= b)
 println(biggest_first)   // [9, 5, 4, 3, 1, 1]
 ```
 
-**`unique` — remove repeats**
+**`unique`. Remove repeats**
 
 ```hica
 println(unique([1, 2, 3, 2, 1]))   // [1, 2, 3]

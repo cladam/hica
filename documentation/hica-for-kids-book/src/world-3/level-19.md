@@ -6,11 +6,11 @@ Remember how functions are like machines in a factory? The **pipe operator**
 Picture an assembly line in a factory: a value starts at one end and moves
 along the conveyor belt, passing through one machine after another. Each
 machine does one small job, and the result rolls on to the next machine.
-That's exactly what `|>` does — it connects your little machines into one
+That's exactly what `|>` does. It connects your little machines into one
 smooth assembly line.
 
 Instead of nesting function calls inside each other, you can pipe a value
-through a chain of functions — left to right, one step at a time:
+through a chain of functions, left to right, one step at a time:
 
 ```hica
 fun double(n) => n * 2
@@ -41,7 +41,7 @@ a |> f      becomes      f(a)
 a |> f |> g becomes      g(f(a))
 ```
 
-It's just a nicer way to write function calls — nothing new to learn, just
+It's just a nicer way to write function calls: nothing new to learn, just
 a shortcut that makes chains easier to read.
 
 ### When to use it
@@ -84,7 +84,7 @@ fun main() {
 }
 ```
 
-`a.f()` means exactly the same as `a |> f` — it passes `a` into the function
+`a.f()` means exactly the same as `a |> f`. It passes `a` into the function
 `f`. The dot style looks like you're calling a "method" on the value, even
 though `add_one` is just a regular function.
 
@@ -103,5 +103,5 @@ fun main() {
 **Rule of thumb:**
 - Use `|>` when each step is a simple one-argument function
 - Use `.f()` when you're also passing extra arguments (like the lambda above)
-- Both are fine — pick whichever feels clearest to *you*!
+- Both are fine. Pick whichever feels clearest to *you*!
 

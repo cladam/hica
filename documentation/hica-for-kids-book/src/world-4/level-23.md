@@ -3,7 +3,7 @@
 Sometimes things can go wrong. You try to divide by zero, open a file that
 doesn't exist, or parse a number from text that isn't a number.
 
-Without `Result`, errors would crash your program — like a car hitting a wall
+Without `Result`, errors would crash your program, like a car hitting a wall
 at full speed. But `Result` is like a **"Caution!" sign** on the road. When
 something goes wrong, the program slows down safely, reads the sign, and
 decides what to do next instead of crashing.
@@ -42,7 +42,7 @@ error: cannot divide by zero!
 
 No crash! The program handles the problem gracefully.
 
-### Maybe vs Result — what's the difference?
+### Maybe vs Result: what's the difference?
 
 | | Maybe | Result |
 | --- | --- | --- |
@@ -83,19 +83,19 @@ fun main() {
 }
 ```
 
-Think of `and_then_result` like a relay race — each runner passes the baton
+Think of `and_then_result` like a relay race: each runner passes the baton
 to the next, but if someone trips (`Err`), the race stops right there.
 
 ### The `?` shortcut
 
 When you're writing a function that returns `maybe`, and you need to unwrap
-several maybe values in a row, all those `match` blocks pile up fast — like
+several maybe values in a row, all those `match` blocks pile up fast, like
 stacking boxes inside boxes inside boxes. 📦📦📦
 
 The `?` operator is a shortcut. Put `?` after a maybe value and it does two
 things:
 
-- If it's `Some(v)`, you get `v` — the value inside.
+- If it's `Some(v)`, you get `v`: the value inside.
 - If it's `None`, the whole function returns `None` right away.
 
 ```hica

@@ -22,7 +22,7 @@ fun main() {
 }
 ```
 
-You can chain machines — feed the output of one into the next, like an
+You can chain machines. Feed the output of one into the next, like an
 assembly line!
 
 **🎯 Try it:** Write a function `triple(n)` that multiplies by 3. Then call

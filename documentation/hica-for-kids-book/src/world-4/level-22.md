@@ -38,9 +38,9 @@ empty envelope. The `match` opens the envelope to check.
 
 Maybe is great when something might not have an answer:
 
-- Looking up a word in a dictionary — maybe it's there, maybe it's not
-- Finding the first even number in a list — maybe there is one, maybe not
-- Getting input from a user — maybe they typed something, maybe they didn't
+- Looking up a word in a dictionary, maybe it's there, maybe it's not
+- Finding the first even number in a list, maybe there is one, maybe not
+- Getting input from a user, maybe they typed something, maybe they didn't
 
 ```hica
 fun first_positive(nums) => match nums {
@@ -77,7 +77,7 @@ println(is_some(Some(1)))   // true
 println(is_none(None))      // true
 ```
 
-Think of `map_maybe` like putting a letter through a stamping machine — if
+Think of `map_maybe` like putting a letter through a stamping machine. If
 the envelope is empty (`None`), the machine does nothing. If there's a letter
 inside (`Some`), it stamps it and puts it back.
 
