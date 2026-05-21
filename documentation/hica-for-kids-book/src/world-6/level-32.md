@@ -97,4 +97,3 @@ title, and a bottom line:
 Hint: use `repeat_str("*", 20)` for the top and bottom, and
 `"*" + center("HICA", 18, " ") + "*"` for the middle.
 
----

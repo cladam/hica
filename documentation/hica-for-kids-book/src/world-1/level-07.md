@@ -43,5 +43,3 @@ fun main() {
 
 **🎯 Try it:** Write a `fun main()` that computes how many seconds are in an
 hour (60 × 60).
-
----

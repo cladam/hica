@@ -4,4 +4,3 @@
 > collections — tuples, lists, maybe, results, and maps. These are the
 > containers that hold your data as your programs grow bigger.
 
----

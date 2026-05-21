@@ -74,4 +74,3 @@ next item," while `break` means "turn off the conveyor belt."
 **🎯 Try it:** Use a `loop` with `break` to print numbers 1, 2, 3, 4, 5.
 Hint: use `var i = 0`, increment it each time, and break when `i > 5`.
 
----

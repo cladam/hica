@@ -151,5 +151,3 @@ fun sum(xs: list<int>) : int => match xs {
 **🎯 Try it:** Write a function `season(month: int)` using range patterns:
 months 3..=5 are `"spring"`, 6..=8 are `"summer"`, 9..=11 are `"autumn"`,
 and everything else is `"winter"`.
-
----

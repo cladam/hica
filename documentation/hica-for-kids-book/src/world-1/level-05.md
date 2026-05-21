@@ -69,5 +69,3 @@ With `var`, the box has a **lid** — you can open it and swap the contents.
 
 Most of the time, `let` is all you need. Use `var` when you really need to
 update a value — like counting things in a loop (you'll see this later!).
-
----

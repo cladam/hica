@@ -81,4 +81,3 @@ Think of `map_maybe` like putting a letter through a stamping machine — if
 the envelope is empty (`None`), the machine does nothing. If there's a letter
 inside (`Some`), it stamps it and puts it back.
 
----

@@ -57,4 +57,3 @@ colour, then prints `"Hi ___, your favourite colour is ___!"`.
 operator (`+`, `-`, `*`, `/`), then print the result. Use `match` on the
 operator string!
 
----

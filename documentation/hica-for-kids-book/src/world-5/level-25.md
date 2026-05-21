@@ -114,4 +114,3 @@ do anything special.
 
 **🎯 Try it:** Trace `check_odd(3)` on paper. What does each call look like?
 
----

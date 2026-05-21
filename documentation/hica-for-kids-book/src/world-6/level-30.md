@@ -99,4 +99,3 @@ and have the computer pick one at random. Run it a few times!
 randomly (0 = rock, 1 = paper, 2 = scissors), and the player types their
 choice. Use `match` to decide who wins!
 
----

@@ -95,4 +95,3 @@ that doesn't.
 **🎯 Try it:** Start with an empty map `{:}` and use `map_set` to add three
 friends and their ages. Then print `map_keys()` and `map_size()`.
 
----

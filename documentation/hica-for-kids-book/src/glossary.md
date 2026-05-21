@@ -110,6 +110,5 @@
 | Koka | The language Hica is built in and translates to |
 | Perceus | The smart memory cleaner — no garbage collector needed |
 
----
 
 *Happy coding! 🎮*

@@ -131,4 +131,3 @@ if not, bail out.
 **🎯 Try it:** Write a function `safe_first(xs: list<int>) : maybe<int>`
 that uses `find(xs, (n) => n > 0)?` to find the first positive number.
 
----

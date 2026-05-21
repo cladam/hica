@@ -213,4 +213,3 @@ println(unique([1, 2, 3, 2, 1]))   // [1, 2, 3]
 **🎯 Try it:** Sort `[5, 2, 8, 1, 9]` from smallest to biggest, then
 print just the first element using `head`.
 
----

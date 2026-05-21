@@ -5,4 +5,3 @@
 > work with dates. These are the skills that turn practice into real
 > programs you can share with friends.
 
----

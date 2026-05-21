@@ -85,5 +85,3 @@ fun main() {
 Write a program that checks if a filename is a "safe name" — only letters,
 digits, a dot, and `.txt` or `.hc` at the end. Use `is_alnum`, `glob_match`,
 and `chars` together!
-
----

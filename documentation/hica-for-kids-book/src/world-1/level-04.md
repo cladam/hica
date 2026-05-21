@@ -41,5 +41,3 @@ fun main() {
 ```
 
 Pick whichever style you like — they all do the same thing!
-
----

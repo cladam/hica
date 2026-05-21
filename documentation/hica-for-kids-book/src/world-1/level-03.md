@@ -52,5 +52,3 @@ Type `:quit` to exit. The `_` holds your last result.
 ### Try it in the browser
 
 Don't want to install anything? The [hica Playground](https://cladam.github.io/hica/playground/) lets you write and run hica code directly in your browser: no setup required. It comes with example programs you can explore with one click.
-
----

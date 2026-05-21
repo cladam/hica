@@ -25,4 +25,3 @@ car to pick up litter. Hica uses **Perceus** instead: it counts exactly how
 many times each box is used and cleans it up the instant nobody needs it
 anymore. No pauses, no slowdowns.
 
----

@@ -180,4 +180,3 @@ Think of it like a ruler laid along the string — the numbers mark the gaps
 **🎯 Try it:** Given `let word = "abcdef"`, what is `word[2:5]`?
 What about `word[-2]`?
 
----

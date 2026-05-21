@@ -19,4 +19,3 @@ a ticket?" Both must be true to get in.
 **🎯 Try it:** Write a function that checks if a number is between 1 and 10
 (inclusive). Hint: `n >= 1 && n <= 10`.
 
----

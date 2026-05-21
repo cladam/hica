@@ -105,4 +105,3 @@ fun main() {
 - Use `.f()` when you're also passing extra arguments (like the lambda above)
 - Both are fine — pick whichever feels clearest to *you*!
 
----

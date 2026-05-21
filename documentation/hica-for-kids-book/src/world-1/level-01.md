@@ -14,4 +14,3 @@ What makes Hica special?
 Think of it this way: **you** write the easy version, and Hica's translator
 turns it into the hardcore version for the computer.
 
----

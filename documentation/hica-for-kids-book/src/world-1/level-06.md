@@ -73,5 +73,3 @@ Think of it like LEGO: a character is one brick, a string is a whole row of bric
 
 **🎯 Try it:** Create variables for your name, your age, and whether you like
 pizza. What types are they?
-
----

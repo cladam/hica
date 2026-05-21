@@ -25,5 +25,3 @@ fun main() {
 ```
 
 **🎯 Try it:** What happens if you use `repeat(0)`? What about `repeat(1)`?
-
----

@@ -70,4 +70,3 @@ while x > 0 {
 **🎯 Try it:** Write a while loop that finds the first power of 2 bigger
 than 1000. Start with `var n = 1` and keep doubling: `n = n * 2`.
 
----

@@ -43,4 +43,3 @@ It's like a chain of doors — you check each one until you find the right room.
 **🎯 Try it:** Write a function `size(n)` that returns `"small"` if `n < 10`,
 `"medium"` if `n < 100`, and `"big"` otherwise.
 
----

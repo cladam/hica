@@ -120,4 +120,3 @@ fun describe(p: Point) : string => match p {
 Write a `describe` function that uses match to print different messages
 for kittens (age 0) vs older pets!
 
----

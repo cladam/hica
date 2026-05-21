@@ -4,4 +4,3 @@
 > Strings let you build messages and talk to the world. And the magic pipe
 > connects your machines into one smooth assembly line. Let's go!
 
----

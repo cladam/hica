@@ -37,5 +37,3 @@ fun main() {
   println(b)
 }
 ```
-
----

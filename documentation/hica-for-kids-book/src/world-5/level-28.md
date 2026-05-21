@@ -160,4 +160,3 @@ that returns the number of seats (bikes have 1).
 **🎯 Challenge:** Create a `type Coin` with `Heads` and `Tails`. Use
 `random(0, 1)` to pick one and `match` to print the result!
 
----

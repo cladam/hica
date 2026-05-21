@@ -79,4 +79,3 @@ fun main() {
 **🎯 Challenge:** Write a program that asks the user for their birthday
 (as `YYYY-MM-DD`) and tells them what day of the week they were born!
 
----

@@ -89,4 +89,3 @@ fun main() {
 **🎯 Bonus:** Write `twice(f, x)` that applies `f` to `x` two times.
 What does `twice(double, 5)` give you?
 
----

@@ -48,4 +48,3 @@ piece its own name.
 **🎯 Try it:** Make a tuple `("Hica", 2026)` and print both parts using `.0`
 and `.1`.
 
----

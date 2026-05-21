@@ -8,5 +8,3 @@
 | **Smart memory** | Hica uses a trick called **Perceus** to clean up after itself — no garbage collector slowdowns |
 | **Everything is an expression** | `if`, `match`, and blocks all give back values |
 | **Learn real concepts** | The ideas you learn (functions, expressions, pattern matching) work in every language |
-
----

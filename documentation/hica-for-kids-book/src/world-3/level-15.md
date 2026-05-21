@@ -78,4 +78,3 @@ This prints the squares: 1, 4, 9, 16, 25.
 **🎯 Try it:** Print a countdown: `for i in 1..5 { println(6 - i) }`.
 What numbers do you get?
 
----
