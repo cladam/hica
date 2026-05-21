@@ -1,0 +1,20 @@
+[book]
+title = "Hica for Kids"
+authors = ["Claes Adamsson"]
+description = "Learn programming with Hica — the language with the magic arrow"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/cladam/hica"
+site-url = "/hica/hica-for-kids/"
+additional-css = ["theme/custom.css"]
+additional-js = ["theme/playground-buttons.js"]
+
+[output.html.search]
+enable = true

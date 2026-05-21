@@ -21,7 +21,7 @@ prelude names, keywords, and commands.
 
 ## Expressions
 
-Arithmetic, strings, lists — anything that evaluates to a value.
+Arithmetic, strings, lists. Anything that evaluates to a value.
 
 ```hica
 hica=> 2 + 3

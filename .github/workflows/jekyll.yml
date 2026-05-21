@@ -43,6 +43,14 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+      - name: Build mdBook (Hica for Kids)
+        run: |
+          mdbook build documentation/hica-for-kids-book
+          cp -r documentation/hica-for-kids-book/book hica-for-kids
       - name: Build with Jekyll
         # Outputs to the './_site' directory by default
         run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
