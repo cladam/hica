@@ -39,3 +39,6 @@ programs/*
 
 learn/*
 !learn/*.hc
+# mdBook build output (built by CI)
+hica-for-kids/
+documentation/hica-for-kids-book/book/
