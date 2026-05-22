@@ -16,7 +16,7 @@ fun is_blank(s) => is_empty(trim(s))
 
 // --- Splitting helpers ---
 
-fun words(s: string) => filter(split(s, " "), (w) => not_(is_empty(w)))
+fun words(s: string) => filter(split(s, " "), (w) => !is_empty(w))
 
 fun lines(s) => split(s, "\n")
 

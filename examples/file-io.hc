@@ -19,7 +19,7 @@ fun main() {
   write_lines("names.txt", ["Kalle", "Olle", "Lisa"])
   let names = read_lines("names.txt")
   for name in names {
-    if not_(is_empty(name)) {
+    if !is_empty(name) {
       println("Hi, {name}!")
     }
   }

@@ -17,7 +17,7 @@ fun make_spec() =>
 
 fun find_matches(text: string, needles: list<string>) : (list<string>, list<string>) =>
   (needles.filter((n) => contains(text, n)),
-   needles.filter((n) => not_(contains(text, n))))
+   needles.filter((n) => !contains(text, n)))
 
 fun search(file: string, needles: list<string>) {
   let text = read_file(file) |> unwrap

@@ -13,6 +13,7 @@ OUT="$ROOT/src/stdlib-bundle.kk"
 # Format: "module-path:relative-file-path"
 STDLIB_FILES=(
   "std/term:stdlib/std/term.hc"
+  "std/ops:stdlib/std/ops.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."

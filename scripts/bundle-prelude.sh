@@ -12,7 +12,6 @@ OUT="$ROOT/src/prelude-bundle.kk"
 
 PRELUDE_FILES=(
   "prelude/math.hc"
-  "prelude/operators.hc"
   "prelude/glob.hc"
   "prelude/lists.hc"
   "prelude/strings.hc"

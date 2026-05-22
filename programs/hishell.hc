@@ -35,7 +35,7 @@ fun history_path() {
 
 fun load_history() {
   match read_file(history_path()) {
-    Ok(content) => filter(lines(content), (line) => not_(is_empty(trim(line)))),
+    Ok(content) => filter(lines(content), (line) => !is_empty(trim(line))),
     Err(_)      => []
   }
 }
