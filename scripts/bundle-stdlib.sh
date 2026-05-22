@@ -14,6 +14,7 @@ OUT="$ROOT/src/stdlib-bundle.kk"
 STDLIB_FILES=(
   "std/term:stdlib/std/term.hc"
   "std/ops:stdlib/std/ops.hc"
+  "std/list:stdlib/std/list.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."

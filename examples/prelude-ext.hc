@@ -1,4 +1,5 @@
 // Test: prelude extensions — lists, math, float math, char/string conversions
+import "std/list"
 
 fun main() {
   // --- List functions ---

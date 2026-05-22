@@ -2,6 +2,8 @@
 // Lesson 37: List Extras
 // ============================================================
 //
+import "std/list"
+
 // Beyond map/filter/fold, hica gives you more list tools:
 //
 //   head(list)           - first element (returns maybe)
