@@ -25,12 +25,14 @@ pub struct dep-spec
 pub type dep-source
   GitDep( url : string, ref-tag : string )
   PathDep( dep-path : string )
+  RegistryDep( version : string )  // Phase 3: pkg.hica.dev registry (not yet implemented)
 
 // Format a dep-spec as a hica.ini dependency line
 pub fun format-dep( d : dep-spec ) : string
   val value = match d.source
-    GitDep(url, tag) -> url ++ "@" ++ tag
-    PathDep(p)       -> "path:" ++ p
+    GitDep(url, tag)    -> url ++ "@" ++ tag
+    PathDep(p)          -> "path:" ++ p
+    RegistryDep(version) -> version
   d.name ++ " = \"" ++ value ++ "\""
 
 // ---------------------------------------------------------------------------
@@ -108,6 +110,9 @@ pub fun fetch-all-deps( dep-list : list<dep-spec>, base-dir : path ) : io list<s
 pub fun fetch-dep( dep : dep-spec, base-dir : path ) : io maybe<path>
   match dep.source
     GitDep(url, tag) -> fetch-git(dep.name, url, tag)
+    RegistryDep(_) ->
+      println("error: registry dependencies not yet implemented")
+      Nothing
     PathDep(p) ->
       val resolved = base-dir / p.path
       if !is-directory(resolved) then
@@ -115,20 +120,34 @@ pub fun fetch-dep( dep : dep-spec, base-dir : path ) : io maybe<path>
         Nothing
       else Just(resolved)
 
+// Reject strings containing shell metacharacters to prevent command injection.
+fun safe-shell-arg( s : string ) : maybe<string>
+  val dangerous = [';', '&', '|', '$', '`', '(', ')', '<', '>', '\n', '\r', ' ', '"', '\'']
+  if dangerous.any(fn(c) s.contains(c.show)) then Nothing
+  else Just(s)
+
 fun fetch-git( name : string, url : string, tag : string ) : io maybe<path>
-  val cache = hica-cache-dir()
-  val dep-dir = cache / url.path / tag.path
-  if is-directory(dep-dir) then
-    Just(dep-dir)
-  else
-    println("  fetching " ++ name ++ " (" ++ url ++ "@" ++ tag ++ ")")
-    ensure-dir(dep-dir.dirname.path)
-    val git-url = "https://" ++ url
-    val exit-code = run-system("git clone --depth 1 --branch " ++ tag ++ " " ++ git-url ++ " " ++ dep-dir.show)
-    if exit-code != 0 then
-      println("error: failed to fetch '" ++ name ++ "' from " ++ git-url)
+  match (safe-shell-arg(url), safe-shell-arg(tag))
+    (Nothing, _) ->
+      println("error: dependency '" ++ name ++ "': url contains unsafe characters")
       Nothing
-    else Just(dep-dir)
+    (_, Nothing) ->
+      println("error: dependency '" ++ name ++ "': tag contains unsafe characters")
+      Nothing
+    (Just(safe-url), Just(safe-tag)) ->
+      val cache = hica-cache-dir()
+      val dep-dir = cache / safe-url.path / safe-tag.path
+      if is-directory(dep-dir) then
+        Just(dep-dir)
+      else
+        println("  fetching " ++ name ++ " (" ++ safe-url ++ "@" ++ safe-tag ++ ")")
+        ensure-dir(dep-dir.dirname.path)
+        val git-url = "https://" ++ safe-url
+        val exit-code = run-system("git clone --depth 1 --branch " ++ safe-tag ++ " " ++ git-url ++ " " ++ dep-dir.show)
+        if exit-code != 0 then
+          println("error: failed to fetch '" ++ name ++ "' from " ++ git-url)
+          Nothing
+        else Just(dep-dir)
 
 // ---------------------------------------------------------------------------
 // Manifest manipulation
