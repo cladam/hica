@@ -65,8 +65,8 @@ fun parse-dep-line( line : string ) : div maybe<dep-spec>
       if rest.is-nil then Nothing
       else
         val name = key.trim
-        val raw = rest.join("=").trim
-        val value = dep-unquote(raw)
+        val raw-value = rest.join("=").trim
+        val value = dep-unquote(raw-value)
         if name.is-empty || value.is-empty then Nothing
         elif value.starts-with("path:").bool then
           val p = value.slice.sslice/drop(5).string.trim

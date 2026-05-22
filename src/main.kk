@@ -477,18 +477,18 @@ fun cmd-remove( name-arg : maybe<string> )
     Nothing ->
       println("error: missing dependency name")
       println(remove-cli().format-help)
-    Just(name) ->
+    Just(dep-name) ->
       if !is-file(manifest-name.path) then
         println("error: no hica.ini found")
       else
         val content = read-text-file(manifest-name.path)
         val existing = parse-deps-section(content)
-        if !existing.any(fn(d) d.name == name) then
-          println("error: dependency '" ++ name ++ "' not found")
+        if !existing.any(fn(d) d.name == dep-name) then
+          println("error: dependency '" ++ dep-name ++ "' not found")
         else
-          val new-content = remove-dep-from-ini(content, name)
+          val new-content = remove-dep-from-ini(content, dep-name)
           write-text-file(manifest-name.path, new-content)
-          println("removed " ++ name)
+          println("removed " ++ dep-name)
 
 fun cmd-fetch()
   if !is-file(manifest-name.path) then
