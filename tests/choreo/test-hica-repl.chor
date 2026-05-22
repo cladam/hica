@@ -1,0 +1,501 @@
+feature "Hica REPL — user-perspective choreography tests"
+
+import "shared/hica_tasks.chor"
+
+actors {
+    Terminal
+}
+
+settings {
+    timeout_seconds = 60
+    stop_on_failure = false
+}
+
+# ─────────────────────────────────────────────
+# Scenario 1: Startup banner
+# ─────────────────────────────────────────────
+scenario "REPL startup and banner" {
+
+    test StartupBanner "REPL displays welcome banner on launch" {
+        given:
+            Test can_start
+        when:
+            hica_repl(":quit")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "hica"
+            Terminal output_contains "REPL"
+            Terminal output_contains "Ctrl-D"
+            Terminal output_contains "hica=>"
+    }
+
+    test StartupBye "REPL prints Bye! on :quit" {
+        given:
+            Test has_succeeded StartupBanner
+        when:
+            hica_repl(":quit")
+        then:
+            Terminal output_contains "Bye!"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 2: Arithmetic expressions
+# ─────────────────────────────────────────────
+scenario "Arithmetic expressions" {
+
+    test AddInts "1 + 2 evaluates to 3" {
+        given:
+            Test can_start
+        when:
+            hica_repl("1 + 2")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "3"
+    }
+
+    test MultiplyInts "10 * 10 evaluates to 100" {
+        given:
+            Test has_succeeded AddInts
+        when:
+            hica_repl("10 * 10")
+        then:
+            Terminal output_contains "100"
+    }
+
+    test SubtractInts "7 - 3 evaluates to 4" {
+        given:
+            Test has_succeeded AddInts
+        when:
+            hica_repl("7 - 3")
+        then:
+            Terminal output_contains "4"
+    }
+
+    test DivideInts "10 / 2 evaluates to 5" {
+        given:
+            Test has_succeeded AddInts
+        when:
+            hica_repl("10 / 2")
+        then:
+            Terminal output_contains "5"
+    }
+
+    test ModuloInts "10 % 3 evaluates to 1" {
+        given:
+            Test has_succeeded AddInts
+        when:
+            hica_repl("10 % 3")
+        then:
+            Terminal output_contains "1"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 3: String expressions
+# ─────────────────────────────────────────────
+scenario "String expressions" {
+
+    test StringConcat "string concatenation with +" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' '\"hello\" + \" world\"' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "hello world"
+    }
+
+    test StringLength "str_length returns character count" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' 'str_length(\"foo\")' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "3"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 4: Boolean and comparison expressions
+# ─────────────────────────────────────────────
+scenario "Boolean and comparison expressions" {
+
+    test GreaterThanTrue "2 > 1 evaluates to True" {
+        given:
+            Test can_start
+        when:
+            hica_repl("2 > 1")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "True"
+    }
+
+    test GreaterThanFalse "1 > 2 evaluates to False" {
+        given:
+            Test has_succeeded GreaterThanTrue
+        when:
+            hica_repl("1 > 2")
+        then:
+            Terminal output_contains "False"
+    }
+
+    test EqualityTrue "3 == 3 evaluates to True" {
+        given:
+            Test has_succeeded GreaterThanTrue
+        when:
+            hica_repl("3 == 3")
+        then:
+            Terminal output_contains "True"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 5: List expressions
+# ─────────────────────────────────────────────
+scenario "List expressions" {
+
+    test ListLength "length of a list literal" {
+        given:
+            Test can_start
+        when:
+            hica_repl("[1, 2, 3] |> length")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "3"
+    }
+
+    test ListMap "map squares each element" {
+        given:
+            Test has_succeeded ListLength
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' 'map([1, 2, 3], (x) => x * x)' | ./hica repl 2>&1"
+        then:
+            Terminal output_contains "1,4,9"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 6: Let bindings
+# ─────────────────────────────────────────────
+scenario "Let bindings" {
+
+    test LetSingle "let x = 42 prints the value" {
+        given:
+            Test can_start
+        when:
+            hica_repl("let x = 42")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "42"
+    }
+
+    test LetPersist "bindings from earlier lines are visible later" {
+        given:
+            Test has_succeeded LetSingle
+        when:
+            hica_repl_lines("'let x = 10\nlet y = 20\nx + y\n'")
+        then:
+            Terminal output_contains "30"
+    }
+
+    test LetString "string binding persists and can be used" {
+        given:
+            Test has_succeeded LetSingle
+        when:
+            hica_repl_lines("'let name = \"alice\"\nstr_length(name)\n'")
+        then:
+            Terminal output_contains "5"
+    }
+
+    test LastResult "_ captures the last result" {
+        given:
+            Test has_succeeded LetSingle
+        when:
+            hica_repl_lines("'6 * 7\n_ + 1\n'")
+        then:
+            Terminal output_contains "42"
+            Terminal output_contains "43"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 7: Function definitions and calls
+# ─────────────────────────────────────────────
+scenario "Function definitions and calls" {
+
+    test FunDefine "fun definition prints defined: <name>" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' 'fun square(n: int): int { n * n }' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "defined: square"
+    }
+
+    test FunCall "defined function can be called" {
+        given:
+            Test has_succeeded FunDefine
+        when:
+            hica_repl_lines("'fun square(n: int): int { n * n }\nsquare(5)\n'")
+        then:
+            Terminal output_contains "25"
+    }
+
+    test FunMultiArg "multi-argument function works" {
+        given:
+            Test has_succeeded FunDefine
+        when:
+            hica_repl_lines("'fun add(a: int, b: int): int { a + b }\nadd(3, 4)\n'")
+        then:
+            Terminal output_contains "7"
+    }
+
+    test FunMultiline "multiline fun definition via brace continuation" {
+        given:
+            Test has_succeeded FunDefine
+        when:
+            hica_repl_lines("'fun fib(n: int): int {\n  if n <= 1 { n } else { fib(n - 1) + fib(n - 2) }\n}\nfib(10)\n'")
+        then:
+            Terminal output_contains "55"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 8: Struct definitions and field access
+# ─────────────────────────────────────────────
+scenario "Struct definitions" {
+
+    test StructDefine "struct definition prints defined: struct <Name>" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' 'struct Point { x: int, y: int }' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "defined: struct Point"
+    }
+
+    test StructFieldAccess "struct fields are accessible after construction" {
+        given:
+            Test has_succeeded StructDefine
+        when:
+            hica_repl_lines("'struct Point { x: int, y: int }\nlet p = Point(3, 4)\np.x + p.y\n'")
+        then:
+            Terminal output_contains "7"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 9: Enum / type definitions
+# ─────────────────────────────────────────────
+scenario "Enum (type) definitions" {
+
+    test EnumDefine "type definition prints defined: type <Name>" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' 'type Color { Red, Green, Blue }' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "defined: type Color"
+    }
+
+    test EnumMatch "match on enum variant returns correct arm" {
+        given:
+            Test has_succeeded EnumDefine
+        when:
+            hica_repl_lines("'type Color { Red, Green, Blue }\nfun color_val(c: Color): int {\n  match c {\n    Red => 0,\n    Green => 1,\n    Blue => 2\n  }\n}\ncolor_val(Green)\n'")
+        then:
+            Terminal output_contains "1"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 10: REPL commands (:help, :defs, :type, :reset, :quit)
+# ─────────────────────────────────────────────
+scenario "Built-in REPL commands" {
+
+    test HelpCommand ":help lists available commands" {
+        given:
+            Test can_start
+        when:
+            hica_repl(":help")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains ":defs"
+            Terminal output_contains ":reset"
+            Terminal output_contains ":quit"
+            Terminal output_contains ":load"
+            Terminal output_contains ":type"
+            Terminal output_contains ":history"
+    }
+
+    test HelpAlias ":h is an alias for :help" {
+        given:
+            Test has_succeeded HelpCommand
+        when:
+            hica_repl(":h")
+        then:
+            Terminal output_contains ":defs"
+    }
+
+    test DefsEmpty ":defs reports no definitions in fresh session" {
+        given:
+            Test can_start
+        when:
+            hica_repl(":defs")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "(no definitions)"
+    }
+
+    test DefsAfterFun ":defs lists a defined function" {
+        given:
+            Test has_succeeded DefsEmpty
+        when:
+            hica_repl_lines("'fun add(a: int, b: int): int { a + b }\n:defs\n'")
+        then:
+            Terminal output_contains "fun add"
+    }
+
+    test TypeInt ":t reports type of int expression" {
+        given:
+            Test can_start
+        when:
+            hica_repl(":t 1 + 2")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "int"
+    }
+
+    test TypeString ":t reports type of string expression" {
+        given:
+            Test has_succeeded TypeInt
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' ':t \"hello\"' | ./hica repl 2>&1"
+        then:
+            Terminal output_contains "string"
+    }
+
+    test TypeList ":t reports type of list expression" {
+        given:
+            Test has_succeeded TypeInt
+        when:
+            hica_repl(":t [1, 2, 3]")
+        then:
+            Terminal output_contains "list"
+    }
+
+    test ResetClearsState ":reset clears defined names" {
+        given:
+            Test can_start
+        when:
+            hica_repl_lines("'fun foo(): int { 1 }\n:reset\n:defs\n'")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "state cleared"
+            Terminal output_contains "(no definitions)"
+    }
+
+    test QuitCommand ":quit prints Bye! and exits" {
+        given:
+            Test can_start
+        when:
+            hica_repl(":quit")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "Bye!"
+    }
+
+    test QuitAlias ":q is an alias for :quit" {
+        given:
+            Test has_succeeded QuitCommand
+        when:
+            hica_repl(":q")
+        then:
+            Terminal output_contains "Bye!"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 11: :load command
+# ─────────────────────────────────────────────
+scenario "Loading files with :load" {
+
+    test LoadFile ":load reports loaded: <name>" {
+        given:
+            Test can_start
+        when:
+            hica_repl_lines("':load examples/fizzbuzz.hc\n'")
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "loaded: fizzbuzz"
+    }
+
+    test LoadAndCall "loaded function can be called immediately" {
+        given:
+            Test has_succeeded LoadFile
+        when:
+            hica_repl_lines("':load examples/fizzbuzz.hc\nfizzbuzz(15)\n'")
+        then:
+            Terminal output_contains "fizzbuzz"
+    }
+
+    test LoadAppearsInDefs "loaded definitions appear in :defs" {
+        given:
+            Test has_succeeded LoadFile
+        when:
+            hica_repl_lines("':load examples/fizzbuzz.hc\n:defs\n'")
+        then:
+            Terminal output_contains "fun"
+    }
+
+    test LoadNonexistent ":load on missing file reports an error" {
+        given:
+            Test can_start
+        when:
+            hica_repl_lines("':load nonexistent-file.hc\n'")
+        then:
+            Terminal output_contains "not found"
+    }
+}
+
+# ─────────────────────────────────────────────
+# Scenario 12: Error handling
+# ─────────────────────────────────────────────
+scenario "Error handling and recovery" {
+
+    test ParseError "parse error is reported without crashing" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf 'let = 5\n' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "parse error"
+            Terminal output_not_contains "Unhandled exception"
+    }
+
+    test TypeError "type error is reported without crashing" {
+        given:
+            Test can_start
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '1 + true\n' | ./hica repl 2>&1"
+        then:
+            Terminal last_command succeeded
+            Terminal output_contains "error"
+            Terminal output_not_contains "Unhandled exception"
+    }
+
+    test ReplContinuesAfterError "REPL continues evaluating after a type error" {
+        given:
+            Test has_succeeded TypeError
+        when:
+            Terminal run "cd ${PROJECT_ROOT} && printf '1 + true\n2 + 2\n' | ./hica repl 2>&1"
+        then:
+            Terminal output_contains "4"
+    }
+}

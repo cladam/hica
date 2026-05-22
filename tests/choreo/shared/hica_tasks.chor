@@ -29,6 +29,16 @@ task hica_test_capture(file) {
     Terminal run "cd ${PROJECT_ROOT} && ./hica test ${file} || true"
 }
 
+# Pipe a single line of input to the REPL and capture output
+task hica_repl(input) {
+    Terminal run "cd ${PROJECT_ROOT} && printf '%s\n' '${input}' | ./hica repl 2>&1"
+}
+
+# Pipe a raw multi-line printf format string to the REPL (caller supplies the full printf arg)
+task hica_repl_lines(printf_args) {
+    Terminal run "cd ${PROJECT_ROOT} && printf ${printf_args} | ./hica repl 2>&1"
+}
+
 task hica_new(name) {
     Terminal run "cd ${PROJECT_ROOT} && ./hica new ${name}"
 }

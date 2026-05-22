@@ -123,10 +123,16 @@ jobs:
           cargo install choreo
         shell: bash
 
-      - name: Run choreo acceptance tests (Unix)
+      - name: Run choreo acceptance tests (Unix) - CLI
         if: runner.os != 'Windows'
         run: |
           choreo run -f tests/choreo/test-hica-cli.chor
+        shell: bash
+
+      - name: Run choreo acceptance tests (Unix) - CLI
+        if: runner.os != 'Windows'
+        run: |
+          choreo run -f tests/choreo/test-hica-repl.chor
         shell: bash
 
       - name: Run JS backend tests (Unix)

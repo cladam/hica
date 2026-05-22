@@ -28,3 +28,7 @@ koka -ilib/kunit -ilib/klap -isrc -v0 -e tests/test-cli.kk -- ./hica
 echo ""
 echo "=== JS backend tests ==="
 bash tests/test-js.sh ./hica 2>&1 | grep -E "PASS|FAIL|Results"
+
+echo ""
+echo "=== REPL choreography tests ==="
+bash tests/test-repl.sh ./hica 2>&1 | grep -E "PASS|FAIL|Results|SKIP|---"
