@@ -3,6 +3,7 @@
 // Pipe (|>), UFCS, closures, and enums combine to create
 // fluent, script-like processing chains — no macros or
 // custom syntax needed.
+import "std/string"
 
 type Step {
   Pass(value: string, trace: string),

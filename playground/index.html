@@ -428,6 +428,7 @@ fun main() {
 
 <script src="hica-compiler.js"></script>
 <script src="prelude-sources.js"></script>
+<script src="stdlib-sources.js"></script>
 <script>
 // --- Compiler bridge ---
 const hica = (function() {
@@ -781,7 +782,13 @@ function run() {
       for (let i = PRELUDE_SOURCES.length - 1; i >= 0; i--) {
         preludeSources = { head: PRELUDE_SOURCES[i], tail: preludeSources };
       }
-      const result = hica.compile_to_js(source, preludeSources);
+      // Convert stdlib sources to Koka linked list of (string, string) pairs
+      let stdlibSources = null;
+      const rawStdlib = typeof STDLIB_SOURCES !== 'undefined' ? STDLIB_SOURCES : [];
+      for (let i = rawStdlib.length - 1; i >= 0; i--) {
+        stdlibSources = { fst: rawStdlib[i][0], snd: rawStdlib[i][1], tail: stdlibSources };
+      }
+      const result = hica.compile_to_js(source, preludeSources, stdlibSources);
       const compileMs = (performance.now() - t0).toFixed(0);
 
       if (result._tag === 1) {

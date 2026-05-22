@@ -133,9 +133,8 @@ pub fun js-runtime-preamble() : string
   "function repeat_str(s, n) { return n <= 0 ? '' : s.repeat(n); }\n" ++
   "function pad_left(s, w, ch) { return repeat_str(ch, Math.max(0, w - s.length)) + s; }\n" ++
   "function pad_right(s, w, ch) { return s + repeat_str(ch, Math.max(0, w - s.length)); }\n" ++
+  "function center(s, w, ch) { const t = Math.max(0, w - s.length); const l = Math.floor(t/2); return repeat_str(ch, l) + s + repeat_str(ch, t - l); }\n" ++
   "function index_of(s, sub) { const i = s.indexOf(sub); return i === -1 ? null : i; }\n" ++
-  "function count_substr(s, sub) { return s.split(sub).length - 1; }\n" ++
-  "function surround(s, w) { return w + s + w; }\n" ++
   "\n// Prelude: operators\n" ++
   "function is_positive(n) { return n > 0; }\n" ++
   "function is_negative(n) { return n < 0; }\n" ++
@@ -152,7 +151,6 @@ pub fun js-runtime-preamble() : string
   "function read_lines(path) { const s = read_file(path); return s !== null ? s.split('\\n') : []; }\n" ++
   "function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return true; } catch(e) { return false; } }\n" ++
   "function removeprefix(s, pre) { return s.startsWith(pre) ? s.slice(pre.length) : s; }\n" ++
-  "function removesuffix(s, suf) { return s.endsWith(suf) ? s.slice(0, s.length - suf.length) : s; }\n" ++
   "function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n" ++
   "function substring(s, start, end) { return s.slice(start, end); }\n" ++
   "function to_string(v) { return show(v); }\n" ++

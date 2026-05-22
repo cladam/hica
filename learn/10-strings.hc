@@ -37,6 +37,7 @@
 //      "abc" <= "abc"       =>  true
 //
 // ============================================================
+import "std/string"
 
 // Concatenation: join strings with +
 fun yell(word) => word + "!"

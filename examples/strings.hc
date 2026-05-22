@@ -1,4 +1,5 @@
 // String utilities: primitives + prelude functions
+import "std/string"
 
 fun main() {
   let msg = "  Hello, World!  "

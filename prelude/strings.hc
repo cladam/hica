@@ -24,10 +24,6 @@ fun unwords(ws) => join(ws, " ")
 
 fun unlines(ls) => join(ls, "\n")
 
-// --- Counting ---
-
-fun count_substr(s: string, sub: string) => length(split(s, sub)) - 1
-
 // --- Building ---
 
 fun repeat_str(s: string, n: int) : string => if n <= 0 { "" } else { s + repeat_str(s, n - 1) }
@@ -43,25 +39,8 @@ fun center(s: string, width: int, ch: string) {
   repeat_str(ch, left) + s + repeat_str(ch, right)
 }
 
-fun surround(s: string, wrap: string) => wrap + s + wrap
-
-// --- Case helpers ---
-
-fun capitalise(s: string) : string =>
-  if str_length(s) == 0 { "" }
-  else { to_upper(s[:1]) + to_lower(s[1:]) }
-
-fun capwords(s: string) : string =>
-  join(map(words(s), (w) => capitalise(w)), " ")
-
-fun shout(s: string) : string => to_upper(s) + "!"
-
-// --- Prefix / suffix removal ---
+// --- Prefix removal (kept here for std/cli dependency) ---
 
 fun removeprefix(s: string, pre: string) : string =>
   if starts_with(s, pre) { s[str_length(pre):] }
-  else { s }
-
-fun removesuffix(s: string, suf: string) : string =>
-  if ends_with(s, suf) { s[:str_length(s) - str_length(suf)] }
   else { s }
