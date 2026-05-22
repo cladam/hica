@@ -166,7 +166,7 @@ For hica fmt tool, these rules should be the "Gold Standard":
 | Persistent subprocess for evaluation | **done** | Medium | Persistent Node.js subprocess with bidirectional pipes via `fork`/`pipe`/`exec`. JS snippets sent via stdin, output read from stdout. Uses `vm.runInContext` for proper declaration persistence. Eliminates per-eval process startup cost; `_` persists in subprocess memory (no temp files) |
 | REPL tab completion | **done** | Low | Auto-wraps with `rlwrap` when available and stdin is a tty. Writes completions file with prelude function names, REPL commands, and keywords. Falls back gracefully with tip when rlwrap not installed |
 | `:type` command | **done** | Low | `:type expr` / `:t expr` — shows inferred type without evaluating. Works on expressions, let bindings, function declarations, structs, and types |
-| `:time` command | **—** | Low | `:time expr` — evaluate and print elapsed time |
+| `:time` command | **skip** | Low | `:time expr` — evaluate and print elapsed time. Not prioritised; skipped |
 
 ---
 
@@ -207,6 +207,13 @@ pure functions are written in hica itself.
 | `zip_with(xs, ys, f)` | `(list<a>, list<b>, (a, b) -> c) -> list<c>` | **done** (hica) | Zip + map in one step |
 | `unique(xs)` | `(list<a>) -> list<a>` | **done** (hica) | Remove duplicates (preserves first occurrence) |
 | `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | **done** (hica) | Split into groups of `n` |
+| `head_or(xs, default)` | `(list<a>, a) -> a` | **—** (hica) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
+| `take_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **—** (hica) | Take elements from the front while predicate holds; stop at first failure |
+| `drop_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **—** (hica) | Drop elements from the front while predicate holds; return the rest |
+| `count(xs, pred)` | `(list<a>, (a) -> bool) -> int` | **—** (hica) | Count elements matching predicate. Distinct from `length` — filters first |
+| `group_by(xs, f)` | `(list<a>, (a) -> string) -> list<(string, list<a>)>` | **—** (hica) | Group elements by key function. Returns list of `(key, group)` pairs in insertion order. Useful for summarising tabular data |
+| `min_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **—** (hica) | Element with the smallest key. Returns `None` on empty list |
+| `max_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **—** (hica) | Element with the largest key. Returns `None` on empty list |
 
 ### Math Functions (`prelude/math.hc`)
 
@@ -215,6 +222,9 @@ pure functions are written in hica itself.
 | `lcm(a, b)` | `(int, int) -> int` | **done** (hica) | Least common multiple; uses `gcd` |
 | `pow(base, exp)` | `(int, int) -> int` | **done** (hica) | Integer exponentiation |
 | `sign(n)` | `(int) -> int` | **done** (hica) | Returns -1, 0, or 1 |
+| `clamp(n, lo, hi)` | `(int, int, int) -> int` | **—** (hica) | Clamp `n` to `[lo, hi]`. Common enough to avoid writing `if n < lo then lo else if n > hi then hi else n` inline |
+| `is_even(n)` | `(int) -> bool` | **—** (hica) | Returns `n % 2 == 0` |
+| `is_odd(n)` | `(int) -> bool` | **—** (hica) | Returns `n % 2 != 0` |
 
 ### Float Math (externs)
 
@@ -225,6 +235,23 @@ pure functions are written in hica itself.
 | `ceil(x)` | `(float) -> int` | **done** (extern) | Round up; emits `ceiling(x).int` |
 | `round(x)` | `(float) -> int` | **done** (extern) | Round to nearest; emits `round(x).int` |
 | `to_float(n)` | `(int) -> float` | **done** (extern) | Int to float conversion; emits `n.float64` |
+
+### Random (`prelude/math.hc` or codegen)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `random(min, max)` | `(int, int) -> int` | **done** (extern) | Random int in `[min, max]` inclusive. `ndet` effect |
+| `random_float()` | `() -> float` | **—** (extern) | Random float in `[0.0, 1.0)`. Koka `srandom-double`. `ndet` effect |
+| `random_shuffle(xs)` | `(list<a>) -> list<a>` | **—** (hica) | Fisher-Yates shuffle using `random`. Returns new shuffled list. `ndet` effect |
+
+### System / Environment (prelude additions)
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `get_env(key)` | `(string) -> maybe<string>` | **done** (extern) | Look up env var; `Some(val)` or `None` |
+| `env_require(key)` | `(string) -> string` | **—** (hica) | Returns value or calls `error("env var KEY not set")`. Useful in deploy scripts where a missing var is always a programmer error |
+| `env_or(key, default)` | `(string, string) -> string` | **—** (hica) | Returns value or `default`. Thin wrapper over `get_env` + `unwrap_or` |
+| `env_int(key)` | `(string) -> maybe<int>` | **—** (hica) | Look up env var and parse as `int`. Returns `None` if missing or non-numeric |
 
 ### Char/String Conversions (externs)
 
@@ -281,7 +308,8 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| **json** | **—** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel |
+| **json** | **—** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel. **#1 priority** — every HTTP API response is JSON |
+| **csv** | **—** | Low | RFC 4180 CSV parser and writer. `csv_parse(str) : list<list<string>>`, `csv_rows(str, header) : list<map>`, `csv_emit(rows) : string`. Pure hica, no deps. Python's pandas (#33, 669M/month) is the downstream signal — the underlying need is reading tabular data |
 | **xml** | **—** | High | XML parsing. Less common but still needed for configs, feeds, legacy APIs |
 
 ### Text Processing
@@ -289,6 +317,8 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | **regex** | **—** | Medium | String pattern matching. Wrap Koka's `std/text/regex`. Functions: `regex_match`, `regex_find`, `regex_replace`, `regex_split` |
+| **template** | **—** | Low | Lightweight string templating. `tmpl_render(template, vars)` where `vars` is a `map`. Supports `{{var}}` substitution and `{% for x in list %}...{% end %}` blocks. Pure hica. Jinja2 is #43 on PyPI (564M/month) — the need is real for config and code generators |
+| **case** | **—** | Low | Case-style conversion. `to_snake_case(s)`, `to_camel_case(s)`, `to_kebab_case(s)`, `to_title_case(s)`, `to_upper_snake(s)`. Pure hica string operations. Useful in hica's own codegen and in any tool that generates identifiers. Rust's `heck` crate is used internally by sqlx, clap, and serde |
 | **base64** | **done** | Low | Encode/decode base64. Pure functions, no effects — good showcase of hica's functional style |
 
 ### Networking & Web
@@ -296,12 +326,14 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | **url** | **—** | Low | Parse/build URLs. Functions: `parse_url`, `url_host`, `url_path`, `url_query`, `encode_uri`, `decode_uri`. Pure string operations |
+| **jwt** | **—** | Medium | JSON Web Token encode/decode. `jwt_encode(payload, secret) : string`, `jwt_decode(token, secret) : result<map, string>`. HS256 signing via HMAC-SHA256 (C FFI). Depends on `json` library. `pyjwt` is #44 on PyPI (560M/month) — signals importance when building auth tooling or web services |
 
 ### CLI & Terminal
 
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| **term-color** | **—** | Low | ANSI terminal colors. Functions: `red(s)`, `green(s)`, `bold(s)`, `dim(s)`. Tiny scope, immediately useful for CLI tool authors. Inspired by `colored` crate |
+| **term-color** | **—** | Low | ANSI terminal colors. Functions: `red(s)`, `green(s)`, `bold(s)`, `dim(s)`. Tiny scope, immediately useful for CLI tool authors. Inspired by `colored` crate. `colorama` is #78 on PyPI (413M/month) — even a thin color library gets massive use |
+| **table** | **—** | Low | Terminal table formatter. `table_row(cols)`, `table_render(rows) : string`. Aligned columns, optional headers and borders. Pure hica (pad + join). Rich terminal output is a category: `rich` (#47, 546M), `tqdm` (#70, 441M), `colorama` (#78, 413M) all in Python top 80 |
 | **prompt** | **—** | Medium | Interactive CLI prompts: `confirm("Continue?")`, `select(choices)`, `prompt("Name:")`. Inspired by `dialoguer` crate. Needs `console` effect |
 | **progress** | **—** | Medium | Progress bars and spinners for long-running CLI tasks. Inspired by `indicatif` crate |
 
@@ -311,8 +343,9 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 |---------|--------|------------|-------|
 | **uuid** | **—** | Low | UUID v4 generation. Single function: `uuid()` → `string`. Needs `ndet` effect |
 | **semver** | **—** | Low | Semantic version parsing and comparison. `parse_semver(s)`, `semver_cmp(a, b)`, `satisfies(version, range)`. hica-semver already exists as a prototype |
-| **glob** | **—** | Medium | File glob pattern matching. `glob_match(pattern, path)`, `glob_files(pattern)`. Inspired by `glob` crate. Useful for file-processing CLI tools |
-| **datetime** (v2) | **—** | Medium | Promote `prelude/datetime.hc` to a full library. Add `to_unix`, `from_unix`, timezone support via Koka `std/time` |
+| **glob** | **done** | Medium | File glob pattern matching. `glob_match(pattern, path)`, `glob_files(pattern)`. Inspired by `glob` crate. Useful for file-processing CLI tools. `examples/glob-test.hc` already exists |
+| **env** (dotenv) | **—** | Low | Read `.env` files and merge into environment. `dotenv_load(path)`, `dotenv_parse(str) : map`. Complements the prelude's `get_env`/`env_or` helpers — those read live env vars, this reads the file. `python-dotenv` is #41 on PyPI (567M/month) |
+| **datetime** (v2) | **—** | Medium | Promote `prelude/datetime.hc` to a full library. Add `to_unix`, `from_unix`, timezone support via Koka `std/time`. `python-dateutil` (#13, 1.05B/month) and `pytz` (#55, 489M/month) both in Python top 60 — datetime arithmetic is a genuine pain point |
 | **compress** | **—** | High | Gzip/deflate compression. `gzip(data)`, `gunzip(data)`. Inspired by `flate2` crate. Would need `--cclib=z` |
 
 ---
@@ -385,9 +418,9 @@ Issues that exist today but are not yet fixed:
 | JS codegen backend (`codegen-js.kk`) | **done** | High | Emit JavaScript directly from hica AST, bypassing Koka. Enables 100% client-side playground on GitHub Pages |
 | JS runtime preamble | **done** | Medium | Minimal JS implementations of hica prelude (`println`, `show`, list ops, maybe/result). Bundled inline in output |
 | CLI `--target=js` flag | **done** | Low | Route `hica build --target=js foo.hc` to `emit-js-program` instead of `emit-program` |
-| Playground frontend | **—** | Medium | CodeMirror 6 + hica syntax highlighting + Web Worker execution + virtual console |
-| Share via URL hash | **—** | Low | `lz-string` compress editor state into URL fragment |
-| Playground deployment | **—** | Low | Static files in `docs/playground/`; served by GitHub Pages |
+| Playground frontend | **done** | Medium | CodeMirror 6 + hica syntax highlighting + Web Worker execution + virtual console |
+| Share via URL hash | **done** | Low | `lz-string` compress editor state into URL fragment |
+| Playground deployment | **done** | Low | Static files in `docs/playground/`; served by GitHub Pages |
 
 ---
 
