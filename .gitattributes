@@ -1,2 +1,6 @@
 # Map .hc files to Koka for GitHub language detection
 *.hc linguist-language=Hica
+
+# Exclude generated/vendored JS from language stats
+documentation/hica-for-kids-book/** linguist-vendored=true
+playground/*.js linguist-vendored=true
