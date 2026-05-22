@@ -177,7 +177,7 @@ scenario "Creating a new project" {
             Terminal last_command succeeded
             Terminal output_contains "created project"
             FileSystem file_exists "/tmp/choreo-test-proj/main.hc"
-            FileSystem file_exists "/tmp/choreo-test-proj/hica.ini"
+            FileSystem file_exists "/tmp/choreo-test-proj/hica.hml"
             FileSystem file_exists "/tmp/choreo-test-proj/README.md"
     }
 

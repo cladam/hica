@@ -245,7 +245,7 @@ fun main-cli( raw-args : list<string> )
               println("error: no such command: `" ++ other ++ "`\n")
               println(hica-cli().format-help)
         Nothing ->
-          println("error: missing file argument (no hica.ini found)")
+          println("error: missing file argument (no hica.hml found)")
           println("Usage: hica " ++ cmd ++ " <FILE>")
 
 // ---------------------------------------------------------------------------
@@ -443,9 +443,9 @@ fun cmd-new( name-arg : maybe<string> )
         scaffold-project(project-dir, project-dir.stemname)
 
 fun cmd-init()
-  val manifest = "hica.ini".path
+  val manifest = "hica.hml".path
   if is-file(manifest) then
-    println("error: hica.ini already exists in this directory")
+    println("error: hica.hml already exists in this directory")
   else
     val name = cwd().stemname
     scaffold-project(".".path, name)
@@ -457,7 +457,7 @@ fun cmd-add( spec-arg : maybe<string> )
       println(add-cli().format-help)
     Just(spec) ->
       if !is-file(manifest-name.path) then
-        println("error: no hica.ini found (run 'hica init' first)")
+        println("error: no hica.hml found (run 'hica init' first)")
       else
         val dep = parse-dep-spec(spec)
         val content = read-text-file(manifest-name.path)
@@ -465,9 +465,9 @@ fun cmd-add( spec-arg : maybe<string> )
         if existing.any(fn(d) d.name == dep.name) then
           println("error: dependency '" ++ dep.name ++ "' already exists (remove it first)")
         else
-          val new-content = add-dep-to-ini(content, dep)
+          val new-content = add-dep-to-hml(content, dep)
           write-text-file(manifest-name.path, new-content)
-          println("added " ++ format-dep(dep))
+          println("added " ++ format-dep(dep).trim)
           match fetch-dep(dep, ".".path)
             Just(_) -> ()
             Nothing -> ()
@@ -479,20 +479,20 @@ fun cmd-remove( name-arg : maybe<string> )
       println(remove-cli().format-help)
     Just(dep-name) ->
       if !is-file(manifest-name.path) then
-        println("error: no hica.ini found")
+        println("error: no hica.hml found")
       else
         val content = read-text-file(manifest-name.path)
         val existing = parse-deps-section(content)
         if !existing.any(fn(d) d.name == dep-name) then
           println("error: dependency '" ++ dep-name ++ "' not found")
         else
-          val new-content = remove-dep-from-ini(content, dep-name)
+          val new-content = remove-dep-from-hml(content, dep-name)
           write-text-file(manifest-name.path, new-content)
           println("removed " ++ dep-name)
 
 fun cmd-fetch()
   if !is-file(manifest-name.path) then
-    println("error: no hica.ini found")
+    println("error: no hica.hml found")
   else
     val content = read-text-file(manifest-name.path)
     val dep-list = parse-deps-section(content)
@@ -513,7 +513,7 @@ fun resolve-dep-includes()
 
 fun scaffold-project( project-dir : path, name : string )
   val main-file  = project-dir / "main.hc".path
-  val manifest   = project-dir / "hica.ini".path
+  val manifest   = project-dir / "hica.hml".path
   val readme     = project-dir / "README.md".path
   val main-content = [
     "fun main() {",
@@ -521,19 +521,22 @@ fun scaffold-project( project-dir : path, name : string )
     "}"
   ].join("\n") ++ "\n"
   val manifest-content = [
-    "[project]",
-    "name = \"" ++ name ++ "\"",
-    "version = \"0.1.0\"",
-    "license = \"MIT\"",
-    "entry = \"main.hc\"",
+    "@project {",
+    "    name: \"" ++ name ++ "\"",
+    "    version: \"0.1.0\"",
+    "    license: \"MIT\"",
+    "    entry: \"main.hc\"",
+    "}",
     "",
-    "[dependencies]",
+    "@dependencies {",
+    "}",
     "",
-    "[description]",
-    "summary = \"A hica project\"",
-    "author = \"\"",
-    "homepage = \"\"",
-    "repository = \"\""
+    "@description {",
+    "    summary: \"A hica project\"",
+    "    author: \"\"",
+    "    homepage: \"\"",
+    "    repository: \"\"",
+    "}"
   ].join("\n") ++ "\n"
   val readme-content = [
     "# " ++ name,
@@ -1335,47 +1338,55 @@ fun shell-escape( s : string ) : string
 // Manifest: read hica.ini to resolve entry file
 // ---------------------------------------------------------------------------
 
-val manifest-name = "hica.ini"
+val manifest-name = "hica.hml"
 
 fun resolve-entry() : <fsys,exn,div> maybe<string>
   if is-file(manifest-name.path) then
     val content = read-text-file(manifest-name.path)
-    ini-field(content, "entry")
+    hml-field(content, "project", "entry")
   else Nothing
 
-// Read [description] section from hica.ini
+// Read @description block from hica.hml
 fun read-manifest-description() : <fsys,exn,div> (string, string, string, string)
   if is-file(manifest-name.path) then
     val content = read-text-file(manifest-name.path)
-    val summary    = match ini-field(content, "summary")    { Just(s) -> s; Nothing -> "" }
-    val author     = match ini-field(content, "author")     { Just(s) -> s; Nothing -> "" }
-    val homepage   = match ini-field(content, "homepage")   { Just(s) -> s; Nothing -> "" }
-    val repository = match ini-field(content, "repository") { Just(s) -> s; Nothing -> "" }
+    val summary    = match hml-field(content, "description", "summary")    { Just(s) -> s; Nothing -> "" }
+    val author     = match hml-field(content, "description", "author")     { Just(s) -> s; Nothing -> "" }
+    val homepage   = match hml-field(content, "description", "homepage")   { Just(s) -> s; Nothing -> "" }
+    val repository = match hml-field(content, "description", "repository") { Just(s) -> s; Nothing -> "" }
     (summary, author, homepage, repository)
   else ("", "", "", "")
 
-// Read [koka] section from hica.ini: include dirs and extra flags
+// Read @koka block from hica.hml: include dirs and extra flags
 fun read-manifest-koka() : <fsys,exn,div> (list<string>, string)
   if is-file(manifest-name.path) then
     val content = read-text-file(manifest-name.path)
-    val includes = match ini-field(content, "include")
+    val includes = match hml-field(content, "koka", "include")
       Just(s) -> s.split(";").map(fn(p) p.trim).filter(fn(p) !p.is-empty)
       Nothing -> []
-    val flags = match ini-field(content, "flags")
+    val flags = match hml-field(content, "koka", "flags")
       Just(s) -> s
       Nothing -> ""
     (includes, flags)
   else ([], "")
 
-fun ini-field( content : string, key : string ) : div maybe<string>
-  // Parse "key = value" or 'key = "value"' lines in a simple ini/toml file
+fun hml-field( content : string, element : string, key : string ) : div maybe<string>
+  // Parse "key: value" within @element { ... } blocks in hica.hml
+  val all-lines = content.lines
+  var in-element := False
   var result := Nothing
-  content.lines.foreach fn(line)
+  all-lines.foreach fn(line)
     val trimmed = line.trim
-    if trimmed.starts-with(key).bool then
-      val rest = trimmed.slice.sslice/drop(key.count).string.trim-left
-      if rest.starts-with("=").bool then
-        result := Just(rest.slice.sslice/drop(1).string.trim.unquote)
+    if trimmed.starts-with("//").bool then ()
+    elif !in-element then
+      if trimmed.starts-with("@" ++ element).bool then in-element := True
+    else
+      if trimmed == "}" then in-element := False
+      else
+        if trimmed.starts-with(key).bool then
+          val after-key = trimmed.slice.sslice/drop(key.count).string.trim-left
+          if after-key.starts-with(":").bool then
+            result := Just(after-key.slice.sslice/drop(1).string.trim.unquote)
   result
 
 fun unquote( s : string ) : string

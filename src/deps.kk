@@ -27,47 +27,47 @@ pub type dep-source
   PathDep( dep-path : string )
   RegistryDep( version : string )  // Phase 3: pkg.hica.dev registry (not yet implemented)
 
-// Format a dep-spec as a hica.ini dependency line
+// Format a dep-spec as a hica.hml dependency line
 pub fun format-dep( d : dep-spec ) : string
   val value = match d.source
-    GitDep(url, tag)    -> url ++ "@" ++ tag
-    PathDep(p)          -> "path:" ++ p
+    GitDep(url, tag)     -> url ++ "@" ++ tag
+    PathDep(p)           -> "path:" ++ p
     RegistryDep(version) -> version
-  d.name ++ " = \"" ++ value ++ "\""
+  "    " ++ d.name ++ ": \"" ++ value ++ "\""
 
 // ---------------------------------------------------------------------------
-// Parse [dependencies] from ini content
+// Parse @dependencies from hml content
 // ---------------------------------------------------------------------------
 
-// Parse the [dependencies] section from hica.ini content.
+// Parse the @dependencies block from hica.hml content.
 // Supported formats:
-//   name = "github.com/owner/repo@tag"   (git dependency)
-//   name = "github.com/owner/repo"       (git, defaults to "main" branch)
-//   name = "path:../local-dir"           (local path dependency)
+//   name: "github.com/owner/repo@tag"   (git dependency)
+//   name: "github.com/owner/repo"       (git, defaults to "main" branch)
+//   name: "path:../local-dir"           (local path dependency)
 pub fun parse-deps-section( content : string ) : div list<dep-spec>
   val all-lines = content.lines
   var in-deps := False
   var result : list<dep-spec> := []
   all-lines.foreach fn(line)
     val trimmed = line.trim
-    if trimmed == "[dependencies]" then
+    if trimmed.starts-with("@dependencies").bool then
       in-deps := True
-    elif in-deps && trimmed.starts-with("[").bool then
+    elif in-deps && trimmed == "}" then
       in-deps := False
-    elif in-deps && !trimmed.is-empty && !trimmed.starts-with("#").bool && !trimmed.starts-with(";").bool then
+    elif in-deps && !trimmed.is-empty && !trimmed.starts-with("//").bool && trimmed != "{" then
       match parse-dep-line(trimmed)
         Just(dep) -> result := Cons(dep, result)
         Nothing   -> ()
   result.reverse
 
 fun parse-dep-line( line : string ) : div maybe<dep-spec>
-  val parts = line.split("=")
+  val parts = line.split(":")
   match parts
     Cons(key, rest) ->
       if rest.is-nil then Nothing
       else
         val name = key.trim
-        val raw-value = rest.join("=").trim
+        val raw-value = rest.join(":").trim
         val value = dep-unquote(raw-value)
         if name.is-empty || value.is-empty then Nothing
         elif value.starts-with("path:").bool then
@@ -153,47 +153,46 @@ fun fetch-git( name : string, url : string, tag : string ) : io maybe<path>
 // Manifest manipulation
 // ---------------------------------------------------------------------------
 
-// Add a dependency to hica.ini content. Returns the updated content.
-pub fun add-dep-to-ini( content : string, dep : dep-spec ) : div string
+// Add a dependency to hica.hml content. Returns the updated content.
+pub fun add-dep-to-hml( content : string, dep : dep-spec ) : div string
   val dep-line = format-dep(dep)
   val all-lines = content.lines
-  val has-section = all-lines.any(fn(l) l.trim == "[dependencies]")
+  val has-section = all-lines.any(fn(l) l.trim.starts-with("@dependencies").bool)
   if !has-section then
     val base = if content.ends-with("\n").bool then content else content ++ "\n"
-    base ++ "\n[dependencies]\n" ++ dep-line ++ "\n"
+    base ++ "\n@dependencies {\n" ++ dep-line ++ "\n}\n"
   else
-    // Insert after the last dep in the section, or after the section header
+    // Insert before the closing } of the @dependencies block
     var in-deps := False
-    var insert-at := 0
+    var close-at := 0
     var idx := 0
     all-lines.foreach fn(line)
       val trimmed = line.trim
-      if trimmed == "[dependencies]" then
+      if trimmed.starts-with("@dependencies").bool then
         in-deps := True
-        insert-at := idx + 1
-      elif in-deps && trimmed.starts-with("[").bool then
+        close-at := idx + 1
+      elif in-deps && trimmed == "}" then
+        close-at := idx
         in-deps := False
-      elif in-deps && !trimmed.is-empty && !trimmed.starts-with("#").bool && !trimmed.starts-with(";").bool then
-        insert-at := idx + 1
       idx := idx + 1
-    val before = all-lines.take(insert-at)
-    val after = all-lines.drop(insert-at)
+    val before = all-lines.take(close-at)
+    val after = all-lines.drop(close-at)
     (before ++ [dep-line] ++ after).join("\n")
 
-// Remove a dependency from hica.ini content by name. Returns the updated content.
-pub fun remove-dep-from-ini( content : string, dep-name : string ) : div string
+// Remove a dependency from hica.hml content by name. Returns the updated content.
+pub fun remove-dep-from-hml( content : string, dep-name : string ) : div string
   val all-lines = content.lines
   var in-deps := False
   val filtered = all-lines.filter fn(line)
     val trimmed = line.trim
-    if trimmed == "[dependencies]" then
+    if trimmed.starts-with("@dependencies").bool then
       in-deps := True
       True
-    elif in-deps && trimmed.starts-with("[").bool then
+    elif in-deps && trimmed == "}" then
       in-deps := False
       True
-    elif in-deps && !trimmed.is-empty && !trimmed.starts-with("#").bool then
-      val parts = trimmed.split("=")
+    elif in-deps && !trimmed.is-empty && !trimmed.starts-with("//").bool then
+      val parts = trimmed.split(":")
       match parts
         Cons(key, _) -> key.trim != dep-name
         _            -> True
