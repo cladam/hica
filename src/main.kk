@@ -31,7 +31,7 @@ import prelude-bundle
 import mcp
 import deps
 
-val version = "0.26.0" 
+val version = "0.27.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a

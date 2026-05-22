@@ -2,8 +2,7 @@
 set -euo pipefail
 
 #echo "=== Build (Optimised) ==="
-#koka -O2 -ilib/klap -isrc -v0 src/main.kk -o hica
-#chmod +x hica
+#koka -O2 -ilib/klap -isrc -v0 src/main.kk -o hica && chmod +x hica
 
 echo ""
 echo "=== Verify binary ==="
