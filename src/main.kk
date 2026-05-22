@@ -28,6 +28,7 @@ import transform/desugar
 import format/formatter
 import klap
 import prelude-bundle
+import stdlib-bundle
 import mcp
 import deps
 
@@ -1128,6 +1129,43 @@ fun load-prelude()
   Program(struct-result, type-result, decl-result)
 
 // ---------------------------------------------------------------------------
+// Stdlib path: ~/.hica/stdlib — bundled modules extracted on demand
+// ---------------------------------------------------------------------------
+
+fun hica-stdlib-dir() : io path
+  val home = if is-windows()
+    then get-env-value("USERPROFILE").default(".")
+    else get-env-value("HOME").default(".")
+  (home ++ "/.hica/stdlib").path
+
+fun find-stdlib-source( mod-path : string ) : maybe<string>
+  match embedded-stdlib-sources().find(fn(pair) pair.fst == mod-path)
+    Just(pair) -> Just(pair.snd)
+    Nothing    -> Nothing
+
+fun compile-stdlib-import( mod-path : string ) : io (list<fun-decl>, list<struct-def>, list<type-def>, list<string>)
+  match find-stdlib-source(mod-path)
+    Nothing ->
+      println("error: unknown stdlib module: " ++ mod-path)
+      ([], [], [], [])
+    Just(source) ->
+      val stdlib-dir = hica-stdlib-dir()
+      ensure-dir(stdlib-dir)
+      // Flatten: std/term → term.hc in stdlib-dir
+      val stem = mod-path.path.stemname
+      val hc-file = stdlib-dir / (stem ++ ".hc").path
+      if !is-file(hc-file) then
+        write-text-file(hc-file, source)
+      // Compile stdlib module to .kk in stdlib-dir
+      compile-module(hc-file, [hc-file.show])
+      // Parse to collect pub declarations for the type checker
+      val tokens = lex(source)
+      val prog = run-parser-program(tokens, source)
+      val pub-decls = prog.decls.filter(fn(d) d.is-pub)
+      val pub-names = pub-decls.map(fn(d) d.name)
+      (pub-decls, prog.structs, prog.types, pub-names)
+
+// ---------------------------------------------------------------------------
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
@@ -1201,6 +1239,10 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
     val (prev-decls, prev-structs, prev-types, prev-names) = acc
     // Extern imports pass through to Koka — skip .hc resolution
     if imp.is-extern then acc
+    // Stdlib imports: resolved from embedded sources, extracted to ~/.hica/stdlib
+    elif imp.path.starts-with("std/").bool then
+      val (sd, ss, st, sn) = compile-stdlib-import(imp.path)
+      (prev-decls ++ sd, prev-structs ++ ss, prev-types ++ st, prev-names ++ sn)
     else
       val imp-file = resolve-import(imp.path, base-dir)
       val imp-path-str = imp-file.show
@@ -1289,7 +1331,10 @@ fun compile-koka( file : string, mod-name : string, include-dirs : list<string> 
   val out-bin = match output
     Just(name) -> name
     Nothing    -> (dir.path / (mod-name ++ exe-ext()).path).show
-  val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("")
+  // Always include ~/.hica/stdlib so stdlib imports (std/term etc.) resolve
+  val stdlib-dir = hica-stdlib-dir()
+  ensure-dir(stdlib-dir)
+  val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("") ++ " -i" ++ stdlib-dir.show
   val opt-flag = "-O" ++ opt-level
   val extra = if koka-flags.is-empty then "" else " " ++ koka-flags
   val exit-code = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file ++ dev-null())

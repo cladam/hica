@@ -332,7 +332,7 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| **term-color** | **—** | Low | ANSI terminal colors. Functions: `red(s)`, `green(s)`, `bold(s)`, `dim(s)`. Tiny scope, immediately useful for CLI tool authors. Inspired by `colored` crate. `colorama` is #78 on PyPI (413M/month) — even a thin color library gets massive use |
+| **term-color** | **done** | Low | ANSI terminal colors via `import "std/term"`. Functions: `red`, `green`, `blue`, `yellow`, `cyan`, `magenta`, `white`, `bold`, `dim`, `italic`, `underline`, `strikethrough`, `bright_*` variants. Bundled in binary — no fetch needed. Extracted to `~/.hica/stdlib/term.kk` on first use. First module in the new `std/` stdlib system |
 | **table** | **—** | Low | Terminal table formatter. `table_row(cols)`, `table_render(rows) : string`. Aligned columns, optional headers and borders. Pure hica (pad + join). Rich terminal output is a category: `rich` (#47, 546M), `tqdm` (#70, 441M), `colorama` (#78, 413M) all in Python top 80 |
 | **prompt** | **—** | Medium | Interactive CLI prompts: `confirm("Continue?")`, `select(choices)`, `prompt("Name:")`. Inspired by `dialoguer` crate. Needs `console` effect |
 | **progress** | **—** | Medium | Progress bars and spinners for long-running CLI tasks. Inspired by `indicatif` crate |
