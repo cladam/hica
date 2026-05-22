@@ -126,6 +126,7 @@ fun hica-cli() : command
     .arg(positional("FILE").help("Source .hc file"))
     .arg(flag("check").help("Check formatting without modifying the file"))
     .arg(option("target").help("Output target: koka (default) or js"))
+    .arg(option-short("output", 'o').help("Output binary name (build only)"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Analyse a .hc file and report errors")
@@ -144,6 +145,7 @@ fun build-cli() : command
   command("hica build")
     .about("Compile a .hc file and build a binary")
     .arg(positional("FILE").help("Source .hc file").required)
+    .arg(option-short("output", 'o').help("Output binary name"))
 
 fun run-cli() : command
   command("hica run")
@@ -229,9 +231,10 @@ fun main-cli( raw-args : list<string> )
       match resolved
         Just(f) ->
           val target = m.get-one-or("target", "koka")
+          val output = m.get-one("output")
           match cmd
-            "build" -> cmd-build(f, target)
-            "b"     -> cmd-build(f, target)
+            "build" -> cmd-build(f, target, output)
+            "b"     -> cmd-build(f, target, output)
             "run"   -> cmd-run(f, user-args)
             "r"     -> cmd-run(f, user-args)
             "check" -> cmd-check(f)
@@ -252,13 +255,13 @@ fun main-cli( raw-args : list<string> )
 // Commands
 // ---------------------------------------------------------------------------
 
-fun cmd-build( file : string, target : string = "koka" )
+fun cmd-build( file : string, target : string = "koka", output : maybe<string> = Nothing )
   if target == "js" then
     build-js(file)
   else
     val (extra-includes, koka-flags) = read-manifest-koka()
     val dep-includes = resolve-dep-includes()
-    build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
+    build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output)
 
 // Build to JavaScript: lex → parse → check → emit JS
 fun build-js( file : string )
@@ -1128,7 +1131,7 @@ fun load-prelude()
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
-fun build( file : string, opt-level : string = "2", extra-includes : list<string> = [], koka-flags : string = "" )
+fun build( file : string, opt-level : string = "2", extra-includes : list<string> = [], koka-flags : string = "", output : maybe<string> = Nothing )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -1173,7 +1176,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   val out-kk  = dir.path / (mod-name ++ ".kk").path
   write-kk-if-changed(out-kk, koka-code, file)
   val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
-  compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags)
+  compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -1280,10 +1283,12 @@ fun compile-module( imp-file : path, visited : list<string> )
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
-fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2", koka-flags : string = "" )
+fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2", koka-flags : string = "", output : maybe<string> = Nothing )
   val dir  = file.path.dirname
   val kk-file = (dir.path / (mod-name ++ ".kk").path).show
-  val out-bin = (dir.path / (mod-name ++ exe-ext()).path).show
+  val out-bin = match output
+    Just(name) -> name
+    Nothing    -> (dir.path / (mod-name ++ exe-ext()).path).show
   val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("")
   val opt-flag = "-O" ++ opt-level
   val extra = if koka-flags.is-empty then "" else " " ++ koka-flags
