@@ -17,6 +17,7 @@ STDLIB_FILES=(
   "std/list:stdlib/std/list.hc"
   "std/string:stdlib/std/string.hc"
   "std/io:stdlib/std/io.hc"
+  "std/actor:stdlib/std/actor.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."

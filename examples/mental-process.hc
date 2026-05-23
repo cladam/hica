@@ -7,6 +7,8 @@
 //   - Brain: manages the thought stack, can flush its buffer
 //   - Weekend: monitors the environment, can trigger step-away
 
+import "std/actor"
+
 // --- Brain actor ---
 
 type BrainMsg {

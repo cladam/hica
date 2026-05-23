@@ -8,6 +8,8 @@
 // This gives compile-time safety: if you add a message variant
 // and forget to handle it, the compiler warns you.
 
+import "std/actor"
+
 // --- Message types ---
 
 type CounterMsg {
