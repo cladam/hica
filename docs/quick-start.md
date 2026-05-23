@@ -86,7 +86,8 @@ Hello, world!
 | `hica check <file>` | Analyse a `.hc` file and report errors |
 | `hica fmt <file>` | Format a `.hc` file according to the style guide |
 | `hica repl` | Start an interactive REPL |
-| `hica clean` | Remove generated build artifacts |
+| `hica clean <file>` | Remove generated build artifacts for a file |
+| `hica clean --cache` | Remove the stdlib cache (`~/.hica/stdlib/`) |
 | `hica new <name>` | Create a new hica project |
 | `hica init` | Initialise a project in the current directory |
 | `hica help <command>` | Show help for a command |

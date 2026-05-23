@@ -294,7 +294,8 @@ Koka provides a compiler. hica provides a workspace.
 | `hica repl` | Interactive read-eval-print loop |
 | `hica new myproject` | Scaffold a new project |
 | `hica build file.hc -o bin` | Build a standalone binary |
-| `hica clean` | Remove generated artifacts |
+| `hica clean <file>` | Remove generated artifacts for a file |
+| `hica clean --cache` | Remove the stdlib cache |
 
 The test runner is built on [kunit](https://github.com/cladam/kunit), and the CLI argument parser on [klap](https://github.com/cladam/klap). Both are purpose-built Koka libraries that ship with hica. You do not install a test framework or argument parser separately; they are part of the toolchain.
 

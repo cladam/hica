@@ -64,10 +64,16 @@ hica check examples/hello.hc
 
 ### `hica clean`
 
-Remove generated build artifacts:
+Remove generated build artifacts for a file:
 
 ```sh
-hica clean
+hica clean examples/hello.hc
+```
+
+Remove the stdlib cache (`~/.hica/stdlib/`). Use this after upgrading hica to force re-extraction of the updated standard library:
+
+```sh
+hica clean --cache
 ```
 
 ### `hica fmt` (alias: `f`)
