@@ -138,6 +138,24 @@ If the feature adds standard library functions written in hica:
 
 - Add to the appropriate file in `prelude/` (`math.hc`, `strings.hc`, `operators.hc`, `cli.hc`, `io.hc`)
 - Or create a new prelude file and register it in `src/main.kk` (load order matters)
+- After any prelude change, re-bundle and rebuild:
+  ```bash
+  bash scripts/bundle-prelude.sh
+  koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
+  ```
+
+If the feature adds functions to the standard library (`stdlib/std/*.hc`):
+
+- Edit or add the relevant file under `stdlib/std/`
+- Re-bundle and rebuild:
+  ```bash
+  bash scripts/bundle-stdlib.sh
+  koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
+  ```
+- Clear the stdlib cache so the new bundle takes effect:
+  ```bash
+  rm -f ~/.hica/stdlib/*.hc ~/.hica/stdlib/*.kk
+  ```
 
 ### 12. Add a Learn Lesson (if applicable)
 
@@ -147,10 +165,10 @@ If the feature is user-facing and significant, add a numbered lesson in `learn/`
 
 ### 13. Update Documentation
 
-- `docs/language-reference.md` — Syntax additions
-- `docs/standard-library.md` — New stdlib functions
-- `docs/style-guide.md` — Conventions for the new feature
-- `documentation/backlog.md` — Mark the feature as done
+- `docs/language-reference.md`: Syntax additions
+- `docs/standard-library.md`: New stdlib functions
+- `docs/style-guide.md`: Conventions for the new feature
+- `documentation/backlog.md`: Mark the feature as done
 
 ### 14. Commit
 
@@ -171,6 +189,70 @@ tbdflow commit -t feat -m "add <feature description>"
 | `./hica check <file>.hc` | Type-check only |
 | `./hica clean` | Clean build artifacts |
 | `bash test-hica.sh` | Run full test suite |
+
+## Scripts Reference
+
+All helper scripts live in `scripts/`. Run them from the repository root.
+
+### `scripts/bundle-prelude.sh`
+
+Embeds the prelude `.hc` source files into `src/prelude-bundle.kk` as string constants. This makes the hica binary self-contained — no external prelude files needed at runtime.
+
+```bash
+bash scripts/bundle-prelude.sh
+```
+
+Files bundled (in load order):
+- `prelude/math.hc`
+- `prelude/glob.hc`
+- `prelude/strings.hc`
+
+Run this whenever you edit a prelude file, then rebuild the binary.
+
+### `scripts/bundle-stdlib.sh`
+
+Embeds the stdlib `.hc` source files into `src/stdlib-bundle.kk` as `(module-path, source)` pairs. Enables `import "std/list"` etc. without external files.
+
+```bash
+bash scripts/bundle-stdlib.sh
+```
+
+Modules bundled:
+- `std/term`, `std/ops`, `std/list`, `std/string`
+- `std/io`, `std/actor`, `std/datetime`, `std/cli`, `std/env`
+
+Run this whenever you edit a stdlib file, then rebuild the binary and clear the cache:
+
+```bash
+bash scripts/bundle-stdlib.sh
+koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
+rm -f ~/.hica/stdlib/*.hc ~/.hica/stdlib/*.kk
+```
+
+### `scripts/build-playground.sh`
+
+Builds the browser-based hica REPL/playground.
+
+```bash
+bash scripts/build-playground.sh
+```
+
+Steps performed:
+1. Compiles `src/playground.kk` with Koka's `--target=js` backend.
+2. Bundles the output into `playground/hica-compiler.js` via `esbuild`.
+3. Generates `playground/prelude-sources.js` (browser-safe prelude subset).
+4. Generates `playground/stdlib-sources.js` (`std/ops`, `std/list`, `std/string`, `std/term`).
+
+Prerequisites: `koka` and `npx` (esbuild) must be available on `$PATH`.
+
+To preview locally after building:
+
+```bash
+cd playground && python3 -m http.server 8080
+open http://localhost:8080
+```
+
+> Note: `std/io`, `std/actor`, `std/cli`, and `std/env` are excluded from the playground build — they rely on Node.js/native APIs not available in the browser.
 
 ## CI Pipeline
 
