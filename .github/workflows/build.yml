@@ -67,19 +67,13 @@ jobs:
 
       - name: Build (release)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          koka -O2 -ilib/klap -isrc src/main.kk -o hica
+        run: make release
         shell: bash
 
       - name: Build (debug)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: |
-          koka -ilib/klap -isrc src/main.kk -o hica
+        run: make build
         shell: bash
-
-      - name: Make binary executable (Unix)
-        if: runner.os != 'Windows'
-        run: chmod +x hica
 
       - name: Verify binary (Unix)
         if: runner.os != 'Windows'
@@ -91,24 +85,20 @@ jobs:
         shell: pwsh
 
       - name: Run lexer tests
-        run: |
-          koka -ilib/kunit -isrc -e tests/test-lexer.kk
+        run: make test-lexer
         shell: bash
 
       - name: Run parser tests
-        run: |
-          koka -ilib/kunit -isrc -e tests/test-parser.kk
+        run: make test-parser
         shell: bash
 
       - name: Run codegen tests
-        run: |
-          koka -ilib/kunit -isrc -e tests/test-codegen.kk
+        run: make test-codegen
         shell: bash
 
       - name: Run CLI e2e tests (Unix)
         if: runner.os != 'Windows'
-        run: |
-          koka -ilib/kunit -ilib/klap -isrc -e tests/test-cli.kk -- ./hica
+        run: make test-cli
 
       - name: Run CLI e2e tests (Windows)
         if: runner.os == 'Windows'
@@ -125,20 +115,17 @@ jobs:
 
       - name: Run choreo acceptance tests (Unix) - CLI
         if: runner.os != 'Windows'
-        run: |
-          choreo run -f tests/choreo/test-hica-cli.chor
+        run: make choreo-cli
         shell: bash
 
-      - name: Run choreo acceptance tests (Unix) - CLI
+      - name: Run choreo acceptance tests (Unix) - REPL
         if: runner.os != 'Windows'
-        run: |
-          choreo run -f tests/choreo/test-hica-repl.chor
+        run: make choreo-repl
         shell: bash
 
       - name: Run JS backend tests (Unix)
         if: runner.os != 'Windows'
-        run: |
-          ./tests/test-js.sh ./hica
+        run: make test-js
         shell: bash
 
       - name: Strip binary (Linux)

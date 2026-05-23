@@ -1,0 +1,442 @@
+[
+  {
+    "uri": "tests/choreo/test-hica-repl.chor",
+    "keyword": "Feature",
+    "name": "Hica REPL — user-perspective choreography tests",
+    "elements": [
+      {
+        "keyword": "Scenario",
+        "name": "REPL startup and banner",
+        "steps": [
+          {
+            "name": "StartupBanner",
+            "description": "REPL displays welcome banner on launch",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5855
+            }
+          },
+          {
+            "name": "StartupBye",
+            "description": "REPL prints Bye! on :quit",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5744
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Arithmetic expressions",
+        "steps": [
+          {
+            "name": "AddInts",
+            "description": "1 + 2 evaluates to 3",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5579
+            }
+          },
+          {
+            "name": "MultiplyInts",
+            "description": "10 * 10 evaluates to 100",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5467
+            }
+          },
+          {
+            "name": "SubtractInts",
+            "description": "7 - 3 evaluates to 4",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5357
+            }
+          },
+          {
+            "name": "DivideInts",
+            "description": "10 / 2 evaluates to 5",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5248
+            }
+          },
+          {
+            "name": "ModuloInts",
+            "description": "10 % 3 evaluates to 1",
+            "result": {
+              "status": "passed",
+              "durationInMs": 5141
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "String expressions",
+        "steps": [
+          {
+            "name": "StringConcat",
+            "description": "string concatenation with +",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4974
+            }
+          },
+          {
+            "name": "StringLength",
+            "description": "str_length returns character count",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4866
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Boolean and comparison expressions",
+        "steps": [
+          {
+            "name": "GreaterThanTrue",
+            "description": "2 > 1 evaluates to True",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4699
+            }
+          },
+          {
+            "name": "GreaterThanFalse",
+            "description": "1 > 2 evaluates to False",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4588
+            }
+          },
+          {
+            "name": "EqualityTrue",
+            "description": "3 == 3 evaluates to True",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4479
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "List expressions",
+        "steps": [
+          {
+            "name": "ListLength",
+            "description": "length of a list literal",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4313
+            }
+          },
+          {
+            "name": "ListMap",
+            "description": "map squares each element",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4202
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Let bindings",
+        "steps": [
+          {
+            "name": "LetSingle",
+            "description": "let x = 42 prints the value",
+            "result": {
+              "status": "passed",
+              "durationInMs": 4040
+            }
+          },
+          {
+            "name": "LetPersist",
+            "description": "bindings from earlier lines are visible later",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3932
+            }
+          },
+          {
+            "name": "LetString",
+            "description": "string binding persists and can be used",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3769
+            }
+          },
+          {
+            "name": "LastResult",
+            "description": "_ captures the last result",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3603
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Function definitions and calls",
+        "steps": [
+          {
+            "name": "FunDefine",
+            "description": "fun definition prints defined: <name>",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3438
+            }
+          },
+          {
+            "name": "FunCall",
+            "description": "defined function can be called",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3327
+            }
+          },
+          {
+            "name": "FunMultiArg",
+            "description": "multi-argument function works",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3166
+            }
+          },
+          {
+            "name": "FunMultiline",
+            "description": "multiline fun definition via brace continuation",
+            "result": {
+              "status": "passed",
+              "durationInMs": 3057
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Struct definitions",
+        "steps": [
+          {
+            "name": "StructDefine",
+            "description": "struct definition prints defined: struct <Name>",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2832
+            }
+          },
+          {
+            "name": "StructFieldAccess",
+            "description": "struct fields are accessible after construction",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2675
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Enum (type) definitions",
+        "steps": [
+          {
+            "name": "EnumDefine",
+            "description": "type definition prints defined: type <Name>",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2459
+            }
+          },
+          {
+            "name": "EnumMatch",
+            "description": "match on enum variant returns correct arm",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2352
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Built-in REPL commands",
+        "steps": [
+          {
+            "name": "HelpCommand",
+            "description": ":help lists available commands",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2135
+            }
+          },
+          {
+            "name": "HelpAlias",
+            "description": ":h is an alias for :help",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1482
+            }
+          },
+          {
+            "name": "DefsEmpty",
+            "description": ":defs reports no definitions in fresh session",
+            "result": {
+              "status": "passed",
+              "durationInMs": 2026
+            }
+          },
+          {
+            "name": "DefsAfterFun",
+            "description": ":defs lists a defined function",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1374
+            }
+          },
+          {
+            "name": "TypeInt",
+            "description": ":t reports type of int expression",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1919
+            }
+          },
+          {
+            "name": "TypeString",
+            "description": ":t reports type of string expression",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1263
+            }
+          },
+          {
+            "name": "TypeList",
+            "description": ":t reports type of list expression",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1152
+            }
+          },
+          {
+            "name": "ResetClearsState",
+            "description": ":reset clears defined names",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1811
+            }
+          },
+          {
+            "name": "QuitCommand",
+            "description": ":quit prints Bye! and exits",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1594
+            }
+          },
+          {
+            "name": "QuitAlias",
+            "description": ":q is an alias for :quit",
+            "result": {
+              "status": "passed",
+              "durationInMs": 1044
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Loading files with :load",
+        "steps": [
+          {
+            "name": "LoadFile",
+            "description": ":load reports loaded: <name>",
+            "result": {
+              "status": "passed",
+              "durationInMs": 874
+            }
+          },
+          {
+            "name": "LoadAndCall",
+            "description": "loaded function can be called immediately",
+            "result": {
+              "status": "passed",
+              "durationInMs": 657
+            }
+          },
+          {
+            "name": "LoadAppearsInDefs",
+            "description": "loaded definitions appear in :defs",
+            "result": {
+              "status": "passed",
+              "durationInMs": 547
+            }
+          },
+          {
+            "name": "LoadNonexistent",
+            "description": ":load on missing file reports an error",
+            "result": {
+              "status": "passed",
+              "durationInMs": 766
+            }
+          }
+        ],
+        "after": []
+      },
+      {
+        "keyword": "Scenario",
+        "name": "Error handling and recovery",
+        "steps": [
+          {
+            "name": "ParseError",
+            "description": "parse error is reported without crashing",
+            "result": {
+              "status": "passed",
+              "durationInMs": 380
+            }
+          },
+          {
+            "name": "TypeError",
+            "description": "type error is reported without crashing",
+            "result": {
+              "status": "passed",
+              "durationInMs": 270
+            }
+          },
+          {
+            "name": "ReplContinuesAfterError",
+            "description": "REPL continues evaluating after a type error",
+            "result": {
+              "status": "passed",
+              "durationInMs": 161
+            }
+          }
+        ],
+        "after": []
+      }
+    ],
+    "summary": {
+      "tests": 43,
+      "failures": 0,
+      "totalTimeInSeconds": 5.864719
+    }
+  }
+]

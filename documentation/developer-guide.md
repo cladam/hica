@@ -104,18 +104,23 @@ Test conventions:
 ### 9. Build and Run Tests
 
 ```bash
-# Build the compiler
-koka -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
+# Debug build (fast iteration)
+make build
+
+# Optimised release build
+make release
 
 # Run individual test suites
-koka -ilib/kunit -isrc -e tests/test-lexer.kk
-koka -ilib/kunit -isrc -e tests/test-parser.kk
-koka -ilib/kunit -isrc -e tests/test-codegen.kk
-koka -ilib/kunit -ilib/klap -isrc -e tests/test-cli.kk -- ./hica
+make test-lexer
+make test-parser
+make test-codegen
+make test-cli     # end-to-end, requires a built binary
+make test-js      # JS backend, requires a built binary
+make choreo-cli   # ATDD CLI acceptance tests
+make choreo-repl  # ATDD REPL acceptance tests
 
 # Or run everything at once
-bash test-hica.sh
+make test
 ```
 
 ### 10. Test with Examples
@@ -140,20 +145,15 @@ If the feature adds standard library functions written in hica:
 - Or create a new prelude file and register it in `src/main.kk` (load order matters)
 - After any prelude change, re-bundle and rebuild:
   ```bash
-  bash scripts/bundle-prelude.sh
-  koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
+  make bundle-prelude release
   ```
 
 If the feature adds functions to the standard library (`stdlib/std/*.hc`):
 
 - Edit or add the relevant file under `stdlib/std/`
-- Re-bundle and rebuild:
+- Re-bundle, rebuild, and clear the runtime cache:
   ```bash
-  bash scripts/bundle-stdlib.sh
-  koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
-  ```
-- Clear the stdlib cache so the new bundle takes effect:
-  ```bash
+  make bundle-stdlib release
   rm -f ~/.hica/stdlib/*.hc ~/.hica/stdlib/*.kk
   ```
 
@@ -178,17 +178,36 @@ tbdflow commit -t feat -m "add <feature description>"
 
 ## Build Commands Reference
 
+All common operations are available via `make`. Run `make` with no target for a debug build.
+
+| Make target | Purpose |
+|-------------|--------|
+| `make build` | Debug build (fast, no `-O2`) |
+| `make release` | Optimised release build |
+| `make bundle` | Bundle prelude + stdlib, then release build |
+| `make bundle-prelude` | Embed `prelude/*.hc` → `src/prelude-bundle.kk` |
+| `make bundle-stdlib` | Embed `stdlib/std/*.hc` → `src/stdlib-bundle.kk` |
+| `make test` | Full test suite via `test-hica.sh` |
+| `make test-lexer` | Lexer unit tests |
+| `make test-parser` | Parser unit tests |
+| `make test-codegen` | Codegen unit tests |
+| `make test-cli` | End-to-end CLI tests |
+| `make test-js` | JS backend tests |
+| `make choreo-cli` | ATDD CLI acceptance tests |
+| `make choreo-repl` | ATDD REPL acceptance tests |
+| `make playground` | Build the browser playground |
+| `make playground-serve` | Build + serve playground on `localhost:8080` |
+| `make clean` | Remove binary and clear stdlib runtime cache |
+
+Raw hica commands:
+
 | Command | Purpose |
-|---------|---------|
-| `koka -ilib/klap -isrc src/main.kk -o hica` | Debug build |
-| `koka -O2 -ilib/klap -isrc src/main.kk -o hica` | Release build |
-| `chmod +x hica` | Make binary executable |
+|---------|--------|
 | `./hica --version` | Verify build |
 | `./hica run <file>.hc` | Compile and run a hica program |
 | `./hica build <file>.hc` | Compile only |
 | `./hica check <file>.hc` | Type-check only |
 | `./hica clean` | Clean build artifacts |
-| `bash test-hica.sh` | Run full test suite |
 
 ## Scripts Reference
 
@@ -256,11 +275,25 @@ open http://localhost:8080
 
 ## CI Pipeline
 
-CI runs on push to `main` and on PRs. It builds on Ubuntu (x86_64) and macOS (arm64).
+CI runs on push to `main`, on PRs, and on version tags (`v*.*.*`). Defined in `.github/workflows/build.yml`.
 
-Steps: checkout with submodules → install Koka → build compiler → verify binary → run lexer/parser/codegen tests.
+**Matrix**: Ubuntu x86_64, Ubuntu arm64, macOS arm64, Windows x86_64.
 
-Ensure submodules are included in CI checkout (`submodules: true`).
+**Steps per platform:**
+1. Checkout with submodules (`submodules: true` — required for kunit/klap)
+2. Install Koka (via the official install script)
+3. Build — debug on branch push, release (`-O2`) on version tags
+4. Verify binary (`./hica --version`)
+5. Unit tests: lexer, parser, codegen
+6. End-to-end CLI tests (`test-cli.kk`); Windows runs with `continue-on-error` due to path-handling differences
+7. Choreo ATDD acceptance tests: `make choreo-cli` + `make choreo-repl` (Unix only; requires `cargo install choreo`)
+8. JS backend tests: `make test-js` (Unix only)
+9. Strip binary (Linux) / ad-hoc codesign (macOS)
+10. Package as `.tar.gz` (Unix) or `.zip` (Windows) and upload as GitHub Actions artifact
+
+**Release job**: triggered only on version tags. Downloads all platform artifacts and creates a GitHub Release with generated release notes.
+
+Ensure submodules are always included in CI checkout (`submodules: true`).
 
 ## Naming Conventions
 
