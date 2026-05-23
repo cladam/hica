@@ -386,12 +386,13 @@ Issues that exist today but are not yet fixed:
 - **~~`""`.split(`""`) causes infinite loop~~** — Fixed. Codegen now guards
   empty separator: splits into characters instead of calling Koka's `.split("")`
   which loops infinitely.
-- **~~`let` inside `if/else` branches generates broken Koka~~** — Partially
-  fixed in v0.11.2. Simple cases work, but certain patterns (e.g. `let` followed
-  by further expressions in nested branches) still generate broken Koka.
-  HML retro confirms workaround still needed: extract helper functions.
-  **P0 for Lisp-in-Hica**: every eval branch needs local bindings; without
-  this fix, interpreter code inflates ~2x from helper function extraction.
+- **~~`let` inside `if/else` branches generates broken Koka~~** — Fully
+  fixed. Simple cases were fixed in v0.11.2; the remaining pattern
+  (multiline init on the RHS of a `let`, e.g. `let x = { let a = ...; if ... }`)
+  is now fixed by emitting `val x =\n  <indented-block>` when the init spans
+  multiple lines. All 5 emit sites patched: `emit-body-wrap-last`, `emit-stmt`
+  (Let + VarDecl), and `emit-expr` (Let + VarDecl). 386 codegen tests + 22 JS
+  tests green. Helper-function workarounds in user code are no longer needed.
 - **~~Parse errors report byte offsets, not line numbers~~** — Fixed. Parser
   now converts byte offsets to `line:col` using the source text. Error messages
   display human-readable positions (e.g. `3:11` instead of `36`).

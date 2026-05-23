@@ -128,7 +128,7 @@ Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
 
 ## Standard Library Modules (opt-in)
 
-Functions beyond the prelude are organized into stdlib modules. Import them
+Functions beyond the prelude are organised into stdlib modules. Import them
 explicitly when you need them:
 
 ```hica

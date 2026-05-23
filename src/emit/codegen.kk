@@ -323,7 +323,12 @@ fun emit-body-wrap-last( wrapper : string, n : node, declared : list<string> ) :
     LetTuple(names, init, body) ->
       "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-body-wrap-last(wrapper, body, declared)
     Let(name, _, init, body) ->
-      "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-body-wrap-last(wrapper, body, declared)
+      val init-code = emit-expr(init, declared)
+      val binding = if init-code.contains("\n") then
+        "val " ++ marshal-name(name, declared) ++ " =\n" ++ indent-all(init-code)
+      else
+        "val " ++ marshal-name(name, declared) ++ " = " ++ init-code
+      binding ++ "\n" ++ emit-body-wrap-last(wrapper, body, declared)
     Block(stmts) ->
       match stmts.reverse
         Cons(last, rest) ->
@@ -341,14 +346,24 @@ fun emit-stmt( n : node, declared : list<string> ) : div string
           val ts = emit-type(t)
           if ts == "" then "" else " : " ++ ts
         Nothing -> ""
-      "val " ++ marshal-name(name, declared) ++ ann ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
+      val init-code = emit-expr(init, declared)
+      val binding = if init-code.contains("\n") then
+        "val " ++ marshal-name(name, declared) ++ ann ++ " =\n" ++ indent-all(init-code)
+      else
+        "val " ++ marshal-name(name, declared) ++ ann ++ " = " ++ init-code
+      binding ++ "\n" ++ emit-stmt(body, declared)
     VarDecl(name, _, init, body) ->
       val ann = match init.typ
         Just(t) ->
           val ts = emit-type(t)
           if ts == "" then "" else " : " ++ ts
         Nothing -> ""
-      "var " ++ marshal-name(name, declared) ++ ann ++ " := " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
+      val init-code = emit-expr(init, declared)
+      val binding = if init-code.contains("\n") then
+        "var " ++ marshal-name(name, declared) ++ ann ++ " :=\n" ++ indent-all(init-code)
+      else
+        "var " ++ marshal-name(name, declared) ++ ann ++ " := " ++ init-code
+      binding ++ "\n" ++ emit-stmt(body, declared)
     LetTuple(names, init, body) ->
       "val (" ++ names.map(fn(nm) marshal-name(nm, declared)).join(", ") ++ ") = " ++ emit-expr(init, declared) ++ "\n" ++ emit-stmt(body, declared)
     _ -> emit-expr(n, declared)
@@ -390,9 +405,19 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Unary(Neg, o)           -> "(0 - " ++ emit-expr(o, declared) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->
-      "val " ++ marshal-name(name, declared) ++ " = " ++ emit-expr(init, declared) ++ "\n" ++ emit-expr(body, declared)
+      val init-code = emit-expr(init, declared)
+      val binding = if init-code.contains("\n") then
+        "val " ++ marshal-name(name, declared) ++ " =\n" ++ indent-all(init-code)
+      else
+        "val " ++ marshal-name(name, declared) ++ " = " ++ init-code
+      binding ++ "\n" ++ emit-expr(body, declared)
     VarDecl(name, _, init, body) ->
-      "var " ++ marshal-name(name, declared) ++ " := " ++ emit-expr(init, declared) ++ "\n" ++ emit-expr(body, declared)
+      val init-code = emit-expr(init, declared)
+      val binding = if init-code.contains("\n") then
+        "var " ++ marshal-name(name, declared) ++ " :=\n" ++ indent-all(init-code)
+      else
+        "var " ++ marshal-name(name, declared) ++ " := " ++ init-code
+      binding ++ "\n" ++ emit-expr(body, declared)
     Assign(name, value) ->
       marshal-name(name, declared) ++ " := " ++ emit-expr(value, declared)
     Fun(params, body) ->
