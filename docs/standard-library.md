@@ -7,8 +7,8 @@ title: Standard Library - hica
 
 Hica's standard library has two layers:
 
-- **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) — always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`) — opt-in via `import "std/..."`.
+- **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -73,7 +73,7 @@ fun main() {
 | `is_ok(r)` | `(result<a, b>) -> bool` | True if `Ok` |
 | `is_err(r)` | `(result<a, b>) -> bool` | True if `Err` |
 
-### File Helpers (`std/io` — `import "std/io"` required)
+### File Helpers (`std/io`, `import "std/io"` required)
 
 Written in hica itself:
 
@@ -106,7 +106,6 @@ fun main() {
   let data = read_file("config.txt") |> unwrap_or("default")
   println(data)
 }
-}
 ```
 
 ## List Operations
@@ -133,7 +132,7 @@ fun main() {
 | `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | Map then flatten |
 | `sort_by(xs, cmp)` | `(list<a>, (a, a) -> bool) -> list<a>` | Sort using a comparison; `cmp(a, b)` returns true if `a` comes first |
 
-### List Helpers (`std/list` — `import "std/list"` required)
+### List Helpers (`std/list`, `import "std/list"` required)
 
 Written in hica itself:
 
@@ -258,7 +257,7 @@ fun main() {
 
 ## Math (`prelude/math.hc`)
 
-Always available — no import needed. Written in hica itself:
+Always available with no import needed. Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -379,7 +378,7 @@ fun main() {
 
 ## String Helpers (`prelude/strings.hc`)
 
-Always available — no import needed. Written in hica itself:
+Always available with no import needed. Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -395,7 +394,7 @@ Always available — no import needed. Written in hica itself:
 | `center(s, width, ch)` | `(string, int, string) -> string` | Center `s` in `width`, padding with `ch` |
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
 
-## Extended String Helpers (`std/string` — `import "std/string"` required)
+## Extended String Helpers (`std/string`, `import "std/string"` required)
 
 Written in hica itself:
 
@@ -410,7 +409,7 @@ Written in hica itself:
 
 ## Glob & Character Classification (`prelude/glob.hc`)
 
-Always available — no import needed. Written in hica itself. Provides character-level classification and glob pattern matching.
+Always available with no import needed. Written in hica itself. Provides character-level classification and glob pattern matching.
 
 ### Character Classification
 
@@ -459,7 +458,7 @@ fun main() {
 }
 ```
 
-## Datetime (`std/datetime` — `import "std/datetime"` required) — v0.1.0
+## Datetime (`std/datetime`, `import "std/datetime"` required) — v0.1.0
 
 > **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica currently supports validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
 

@@ -100,6 +100,7 @@ pub fun js-runtime-preamble() : string
   "function any(xs, f) { return xs.some(f); }\n" ++
   "function repeat(n, f) { for (let i = 0; i < n; i++) f(); }\n" ++
   "function random(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }\n" ++
+  "function random_float() { return Math.random(); }\n" ++
   "function assert(cond, msg) { if (!cond) throw new Error('assertion failed: ' + (msg || '')); }\n" ++
   "\n// Maybe/Result helpers\n" ++
   "const None = null;\n" ++

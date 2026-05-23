@@ -195,9 +195,8 @@ pure functions are written in hica itself.
 | Function | Type | Impl | Notes |
 |----------|------|------|-------|
 | `head(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | First element; emits Koka `xs.head` |
-| `head_or(xs, default)` | `(list<a>, a) -> a` | **—** (hica) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
+| `head_or(xs, default)` | `(list<a>, a) -> a` | **done** (hica, std/list) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
 | `tail(xs)` | `(list<a>) -> list<a>` | **done** (extern) | All but first; emits Koka `xs.tail` |
-| `last(xs)` | `(list<a>) -> maybe<a>` | **done** (extern) | Last element; emits Koka `xs.last` |
 | `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | **done** (extern) | Map + flatten; emits Koka `xs.flatmap(f)` |
 | `sort_by(xs, cmp)` | `(list<a>, (a, a) -> bool) -> list<a>` | **done** (extern) | Merge sort; `cmp(a, b)` returns true if a should come first. Koka helper emitted when used |
 | `intersperse(xs, sep)` | `(list<a>, a) -> list<a>` | **done** (hica) | Insert separator between elements |
@@ -207,13 +206,13 @@ pure functions are written in hica itself.
 | `zip_with(xs, ys, f)` | `(list<a>, list<b>, (a, b) -> c) -> list<c>` | **done** (hica) | Zip + map in one step |
 | `unique(xs)` | `(list<a>) -> list<a>` | **done** (hica) | Remove duplicates (preserves first occurrence) |
 | `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | **done** (hica) | Split into groups of `n` |
-| `head_or(xs, default)` | `(list<a>, a) -> a` | **—** (hica) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
-| `take_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **—** (hica) | Take elements from the front while predicate holds; stop at first failure |
-| `drop_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **—** (hica) | Drop elements from the front while predicate holds; return the rest |
-| `count(xs, pred)` | `(list<a>, (a) -> bool) -> int` | **—** (hica) | Count elements matching predicate. Distinct from `length` — filters first |
-| `group_by(xs, f)` | `(list<a>, (a) -> string) -> list<(string, list<a>)>` | **—** (hica) | Group elements by key function. Returns list of `(key, group)` pairs in insertion order. Useful for summarising tabular data |
-| `min_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **—** (hica) | Element with the smallest key. Returns `None` on empty list |
-| `max_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **—** (hica) | Element with the largest key. Returns `None` on empty list |
+| `head_or(xs, default)` | `(list<a>, a) -> a` | **done** (hica, std/list) | First element or default value. Avoids unwrapping `maybe` after length check. HML retro: "`head()` returning `maybe` is type-safe but ergonomically rough when you've already checked `length > 1`" |
+| `take_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **done** (hica, std/list) | Take elements from the front while predicate holds; stop at first failure |
+| `drop_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | **done** (hica, std/list) | Drop elements from the front while predicate holds; return the rest |
+| `count(xs, pred)` | `(list<a>, (a) -> bool) -> int` | **done** (hica, std/list) | Count elements matching predicate. Distinct from `length` — filters first |
+| `group_by(xs, f)` | `(list<a>, (a) -> string) -> list<(string, list<a>)>` | **done** (hica, std/list) | Group elements by string key function. Returns list of `(key, group)` pairs in insertion order |
+| `min_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **done** (hica, std/list) | Element with the smallest int key. Returns `None` on empty list |
+| `max_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | **done** (hica, std/list) | Element with the largest int key. Returns `None` on empty list |
 
 ### Math Functions (`prelude/math.hc`)
 
@@ -222,9 +221,9 @@ pure functions are written in hica itself.
 | `lcm(a, b)` | `(int, int) -> int` | **done** (hica) | Least common multiple; uses `gcd` |
 | `pow(base, exp)` | `(int, int) -> int` | **done** (hica) | Integer exponentiation |
 | `sign(n)` | `(int) -> int` | **done** (hica) | Returns -1, 0, or 1 |
-| `clamp(n, lo, hi)` | `(int, int, int) -> int` | **—** (hica) | Clamp `n` to `[lo, hi]`. Common enough to avoid writing `if n < lo then lo else if n > hi then hi else n` inline |
-| `is_even(n)` | `(int) -> bool` | **—** (hica) | Returns `n % 2 == 0` |
-| `is_odd(n)` | `(int) -> bool` | **—** (hica) | Returns `n % 2 != 0` |
+| `clamp(n, lo, hi)` | `(int, int, int) -> int` | **done** (hica, prelude/math) | Clamp `n` to `[lo, hi]`. Common enough to avoid writing `if n < lo then lo else if n > hi then hi else n` inline |
+| `is_even(n)` | `(int) -> bool` | **done** (hica, std/ops) | Returns `n % 2 == 0` |
+| `is_odd(n)` | `(int) -> bool` | **done** (hica, std/ops) | Returns `n % 2 != 0` |
 
 ### Float Math (externs)
 
@@ -241,7 +240,7 @@ pure functions are written in hica itself.
 | Function | Type | Impl | Notes |
 |----------|------|------|-------|
 | `random(min, max)` | `(int, int) -> int` | **done** (extern) | Random int in `[min, max]` inclusive. `ndet` effect |
-| `random_float()` | `() -> float` | **—** (extern) | Random float in `[0.0, 1.0)`. Koka `srandom-double`. `ndet` effect |
+| `random_float()` | `() -> float` | **done** (extern) | Random float in `[0.0, 1.0)`. Koka `srandom-float64`. `ndet` effect |
 | `random_shuffle(xs)` | `(list<a>) -> list<a>` | **—** (hica) | Fisher-Yates shuffle using `random`. Returns new shuffled list. `ndet` effect |
 
 ### System / Environment (prelude additions)
@@ -249,9 +248,9 @@ pure functions are written in hica itself.
 | Function | Type | Impl | Notes |
 |----------|------|------|-------|
 | `get_env(key)` | `(string) -> maybe<string>` | **done** (extern) | Look up env var; `Some(val)` or `None` |
-| `env_require(key)` | `(string) -> string` | **—** (hica) | Returns value or calls `error("env var KEY not set")`. Useful in deploy scripts where a missing var is always a programmer error |
-| `env_or(key, default)` | `(string, string) -> string` | **—** (hica) | Returns value or `default`. Thin wrapper over `get_env` + `unwrap_or` |
-| `env_int(key)` | `(string) -> maybe<int>` | **—** (hica) | Look up env var and parse as `int`. Returns `None` if missing or non-numeric |
+| `env_require(key)` | `(string) -> string` | **done** (hica, std/env) | Returns value or prints error and returns `""`. Useful in deploy scripts where a missing var is always a programmer error |
+| `env_or(key, default)` | `(string, string) -> string` | **done** (hica, std/env) | Returns value or `default`. Thin wrapper over `get_env` + `unwrap_or` |
+| `env_int(key)` | `(string) -> maybe<int>` | **done** (hica, std/env) | Look up env var and parse as `int`. Returns `None` if missing or non-numeric |
 
 ### Char/String Conversions (externs)
 

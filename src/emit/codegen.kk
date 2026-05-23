@@ -516,6 +516,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         // Random numbers — hica random(min, max) is inclusive on both ends
         (Var("random"), [lo, hi]) ->
           "srandom-int32-range(" ++ emit-expr(lo, declared) ++ ".int32, (" ++ emit-expr(hi, declared) ++ " + 1).int32).int"
+        (Var("random_float"), []) ->
+          "srandom-float64()"
 
         // Formatting
         (Var("show_fixed"), [f, prec]) ->
@@ -1226,8 +1228,9 @@ fun node-uses-random( n : node ) : div bool
   match n.expr
     Call(callee, args) ->
       val is-random-fn = match callee.expr
-        Var("random") -> True
-        _             -> False
+        Var("random")       -> True
+        Var("random_float") -> True
+        _                   -> False
       is-random-fn || node-uses-random(callee) || args.any(fn(a) node-uses-random(a))
     Let(_, _, init, body) -> node-uses-random(init) || node-uses-random(body)
     VarDecl(_, _, init, body) -> node-uses-random(init) || node-uses-random(body)

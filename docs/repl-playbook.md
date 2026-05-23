@@ -23,12 +23,17 @@ prelude names, keywords, and commands.
 
 Arithmetic, strings, lists. Anything that evaluates to a value.
 
+  let a = [1, 2, 3, 4, 5]
+    |> filter((x) => x % 2 == 0)
+    |> map((x) => x * 10)
+    |> fold(0, (acc, x) => acc + x)
+
 ```hica
 hica=> 2 + 3
 5
 hica=> "hello" + " " + "world"
 hello world
-hica=> [1, 2, 3] |> map(fn(x) { x * x })
+hica=> [1, 2, 3] |> map((x) => x * x)
 [1, 4, 9]
 ```
 
@@ -166,7 +171,7 @@ fun clamp(v: int, lo: int, hi: int): int { min(max(v, lo), hi) }
 
 - **Tab completion**: prelude functions, keywords, and commands are all
   completable. Install `rlwrap` for the best experience.
-- **`_` chains**: pipe the last result forward: `_ |> filter(fn(x) { x > 0 })`.
+- **`_` chains**: pipe the last result forward: `_ |> filter((x) => x > 0)`.
 - **`:t` before you run**: check types to catch mistakes before evaluation.
 - **Incremental builds**: define, test, refine. `:defs` shows accumulated state.
 - **`:reset`**: clean slate without restarting.

@@ -71,7 +71,8 @@ pub fun extern-env() : type-env
     ("write_file",  TFun([TString, TString], TUnit)),
 
     // Random numbers
-    ("random",     TFun([TInt, TInt], TInt)),
+    ("random",       TFun([TInt, TInt], TInt)),
+    ("random_float", TFun([], TFloat)),
 
     // Formatting
     ("show_fixed", TFun([TFloat, TInt], TString)),
