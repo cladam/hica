@@ -1,0 +1,32 @@
+{
+  "name": "tree-sitter-hica",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for the Hica programming language",
+  "keywords": ["tree-sitter", "hica", "parser"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cladam/hica"
+  },
+  "main": "bindings/node",
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "build": "tree-sitter generate && node-gyp build",
+    "test": "tree-sitter test",
+    "parse": "tree-sitter parse"
+  },
+  "dependencies": {
+    "nan": "^2.17.0"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.22.0"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.hica",
+      "file-types": ["hc"],
+      "highlights": "queries/highlights.scm",
+      "indents": "queries/indents.scm"
+    }
+  ]
+}
