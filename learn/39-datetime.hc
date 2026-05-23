@@ -27,6 +27,8 @@
 //
 // ============================================================
 
+import "std/datetime"
+
 fun main() {
   // --- Validation ---
   println(is_valid_date("2024-05-15"))     // true

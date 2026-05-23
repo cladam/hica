@@ -14,7 +14,6 @@ PRELUDE_FILES=(
   "prelude/math.hc"
   "prelude/glob.hc"
   "prelude/strings.hc"
-  "prelude/datetime.hc"
   "prelude/cli.hc"
 )
 

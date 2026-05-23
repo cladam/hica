@@ -1,5 +1,7 @@
 // Test datetime prelude functions
 
+import "std/datetime"
+
 fun main() {
   println("datetime prelude tests")
 
