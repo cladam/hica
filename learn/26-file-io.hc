@@ -1,12 +1,12 @@
 // 26 – File I/O
 //
-// hica can read and write files. The functions are available everywhere,
-// no imports needed.
+// hica can read and write files. Import std/io for read_lines / write_lines.
 //
 // read_file returns a result — use unwrap for quick scripts,
 // or match on Ok/Err for proper error handling.
 //
 // Run: ./hica run learn/26-file-io.hc
+import "std/io"
 
 fun main() {
   // --- Writing a file ---

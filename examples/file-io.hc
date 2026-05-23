@@ -1,3 +1,5 @@
+import "std/io"
+
 fun main() {
   // --- Writing a file ---
   write_file("hello.txt", "Hello from hica!\nSecond line.\n")

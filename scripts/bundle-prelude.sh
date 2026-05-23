@@ -16,7 +16,6 @@ PRELUDE_FILES=(
   "prelude/strings.hc"
   "prelude/datetime.hc"
   "prelude/cli.hc"
-  "prelude/io.hc"
   "prelude/actors.hc"
 )
 

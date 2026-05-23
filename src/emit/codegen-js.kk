@@ -346,7 +346,7 @@ pub fun emit-js-expr( n : node ) : div string
     Match(scrutinee, arms) ->
       emit-js-match(scrutinee, arms)
 
-    Block(stmts) ->
+    Block(_) ->
       "(() => {\n" ++ indent(emit-js-body(n)) ++ "\n})()"
 
     Tuple(elems) ->
@@ -382,7 +382,7 @@ pub fun emit-js-expr( n : node ) : div string
     StructUpdate(sname, base, fields, def-fields) ->
       // Rebuild via constructor to preserve __show
       val all-fields = def-fields.map fn(fname)
-        match fields.find(fn((n, _)) n == fname)
+        match fields.find(fn((fname2, _)) fname2 == fname)
           Just((_, v)) -> emit-js-expr(v)
           Nothing      -> emit-js-expr(base) ++ "." ++ fname
       sname ++ "(" ++ all-fields.join(", ") ++ ")"

@@ -664,16 +664,16 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "ceiling(" ++ emit-expr(x, declared) ++ ").int"
         (Var("round"), [x]) ->
           "round(" ++ emit-expr(x, declared) ++ ").int"
-        (Var("to_float"), [n]) ->
-          emit-expr(n, declared) ++ ".float64"
+        (Var("to_float"), [x]) ->
+          emit-expr(x, declared) ++ ".float64"
 
         // Char/string conversions
         (Var("chars"), [s]) ->
           emit-expr(s, declared) ++ ".list"
         (Var("from_chars"), [cs]) ->
           emit-expr(cs, declared) ++ ".string"
-        (Var("chr"), [n]) ->
-          emit-expr(n, declared) ++ ".char"
+        (Var("chr"), [x]) ->
+          emit-expr(x, declared) ++ ".char"
         (Var("ord"), [c]) ->
           emit-expr(c, declared) ++ ".int"
         (Var("char_to_string"), [c]) ->

@@ -9,6 +9,8 @@
 // malloc/free, and careful memory management (~50 lines).
 // In hica it's read + reverse + print.
 
+import "std/io"
+
 fun main() {
   let args = get_args()
   if length(args) != 1 {
