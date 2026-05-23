@@ -26,6 +26,8 @@
 // --- YAML line classification ---
 // TODO: import "../src/hml" — re-enable when hml module is published
 
+import "std/cli"
+
 type YamlLine {
     YKeyVal(indent: int, key: string, value: string),
     YListItem(indent: int, value: string),

@@ -8,6 +8,8 @@
 //   ./hica run examples/cli-prelude.hc -- -vo out.txt data.txt
 //   ./hica run examples/cli-prelude.hc -- check --strict src/
 
+import "std/cli"
+
 fun make_check_spec() =>
   cli("myapp check", "1.0.0", "run checks on a path")
     |> flag("strict", "s", "enable strict mode")

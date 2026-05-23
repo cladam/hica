@@ -10,6 +10,8 @@
 // boundaries, and manual string matching (~80 lines).
 // In hica it's read + contains for each needle.
 
+import "std/cli"
+
 fun make_spec() =>
   cli("findstring", "1.0.0", "search a file for strings")
     |> arg("file", "file to search", true)

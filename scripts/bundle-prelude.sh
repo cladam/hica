@@ -14,7 +14,6 @@ PRELUDE_FILES=(
   "prelude/math.hc"
   "prelude/glob.hc"
   "prelude/strings.hc"
-  "prelude/cli.hc"
 )
 
 echo "Bundling ${#PRELUDE_FILES[@]} prelude files into $OUT ..."
