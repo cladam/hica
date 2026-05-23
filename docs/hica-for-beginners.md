@@ -796,7 +796,7 @@ Each lesson is a standalone `.hc` file you can run and modify:
 | 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc)       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
 | 24 | [`24-while.hc`](https://github.com/cladam/hica/blob/main/learn/24-while.hc)         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
 | 25 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc)| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
-| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)       | File I/O                         | `read_file`, `write_file`, `read_lines`, `write_lines` |
+| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)       | File I/O                         | `read_file`, `write_file`; `read_lines`, `write_lines` (`import "std/io"`) |
 | 27 | [`27-input.hc`](https://github.com/cladam/hica/blob/main/learn/27-input.hc)         | User input                       | `input(prompt)`, combining with `parse_int`     |
 | 28 | [`28-random.hc`](https://github.com/cladam/hica/blob/main/learn/28-random.hc)        | Random numbers                   | `random(min, max)`, dice and coin examples      |
 | 29 | [`29-format.hc`](https://github.com/cladam/hica/blob/main/learn/29-format.hc)        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
@@ -809,7 +809,7 @@ Each lesson is a standalone `.hc` file you can run and modify:
 | 36 | [`36-try.hc`](https://github.com/cladam/hica/blob/main/learn/36-try.hc) | `?` operator                   | Early return from maybe-returning functions |
 | 37 | [`37-list-extras.hc`](https://github.com/cladam/hica/blob/main/learn/37-list-extras.hc) | List extras                | `flat_map`, `sort_by`, `sum`, `unique`, `scan`, `chunks` |
 | 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `pow`, `sqrt`, `floor`, `ceil`, `round`, `to_float` |
-| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `date_parts`, `time_parts`, `day_of_week`, `is_before` |
+| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `date_parts`, `time_parts`, `day_of_week`, `is_before` (`import "std/datetime"`) |
 | 40 | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)     | Glob matching              | `is_digit`, `is_alpha`, `glob_match`, `glob_match_path` |
 
 ## Where to go next

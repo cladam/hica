@@ -39,7 +39,7 @@ A progressive set of 40 lessons that teach hica one concept at a time. Each less
 | 23 | [`23-parsing.hc`](https://github.com/cladam/hica/blob/main/learn/23-parsing.hc)       | Parsing                          | `parse_int`, `parse_float`, safe string-to-number |
 | 24 | [`24-while.hc`](https://github.com/cladam/hica/blob/main/learn/24-while.hc)         | While loops & var                | `var` mutable variables, `while` loops, reassignment |
 | 25 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc)| Break, continue, and loop        | `break`, `continue`, `loop`, early exit from any loop |
-| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)       | File I/O                         | `read_file`, `write_file`, `unwrap`, `unwrap_or`, `read_lines`, `write_lines` |
+| 26 | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)       | File I/O                         | `read_file`, `write_file`, `unwrap`, `unwrap_or`; `read_lines`, `write_lines` (`import "std/io"`) |
 | 27 | [`27-input.hc`](https://github.com/cladam/hica/blob/main/learn/27-input.hc)         | User input                       | `input(prompt)`, combining with `parse_int`, interactive programs |
 | 28 | [`28-random.hc`](https://github.com/cladam/hica/blob/main/learn/28-random.hc)        | Random numbers                   | `random(min, max)`, non-determinism, dice and coin examples |
 | 29 | [`29-format.hc`](https://github.com/cladam/hica/blob/main/learn/29-format.hc)        | Formatted output                 | `show_fixed`, `pad_left`, `pad_right`, aligned tables |
@@ -52,7 +52,7 @@ A progressive set of 40 lessons that teach hica one concept at a time. Each less
 | 36 | [`36-try.hc`](https://github.com/cladam/hica/blob/main/learn/36-try.hc) | `?` operator (early return)    | When a function returns `maybe`, the `?` operator saves you from writing nested matches. |
 | 37 | [`37-list-extras.hc`](https://github.com/cladam/hica/blob/main/learn/37-list-extras.hc) | List extras                | `head`, `tail`, `last`, `flat_map`, `sort_by`, `sum`, `product`, `unique`, `intersperse`, `zip_with`, `scan`, `chunks` |
 | 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
-| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` |
+| 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` (`import "std/datetime"`) |
 | 40 | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)     | Glob matching & char classification | `is_digit`, `is_alpha`, `is_upper`, `is_lower`, `all_digits`, `all_upper`, `glob_match`, `glob_match_path` |
 
 ## Language features shown
@@ -107,7 +107,7 @@ A progressive set of 40 lessons that teach hica one concept at a time. Each less
 | `loop { ... }`                 | [`25-break-continue.hc`](https://github.com/cladam/hica/blob/main/learn/25-break-continue.hc)                |
 | `read_file`, `write_file`      | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)                       |
 | `unwrap`, `unwrap_or`          | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)                       |
-| `read_lines`, `write_lines`    | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc)                       |
+| `read_lines`, `write_lines`    | [`26-file-io.hc`](https://github.com/cladam/hica/blob/main/learn/26-file-io.hc) (`import "std/io"`) |
 | `random(min, max)`             | [`28-random.hc`](https://github.com/cladam/hica/blob/main/learn/28-random.hc)                        |
 | `show_fixed`, `pad_left/right` | [`29-format.hc`](https://github.com/cladam/hica/blob/main/learn/29-format.hc)                        |
 | Map literals `{"k": v}`       | [`30-maps.hc`](https://github.com/cladam/hica/blob/main/learn/30-maps.hc)                          |

@@ -5,7 +5,10 @@ title: Standard Library - hica
 
 # Standard Library
 
-The prelude is hica's built-in standard library. Every function defined here is automatically available in every hica program. No imports needed.
+Hica's standard library has two layers:
+
+- **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) — always available, no import needed.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`) — opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -70,7 +73,7 @@ fun main() {
 | `is_ok(r)` | `(result<a, b>) -> bool` | True if `Ok` |
 | `is_err(r)` | `(result<a, b>) -> bool` | True if `Err` |
 
-### File Helpers (`prelude/io.hc`)
+### File Helpers (`std/io` — `import "std/io"` required)
 
 Written in hica itself:
 
@@ -130,7 +133,7 @@ fun main() {
 | `flat_map(xs, f)` | `(list<a>, (a) -> list<b>) -> list<b>` | Map then flatten |
 | `sort_by(xs, cmp)` | `(list<a>, (a, a) -> bool) -> list<a>` | Sort using a comparison; `cmp(a, b)` returns true if `a` comes first |
 
-### List Helpers (`prelude/lists.hc`)
+### List Helpers (`std/list` — `import "std/list"` required)
 
 Written in hica itself:
 
@@ -255,7 +258,7 @@ fun main() {
 
 ## Math (`prelude/math.hc`)
 
-Written in hica itself:
+Always available — no import needed. Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -376,7 +379,7 @@ fun main() {
 
 ## String Helpers (`prelude/strings.hc`)
 
-Written in hica itself:
+Always available — no import needed. Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -384,22 +387,30 @@ Written in hica itself:
 | `is_blank(s)` | `(string) -> bool` | True if the string is empty after trimming |
 | `words(s)` | `(string) -> list<string>` | Split on spaces, removing empty parts |
 | `lines(s)` | `(string) -> list<string>` | Split on newlines |
+| `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
+| `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
 | `repeat_str(s, n)` | `(string, int) -> string` | Repeat a string `n` times |
 | `pad_left(s, width, ch)` | `(string, int, string) -> string` | Pad on the left to `width` |
 | `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
 | `center(s, width, ch)` | `(string, int, string) -> string` | Center `s` in `width`, padding with `ch` |
-| `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
-| `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
-| `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
+| `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
+
+## Extended String Helpers (`std/string` — `import "std/string"` required)
+
+Written in hica itself:
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
 | `count_substr(s, sub)` | `(string, string) -> int` | Count occurrences of `sub` in `s` |
+| `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
 | `capitalise(s)` | `(string) -> string` | Uppercase first letter, lowercase rest |
 | `capwords(s)` | `(string) -> string` | Capitalise each word |
-| `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
+| `shout(s)` | `(string) -> string` | Convert to uppercase and append `!` |
 | `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
 ## Glob & Character Classification (`prelude/glob.hc`)
 
-Written in hica itself. Provides character-level classification and glob pattern matching.
+Always available — no import needed. Written in hica itself. Provides character-level classification and glob pattern matching.
 
 ### Character Classification
 
@@ -448,11 +459,11 @@ fun main() {
 }
 ```
 
-## Datetime (`prelude/datetime.hc`) — v0.1.0
+## Datetime (`std/datetime` — `import "std/datetime"` required) — v0.1.0
 
 > **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica currently supports validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
 
-Written in hica itself. Supports the four ISO 8601 datetime variants:
+Written in hica itself. Import with `import "std/datetime"`. Supports the four ISO 8601 datetime variants:
 
 - **Offset datetime:** `2024-05-15T07:32:00Z` or `2024-05-15T07:32:00+02:00`
 - **Local datetime:** `2024-05-15T07:32:00`
@@ -500,7 +511,7 @@ Written in hica itself. Supports the four ISO 8601 datetime variants:
 
 ### Internal Helpers
 
-These are also available (prelude functions are implicitly public):
+Also available after `import "std/datetime"`:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -509,9 +520,9 @@ These are also available (prelude functions are implicitly public):
 | `days_in_month(year, month)` | `(int, int) -> int` | Days in a month (handles leap years) |
 
 ```hica
+import "std/datetime"
+
 fun main() {
-  // Classify a TOML value
-  println(datetime_kind("2024-05-15T07:32:00Z"))   // "offset-datetime"
   println(datetime_kind("07:32:00"))                // "local-time"
 
   // Decompose a date

@@ -1,7 +1,13 @@
 # Level 34. Dates & Times: What Day Is It?
 
-Hica has built-in functions for working with dates and times. They use
-**strings** that look like this:
+Hica has functions for working with dates and times in the `std/datetime` library.
+You need to import it at the top of your program:
+
+```hica
+import "std/datetime"
+```
+
+They use **strings** that look like this:
 
 - A **date**: `"2026-05-15"`. Year, month, day, separated by dashes
 - A **time**: `"07:32:00"`. Hours, minutes, seconds, separated by colons
@@ -13,6 +19,8 @@ format so everyone can read it.
 ### Is this date real?
 
 ```hica
+import "std/datetime"
+
 fun main() {
   println(is_valid_date("2024-05-15"))   // true
   println(is_valid_date("2024-02-30"))   // false — February doesn't have 30 days!
@@ -23,6 +31,8 @@ fun main() {
 Hica knows about **leap years** too:
 
 ```hica
+import "std/datetime"
+
 fun main() {
   println(is_valid_date("2024-02-29"))   // true  — 2024 is a leap year
   println(is_valid_date("2023-02-29"))   // false — 2023 is not
@@ -34,6 +44,8 @@ fun main() {
 The `datetime_kind` function tells you what you're looking at:
 
 ```hica
+import "std/datetime"
+
 fun main() {
   println(datetime_kind("2024-05-15"))                // "local-date"
   println(datetime_kind("07:32:00"))                   // "local-time"
@@ -48,6 +60,8 @@ fun main() {
 You can split a date into its pieces. Year, month, and day:
 
 ```hica
+import "std/datetime"
+
 fun main() {
   match date_parts("2026-05-15") {
     Ok(d) => println("Year: {d.0}, Month: {d.1}, Day: {d.2}"),
@@ -59,6 +73,8 @@ fun main() {
 ### Which comes first?
 
 ```hica
+import "std/datetime"
+
 fun main() {
   println(is_before("2024-01-01", "2024-12-31"))   // true
   println(is_before("2024-12-31", "2024-01-01"))   // false
@@ -68,6 +84,8 @@ fun main() {
 ### What day of the week?
 
 ```hica
+import "std/datetime"
+
 fun main() {
   match day_of_week("2026-05-15") {
     Ok(d) => println("Today is " + d),   // "Today is friday"

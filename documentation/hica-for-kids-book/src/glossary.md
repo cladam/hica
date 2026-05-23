@@ -47,14 +47,14 @@
 | `show_fixed(v, n)` | Format a float with exactly n decimal places — `show_fixed(3.14159, 2)` gives `"3.14"` |
 | `parse_int(s)` | Try to turn a string into an integer — returns `Some(n)` or `None` |
 | `parse_float(s)` | Try to turn a string into a float — returns `Some(n)` or `None` |
-| `is_valid_date(s)` | Check if a string is a real date like `"2024-05-15"` |
-| `is_valid_time(s)` | Check if a string is a real time like `"07:32:00"` |
-| `datetime_kind(s)` | Tell you what kind of datetime a string is |
-| `date_parts(s)` | Break a date into year, month, day |
-| `time_parts(s)` | Break a time into hour, minute, second |
-| `is_before(d1, d2)` | True if the first date/time comes before the second |
-| `day_of_week(s)` | What day of the week is this date? Returns `"monday"` etc. |
-| `offset_to_minutes(s)` | Convert a timezone offset to minutes — `"+02:00"` gives `120` |
+| `is_valid_date(s)` | Check if a string is a real date like `"2024-05-15"` — needs `import "std/datetime"` |
+| `is_valid_time(s)` | Check if a string is a real time like `"07:32:00"` — needs `import "std/datetime"` |
+| `datetime_kind(s)` | Tell you what kind of datetime a string is — needs `import "std/datetime"` |
+| `date_parts(s)` | Break a date into year, month, day — needs `import "std/datetime"` |
+| `time_parts(s)` | Break a time into hour, minute, second — needs `import "std/datetime"` |
+| `is_before(d1, d2)` | True if the first date/time comes before the second — needs `import "std/datetime"` |
+| `day_of_week(s)` | What day of the week is this date? Returns `"monday"` etc. — needs `import "std/datetime"` |
+| `offset_to_minutes(s)` | Convert a timezone offset to minutes — `"+02:00"` gives `120` — needs `import "std/datetime"` |
 | `is_digit(c)` | True if `c` is a digit (`0`–`9`) |
 | `is_alpha(c)` | True if `c` is a letter (`a`–`z` or `A`–`Z`) |
 | `is_upper(c)` | True if `c` is an uppercase letter |

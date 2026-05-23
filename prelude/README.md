@@ -102,59 +102,9 @@ Written in Hica. Source: [`prelude/math.hc`](math.hc)
 | `max(a, b)` | `(int, int) -> int` | Larger of two values |
 | `clamp(v, lo, hi)` | `(int, int, int) -> int` | Constrain `v` to the range `[lo, hi]` |
 | `gcd(a, b)` | `(int, int) -> int` | Greatest common divisor |
-
-### `operators.hc` — operators as functions
-
-Inspired by Python's [`operator`](https://docs.python.org/3/library/operator.html)
-module. Wraps built-in operators as named functions so they can be passed to
-`fold`, `map`, `filter`, etc.
-
-Written in Hica. Source: [`prelude/operators.hc`](operators.hc)
-
-#### Arithmetic
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `add(a, b)` | `(int, int) -> int` | `a + b` |
-| `sub(a, b)` | `(int, int) -> int` | `a - b` |
-| `mul(a, b)` | `(int, int) -> int` | `a * b` |
-| `div(a, b)` | `(int, int) -> int` | `a / b` |
-| `mod(a, b)` | `(int, int) -> int` | `a % b` |
-| `neg(n)` | `(int) -> int` | `-n` |
-| `square(n)` | `(int) -> int` | `n * n` |
-
-#### Comparison
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `lt(a, b)` | `(int, int) -> bool` | `a < b` |
-| `le(a, b)` | `(int, int) -> bool` | `a <= b` |
-| `gt(a, b)` | `(int, int) -> bool` | `a > b` |
-| `ge(a, b)` | `(int, int) -> bool` | `a >= b` |
-
-#### Logical
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `not_(b)` | `(bool) -> bool` | `!b` |
-| `and_(a, b)` | `(bool, bool) -> bool` | `a && b` |
-| `or_(a, b)` | `(bool, bool) -> bool` | `a \|\| b` |
-
-#### Predicates
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `is_positive(n)` | `(int) -> bool` | `n > 0` |
-| `is_negative(n)` | `(int) -> bool` | `n < 0` |
-| `is_zero(n)` | `(int) -> bool` | `n == 0` |
-| `is_even(n)` | `(int) -> bool` | `n % 2 == 0` |
-| `is_odd(n)` | `(int) -> bool` | `n % 2 != 0` |
-
-#### Utility
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `identity(x)` | `(a) -> a` | Return the value unchanged |
+| `lcm(a, b)` | `(int, int) -> int` | Least common multiple |
+| `pow(base, exp)` | `(int, int) -> int` | Integer exponentiation |
+| `sign(n)` | `(int) -> int` | Returns -1, 0, or 1 |
 
 ### `strings.hc` — string helpers
 
@@ -168,76 +118,32 @@ Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
 | `is_blank(s)` | `(string) -> bool` | True if the string is empty after trimming |
 | `words(s)` | `(string) -> list<string>` | Split on spaces, removing empty parts |
 | `lines(s)` | `(string) -> list<string>` | Split on newlines |
+| `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
+| `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
 | `repeat_str(s, n)` | `(string, int) -> string` | Repeat a string `n` times |
 | `pad_left(s, width, ch)` | `(string, int, string) -> string` | Pad on the left to `width` |
 | `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
 | `center(s, width, ch)` | `(string, int, string) -> string` | Center `s` in `width`, padding with `ch` |
-| `surround(s, wrap)` | `(string, string) -> string` | Wrap `s` with `wrap` on both sides |
-| `unwords(ws)` | `(list<string>) -> string` | Join words with a space |
-| `unlines(ls)` | `(list<string>) -> string` | Join lines with a newline |
-| `count_substr(s, sub)` | `(string, string) -> int` | Count occurrences of `sub` in `s` |
-| `capitalise(s)` | `(string) -> string` | Uppercase first letter, lowercase rest |
-| `capwords(s)` | `(string) -> string` | Capitalise each word |
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
-| `removesuffix(s, suf)` | `(string, string) -> string` | Remove suffix if present |
 
-### `io.hc` — file I/O helpers
+## Standard Library Modules (opt-in)
 
-Higher-level file I/O functions built on top of the extern primitives.
+Functions beyond the prelude are organized into stdlib modules. Import them
+explicitly when you need them:
 
-Written in Hica. Source: [`prelude/io.hc`](io.hc)
+```hica
+import "std/io"       // read_lines, write_lines
+import "std/datetime" // date/time validation, decomposition, comparison
+import "std/list"     // sum, product, unique, intersperse, chunks, ...
+import "std/string"   // capitalise, capwords, surround, removesuffix, ...
+import "std/ops"      // add, sub, mul, lt, gt, is_even, identity, ...
+import "std/cli"      // CLI argument parsing (flags, options, subcommands)
+import "std/actor"    // process_messages (sequential actor model)
+import "std/term"     // terminal colour & styling
+```
 
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `read_lines(path)` | `(string) -> list<string>` | Read a file and split it into lines |
-| `write_lines(path, lines)` | `(string, list<string>) -> ()` | Join lines with newlines and write to a file |
-
-### `datetime.hc` — dates & times (v0.1.0)
-
-String-based datetime validation, decomposition, comparison, and weekday calculation. 
-All datetimes are represented as ISO 8601 strings, no rich types or timezone database. 
-A future version may introduce structured types.
-
-Written in hica. Source: [`prelude/datetime.hc`](datetime.hc)
-
-#### Validation
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `is_valid_date(s)` | `(string) -> bool` | Validate `YYYY-MM-DD` (handles leap years) |
-| `is_valid_time(s)` | `(string) -> bool` | Validate `HH:MM:SS[.frac]` |
-| `is_valid_offset(s)` | `(string) -> bool` | Validate `Z`, `+HH:MM`, `-HH:MM` |
-| `is_local_date(s)` | `(string) -> bool` | Check local date format |
-| `is_local_time(s)` | `(string) -> bool` | Check local time format |
-| `is_local_datetime(s)` | `(string) -> bool` | Check `YYYY-MM-DDThh:mm:ss[.frac]` |
-| `is_iso_datetime(s)` | `(string) -> bool` | Check offset datetime |
-| `datetime_kind(s)` | `(string) -> string` | Classify: `"local-date"`, `"local-time"`, `"local-datetime"`, `"offset-datetime"`, `"invalid"` |
-
-#### Decomposition
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `date_parts(s)` | `(string) -> result<(int,int,int), string>` | `(year, month, day)` |
-| `time_parts(s)` | `(string) -> result<(int,int,int), string>` | `(hour, minute, second)` |
-| `datetime_date(s)` | `(string) -> result<string, string>` | Extract date portion |
-| `datetime_time(s)` | `(string) -> result<string, string>` | Extract time portion |
-| `datetime_offset(s)` | `(string) -> maybe<string>` | Extract offset, or `None` |
-
-#### Comparison
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `date_cmp(d1, d2)` | `(string, string) -> int` | -1, 0, or 1 |
-| `time_cmp(t1, t2)` | `(string, string) -> int` | -1, 0, or 1 |
-| `datetime_cmp(d1, d2)` | `(string, string) -> int` | Compare local datetimes |
-| `is_before(d1, d2)` | `(string, string) -> bool` | Works on dates, times, datetimes |
-
-#### Offset & Weekday
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `offset_to_minutes(s)` | `(string) -> result<int, string>` | `"+02:00"` → `120` |
-| `day_of_week(s)` | `(string) -> result<string, string>` | `"monday"` through `"sunday"` |
+See the [Standard Library reference](../docs/standard-library.md) for full
+API documentation for each module.
 
 ## How to add a prelude function
 
@@ -246,22 +152,28 @@ Written in hica. Source: [`prelude/datetime.hc`](datetime.hc)
 Use any Hica feature that the compiler already supports. Prelude files go
 through the same pipeline as user code: lex → parse → check → emit.
 
-```rust
+```hica
 // prelude/math.hc
 fun square(n) => n * n
 ```
 
-**2. Register the file in `src/main.kk`.**
+**2. Register the file in `scripts/bundle-prelude.sh`.**
 
-Add your file to the `prelude-files` list:
-
-```koka
-val prelude-files = ["prelude/math.hc"]
-```
-
-**3. Run the tests.**
+Add your file to the `PRELUDE_FILES` array:
 
 ```sh
+PRELUDE_FILES=(
+  "prelude/math.hc"
+  "prelude/glob.hc"
+  "prelude/strings.hc"
+  "prelude/yourfile.hc"   # ← add here
+)
+```
+
+**3. Rebuild the bundle and run the tests.**
+
+```sh
+bash scripts/bundle-prelude.sh
 koka -ilib/kunit -ilib/klap -isrc -e tests/test-codegen.kk
 ```
 
@@ -271,7 +183,7 @@ That's it. The function is now available to every Hica program.
 
 When the compiler processes a user's `.hc` file, it:
 
-1. Reads and parses every file listed in `prelude-files`
+1. Reads and parses every file listed in `scripts/bundle-prelude.sh` (embedded at build time)
 2. Prepends the prelude declarations before the user's declarations
 3. Type-checks the combined program (prelude + user code)
 4. Emits Koka code for everything — prelude functions appear at the top of
@@ -294,12 +206,10 @@ Koka's own stdlib. Extern functions like `println` pass through unchanged.
 
 ## Ideas for future prelude functions
 
-These are candidates once the language adds the necessary features:
+These are candidates for the prelude (always-available, no import needed):
 
 | Function | Needs | Description |
 |----------|-------|-------------|
-| `sign(n)` | — | Return -1, 0, or 1 |
-| `sum(xs)` | — | Sum a list of integers (can use `fold(xs, 0, add)` today) |
 | `range(a, b)` | lists, `for` loop | Generate a list from `a` to `b` |
 
 ## Inspiration
