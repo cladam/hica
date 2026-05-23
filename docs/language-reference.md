@@ -674,17 +674,20 @@ fun main() {
 
 ### Random Numbers
 
-Generate random integers with `random(min, max)`. The result is in the range `[min, max]`, both ends included:
+Generate random integers with `random(min, max)`. The result is in the range `[min, max]`, both ends included. Use `random_float()` for a random `float` in `[0.0, 1.0)`:
 
 ```hica
 fun main() {
   let die = random(1, 6)     // 1–6
   let coin = random(0, 1)    // 0 or 1
   println("Die: {die}, Coin: {coin}")
+
+  let f = random_float()     // e.g. 0.7342...
+  println(f >= 0.0 && f < 1.0)  // true
 }
 ```
 
-Using `random` gives your program the `ndet` (non-determinism) effect, which `hica check` will report.
+Using `random` or `random_float` gives your program the `ndet` (non-determinism) effect, which `hica check` will report.
 
 ### Formatting Numbers
 
@@ -881,12 +884,14 @@ hica test my_file.hc
 | Function | Signature | Behaviour |
 |----------|-----------|-----------|
 | `assert(cond)` | `(bool) -> ()` | Fails with "assertion failed" if `cond` is `false` |
-| `assert_eq(expected, actual)` | `(a, a) -> ()` | Fails with "expected X but got Y" if values differ || `assert_ne(a, b)` | `(a, a) -> ()` | Fails with "expected values to differ" if equal |
+| `assert_eq(expected, actual)` | `(a, a) -> ()` | Fails with "expected X but got Y" if values differ |
+| `assert_ne(a, b)` | `(a, a) -> ()` | Fails with "expected values to differ" if equal |
 | `assert_true(cond)` | `(bool) -> ()` | Fails with "expected true but got false" |
 | `assert_false(cond)` | `(bool) -> ()` | Fails with "expected false but got true" |
 | `assert_contains(list, elem)` | `(list<a>, a) -> ()` | Fails if list does not contain element |
 | `assert_empty(list)` | `(list<a>) -> ()` | Fails if list is not empty |
 | `assert_not_empty(list)` | `(list<a>) -> ()` | Fails if list is empty |
+
 ### Test structure
 
 - Tests are declared at the top level (alongside functions and structs)

@@ -8,7 +8,7 @@ title: Standard Library - hica
 Hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -26,6 +26,28 @@ Hica's standard library has two layers:
 | `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
 | `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
 | `exit(code)` | `(int) -> ()` | Exit the process with the given exit code |
+
+### Environment Helpers (`std/env`, `import "std/env"` required)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `env_or(key, default)` | `(string, string) -> string` | Look up env var; return `default` if missing |
+| `env_require(key)` | `(string) -> string` | Look up env var; print error and return `""` if missing |
+| `env_int(key)` | `(string) -> maybe<int>` | Look up env var and parse as int; `None` if missing or non-numeric |
+
+```hica
+import "std/env"
+
+fun main() {
+  let host = env_or("HOST", "localhost")
+  let port = env_int("PORT")             // maybe<int>
+  println("Connecting to {host}")
+  match port {
+    Some(p) => println("port: {p}"),
+    None => println("port not set")
+  }
+}
+```
 
 ## File I/O
 
@@ -145,6 +167,13 @@ Written in hica itself:
 | `zip_with(xs, ys, f)` | `(list<a>, list<b>, (a, b) -> c) -> list<c>` | Zip and transform in one step |
 | `scan(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> list<b>` | Like `fold` but keeps all intermediate results |
 | `chunks(xs, n)` | `(list<a>, int) -> list<list<a>>` | Split into groups of `n` |
+| `head_or(xs, default)` | `(list<a>, a) -> a` | First element or `default` if the list is empty |
+| `take_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | Take elements from the front while predicate holds |
+| `drop_while(xs, pred)` | `(list<a>, (a) -> bool) -> list<a>` | Drop elements from the front while predicate holds |
+| `count(xs, pred)` | `(list<a>, (a) -> bool) -> int` | Count elements matching the predicate |
+| `group_by(xs, f)` | `(list<a>, (a) -> string) -> list<(string, list<a>)>` | Group elements by a string key function; preserves insertion order |
+| `min_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | Element with the smallest int key; `None` on empty list |
+| `max_by(xs, f)` | `(list<a>, (a) -> int) -> maybe<a>` | Element with the largest int key; `None` on empty list |
 
 ```hica
 fun main() {
@@ -155,6 +184,17 @@ fun main() {
   println(head([10, 20, 30]))             // Some(10)
   println(last([10, 20, 30]))             // Some(30)
   println(flat_map([1, 2, 3], (x) => [x, x * 10]))  // [1, 10, 2, 20, 3, 30]
+  println(head_or([], 0))                 // 0
+  println(take_while([1,2,3,4,5], (n) => n < 4))  // [1, 2, 3]
+  println(drop_while([1,2,3,4,5], (n) => n < 4))  // [4, 5]
+  println(count([1,2,3,4,5], (n) => n % 2 == 0))  // 2
+  let gs = group_by(["cat","cup","dog"], (w) => w[0:1])
+  println(length(gs))                     // 2 groups: "c", "d"
+  let words = ["hi", "hello", "hey"]
+  match min_by(words, (s) => str_length(s)) {
+    Some(w) => println(w),               // hi
+    None => println("empty")
+  }
 }
 ```
 
@@ -192,13 +232,16 @@ Since maps are lists of tuples, all list operations (`filter`, `map`, `fold`, et
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `random(min, max)` | `(int, int) -> int` | Random integer in `[min, max]`, both ends included |
+| `random_float()` | `() -> float` | Random float in `[0.0, 1.0)` |
 
-Using `random` gives your program the `ndet` (non-determinism) effect.
+Using `random` or `random_float` gives your program the `ndet` (non-determinism) effect.
 
 ```hica
 fun main() {
   let die = random(1, 6)
   println("You rolled a {die}")
+  let f = random_float()
+  println(f >= 0.0 && f < 1.0)   // true
 }
 ```
 
