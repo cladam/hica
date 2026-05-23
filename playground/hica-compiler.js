@@ -18,15 +18,17 @@ var __hica = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // .koka/v3.2.3/js-debug-5eb101/playground.mjs
+  // .koka/v3.2.3/js-debug-62b43e/playground.mjs
   var playground_exports = {};
   __export(playground_exports, {
     compile_to_js: () => compile_to_js,
+    find_stdlib_source: () => find_stdlib_source,
     main: () => main,
-    parse_prelude_sources: () => parse_prelude_sources
+    parse_prelude_sources: () => parse_prelude_sources,
+    resolve_stdlib_imports: () => resolve_stdlib_imports
   });
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_types.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_types.mjs
   var $std_core_types = {
     "_int_clamp32": _int_clamp32,
     "_int_from_int32": _int_from_int32,
@@ -276,7 +278,7 @@ var __hica = (() => {
     return x + y;
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_hnd.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_hnd.mjs
   var $marker_unique = 1;
   function _assert(cond, msg) {
     if (!cond) console.error(msg);
@@ -827,7 +829,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_int.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_int.mjs
   function _int_parse(s, hex) {
     if (s === "") return Nothing;
     const cappre = /^([\-\+])?(0[xX])?(.*)$/.exec(s);
@@ -863,7 +865,7 @@ var __hica = (() => {
     return _int_parse(s, hex);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_char.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_char.mjs
   function is_digit(c) {
     return c >= 48 ? c <= 57 : false;
   }
@@ -917,7 +919,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_vector.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_vector.mjs
   function _vlist(elems, tail) {
     var xs = tail || Nil;
     if (elems != null && elems.length > 0) {
@@ -944,7 +946,7 @@ var __hica = (() => {
     return _unvlist(xs);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_string.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_string.mjs
   function _is_high_surrogate(c) {
     return c >= 55296 && c <= 56319;
   }
@@ -1034,7 +1036,7 @@ var __hica = (() => {
     return _list_to_string(cs);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_sslice.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_sslice.mjs
   function _sslice_next(slice) {
     if (slice.len <= 0) return null;
     var c = slice.str.charCodeAt(slice.start);
@@ -1087,8 +1089,17 @@ var __hica = (() => {
       }
     }
   }
+  function starts_with(s, pre) {
+    if (s.substr(0, pre.length) === pre) {
+      var x_10081 = s.length;
+      var y_10082 = pre.length;
+      return Just(Sslice(s, pre.length, _int_sub(x_10081, y_10082)));
+    } else {
+      return Nothing;
+    }
+  }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_list.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_list.mjs
   function _lift_length_6003(ys, acc) {
     tailcall: while (1) {
       if (ys !== null) {
@@ -1785,7 +1796,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core_console.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core_console.mjs
   var _host = "unknown";
   if (typeof window !== "undefined" && window.document) {
     _host = "browser";
@@ -1918,7 +1929,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/std_core.mjs
+  // .koka/v3.2.3/js-debug-62b43e/std_core.mjs
   function _mlift_while_10080(action, predicate, wild__) {
     return $while(predicate, action);
   }
@@ -1962,7 +1973,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/syntax_ast.mjs
+  // .koka/v3.2.3/js-debug-62b43e/syntax_ast.mjs
   var Add = 1;
   var Sub = 2;
   var Mul = 3;
@@ -2683,7 +2694,7 @@ var __hica = (() => {
     return Program(_x73, _x74, _x75, _x76, _x77);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/syntax_lexer.mjs
+  // .koka/v3.2.3/js-debug-62b43e/syntax_lexer.mjs
   function TkInt(value) {
     return { _tag: 1, value };
   }
@@ -4672,7 +4683,7 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/syntax_parser.mjs
+  // .koka/v3.2.3/js-debug-62b43e/syntax_parser.mjs
   var parser_fs__tag;
   var parser_fs__tag = "parser@parser";
   function _Hnd_parser(_cfc, _fun_advance, _fun_current_span, _fun_parse_error, _fun_peek, _fun_peek_newline, _fun_peek_next) {
@@ -17078,7 +17089,7 @@ var __hica = (() => {
     })();
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/diagnostics_diagnostics.mjs
+  // .koka/v3.2.3/js-debug-62b43e/diagnostics_diagnostics.mjs
   var diag_fs__tag;
   var diag_fs__tag = "diag@diagnostics";
   var $Error = 1;
@@ -17291,12 +17302,12 @@ var __hica = (() => {
     }
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/semantics_prelude.mjs
+  // .koka/v3.2.3/js-debug-62b43e/semantics_prelude.mjs
   function extern_env() {
     return vlist([Tuple2("println", TFun(Cons(TVar("_a"), Nil), TUnit)), Tuple2("show", TFun(Cons(TVar("_a"), Nil), TString)), Tuple2("map", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TVar("_b")), Nil)), TList(TVar("_b")))), Tuple2("filter", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TBool), Nil)), TList(TVar("_a")))), Tuple2("fold", TFun(Cons(TList(TVar("_a")), Cons(TVar("_b"), Cons(TFun(Cons(TVar("_b"), Cons(TVar("_a"), Nil)), TVar("_b")), Nil))), TVar("_b"))), Tuple2("length", TFun(Cons(TList(TVar("_a")), Nil), TInt)), Tuple2("reverse", TFun(Cons(TList(TVar("_a")), Nil), TList(TVar("_a")))), Tuple2("take", TFun(Cons(TList(TVar("_a")), Cons(TInt, Nil)), TList(TVar("_a")))), Tuple2("drop", TFun(Cons(TList(TVar("_a")), Cons(TInt, Nil)), TList(TVar("_a")))), Tuple2("zip", TFun(Cons(TList(TVar("_a")), Cons(TList(TVar("_b")), Nil)), TList(TTuple(Cons(TVar("_a"), Cons(TVar("_b"), Nil)))))), Tuple2("concat", TFun(Cons(TList(TList(TVar("_a"))), Nil), TList(TVar("_a")))), Tuple2("any", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TBool), Nil)), TBool)), Tuple2("all", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TBool), Nil)), TBool)), Tuple2("find", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TBool), Nil)), TMaybe(TVar("_a")))), Tuple2("foreach", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TUnit), Nil)), TUnit)), Tuple2("enumerate", TFun(Cons(TList(TVar("_a")), Nil), TList(TTuple(Cons(TInt, Cons(TVar("_a"), Nil)))))), Tuple2("cons", TFun(Cons(TVar("_a"), Cons(TList(TVar("_a")), Nil)), TList(TVar("_a")))), Tuple2("str_length", TFun(Cons(TString, Nil), TInt)), Tuple2("contains", TFun(Cons(TString, Cons(TString, Nil)), TBool)), Tuple2("str_contains", TFun(Cons(TString, Cons(TString, Nil)), TBool)), Tuple2("starts_with", TFun(Cons(TString, Cons(TString, Nil)), TBool)), Tuple2("ends_with", TFun(Cons(TString, Cons(TString, Nil)), TBool)), Tuple2("trim", TFun(Cons(TString, Nil), TString)), Tuple2("trim_start", TFun(Cons(TString, Nil), TString)), Tuple2("trim_end", TFun(Cons(TString, Nil), TString)), Tuple2("to_upper", TFun(Cons(TString, Nil), TString)), Tuple2("to_lower", TFun(Cons(TString, Nil), TString)), Tuple2("split", TFun(Cons(TString, Cons(TString, Nil)), TList(TString))), Tuple2("replace", TFun(Cons(TString, Cons(TString, Cons(TString, Nil))), TString)), Tuple2("join", TFun(Cons(TList(TString), Cons(TString, Nil)), TString)), Tuple2("index_of", TFun(Cons(TString, Cons(TString, Nil)), TMaybe(TInt))), Tuple2("to_int", TFun(Cons(TString, Nil), TInt)), Tuple2("parse_int", TFun(Cons(TString, Nil), TMaybe(TInt))), Tuple2("parse_float", TFun(Cons(TString, Nil), TMaybe(TFloat))), Tuple2("get_args", TFun(Nil, TList(TString))), Tuple2("get_env", TFun(Cons(TString, Nil), TMaybe(TString))), Tuple2("eprintln", TFun(Cons(TVar("_a"), Nil), TUnit)), Tuple2("exit", TFun(Cons(TInt, Nil), TUnit)), Tuple2("input", TFun(Cons(TString, Nil), TString)), Tuple2("read_file", TFun(Cons(TString, Nil), TResult(TString, TString))), Tuple2("write_file", TFun(Cons(TString, Cons(TString, Nil)), TUnit)), Tuple2("random", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("show_fixed", TFun(Cons(TFloat, Cons(TInt, Nil)), TString)), Tuple2("map_maybe", TFun(Cons(TMaybe(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TVar("_b")), Nil)), TMaybe(TVar("_b")))), Tuple2("and_then", TFun(Cons(TMaybe(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TMaybe(TVar("_b"))), Nil)), TMaybe(TVar("_b")))), Tuple2("unwrap_maybe", TFun(Cons(TMaybe(TVar("_a")), Nil), TVar("_a"))), Tuple2("unwrap_maybe_or", TFun(Cons(TMaybe(TVar("_a")), Cons(TVar("_a"), Nil)), TVar("_a"))), Tuple2("is_some", TFun(Cons(TMaybe(TVar("_a")), Nil), TBool)), Tuple2("is_none", TFun(Cons(TMaybe(TVar("_a")), Nil), TBool)), Tuple2("unwrap", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Nil), TVar("_a"))), Tuple2("unwrap_or", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Cons(TVar("_a"), Nil)), TVar("_a"))), Tuple2("map_result", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Cons(TFun(Cons(TVar("_a"), Nil), TVar("_c")), Nil)), TResult(TVar("_c"), TVar("_b")))), Tuple2("map_err", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Cons(TFun(Cons(TVar("_b"), Nil), TVar("_c")), Nil)), TResult(TVar("_a"), TVar("_c")))), Tuple2("and_then_result", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Cons(TFun(Cons(TVar("_a"), Nil), TResult(TVar("_c"), TVar("_b"))), Nil)), TResult(TVar("_c"), TVar("_b")))), Tuple2("is_ok", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Nil), TBool)), Tuple2("is_err", TFun(Cons(TResult(TVar("_a"), TVar("_b")), Nil), TBool)), Tuple2("bit_and", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("bit_or", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("bit_xor", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("bit_not", TFun(Cons(TInt, Nil), TInt)), Tuple2("bit_shl", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("bit_shr", TFun(Cons(TInt, Cons(TInt, Nil)), TInt)), Tuple2("assert", TFun(Cons(TBool, Nil), TUnit)), Tuple2("assert_eq", TFun(Cons(TVar("_a"), Cons(TVar("_a"), Nil)), TUnit)), Tuple2("assert_ne", TFun(Cons(TVar("_a"), Cons(TVar("_a"), Nil)), TUnit)), Tuple2("assert_true", TFun(Cons(TBool, Nil), TUnit)), Tuple2("assert_false", TFun(Cons(TBool, Nil), TUnit)), Tuple2("assert_contains", TFun(Cons(TList(TVar("_a")), Cons(TVar("_a"), Nil)), TUnit)), Tuple2("assert_empty", TFun(Cons(TList(TVar("_a")), Nil), TUnit)), Tuple2("assert_not_empty", TFun(Cons(TList(TVar("_a")), Nil), TUnit)), Tuple2("map_get", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Cons(TVar("_k"), Nil)), TMaybe(TVar("_v")))), Tuple2("map_set", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Cons(TVar("_k"), Cons(TVar("_v"), Nil))), TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))))), Tuple2("map_remove", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Cons(TVar("_k"), Nil)), TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))))), Tuple2("map_keys", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Nil), TList(TVar("_k")))), Tuple2("map_values", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Nil), TList(TVar("_v")))), Tuple2("map_contains_key", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Cons(TVar("_k"), Nil)), TBool)), Tuple2("map_size", TFun(Cons(TList(TTuple(Cons(TVar("_k"), Cons(TVar("_v"), Nil)))), Nil), TInt)), Tuple2("head", TFun(Cons(TList(TVar("_a")), Nil), TMaybe(TVar("_a")))), Tuple2("tail", TFun(Cons(TList(TVar("_a")), Nil), TList(TVar("_a")))), Tuple2("last", TFun(Cons(TList(TVar("_a")), Nil), TMaybe(TVar("_a")))), Tuple2("flat_map", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Nil), TList(TVar("_b"))), Nil)), TList(TVar("_b")))), Tuple2("sort_by", TFun(Cons(TList(TVar("_a")), Cons(TFun(Cons(TVar("_a"), Cons(TVar("_a"), Nil)), TBool), Nil)), TList(TVar("_a")))), Tuple2("sqrt", TFun(Cons(TFloat, Nil), TFloat)), Tuple2("floor", TFun(Cons(TFloat, Nil), TInt)), Tuple2("ceil", TFun(Cons(TFloat, Nil), TInt)), Tuple2("round", TFun(Cons(TFloat, Nil), TInt)), Tuple2("to_float", TFun(Cons(TInt, Nil), TFloat)), Tuple2("chars", TFun(Cons(TString, Nil), TList(TChar))), Tuple2("from_chars", TFun(Cons(TList(TChar), Nil), TString)), Tuple2("chr", TFun(Cons(TInt, Nil), TChar)), Tuple2("ord", TFun(Cons(TChar, Nil), TInt)), Tuple2("char_to_string", TFun(Cons(TChar, Nil), TString))], Nil);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/semantics_checker.mjs
+  // .koka/v3.2.3/js-debug-62b43e/semantics_checker.mjs
   var fresh_fs__tag;
   var fresh_fs__tag = "fresh@checker";
   var struct_reg_fs__tag;
@@ -17317,41 +17328,63 @@ var __hica = (() => {
   function _Hnd_type_reg(_cfc, _fun_get_types) {
     return { _cfc, _fun_get_types };
   }
+  var koka_keyword_blocklist;
+  var koka_keyword_blocklist = vlist(["val", "elif", "then", "return", "with", "handle", "handler", "effect", "alias", "module", "abstract", "fn", "forall", "raw", "inline", "include", "co", "rec", "open", "extend", "behind", "linear", "value", "reference", "named", "scoped", "context", "initially", "finally", "override", "infix", "infixl", "infixr", "prefix", "postfix", "mask", "control", "rcontrol", "except", "inject", "yield"], Nil);
+  function check_not_koka_keyword(name, sp) {
+    var x_13008 = any(koka_keyword_blocklist, function(k) {
+      return k === name;
+    });
+    if (_yielding()) {
+      return yield_extend(function(_y_x10160) {
+        if (_y_x10160) {
+          return emit_warning(sp, _lp__plus__plus__rp_("'", _lp__plus__plus__rp_(name, "' is a reserved word in Koka \u2014 it will be auto-prefixed in generated code")));
+        } else {
+          return Unit;
+        }
+      });
+    } else {
+      if (x_13008) {
+        return emit_warning(sp, _lp__plus__plus__rp_("'", _lp__plus__plus__rp_(name, "' is a reserved word in Koka \u2014 it will be auto-prefixed in generated code")));
+      } else {
+        return Unit;
+      }
+    }
+  }
   function fresh_fs__handle(hnd, ret, action) {
     return _hhandle(fresh_fs__tag, hnd, ret, action);
   }
-  function _mlift_run_fresh_12652(counter, n, _y_x10163) {
-    var x_12936 = counter.value = _int_add(_y_x10163, 1);
-    function next_12937(wild__) {
+  function _mlift_run_fresh_12721(counter, n, _y_x10166) {
+    var x_13017 = counter.value = _int_add(_y_x10166, 1);
+    function next_13018(wild__) {
       return TVar(_lp__plus__plus__rp_("t", show(n)));
     }
     if (_yielding()) {
-      return yield_extend(next_12937);
+      return yield_extend(next_13018);
     } else {
-      return next_12937(x_12936);
+      return next_13018(x_13017);
     }
   }
-  function _mlift_run_fresh_12653(counter, n) {
-    var x_12940 = counter.value;
+  function _mlift_run_fresh_12722(counter, n) {
+    var x_13021 = counter.value;
     if (_yielding()) {
-      return yield_extend(function(_y_x10163) {
-        return _mlift_run_fresh_12652(counter, n, _y_x10163);
+      return yield_extend(function(_y_x10166) {
+        return _mlift_run_fresh_12721(counter, n, _y_x10166);
       });
     } else {
-      return _mlift_run_fresh_12652(counter, n, x_12940);
+      return _mlift_run_fresh_12721(counter, n, x_13021);
     }
   }
   function run_fresh(action) {
     return (function() {
       var loc = { value: 0 };
       var res = fresh_fs__handle(_Hnd_fresh(1, clause_tail0(function() {
-        var x_12944 = loc.value;
+        var x_13025 = loc.value;
         if (_yielding()) {
           return yield_extend(function(n) {
-            return _mlift_run_fresh_12653(loc, n);
+            return _mlift_run_fresh_12722(loc, n);
           });
         } else {
-          return _mlift_run_fresh_12653(loc, x_12944);
+          return _mlift_run_fresh_12722(loc, x_13025);
         }
       })), function(_res) {
         return _res;
@@ -17570,7 +17603,7 @@ var __hica = (() => {
     var updated_s2 = _trmc_map_subst(s2, function(k, v) {
       return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
     }, _cctx_empty());
-    var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+    var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
       var b_10007 = subst_has(s1, k_0);
       return b_10007 ? false : true;
     }, _cctx_empty());
@@ -17625,87 +17658,87 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_unify_12654(wild__) {
+  function _mlift_unify_12723(wild__) {
     return Nil;
   }
-  function _mlift_unify_12655(wild___0) {
+  function _mlift_unify_12724(wild___0) {
     return Nil;
   }
-  function _mlift_unify_12656(s1, s2) {
+  function _mlift_unify_12725(s1, s2) {
     return _open_none2(compose_subst, s2, s1);
   }
-  function _mlift_unify_12657(e1_1, e2_1, sp, s1_0) {
-    var x_12962 = unify(_open_none2(apply_subst, s1_0, e1_1), _open_none2(apply_subst, s1_0, e2_1), sp);
+  function _mlift_unify_12726(e1_1, e2_1, sp, s1_0) {
+    var x_13043 = unify(_open_none2(apply_subst, s1_0, e1_1), _open_none2(apply_subst, s1_0, e2_1), sp);
     if (_yielding()) {
       return yield_extend(function(s2_0) {
-        return _mlift_unify_12656(s1_0, s2_0);
+        return _mlift_unify_12725(s1_0, s2_0);
       });
     } else {
-      return _mlift_unify_12656(s1_0, x_12962);
+      return _mlift_unify_12725(s1_0, x_13043);
     }
   }
-  function _mlift_unify_12658(wild___1) {
+  function _mlift_unify_12727(wild___1) {
     return Nil;
   }
-  function _mlift_unify_12659(param_subst, ret_subst) {
+  function _mlift_unify_12728(param_subst, ret_subst) {
     return _open_none2(compose_subst, ret_subst, param_subst);
   }
-  function _mlift_unify_12660(r1, r2, sp_0, param_subst_0) {
+  function _mlift_unify_12729(r1, r2, sp_0, param_subst_0) {
     var r1_sq_ = _open_none2(apply_subst, param_subst_0, r1);
     var r2_sq_ = _open_none2(apply_subst, param_subst_0, r2);
-    var x_0_12964 = unify(r1_sq_, r2_sq_, sp_0);
+    var x_0_13045 = unify(r1_sq_, r2_sq_, sp_0);
     if (_yielding()) {
       return yield_extend(function(ret_subst_0) {
-        return _mlift_unify_12659(param_subst_0, ret_subst_0);
+        return _mlift_unify_12728(param_subst_0, ret_subst_0);
       });
     } else {
-      return _mlift_unify_12659(param_subst_0, x_0_12964);
+      return _mlift_unify_12728(param_subst_0, x_0_13045);
     }
   }
-  function _mlift_unify_12661(wild___2) {
+  function _mlift_unify_12730(wild___2) {
     return Nil;
   }
-  function _mlift_unify_12662(wild___3) {
+  function _mlift_unify_12731(wild___3) {
     return Nil;
   }
-  function _mlift_unify_12663(wild___4) {
+  function _mlift_unify_12732(wild___4) {
     return Nil;
   }
-  function _mlift_unify_lists_12664(s, rest_s) {
+  function _mlift_unify_lists_12733(s, rest_s) {
     return _open_none2(compose_subst, rest_s, s);
   }
-  function _mlift_unify_lists_12665(_y_x10197, s_0, sp_0_0, _y_x10198) {
-    var x_1_12966 = unify_lists(_y_x10197, _y_x10198, sp_0_0);
+  function _mlift_unify_lists_12734(_y_x10200, s_0, sp_0_0, _y_x10201) {
+    var x_1_13047 = unify_lists(_y_x10200, _y_x10201, sp_0_0);
     if (_yielding()) {
       return yield_extend(function(rest_s_0) {
-        return _mlift_unify_lists_12664(s_0, rest_s_0);
+        return _mlift_unify_lists_12733(s_0, rest_s_0);
       });
     } else {
-      return _mlift_unify_lists_12664(s_0, x_1_12966);
+      return _mlift_unify_lists_12733(s_0, x_1_13047);
     }
   }
-  function _mlift_unify_lists_12666(bs_sq_, s_1, sp_0_1, _y_x10197_0) {
-    var x_2_12968 = map(bs_sq_, function(t_0) {
+  function _mlift_unify_lists_12735(bs_sq_, s_1, sp_0_1, _y_x10200_0) {
+    var x_2_13049 = map(bs_sq_, function(t_0) {
       return _open_none2(apply_subst, s_1, t_0);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10198_0) {
-        return _mlift_unify_lists_12665(_y_x10197_0, s_1, sp_0_1, _y_x10198_0);
+      return yield_extend(function(_y_x10201_0) {
+        return _mlift_unify_lists_12734(_y_x10200_0, s_1, sp_0_1, _y_x10201_0);
       });
     } else {
-      return _mlift_unify_lists_12665(_y_x10197_0, s_1, sp_0_1, x_2_12968);
+      return _mlift_unify_lists_12734(_y_x10200_0, s_1, sp_0_1, x_2_13049);
     }
   }
-  function _mlift_unify_lists_12667(as_sq_, bs_0_sq_, sp_0_2, s_2) {
-    var x_3_12970 = map(as_sq_, function(t) {
+  function _mlift_unify_lists_12736(as_sq_, bs_0_sq_, sp_0_2, s_2) {
+    var x_3_13051 = map(as_sq_, function(t) {
       return _open_none2(apply_subst, s_2, t);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10197_1) {
-        return _mlift_unify_lists_12666(bs_0_sq_, s_2, sp_0_2, _y_x10197_1);
+      return yield_extend(function(_y_x10200_1) {
+        return _mlift_unify_lists_12735(bs_0_sq_, s_2, sp_0_2, _y_x10200_1);
       });
     } else {
-      return _mlift_unify_lists_12666(bs_0_sq_, s_2, sp_0_2, x_3_12970);
+      return _mlift_unify_lists_12735(bs_0_sq_, s_2, sp_0_2, x_3_13051);
     }
   }
   function unify(t1, t2, sp_1) {
@@ -17717,9 +17750,9 @@ var __hica = (() => {
         } else {
           var _x18 = _open_none2(occurs_in, t1.name, t2);
           if (_x18) {
-            var x_4_12972 = emit_error(sp_1, _lp__plus__plus__rp_("infinite type: ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(" occurs in ", _open_none1(hica_type_fs_show, t2)))));
+            var x_4_13053 = emit_error(sp_1, _lp__plus__plus__rp_("infinite type: ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(" occurs in ", _open_none1(hica_type_fs_show, t2)))));
             if (_yielding()) {
-              return yield_extend(_mlift_unify_12654);
+              return yield_extend(_mlift_unify_12723);
             } else {
               return Nil;
             }
@@ -17757,9 +17790,9 @@ var __hica = (() => {
       if (t1._tag === 7 && t2._tag === 7) {
         var _x20 = _int_ne(_lift_length_6003(t1.elems, 0), _lift_length_6003(t2.elems, 0));
         if (_x20) {
-          var x_5_12975 = emit_error(sp_1, _lp__plus__plus__rp_("tuple size mismatch: expected ", _lp__plus__plus__rp_(show(_lift_length_6003(t1.elems, 0)), _lp__plus__plus__rp_(" elements, got ", show(_lift_length_6003(t2.elems, 0))))));
+          var x_5_13056 = emit_error(sp_1, _lp__plus__plus__rp_("tuple size mismatch: expected ", _lp__plus__plus__rp_(show(_lift_length_6003(t1.elems, 0)), _lp__plus__plus__rp_(" elements, got ", show(_lift_length_6003(t2.elems, 0))))));
           if (_yielding()) {
-            return yield_extend(_mlift_unify_12655);
+            return yield_extend(_mlift_unify_12724);
           } else {
             return Nil;
           }
@@ -17782,47 +17815,47 @@ var __hica = (() => {
         }
       }
       if (t1._tag === 10 && t2._tag === 10) {
-        var x_6_12978 = unify(t1.ok_type, t2.ok_type, sp_1);
+        var x_6_13059 = unify(t1.ok_type, t2.ok_type, sp_1);
         if (_yielding()) {
           return yield_extend(function(s1_1) {
-            return _mlift_unify_12657(t1.err_type, t2.err_type, sp_1, s1_1);
+            return _mlift_unify_12726(t1.err_type, t2.err_type, sp_1, s1_1);
           });
         } else {
-          var x_7_12981 = unify(_open_none2(apply_subst, x_6_12978, t1.err_type), _open_none2(apply_subst, x_6_12978, t2.err_type), sp_1);
+          var x_7_13062 = unify(_open_none2(apply_subst, x_6_13059, t1.err_type), _open_none2(apply_subst, x_6_13059, t2.err_type), sp_1);
           if (_yielding()) {
             return yield_extend(function(s2_1) {
-              return _mlift_unify_12656(x_6_12978, s2_1);
+              return _mlift_unify_12725(x_6_13059, s2_1);
             });
           } else {
-            return _open_none2(compose_subst, x_7_12981, x_6_12978);
+            return _open_none2(compose_subst, x_7_13062, x_6_13059);
           }
         }
       }
       if (t1._tag === 11 && t2._tag === 11) {
         var _x21 = _int_ne(_lift_length_6003(t1.params, 0), _lift_length_6003(t2.params, 0));
         if (_x21) {
-          var x_8_12984 = emit_error(sp_1, _lp__plus__plus__rp_("function arity mismatch: expected ", _lp__plus__plus__rp_(show(_lift_length_6003(t1.params, 0)), _lp__plus__plus__rp_(" params, got ", show(_lift_length_6003(t2.params, 0))))));
+          var x_8_13065 = emit_error(sp_1, _lp__plus__plus__rp_("function arity mismatch: expected ", _lp__plus__plus__rp_(show(_lift_length_6003(t1.params, 0)), _lp__plus__plus__rp_(" params, got ", show(_lift_length_6003(t2.params, 0))))));
           if (_yielding()) {
-            return yield_extend(_mlift_unify_12658);
+            return yield_extend(_mlift_unify_12727);
           } else {
             return Nil;
           }
         } else {
-          var x_9_12987 = unify_lists(t1.params, t2.params, sp_1);
+          var x_9_13068 = unify_lists(t1.params, t2.params, sp_1);
           if (_yielding()) {
             return yield_extend(function(param_subst_1) {
-              return _mlift_unify_12660(t1.result, t2.result, sp_1, param_subst_1);
+              return _mlift_unify_12729(t1.result, t2.result, sp_1, param_subst_1);
             });
           } else {
-            var r1_0_sq_ = _open_none2(apply_subst, x_9_12987, t1.result);
-            var r2_0_sq_ = _open_none2(apply_subst, x_9_12987, t2.result);
-            var x_10_12990 = unify(r1_0_sq_, r2_0_sq_, sp_1);
+            var r1_0_sq_ = _open_none2(apply_subst, x_9_13068, t1.result);
+            var r2_0_sq_ = _open_none2(apply_subst, x_9_13068, t2.result);
+            var x_10_13071 = unify(r1_0_sq_, r2_0_sq_, sp_1);
             if (_yielding()) {
               return yield_extend(function(ret_subst_1) {
-                return _mlift_unify_12659(x_9_12987, ret_subst_1);
+                return _mlift_unify_12728(x_9_13068, ret_subst_1);
               });
             } else {
-              return _open_none2(compose_subst, x_10_12990, x_9_12987);
+              return _open_none2(compose_subst, x_10_13071, x_9_13068);
             }
           }
         }
@@ -17831,9 +17864,9 @@ var __hica = (() => {
         if (t1.name === t2.name) {
           return Nil;
         } else {
-          var x_11_12993 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(", got ", t2.name))));
+          var x_11_13074 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(", got ", t2.name))));
           if (_yielding()) {
-            return yield_extend(_mlift_unify_12661);
+            return yield_extend(_mlift_unify_12730);
           } else {
             return Nil;
           }
@@ -17843,9 +17876,9 @@ var __hica = (() => {
         if (t1.name === t2.name) {
           return Nil;
         } else {
-          var x_12_12996 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(", got ", t2.name))));
+          var x_12_13077 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(t1.name, _lp__plus__plus__rp_(", got ", t2.name))));
           if (_yielding()) {
-            return yield_extend(_mlift_unify_12662);
+            return yield_extend(_mlift_unify_12731);
           } else {
             return Nil;
           }
@@ -17861,9 +17894,9 @@ var __hica = (() => {
           return Nil;
         }
       }
-      var x_13_12999 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(_open_none1(hica_type_fs_show, t1), _lp__plus__plus__rp_(", got ", _open_none1(hica_type_fs_show, t2)))));
+      var x_13_13080 = emit_error(sp_1, _lp__plus__plus__rp_("type mismatch: expected ", _lp__plus__plus__rp_(_open_none1(hica_type_fs_show, t1), _lp__plus__plus__rp_(", got ", _open_none1(hica_type_fs_show, t2)))));
       if (_yielding()) {
-        return yield_extend(_mlift_unify_12663);
+        return yield_extend(_mlift_unify_12732);
       } else {
         return Nil;
       }
@@ -17871,35 +17904,35 @@ var __hica = (() => {
   }
   function unify_lists(ts1, ts2, sp_0_3) {
     if (ts1 !== null && ts2 !== null) {
-      var x_14_13002 = unify(ts1.head, ts2.head, sp_0_3);
+      var x_14_13083 = unify(ts1.head, ts2.head, sp_0_3);
       if (_yielding()) {
         return yield_extend(function(s_3) {
-          return _mlift_unify_lists_12667(ts1.tail, ts2.tail, sp_0_3, s_3);
+          return _mlift_unify_lists_12736(ts1.tail, ts2.tail, sp_0_3, s_3);
         });
       } else {
-        var x_15_13005 = map(ts1.tail, function(t_1) {
-          return _open_none2(apply_subst, x_14_13002, t_1);
+        var x_15_13086 = map(ts1.tail, function(t_1) {
+          return _open_none2(apply_subst, x_14_13083, t_1);
         });
         if (_yielding()) {
-          return yield_extend(function(_y_x10197_2) {
-            return _mlift_unify_lists_12666(ts2.tail, x_14_13002, sp_0_3, _y_x10197_2);
+          return yield_extend(function(_y_x10200_2) {
+            return _mlift_unify_lists_12735(ts2.tail, x_14_13083, sp_0_3, _y_x10200_2);
           });
         } else {
-          var x_16_13008 = map(ts2.tail, function(t_0_0) {
-            return _open_none2(apply_subst, x_14_13002, t_0_0);
+          var x_16_13089 = map(ts2.tail, function(t_0_0) {
+            return _open_none2(apply_subst, x_14_13083, t_0_0);
           });
           if (_yielding()) {
-            return yield_extend(function(_y_x10198_1) {
-              return _mlift_unify_lists_12665(x_15_13005, x_14_13002, sp_0_3, _y_x10198_1);
+            return yield_extend(function(_y_x10201_1) {
+              return _mlift_unify_lists_12734(x_15_13086, x_14_13083, sp_0_3, _y_x10201_1);
             });
           } else {
-            var x_17_13011 = unify_lists(x_15_13005, x_16_13008, sp_0_3);
+            var x_17_13092 = unify_lists(x_15_13086, x_16_13089, sp_0_3);
             if (_yielding()) {
               return yield_extend(function(rest_s_1) {
-                return _mlift_unify_lists_12664(x_14_13002, rest_s_1);
+                return _mlift_unify_lists_12733(x_14_13083, rest_s_1);
               });
             } else {
-              return _open_none2(compose_subst, x_17_13011, x_14_13002);
+              return _open_none2(compose_subst, x_17_13092, x_14_13083);
             }
           }
         }
@@ -18039,16 +18072,16 @@ var __hica = (() => {
   function apply_rename(mapping_0, t_0) {
     return _trmc_apply_rename(mapping_0, t_0, _cctx_empty());
   }
-  function _mlift_freshen_12671(t, unique) {
-    var x_13014 = map(unique, function(v_0) {
-      var ev_13018 = _evv_at(0);
-      var x_0_13016 = ev_13018.hnd._fun_fresh_tvar(ev_13018.marker, ev_13018);
+  function _mlift_freshen_12740(t, unique) {
+    var x_13095 = map(unique, function(v_0) {
+      var ev_13099 = _evv_at(0);
+      var x_0_13097 = ev_13099.hnd._fun_fresh_tvar(ev_13099.marker, ev_13099);
       if (_yielding()) {
-        return yield_extend(function(_y_x10203) {
-          return Tuple2(v_0, _y_x10203);
+        return yield_extend(function(_y_x10206) {
+          return Tuple2(v_0, _y_x10206);
         });
       } else {
-        return Tuple2(v_0, x_0_13016);
+        return Tuple2(v_0, x_0_13097);
       }
     });
     if (_yielding()) {
@@ -18056,7 +18089,7 @@ var __hica = (() => {
         return _open_none2(apply_rename, mapping, t);
       });
     } else {
-      return _open_none2(apply_rename, x_13014, t);
+      return _open_none2(apply_rename, x_13095, t);
     }
   }
   function freshen(t) {
@@ -18064,37 +18097,37 @@ var __hica = (() => {
     if (tvars === null) {
       return t;
     } else {
-      var x_13024 = foldl(tvars, Nil, function(acc, v) {
-        var x_0_13027 = any(acc, function(a) {
+      var x_13105 = foldl(tvars, Nil, function(acc, v) {
+        var x_0_13108 = any(acc, function(a) {
           return a === v;
         });
-        var next_0_13028 = function(_y_x10201) {
-          if (_y_x10201) {
+        var next_0_13109 = function(_y_x10204) {
+          if (_y_x10204) {
             return acc;
           } else {
             return Cons(v, acc);
           }
         };
         if (_yielding()) {
-          return yield_extend(next_0_13028);
+          return yield_extend(next_0_13109);
         } else {
-          return next_0_13028(x_0_13027);
+          return next_0_13109(x_0_13108);
         }
       });
       if (_yielding()) {
         return yield_extend(function(unique) {
-          return _mlift_freshen_12671(t, unique);
+          return _mlift_freshen_12740(t, unique);
         });
       } else {
-        var x_1_13032 = map(x_13024, function(v_0_0) {
-          var ev_13037 = _evv_at(0);
-          var x_2_13035 = ev_13037.hnd._fun_fresh_tvar(ev_13037.marker, ev_13037);
+        var x_1_13113 = map(x_13105, function(v_0_0) {
+          var ev_13118 = _evv_at(0);
+          var x_2_13116 = ev_13118.hnd._fun_fresh_tvar(ev_13118.marker, ev_13118);
           if (_yielding()) {
-            return yield_extend(function(_y_x10203) {
-              return Tuple2(v_0_0, _y_x10203);
+            return yield_extend(function(_y_x10206) {
+              return Tuple2(v_0_0, _y_x10206);
             });
           } else {
-            return Tuple2(v_0_0, x_2_13035);
+            return Tuple2(v_0_0, x_2_13116);
           }
         });
         if (_yielding()) {
@@ -18102,15 +18135,15 @@ var __hica = (() => {
             return _open_none2(apply_rename, mapping, t);
           });
         } else {
-          return _open_none2(apply_rename, x_1_13032, t);
+          return _open_none2(apply_rename, x_1_13113, t);
         }
       }
     }
   }
-  function env_fs__mlift_lookup_12672(wild__) {
+  function env_fs__mlift_lookup_12741(wild__) {
     return _open_at0(1, function() {
-      var ev_13043 = _evv_at(0);
-      return ev_13043.hnd._fun_fresh_tvar(ev_13043.marker, ev_13043);
+      var ev_13124 = _evv_at(0);
+      return ev_13124.hnd._fun_fresh_tvar(ev_13124.marker, ev_13124);
     });
   }
   function env_fs_lookup(env, name, sp) {
@@ -18118,34 +18151,34 @@ var __hica = (() => {
     if (_x29 !== null) {
       return _open_at1(1, freshen, _x29.value);
     } else {
-      var _x_x2_0_11481 = _lp__plus__plus__rp_("undefined variable: ", name);
-      var x_13045 = _open_at2(0, emit_error, sp, _x_x2_0_11481);
+      var _x_x2_0_11521 = _lp__plus__plus__rp_("undefined variable: ", name);
+      var x_13126 = _open_at2(0, emit_error, sp, _x_x2_0_11521);
       if (_yielding()) {
-        return yield_extend(env_fs__mlift_lookup_12672);
+        return yield_extend(env_fs__mlift_lookup_12741);
       } else {
         return _open_at0(1, function() {
-          var ev_13048 = _evv_at(0);
-          return ev_13048.hnd._fun_fresh_tvar(ev_13048.marker, ev_13048);
+          var ev_13129 = _evv_at(0);
+          return ev_13129.hnd._fun_fresh_tvar(ev_13129.marker, ev_13129);
         });
       }
     }
   }
-  function _mlift_trmc_zip_with_anns_12673(_acc, as_0_sq_, ps_0, _trmc_x10142) {
+  function _mlift_trmc_zip_with_anns_12742(_acc, as_0_sq_, ps_0, _trmc_x10142) {
     var _trmc_x10143 = void 0;
     var _trmc_x10144 = Cons(_trmc_x10142, _trmc_x10143);
     return _trmc_zip_with_anns(ps_0, as_0_sq_, _cctx_extend(_acc, _trmc_x10144, { obj: _trmc_x10144, field_name: "tail" }));
   }
-  function _mlift_trmc_zip_with_anns_12674(_acc_0, ps_1, _trmc_x10145) {
+  function _mlift_trmc_zip_with_anns_12743(_acc_0, ps_1, _trmc_x10145) {
     var _trmc_x10146 = void 0;
     var _trmc_x10147 = Cons(_trmc_x10145, _trmc_x10146);
     return _trmc_zip_with_anns(ps_1, Nil, _cctx_extend(_acc_0, _trmc_x10147, { obj: _trmc_x10147, field_name: "tail" }));
   }
-  function _mlift_trmcm_zip_with_anns_12675(_accm, as_0_0_sq_, ps_0_0, _trmc_x10151) {
+  function _mlift_trmcm_zip_with_anns_12744(_accm, as_0_0_sq_, ps_0_0, _trmc_x10151) {
     return _trmcm_zip_with_anns(ps_0_0, as_0_0_sq_, function(_trmc_x10150) {
       return _accm(Cons(_trmc_x10151, _trmc_x10150));
     });
   }
-  function _mlift_trmcm_zip_with_anns_12676(_accm_0, ps_1_0, _trmc_x10153) {
+  function _mlift_trmcm_zip_with_anns_12745(_accm_0, ps_1_0, _trmc_x10153) {
     return _trmcm_zip_with_anns(ps_1_0, Nil, function(_trmc_x10152) {
       return _accm_0(Cons(_trmc_x10153, _trmc_x10152));
     });
@@ -18163,15 +18196,15 @@ var __hica = (() => {
           continue tailcall;
         }
       } else if (params !== null && anns !== null && anns.head === null) {
-        var ev_13053 = _evv_at(0);
-        var x_13050 = ev_13053.hnd._fun_fresh_tvar(ev_13053.marker, ev_13053);
+        var ev_13134 = _evv_at(0);
+        var x_13131 = ev_13134.hnd._fun_fresh_tvar(ev_13134.marker, ev_13134);
         if (_yielding()) {
           return yield_extend(function(_trmc_x10142_0) {
-            return _mlift_trmc_zip_with_anns_12673(_acc_1, anns.tail, params.tail, _trmc_x10142_0);
+            return _mlift_trmc_zip_with_anns_12742(_acc_1, anns.tail, params.tail, _trmc_x10142_0);
           });
         } else {
           var _trmc_x10143_0 = void 0;
-          var _trmc_x10144_0 = Cons(x_13050, _trmc_x10143_0);
+          var _trmc_x10144_0 = Cons(x_13131, _trmc_x10143_0);
           {
             var _x31 = _cctx_extend(_acc_1, _trmc_x10144_0, { obj: _trmc_x10144_0, field_name: "tail" });
             params = params.tail;
@@ -18181,15 +18214,15 @@ var __hica = (() => {
           }
         }
       } else if (params !== null && anns === null) {
-        var ev_0_13058 = _evv_at(0);
-        var x_0_13055 = ev_0_13058.hnd._fun_fresh_tvar(ev_0_13058.marker, ev_0_13058);
+        var ev_0_13139 = _evv_at(0);
+        var x_0_13136 = ev_0_13139.hnd._fun_fresh_tvar(ev_0_13139.marker, ev_0_13139);
         if (_yielding()) {
           return yield_extend(function(_trmc_x10145_0) {
-            return _mlift_trmc_zip_with_anns_12674(_acc_1, params.tail, _trmc_x10145_0);
+            return _mlift_trmc_zip_with_anns_12743(_acc_1, params.tail, _trmc_x10145_0);
           });
         } else {
           var _trmc_x10146_0 = void 0;
-          var _trmc_x10147_0 = Cons(x_0_13055, _trmc_x10146_0);
+          var _trmc_x10147_0 = Cons(x_0_13136, _trmc_x10146_0);
           {
             var _x32 = Nil;
             var _x33 = _cctx_extend(_acc_1, _trmc_x10147_0, { obj: _trmc_x10147_0, field_name: "tail" });
@@ -18219,19 +18252,19 @@ var __hica = (() => {
           continue tailcall;
         }
       } else if (params_0 !== null && anns_0 !== null && anns_0.head === null) {
-        var ev_1_13063 = _evv_at(0);
-        var x_1_13060 = ev_1_13063.hnd._fun_fresh_tvar(ev_1_13063.marker, ev_1_13063);
+        var ev_1_13144 = _evv_at(0);
+        var x_1_13141 = ev_1_13144.hnd._fun_fresh_tvar(ev_1_13144.marker, ev_1_13144);
         if (_yielding()) {
           return yield_extend(function(_trmc_x10151_0) {
-            return _mlift_trmcm_zip_with_anns_12675(_accm_1, anns_0.tail, params_0.tail, _trmc_x10151_0);
+            return _mlift_trmcm_zip_with_anns_12744(_accm_1, anns_0.tail, params_0.tail, _trmc_x10151_0);
           });
         } else {
           {
-            var _x39 = /* @__PURE__ */ (function(__at_accm_137, _x_1_1306038) {
+            var _x39 = /* @__PURE__ */ (function(__at_accm_137, _x_1_1314138) {
               return function(_trmc_x10150_0) {
-                return __at_accm_137(Cons(_x_1_1306038, _trmc_x10150_0));
+                return __at_accm_137(Cons(_x_1_1314138, _trmc_x10150_0));
               };
-            })(_accm_1, x_1_13060);
+            })(_accm_1, x_1_13141);
             params_0 = params_0.tail;
             anns_0 = anns_0.tail;
             _accm_1 = _x39;
@@ -18239,20 +18272,20 @@ var __hica = (() => {
           }
         }
       } else if (params_0 !== null && anns_0 === null) {
-        var ev_2_13068 = _evv_at(0);
-        var x_2_13065 = ev_2_13068.hnd._fun_fresh_tvar(ev_2_13068.marker, ev_2_13068);
+        var ev_2_13149 = _evv_at(0);
+        var x_2_13146 = ev_2_13149.hnd._fun_fresh_tvar(ev_2_13149.marker, ev_2_13149);
         if (_yielding()) {
           return yield_extend(function(_trmc_x10153_0) {
-            return _mlift_trmcm_zip_with_anns_12676(_accm_1, params_0.tail, _trmc_x10153_0);
+            return _mlift_trmcm_zip_with_anns_12745(_accm_1, params_0.tail, _trmc_x10153_0);
           });
         } else {
           {
             var _x42 = Nil;
-            var _x43 = /* @__PURE__ */ (function(__at_accm_140, _x_2_1306541) {
+            var _x43 = /* @__PURE__ */ (function(__at_accm_140, _x_2_1314641) {
               return function(_trmc_x10152_0) {
-                return __at_accm_140(Cons(_x_2_1306541, _trmc_x10152_0));
+                return __at_accm_140(Cons(_x_2_1314641, _trmc_x10152_0));
               };
-            })(_accm_1, x_2_13065);
+            })(_accm_1, x_2_13146);
             params_0 = params_0.tail;
             anns_0 = _x42;
             _accm_1 = _x43;
@@ -18327,14 +18360,14 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_missing_cases_12677(_y_x10227) {
-    return map(_y_x10227, function(vd_0) {
-      var _x_x1_10_11501 = _open_none1(function(_this_1) {
+  function _mlift_missing_cases_12746(_y_x10230) {
+    return map(_y_x10230, function(vd_0) {
+      var _x_x1_10_11541 = _open_none1(function(_this_1) {
         return _this_1.fields;
       }, vd_0);
       var _x48 = _open_none1(function(list2) {
         return list2 === null;
-      }, _x_x1_10_11501);
+      }, _x_x1_10_11541);
       if (_x48) {
         return _open_none1(function(_this_2) {
           return _this_2.name;
@@ -18346,15 +18379,15 @@ var __hica = (() => {
       }
     });
   }
-  function _mlift_missing_cases_12678(pats, tname, reg) {
+  function _mlift_missing_cases_12747(pats, tname, reg) {
     var _x49 = _open_none2(type_find, reg, tname);
     if (_x49 === null) {
       return Nil;
     } else {
-      var x_13070 = filter(_open_none1(function(_this) {
+      var x_13151 = filter(_open_none1(function(_this) {
         return _this.variants;
       }, _x49.value), function(vd) {
-        var _x_x1_8_11498 = _open_none2(has_constructor, pats, function(p_1_0) {
+        var _x_x1_8_11538 = _open_none2(has_constructor, pats, function(p_1_0) {
           if (p_1_0._tag === 10) {
             var _x50 = vd.name;
             return p_1_0.ctor_name === _x50;
@@ -18364,12 +18397,12 @@ var __hica = (() => {
         });
         return _open_none1(function(b_1) {
           return b_1 ? false : true;
-        }, _x_x1_8_11498);
+        }, _x_x1_8_11538);
       });
       if (_yielding()) {
-        return yield_extend(_mlift_missing_cases_12677);
+        return yield_extend(_mlift_missing_cases_12746);
       } else {
-        return _mlift_missing_cases_12677(x_13070);
+        return _mlift_missing_cases_12746(x_13151);
       }
     }
   }
@@ -18433,21 +18466,21 @@ var __hica = (() => {
         }
         return append(missing_true, missing_false);
       } else if (scrut_type._tag === 13) {
-        var ev_13075 = _evv_at(0);
-        var x_13072 = ev_13075.hnd._fun_get_types(ev_13075.marker, ev_13075);
+        var ev_13156 = _evv_at(0);
+        var x_13153 = ev_13156.hnd._fun_get_types(ev_13156.marker, ev_13156);
         if (_yielding()) {
           return yield_extend(function(reg) {
-            return _mlift_missing_cases_12678(pats, scrut_type.name, reg);
+            return _mlift_missing_cases_12747(pats, scrut_type.name, reg);
           });
         } else {
-          var _x51 = _open_none2(type_find, x_13072, scrut_type.name);
+          var _x51 = _open_none2(type_find, x_13153, scrut_type.name);
           if (_x51 === null) {
             return Nil;
           } else {
-            var x_0_13077 = filter(_open_none1(function(_this) {
+            var x_0_13158 = filter(_open_none1(function(_this) {
               return _this.variants;
             }, _x51.value), function(vd) {
-              var _x_x1_8_11498 = _open_none2(has_constructor, pats, function(p_1_0) {
+              var _x_x1_8_11538 = _open_none2(has_constructor, pats, function(p_1_0) {
                 if (p_1_0._tag === 10) {
                   var _x522 = vd.name;
                   return p_1_0.ctor_name === _x522;
@@ -18457,18 +18490,18 @@ var __hica = (() => {
               });
               return _open_none1(function(b_1) {
                 return b_1 ? false : true;
-              }, _x_x1_8_11498);
+              }, _x_x1_8_11538);
             });
             if (_yielding()) {
-              return yield_extend(_mlift_missing_cases_12677);
+              return yield_extend(_mlift_missing_cases_12746);
             } else {
-              return map(x_0_13077, function(vd_0) {
-                var _x_x1_10_11501 = _open_none1(function(_this_1) {
+              return map(x_0_13158, function(vd_0) {
+                var _x_x1_10_11541 = _open_none1(function(_this_1) {
                   return _this_1.fields;
                 }, vd_0);
                 var _x522 = _open_none1(function(list2) {
                   return list2 === null;
-                }, _x_x1_10_11501);
+                }, _x_x1_10_11541);
                 if (_x522) {
                   return _open_none1(function(_this_2) {
                     return _this_2.name;
@@ -18495,124 +18528,124 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_check_exhaustive_12679(sp, missing) {
+  function _mlift_check_exhaustive_12748(sp, missing) {
     if (missing === null) {
       return Unit;
     } else {
-      var _x_x2_0_11511 = _lp__plus__plus__rp_("non-exhaustive match: missing ", joinsep(missing, ", "));
-      return _open_at2(0, emit_warning, sp, _x_x2_0_11511);
+      var _x_x2_0_11551 = _lp__plus__plus__rp_("non-exhaustive match: missing ", joinsep(missing, ", "));
+      return _open_at2(0, emit_warning, sp, _x_x2_0_11551);
     }
   }
-  function _mlift_check_exhaustive_12680(scrut_type, sp, pats) {
-    var x_13080 = _open_at2(1, missing_cases, scrut_type, pats);
+  function _mlift_check_exhaustive_12749(scrut_type, sp, pats) {
+    var x_13161 = _open_at2(1, missing_cases, scrut_type, pats);
     if (_yielding()) {
       return yield_extend(function(missing) {
-        return _mlift_check_exhaustive_12679(sp, missing);
+        return _mlift_check_exhaustive_12748(sp, missing);
       });
     } else {
-      return _mlift_check_exhaustive_12679(sp, x_13080);
+      return _mlift_check_exhaustive_12748(sp, x_13161);
     }
   }
-  function _mlift_check_exhaustive_12681(scrut_type, sp, unguarded) {
-    var x_13082 = map(unguarded, function(a_0) {
+  function _mlift_check_exhaustive_12750(scrut_type, sp, unguarded) {
+    var x_13163 = map(unguarded, function(a_0) {
       return _open_none1(function(_this_0) {
         return _this_0.pattern;
       }, a_0);
     });
     if (_yielding()) {
       return yield_extend(function(pats) {
-        return _mlift_check_exhaustive_12680(scrut_type, sp, pats);
+        return _mlift_check_exhaustive_12749(scrut_type, sp, pats);
       });
     } else {
-      return _mlift_check_exhaustive_12680(scrut_type, sp, x_13082);
+      return _mlift_check_exhaustive_12749(scrut_type, sp, x_13163);
     }
   }
   function check_exhaustive(scrut_type, arms, sp) {
-    var x_13084 = filter(arms, function(a) {
-      var _x_x1_11505 = _open_none1(function(_this) {
+    var x_13165 = filter(arms, function(a) {
+      var _x_x1_11545 = _open_none1(function(_this) {
         return _this.guard;
       }, a);
       return _open_none1(function(maybe) {
         return maybe === null;
-      }, _x_x1_11505);
+      }, _x_x1_11545);
     });
     if (_yielding()) {
       return yield_extend(function(unguarded) {
-        return _mlift_check_exhaustive_12681(scrut_type, sp, unguarded);
+        return _mlift_check_exhaustive_12750(scrut_type, sp, unguarded);
       });
     } else {
-      var x_0_13087 = map(x_13084, function(a_0) {
+      var x_0_13168 = map(x_13165, function(a_0) {
         return _open_none1(function(_this_0) {
           return _this_0.pattern;
         }, a_0);
       });
       if (_yielding()) {
         return yield_extend(function(pats) {
-          return _mlift_check_exhaustive_12680(scrut_type, sp, pats);
+          return _mlift_check_exhaustive_12749(scrut_type, sp, pats);
         });
       } else {
-        var x_1_13090 = _open_at2(1, missing_cases, scrut_type, x_0_13087);
+        var x_1_13171 = _open_at2(1, missing_cases, scrut_type, x_0_13168);
         if (_yielding()) {
           return yield_extend(function(missing) {
-            return _mlift_check_exhaustive_12679(sp, missing);
+            return _mlift_check_exhaustive_12748(sp, missing);
           });
         } else {
-          if (x_1_13090 === null) {
+          if (x_1_13171 === null) {
             return Unit;
           } else {
-            var _x_x2_0_11511 = _lp__plus__plus__rp_("non-exhaustive match: missing ", joinsep(x_1_13090, ", "));
-            return _open_at2(0, emit_warning, sp, _x_x2_0_11511);
+            var _x_x2_0_11551 = _lp__plus__plus__rp_("non-exhaustive match: missing ", joinsep(x_1_13171, ", "));
+            return _open_at2(0, emit_warning, sp, _x_x2_0_11551);
           }
         }
       }
     }
   }
-  function _mlift_infer_numeric_op_12682(s_lr, _y_x10239) {
+  function _mlift_infer_numeric_op_12751(s_lr, _y_x10242) {
     return Tuple2(_open_none2(function(s1_0, s2_0) {
       var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
         return Tuple2(k_1, _trmc_apply_subst(s1_0, v_0, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
         var b_10007_0 = subst_has(s1_0, k_0_0);
         return b_10007_0 ? false : true;
       }, _cctx_empty());
       return append(s1_0, ys_10006_0);
-    }, _y_x10239, s_lr), TInt);
+    }, _y_x10242, s_lr), TInt);
   }
-  function _mlift_infer_numeric_op_12684(lt, n, s, _y_x10238) {
+  function _mlift_infer_numeric_op_12753(lt, n, s, _y_x10241) {
     var s_lr = _open_none2(function(s1, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1, ys_10006);
-    }, _y_x10238, s);
+    }, _y_x10241, s);
     var resolved = _open_none2(apply_subst, s_lr, lt);
     if (resolved._tag === 1) {
       return Tuple2(s_lr, TInt);
     } else if (resolved._tag === 2) {
       return Tuple2(s_lr, TFloat);
     } else if (resolved._tag === 14) {
-      var _x_x3_0_11522 = _open_none1(function(node_0) {
+      var _x_x3_0_11562 = _open_none1(function(node_0) {
         return node_0.span;
       }, n);
-      var x_13105 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11522);
+      var x_13186 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11562);
       if (_yielding()) {
-        return yield_extend(function(_y_x10239) {
-          return _mlift_infer_numeric_op_12682(s_lr, _y_x10239);
+        return yield_extend(function(_y_x10242) {
+          return _mlift_infer_numeric_op_12751(s_lr, _y_x10242);
         });
       } else {
-        return _mlift_infer_numeric_op_12682(s_lr, x_13105);
+        return _mlift_infer_numeric_op_12751(s_lr, x_13186);
       }
     } else {
-      var _x_x1_6_11526 = _open_none1(function(node_1) {
+      var _x_x1_6_11566 = _open_none1(function(node_1) {
         return node_1.span;
       }, n);
-      var _x_x2_4_11527 = _lp__plus__plus__rp_("arithmetic operator requires int or float operands, got ", _open_none1(hica_type_fs_show, resolved));
-      var x_0_13107 = _open_at2(0, emit_error, _x_x1_6_11526, _x_x2_4_11527);
+      var _x_x2_4_11567 = _lp__plus__plus__rp_("arithmetic operator requires int or float operands, got ", _open_none1(hica_type_fs_show, resolved));
+      var x_0_13188 = _open_at2(0, emit_error, _x_x1_6_11566, _x_x2_4_11567);
       if (_yielding()) {
         return yield_extend(function(wild__) {
           return Tuple2(s_lr, TInt);
@@ -18623,57 +18656,57 @@ var __hica = (() => {
     }
   }
   function infer_numeric_op(lt, rt, lhs, rhs, n, s) {
-    var _x_x3_11514 = _open_none1(function(node) {
+    var _x_x3_11554 = _open_none1(function(node) {
       return node.span;
     }, n);
-    var x_13111 = _open_at3(0, unify, lt, rt, _x_x3_11514);
+    var x_13192 = _open_at3(0, unify, lt, rt, _x_x3_11554);
     if (_yielding()) {
-      return yield_extend(function(_y_x10238) {
-        return _mlift_infer_numeric_op_12684(lt, n, s, _y_x10238);
+      return yield_extend(function(_y_x10241) {
+        return _mlift_infer_numeric_op_12753(lt, n, s, _y_x10241);
       });
     } else {
       var s_lr = _open_none2(function(s1, s2) {
         var updated_s2 = _trmc_map_subst(s2, function(k, v) {
           return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
         }, _cctx_empty());
-        var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+        var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
           var b_10007 = subst_has(s1, k_0);
           return b_10007 ? false : true;
         }, _cctx_empty());
         return append(s1, ys_10006);
-      }, x_13111, s);
+      }, x_13192, s);
       var resolved = _open_none2(apply_subst, s_lr, lt);
       if (resolved._tag === 1) {
         return Tuple2(s_lr, TInt);
       } else if (resolved._tag === 2) {
         return Tuple2(s_lr, TFloat);
       } else if (resolved._tag === 14) {
-        var _x_x3_0_11522 = _open_none1(function(node_0) {
+        var _x_x3_0_11562 = _open_none1(function(node_0) {
           return node_0.span;
         }, n);
-        var x_0_13120 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11522);
+        var x_0_13201 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11562);
         if (_yielding()) {
-          return yield_extend(function(_y_x10239) {
-            return _mlift_infer_numeric_op_12682(s_lr, _y_x10239);
+          return yield_extend(function(_y_x10242) {
+            return _mlift_infer_numeric_op_12751(s_lr, _y_x10242);
           });
         } else {
           return Tuple2(_open_none2(function(s1_0, s2_0) {
             var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
               return Tuple2(k_1, _trmc_apply_subst(s1_0, v_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
               var b_10007_0 = subst_has(s1_0, k_0_0);
               return b_10007_0 ? false : true;
             }, _cctx_empty());
             return append(s1_0, ys_10006_0);
-          }, x_0_13120, s_lr), TInt);
+          }, x_0_13201, s_lr), TInt);
         }
       } else {
-        var _x_x1_6_11526 = _open_none1(function(node_1) {
+        var _x_x1_6_11566 = _open_none1(function(node_1) {
           return node_1.span;
         }, n);
-        var _x_x2_4_11527 = _lp__plus__plus__rp_("arithmetic operator requires int or float operands, got ", _open_none1(hica_type_fs_show, resolved));
-        var x_1_13129 = _open_at2(0, emit_error, _x_x1_6_11526, _x_x2_4_11527);
+        var _x_x2_4_11567 = _lp__plus__plus__rp_("arithmetic operator requires int or float operands, got ", _open_none1(hica_type_fs_show, resolved));
+        var x_1_13210 = _open_at2(0, emit_error, _x_x1_6_11566, _x_x2_4_11567);
         if (_yielding()) {
           return yield_extend(function(wild__) {
             return Tuple2(s_lr, TInt);
@@ -18684,29 +18717,29 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_infer_comparison_op_12685(s_lr, _y_x10243) {
+  function _mlift_infer_comparison_op_12754(s_lr, _y_x10246) {
     return Tuple2(_open_none2(function(s1_0, s2_0) {
       var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
         return Tuple2(k_1, _trmc_apply_subst(s1_0, v_0, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
         var b_10007_0 = subst_has(s1_0, k_0_0);
         return b_10007_0 ? false : true;
       }, _cctx_empty());
       return append(s1_0, ys_10006_0);
-    }, _y_x10243, s_lr), TBool);
+    }, _y_x10246, s_lr), TBool);
   }
-  function _mlift_infer_comparison_op_12687(lt, n, s, _y_x10242) {
+  function _mlift_infer_comparison_op_12756(lt, n, s, _y_x10245) {
     var s_lr = _open_none2(function(s1, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1, ys_10006);
-    }, _y_x10242, s);
+    }, _y_x10245, s);
     var resolved = _open_none2(apply_subst, s_lr, lt);
     if (resolved._tag === 1) {
       return Tuple2(s_lr, TBool);
@@ -18715,23 +18748,23 @@ var __hica = (() => {
     } else if (resolved._tag === 4) {
       return Tuple2(s_lr, TBool);
     } else if (resolved._tag === 14) {
-      var _x_x3_0_11540 = _open_none1(function(node_0) {
+      var _x_x3_0_11580 = _open_none1(function(node_0) {
         return node_0.span;
       }, n);
-      var x_13146 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11540);
+      var x_13227 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11580);
       if (_yielding()) {
-        return yield_extend(function(_y_x10243) {
-          return _mlift_infer_comparison_op_12685(s_lr, _y_x10243);
+        return yield_extend(function(_y_x10246) {
+          return _mlift_infer_comparison_op_12754(s_lr, _y_x10246);
         });
       } else {
-        return _mlift_infer_comparison_op_12685(s_lr, x_13146);
+        return _mlift_infer_comparison_op_12754(s_lr, x_13227);
       }
     } else {
-      var _x_x1_6_11544 = _open_none1(function(node_1) {
+      var _x_x1_6_11584 = _open_none1(function(node_1) {
         return node_1.span;
       }, n);
-      var _x_x2_4_11545 = _lp__plus__plus__rp_("comparison operator requires int, float, or string operands, got ", _open_none1(hica_type_fs_show, resolved));
-      var x_0_13148 = _open_at2(0, emit_error, _x_x1_6_11544, _x_x2_4_11545);
+      var _x_x2_4_11585 = _lp__plus__plus__rp_("comparison operator requires int, float, or string operands, got ", _open_none1(hica_type_fs_show, resolved));
+      var x_0_13229 = _open_at2(0, emit_error, _x_x1_6_11584, _x_x2_4_11585);
       if (_yielding()) {
         return yield_extend(function(wild__) {
           return Tuple2(s_lr, TBool);
@@ -18742,25 +18775,25 @@ var __hica = (() => {
     }
   }
   function infer_comparison_op(lt, rt, lhs, rhs, n, s) {
-    var _x_x3_11532 = _open_none1(function(node) {
+    var _x_x3_11572 = _open_none1(function(node) {
       return node.span;
     }, n);
-    var x_13152 = _open_at3(0, unify, lt, rt, _x_x3_11532);
+    var x_13233 = _open_at3(0, unify, lt, rt, _x_x3_11572);
     if (_yielding()) {
-      return yield_extend(function(_y_x10242) {
-        return _mlift_infer_comparison_op_12687(lt, n, s, _y_x10242);
+      return yield_extend(function(_y_x10245) {
+        return _mlift_infer_comparison_op_12756(lt, n, s, _y_x10245);
       });
     } else {
       var s_lr = _open_none2(function(s1, s2) {
         var updated_s2 = _trmc_map_subst(s2, function(k, v) {
           return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
         }, _cctx_empty());
-        var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+        var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
           var b_10007 = subst_has(s1, k_0);
           return b_10007 ? false : true;
         }, _cctx_empty());
         return append(s1, ys_10006);
-      }, x_13152, s);
+      }, x_13233, s);
       var resolved = _open_none2(apply_subst, s_lr, lt);
       if (resolved._tag === 1) {
         return Tuple2(s_lr, TBool);
@@ -18769,32 +18802,32 @@ var __hica = (() => {
       } else if (resolved._tag === 4) {
         return Tuple2(s_lr, TBool);
       } else if (resolved._tag === 14) {
-        var _x_x3_0_11540 = _open_none1(function(node_0) {
+        var _x_x3_0_11580 = _open_none1(function(node_0) {
           return node_0.span;
         }, n);
-        var x_0_13161 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11540);
+        var x_0_13242 = _open_at3(0, unify, resolved, TInt, _x_x3_0_11580);
         if (_yielding()) {
-          return yield_extend(function(_y_x10243) {
-            return _mlift_infer_comparison_op_12685(s_lr, _y_x10243);
+          return yield_extend(function(_y_x10246) {
+            return _mlift_infer_comparison_op_12754(s_lr, _y_x10246);
           });
         } else {
           return Tuple2(_open_none2(function(s1_0, s2_0) {
             var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
               return Tuple2(k_1, _trmc_apply_subst(s1_0, v_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
               var b_10007_0 = subst_has(s1_0, k_0_0);
               return b_10007_0 ? false : true;
             }, _cctx_empty());
             return append(s1_0, ys_10006_0);
-          }, x_0_13161, s_lr), TBool);
+          }, x_0_13242, s_lr), TBool);
         }
       } else {
-        var _x_x1_6_11544 = _open_none1(function(node_1) {
+        var _x_x1_6_11584 = _open_none1(function(node_1) {
           return node_1.span;
         }, n);
-        var _x_x2_4_11545 = _lp__plus__plus__rp_("comparison operator requires int, float, or string operands, got ", _open_none1(hica_type_fs_show, resolved));
-        var x_1_13170 = _open_at2(0, emit_error, _x_x1_6_11544, _x_x2_4_11545);
+        var _x_x2_4_11585 = _lp__plus__plus__rp_("comparison operator requires int, float, or string operands, got ", _open_none1(hica_type_fs_show, resolved));
+        var x_1_13251 = _open_at2(0, emit_error, _x_x1_6_11584, _x_x2_4_11585);
         if (_yielding()) {
           return yield_extend(function(wild__) {
             return Tuple2(s_lr, TBool);
@@ -18805,24 +18838,24 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_enrich_struct_pattern_12689(fps, p, sname, reg) {
+  function _mlift_enrich_struct_pattern_12758(fps, p, sname, reg) {
     var _x54 = _open_none2(struct_find, reg, sname);
     if (_x54 !== null) {
-      var x_13175 = map(_open_none1(function(_this) {
+      var x_13256 = map(_open_none1(function(_this) {
         return _this.fields;
-      }, _x54.value), function(_pat_x993__58) {
-        return _pat_x993__58.fst;
+      }, _x54.value), function(_pat_x1009__58) {
+        return _pat_x1009__58.fst;
       });
-      var next_13176 = function(_y_x10247) {
+      var next_13257 = function(_y_x10250) {
         return _open_none3(function(struct_name, field_pats, def_fields) {
           var _x55 = def_fields !== void 0 ? def_fields : Nil;
           return PStruct(struct_name, field_pats, _x55);
-        }, sname, fps, _y_x10247);
+        }, sname, fps, _y_x10250);
       };
       if (_yielding()) {
-        return yield_extend(next_13176);
+        return yield_extend(next_13257);
       } else {
-        return next_13176(x_13175);
+        return next_13257(x_13256);
       }
     } else {
       return p;
@@ -18830,32 +18863,32 @@ var __hica = (() => {
   }
   function enrich_struct_pattern(p) {
     if (p._tag === 11) {
-      var ev_13183 = _evv_at(0);
-      var x_13180 = ev_13183.hnd._fun_get_structs(ev_13183.marker, ev_13183);
+      var ev_13264 = _evv_at(0);
+      var x_13261 = ev_13264.hnd._fun_get_structs(ev_13264.marker, ev_13264);
       if (_yielding()) {
         return yield_extend(function(reg) {
-          return _mlift_enrich_struct_pattern_12689(p.field_pats, p, p.struct_name, reg);
+          return _mlift_enrich_struct_pattern_12758(p.field_pats, p, p.struct_name, reg);
         });
       } else {
-        var _x55 = _open_none2(struct_find, x_13180, p.struct_name);
+        var _x55 = _open_none2(struct_find, x_13261, p.struct_name);
         if (_x55 !== null) {
-          var x_0_13185 = map(_open_none1(function(_this) {
+          var x_0_13266 = map(_open_none1(function(_this) {
             return _this.fields;
-          }, _x55.value), function(_pat_x993__58) {
-            return _pat_x993__58.fst;
+          }, _x55.value), function(_pat_x1009__58) {
+            return _pat_x1009__58.fst;
           });
           if (_yielding()) {
-            return yield_extend(function(_y_x10247) {
+            return yield_extend(function(_y_x10250) {
               return _open_none3(function(struct_name, field_pats, def_fields) {
                 var _x56 = def_fields !== void 0 ? def_fields : Nil;
                 return PStruct(struct_name, field_pats, _x56);
-              }, p.struct_name, p.field_pats, _y_x10247);
+              }, p.struct_name, p.field_pats, _y_x10250);
             });
           } else {
             return _open_none3(function(struct_name_0, field_pats_0, def_fields_0) {
               var _x57 = def_fields_0 !== void 0 ? def_fields_0 : Nil;
               return PStruct(struct_name_0, field_pats_0, _x57);
-            }, p.struct_name, p.field_pats, x_0_13185);
+            }, p.struct_name, p.field_pats, x_0_13266);
           }
         } else {
           return p;
@@ -18865,416 +18898,416 @@ var __hica = (() => {
       return p;
     }
   }
-  function _mlift_infer_pattern_12690(env, s, _y_x10250) {
+  function _mlift_infer_pattern_12759(env, s, _y_x10253) {
     return Tuple2(_open_none2(function(s1, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1, ys_10006);
-    }, _y_x10250, s), env);
+    }, _y_x10253, s), env);
   }
-  function _mlift_infer_pattern_12691(env_0, s_3, _y_x10251) {
+  function _mlift_infer_pattern_12760(env_0, s_3, _y_x10254) {
     return Tuple2(_open_none2(function(s1_0, s2_0) {
       var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
         return Tuple2(k_1, _trmc_apply_subst(s1_0, v_0, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
         var b_10007_0 = subst_has(s1_0, k_0_0);
         return b_10007_0 ? false : true;
       }, _cctx_empty());
       return append(s1_0, ys_10006_0);
-    }, _y_x10251, s_3), env_0);
+    }, _y_x10254, s_3), env_0);
   }
-  function _mlift_infer_pattern_12692(env_1, s_7, _y_x10252) {
+  function _mlift_infer_pattern_12761(env_1, s_7, _y_x10255) {
     return Tuple2(_open_none2(function(s1_1, s2_1) {
       var updated_s2_1 = _trmc_map_subst(s2_1, function(k_2, v_1) {
         return Tuple2(k_2, _trmc_apply_subst(s1_1, v_1, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_1 = _trmc_filter_subst(updated_s2_1, function(k_0_1, ___wildcard_x120__39_1) {
+      var ys_10006_1 = _trmc_filter_subst(updated_s2_1, function(k_0_1, ___wildcard_x136__39_1) {
         var b_10007_1 = subst_has(s1_1, k_0_1);
         return b_10007_1 ? false : true;
       }, _cctx_empty());
       return append(s1_1, ys_10006_1);
-    }, _y_x10252, s_7), env_1);
+    }, _y_x10255, s_7), env_1);
   }
-  function _mlift_infer_pattern_12693(env_2, s_11, _y_x10253) {
+  function _mlift_infer_pattern_12762(env_2, s_11, _y_x10256) {
     return Tuple2(_open_none2(function(s1_2, s2_2) {
       var updated_s2_2 = _trmc_map_subst(s2_2, function(k_3, v_2) {
         return Tuple2(k_3, _trmc_apply_subst(s1_2, v_2, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_2 = _trmc_filter_subst(updated_s2_2, function(k_0_2, ___wildcard_x120__39_2) {
+      var ys_10006_2 = _trmc_filter_subst(updated_s2_2, function(k_0_2, ___wildcard_x136__39_2) {
         var b_10007_2 = subst_has(s1_2, k_0_2);
         return b_10007_2 ? false : true;
       }, _cctx_empty());
       return append(s1_2, ys_10006_2);
-    }, _y_x10253, s_11), env_2);
+    }, _y_x10256, s_11), env_2);
   }
-  function _mlift_infer_pattern_12694(env_3, s_15, _y_x10254) {
+  function _mlift_infer_pattern_12763(env_3, s_15, _y_x10257) {
     return Tuple2(_open_none2(function(s1_3, s2_3) {
       var updated_s2_3 = _trmc_map_subst(s2_3, function(k_4, v_3) {
         return Tuple2(k_4, _trmc_apply_subst(s1_3, v_3, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_3 = _trmc_filter_subst(updated_s2_3, function(k_0_3, ___wildcard_x120__39_3) {
+      var ys_10006_3 = _trmc_filter_subst(updated_s2_3, function(k_0_3, ___wildcard_x136__39_3) {
         var b_10007_3 = subst_has(s1_3, k_0_3);
         return b_10007_3 ? false : true;
       }, _cctx_empty());
       return append(s1_3, ys_10006_3);
-    }, _y_x10254, s_15), env_3);
+    }, _y_x10257, s_15), env_3);
   }
-  function _mlift_infer_pattern_12695(elem_var, env_4, inner, s_19, _y_x10257) {
+  function _mlift_infer_pattern_12764(elem_var, env_4, inner, s_19, _y_x10260) {
     var s1_5 = _open_none2(function(s1_4, s2_4) {
       var updated_s2_4 = _trmc_map_subst(s2_4, function(k_5, v_4) {
         return Tuple2(k_5, _trmc_apply_subst(s1_4, v_4, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_4 = _trmc_filter_subst(updated_s2_4, function(k_0_4, ___wildcard_x120__39_4) {
+      var ys_10006_4 = _trmc_filter_subst(updated_s2_4, function(k_0_4, ___wildcard_x136__39_4) {
         var b_10007_4 = subst_has(s1_4, k_0_4);
         return b_10007_4 ? false : true;
       }, _cctx_empty());
       return append(s1_4, ys_10006_4);
-    }, _y_x10257, s_19);
+    }, _y_x10260, s_19);
     var inner_type = _open_none2(apply_subst, s1_5, elem_var);
     return infer_pattern(env_4, s1_5, inner_type, inner);
   }
-  function _mlift_infer_pattern_12696(env_5, inner_0, s_23, scrut_type, elem_var_0) {
-    var x_13227 = _open_at3(0, unify, scrut_type, TMaybe(elem_var_0), no_span);
+  function _mlift_infer_pattern_12765(env_5, inner_0, s_23, scrut_type, elem_var_0) {
+    var x_13308 = _open_at3(0, unify, scrut_type, TMaybe(elem_var_0), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10257_0) {
-        return _mlift_infer_pattern_12695(elem_var_0, env_5, inner_0, s_23, _y_x10257_0);
+      return yield_extend(function(_y_x10260_0) {
+        return _mlift_infer_pattern_12764(elem_var_0, env_5, inner_0, s_23, _y_x10260_0);
       });
     } else {
-      return _mlift_infer_pattern_12695(elem_var_0, env_5, inner_0, s_23, x_13227);
+      return _mlift_infer_pattern_12764(elem_var_0, env_5, inner_0, s_23, x_13308);
     }
   }
-  function _mlift_infer_pattern_12697(env_6, s_24, _y_x10261) {
+  function _mlift_infer_pattern_12766(env_6, s_24, _y_x10264) {
     var s1_0_0 = _open_none2(function(s1_6, s2_5) {
       var updated_s2_5 = _trmc_map_subst(s2_5, function(k_6, v_5) {
         return Tuple2(k_6, _trmc_apply_subst(s1_6, v_5, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_5 = _trmc_filter_subst(updated_s2_5, function(k_0_5, ___wildcard_x120__39_5) {
+      var ys_10006_5 = _trmc_filter_subst(updated_s2_5, function(k_0_5, ___wildcard_x136__39_5) {
         var b_10007_5 = subst_has(s1_6, k_0_5);
         return b_10007_5 ? false : true;
       }, _cctx_empty());
       return append(s1_6, ys_10006_5);
-    }, _y_x10261, s_24);
+    }, _y_x10264, s_24);
     return Tuple2(s1_0_0, env_6);
   }
-  function _mlift_infer_pattern_12698(env_7, s_28, scrut_type_0, elem_var_0_0) {
-    var x_0_13235 = _open_at3(0, unify, scrut_type_0, TMaybe(elem_var_0_0), no_span);
+  function _mlift_infer_pattern_12767(env_7, s_28, scrut_type_0, elem_var_0_0) {
+    var x_0_13316 = _open_at3(0, unify, scrut_type_0, TMaybe(elem_var_0_0), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10261_0) {
-        return _mlift_infer_pattern_12697(env_7, s_28, _y_x10261_0);
+      return yield_extend(function(_y_x10264_0) {
+        return _mlift_infer_pattern_12766(env_7, s_28, _y_x10264_0);
       });
     } else {
-      return _mlift_infer_pattern_12697(env_7, s_28, x_0_13235);
+      return _mlift_infer_pattern_12766(env_7, s_28, x_0_13316);
     }
   }
-  function _mlift_infer_pattern_12699(env_8, inner_0_0, ok_var, s_29, _y_x10266) {
+  function _mlift_infer_pattern_12768(env_8, inner_0_0, ok_var, s_29, _y_x10269) {
     var s1_1_0 = _open_none2(function(s1_7, s2_6) {
       var updated_s2_6 = _trmc_map_subst(s2_6, function(k_7, v_6) {
         return Tuple2(k_7, _trmc_apply_subst(s1_7, v_6, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_6 = _trmc_filter_subst(updated_s2_6, function(k_0_6, ___wildcard_x120__39_6) {
+      var ys_10006_6 = _trmc_filter_subst(updated_s2_6, function(k_0_6, ___wildcard_x136__39_6) {
         var b_10007_6 = subst_has(s1_7, k_0_6);
         return b_10007_6 ? false : true;
       }, _cctx_empty());
       return append(s1_7, ys_10006_6);
-    }, _y_x10266, s_29);
+    }, _y_x10269, s_29);
     var inner_type_0 = _open_none2(apply_subst, s1_1_0, ok_var);
     return infer_pattern(env_8, s1_1_0, inner_type_0, inner_0_0);
   }
-  function _mlift_infer_pattern_12700(env_9, inner_0_1, ok_var_0, s_33, scrut_type_1, err_var) {
-    var x_1_13243 = _open_at3(0, unify, scrut_type_1, TResult(ok_var_0, err_var), no_span);
+  function _mlift_infer_pattern_12769(env_9, inner_0_1, ok_var_0, s_33, scrut_type_1, err_var) {
+    var x_1_13324 = _open_at3(0, unify, scrut_type_1, TResult(ok_var_0, err_var), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10266_0) {
-        return _mlift_infer_pattern_12699(env_9, inner_0_1, ok_var_0, s_33, _y_x10266_0);
+      return yield_extend(function(_y_x10269_0) {
+        return _mlift_infer_pattern_12768(env_9, inner_0_1, ok_var_0, s_33, _y_x10269_0);
       });
     } else {
-      return _mlift_infer_pattern_12699(env_9, inner_0_1, ok_var_0, s_33, x_1_13243);
+      return _mlift_infer_pattern_12768(env_9, inner_0_1, ok_var_0, s_33, x_1_13324);
     }
   }
-  function _mlift_infer_pattern_12701(env_10, inner_0_2, s_34, scrut_type_2, ok_var_1) {
-    var x_2_13245 = _open_at0(1, function() {
-      var ev_13247 = _evv_at(0);
-      return ev_13247.hnd._fun_fresh_tvar(ev_13247.marker, ev_13247);
+  function _mlift_infer_pattern_12770(env_10, inner_0_2, s_34, scrut_type_2, ok_var_1) {
+    var x_2_13326 = _open_at0(1, function() {
+      var ev_13328 = _evv_at(0);
+      return ev_13328.hnd._fun_fresh_tvar(ev_13328.marker, ev_13328);
     });
     if (_yielding()) {
       return yield_extend(function(err_var_0) {
-        return _mlift_infer_pattern_12700(env_10, inner_0_2, ok_var_1, s_34, scrut_type_2, err_var_0);
+        return _mlift_infer_pattern_12769(env_10, inner_0_2, ok_var_1, s_34, scrut_type_2, err_var_0);
       });
     } else {
-      return _mlift_infer_pattern_12700(env_10, inner_0_2, ok_var_1, s_34, scrut_type_2, x_2_13245);
+      return _mlift_infer_pattern_12769(env_10, inner_0_2, ok_var_1, s_34, scrut_type_2, x_2_13326);
     }
   }
-  function _mlift_infer_pattern_12702(env_11, err_var_0_0, inner_1, s_35, _y_x10272) {
+  function _mlift_infer_pattern_12771(env_11, err_var_0_0, inner_1, s_35, _y_x10275) {
     var s1_2_0 = _open_none2(function(s1_8, s2_7) {
       var updated_s2_7 = _trmc_map_subst(s2_7, function(k_8, v_7) {
         return Tuple2(k_8, _trmc_apply_subst(s1_8, v_7, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_7 = _trmc_filter_subst(updated_s2_7, function(k_0_7, ___wildcard_x120__39_7) {
+      var ys_10006_7 = _trmc_filter_subst(updated_s2_7, function(k_0_7, ___wildcard_x136__39_7) {
         var b_10007_7 = subst_has(s1_8, k_0_7);
         return b_10007_7 ? false : true;
       }, _cctx_empty());
       return append(s1_8, ys_10006_7);
-    }, _y_x10272, s_35);
+    }, _y_x10275, s_35);
     var inner_type_1 = _open_none2(apply_subst, s1_2_0, err_var_0_0);
     return infer_pattern(env_11, s1_2_0, inner_type_1, inner_1);
   }
-  function _mlift_infer_pattern_12703(env_12, inner_1_0, ok_var_0_0, s_39, scrut_type_3, err_var_0_1) {
-    var x_3_13255 = _open_at3(0, unify, scrut_type_3, TResult(ok_var_0_0, err_var_0_1), no_span);
+  function _mlift_infer_pattern_12772(env_12, inner_1_0, ok_var_0_0, s_39, scrut_type_3, err_var_0_1) {
+    var x_3_13336 = _open_at3(0, unify, scrut_type_3, TResult(ok_var_0_0, err_var_0_1), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10272_0) {
-        return _mlift_infer_pattern_12702(env_12, err_var_0_1, inner_1_0, s_39, _y_x10272_0);
+      return yield_extend(function(_y_x10275_0) {
+        return _mlift_infer_pattern_12771(env_12, err_var_0_1, inner_1_0, s_39, _y_x10275_0);
       });
     } else {
-      return _mlift_infer_pattern_12702(env_12, err_var_0_1, inner_1_0, s_39, x_3_13255);
+      return _mlift_infer_pattern_12771(env_12, err_var_0_1, inner_1_0, s_39, x_3_13336);
     }
   }
-  function _mlift_infer_pattern_12704(env_13, inner_1_1, s_40, scrut_type_4, ok_var_0_1) {
-    var x_4_13257 = _open_at0(1, function() {
-      var ev_0_13259 = _evv_at(0);
-      return ev_0_13259.hnd._fun_fresh_tvar(ev_0_13259.marker, ev_0_13259);
+  function _mlift_infer_pattern_12773(env_13, inner_1_1, s_40, scrut_type_4, ok_var_0_1) {
+    var x_4_13338 = _open_at0(1, function() {
+      var ev_0_13340 = _evv_at(0);
+      return ev_0_13340.hnd._fun_fresh_tvar(ev_0_13340.marker, ev_0_13340);
     });
     if (_yielding()) {
       return yield_extend(function(err_var_0_2) {
-        return _mlift_infer_pattern_12703(env_13, inner_1_1, ok_var_0_1, s_40, scrut_type_4, err_var_0_2);
+        return _mlift_infer_pattern_12772(env_13, inner_1_1, ok_var_0_1, s_40, scrut_type_4, err_var_0_2);
       });
     } else {
-      return _mlift_infer_pattern_12703(env_13, inner_1_1, ok_var_0_1, s_40, scrut_type_4, x_4_13257);
+      return _mlift_infer_pattern_12772(env_13, inner_1_1, ok_var_0_1, s_40, scrut_type_4, x_4_13338);
     }
   }
-  function _mlift_infer_pattern_12705(elem_vars, elems, env_14, s_41, _y_x10277) {
+  function _mlift_infer_pattern_12774(elem_vars, elems, env_14, s_41, _y_x10280) {
     var s1_3_0 = _open_none2(function(s1_9, s2_8) {
       var updated_s2_8 = _trmc_map_subst(s2_8, function(k_9, v_8) {
         return Tuple2(k_9, _trmc_apply_subst(s1_9, v_8, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_8 = _trmc_filter_subst(updated_s2_8, function(k_0_8, ___wildcard_x120__39_8) {
+      var ys_10006_8 = _trmc_filter_subst(updated_s2_8, function(k_0_8, ___wildcard_x136__39_8) {
         var b_10007_8 = subst_has(s1_9, k_0_8);
         return b_10007_8 ? false : true;
       }, _cctx_empty());
       return append(s1_9, ys_10006_8);
-    }, _y_x10277, s_41);
-    return foldl(zip(elems, elem_vars), Tuple2(s1_3_0, env_14), function(_pat_x1033__48, _pat_x1033__58) {
-      var resolved = _open_none2(apply_subst, _pat_x1033__48.fst, _pat_x1033__58.snd);
-      return infer_pattern(_pat_x1033__48.snd, _pat_x1033__48.fst, resolved, _pat_x1033__58.fst);
+    }, _y_x10280, s_41);
+    return foldl(zip(elems, elem_vars), Tuple2(s1_3_0, env_14), function(_pat_x1049__48, _pat_x1049__58) {
+      var resolved = _open_none2(apply_subst, _pat_x1049__48.fst, _pat_x1049__58.snd);
+      return infer_pattern(_pat_x1049__48.snd, _pat_x1049__48.fst, resolved, _pat_x1049__58.fst);
     });
   }
-  function _mlift_infer_pattern_12706(elems_0, env_15, s_45, scrut_type_5, elem_vars_0) {
-    var x_5_13267 = _open_at3(0, unify, scrut_type_5, TTuple(elem_vars_0), no_span);
+  function _mlift_infer_pattern_12775(elems_0, env_15, s_45, scrut_type_5, elem_vars_0) {
+    var x_5_13348 = _open_at3(0, unify, scrut_type_5, TTuple(elem_vars_0), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10277_0) {
-        return _mlift_infer_pattern_12705(elem_vars_0, elems_0, env_15, s_45, _y_x10277_0);
+      return yield_extend(function(_y_x10280_0) {
+        return _mlift_infer_pattern_12774(elem_vars_0, elems_0, env_15, s_45, _y_x10280_0);
       });
     } else {
-      return _mlift_infer_pattern_12705(elem_vars_0, elems_0, env_15, s_45, x_5_13267);
+      return _mlift_infer_pattern_12774(elem_vars_0, elems_0, env_15, s_45, x_5_13348);
     }
   }
-  function _mlift_infer_pattern_12707(env_16, s_46, wild__) {
+  function _mlift_infer_pattern_12776(env_16, s_46, wild__) {
     return Tuple2(s_46, env_16);
   }
-  function _mlift_infer_pattern_12708(args, env_17, s1_4_0, vd, _c_x10290) {
+  function _mlift_infer_pattern_12777(args, env_17, s1_4_0, vd, _c_x10293) {
     return foldl(zip(args, _open_none1(function(_this_2) {
       return _this_2.fields;
-    }, vd)), Tuple2(s1_4_0, env_17), function(_pat_x1053__51, _pat_x1053__61) {
-      return infer_pattern(_pat_x1053__51.snd, _pat_x1053__51.fst, _open_none1(function(tuple2) {
+    }, vd)), Tuple2(s1_4_0, env_17), function(_pat_x1069__51, _pat_x1069__61) {
+      return infer_pattern(_pat_x1069__51.snd, _pat_x1069__51.fst, _open_none1(function(tuple2) {
         return tuple2.snd;
-      }, _pat_x1053__61.snd), _pat_x1053__61.fst);
+      }, _pat_x1069__61.snd), _pat_x1069__61.fst);
     });
   }
-  function _mlift_infer_pattern_12709(args_0, cname, env_18, s_47, vd_0, _y_x10288) {
+  function _mlift_infer_pattern_12778(args_0, cname, env_18, s_47, vd_0, _y_x10291) {
     var s1_4_0_0 = _open_none2(function(s1_10, s2_9) {
       var updated_s2_9 = _trmc_map_subst(s2_9, function(k_10, v_9) {
         return Tuple2(k_10, _trmc_apply_subst(s1_10, v_9, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_9 = _trmc_filter_subst(updated_s2_9, function(k_0_9, ___wildcard_x120__39_9) {
+      var ys_10006_9 = _trmc_filter_subst(updated_s2_9, function(k_0_9, ___wildcard_x136__39_9) {
         var b_10007_9 = subst_has(s1_10, k_0_9);
         return b_10007_9 ? false : true;
       }, _cctx_empty());
       return append(s1_10, ys_10006_9);
-    }, _y_x10288, s_47);
-    var xs_0_10834 = _open_none1(function(_this_0) {
+    }, _y_x10291, s_47);
+    var xs_0_10852 = _open_none1(function(_this_0) {
       return _this_0.fields;
     }, vd_0);
-    var _x58 = _int_ne(_lift_length_6003(args_0, 0), _lift_length_6003(xs_0_10834, 0));
+    var _x58 = _int_ne(_lift_length_6003(args_0, 0), _lift_length_6003(xs_0_10852, 0));
     if (_x58) {
-      var xs_1_10837 = _open_none1(function(_this_1) {
+      var xs_1_10855 = _open_none1(function(_this_1) {
         return _this_1.fields;
       }, vd_0);
-      var _x_x2_27_11624 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(cname, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_1_10837, 0)), _lp__plus__plus__rp_(" field(s) in pattern, got ", show(_lift_length_6003(args_0, 0)))))));
-      var x_6_13275 = _open_at2(0, emit_error, no_span, _x_x2_27_11624);
+      var _x_x2_27_11664 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(cname, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_1_10855, 0)), _lp__plus__plus__rp_(" field(s) in pattern, got ", show(_lift_length_6003(args_0, 0)))))));
+      var x_6_13356 = _open_at2(0, emit_error, no_span, _x_x2_27_11664);
     } else {
-      var x_6_13275 = Unit;
+      var x_6_13356 = Unit;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10290_0) {
-        return _mlift_infer_pattern_12708(args_0, env_18, s1_4_0_0, vd_0, _c_x10290_0);
+      return yield_extend(function(_c_x10293_0) {
+        return _mlift_infer_pattern_12777(args_0, env_18, s1_4_0_0, vd_0, _c_x10293_0);
       });
     } else {
-      return _mlift_infer_pattern_12708(args_0, env_18, s1_4_0_0, vd_0, x_6_13275);
+      return _mlift_infer_pattern_12777(args_0, env_18, s1_4_0_0, vd_0, x_6_13356);
     }
   }
-  function _mlift_infer_pattern_12710(args_1, cname_0, env_19, s_51, scrut_type_6, reg) {
+  function _mlift_infer_pattern_12779(args_1, cname_0, env_19, s_51, scrut_type_6, reg) {
     var _x58 = _open_none2(type_find_by_ctor, reg, cname_0);
     if (_x58 === null) {
-      var _x_x2_24_11615 = _lp__plus__plus__rp_("unknown constructor in pattern: ", cname_0);
-      var x_7_13277 = _open_at2(0, emit_error, no_span, _x_x2_24_11615);
+      var _x_x2_24_11655 = _lp__plus__plus__rp_("unknown constructor in pattern: ", cname_0);
+      var x_7_13358 = _open_at2(0, emit_error, no_span, _x_x2_24_11655);
       if (_yielding()) {
         return yield_extend(function(wild___0) {
-          return _mlift_infer_pattern_12707(env_19, s_51, wild___0);
+          return _mlift_infer_pattern_12776(env_19, s_51, wild___0);
         });
       } else {
-        return _mlift_infer_pattern_12707(env_19, s_51, x_7_13277);
+        return _mlift_infer_pattern_12776(env_19, s_51, x_7_13358);
       }
     } else {
-      var _x_x2_25_11617 = TEnum(_open_none1(function(_this) {
+      var _x_x2_25_11657 = TEnum(_open_none1(function(_this) {
         return _this.name;
       }, _x58.value.fst));
-      var x_8_13279 = _open_at3(0, unify, scrut_type_6, _x_x2_25_11617, no_span);
+      var x_8_13360 = _open_at3(0, unify, scrut_type_6, _x_x2_25_11657, no_span);
       if (_yielding()) {
-        return yield_extend(function(_y_x10288_0) {
-          return _mlift_infer_pattern_12709(args_1, cname_0, env_19, s_51, _x58.value.snd, _y_x10288_0);
+        return yield_extend(function(_y_x10291_0) {
+          return _mlift_infer_pattern_12778(args_1, cname_0, env_19, s_51, _x58.value.snd, _y_x10291_0);
         });
       } else {
-        return _mlift_infer_pattern_12709(args_1, cname_0, env_19, s_51, _x58.value.snd, x_8_13279);
+        return _mlift_infer_pattern_12778(args_1, cname_0, env_19, s_51, _x58.value.snd, x_8_13360);
       }
     }
   }
-  function _mlift_infer_pattern_12711(env_20, s_52, wild___1) {
+  function _mlift_infer_pattern_12780(env_20, s_52, wild___1) {
     return Tuple2(s_52, env_20);
   }
-  function _mlift_infer_pattern_12712(ea_2, sa_2, wild___2) {
+  function _mlift_infer_pattern_12781(ea_2, sa_2, wild___2) {
     return Tuple2(sa_2, ea_2);
   }
-  function _mlift_infer_pattern_12713(ea_2_0, fname, fpat, sa_2_0, sname, _y_x10301) {
-    if (_y_x10301 === null) {
-      var _x_x2_32_11639 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(sname, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(fname, "'"))));
-      var x_9_13281 = _open_at2(0, emit_error, no_span, _x_x2_32_11639);
+  function _mlift_infer_pattern_12782(ea_2_0, fname, fpat, sa_2_0, sname, _y_x10304) {
+    if (_y_x10304 === null) {
+      var _x_x2_32_11679 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(sname, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(fname, "'"))));
+      var x_9_13362 = _open_at2(0, emit_error, no_span, _x_x2_32_11679);
       if (_yielding()) {
         return yield_extend(function(wild___2_0) {
-          return _mlift_infer_pattern_12712(ea_2_0, sa_2_0, wild___2_0);
+          return _mlift_infer_pattern_12781(ea_2_0, sa_2_0, wild___2_0);
         });
       } else {
-        return _mlift_infer_pattern_12712(ea_2_0, sa_2_0, x_9_13281);
+        return _mlift_infer_pattern_12781(ea_2_0, sa_2_0, x_9_13362);
       }
     } else {
-      return infer_pattern(ea_2_0, sa_2_0, _y_x10301.value.snd, fpat);
+      return infer_pattern(ea_2_0, sa_2_0, _y_x10304.value.snd, fpat);
     }
   }
-  function _mlift_infer_pattern_12714(env_21, fps, s_53, sd, sname_0, _y_x10299) {
+  function _mlift_infer_pattern_12783(env_21, fps, s_53, sd, sname_0, _y_x10302) {
     var s1_5_0 = _open_none2(function(s1_11, s2_10) {
       var updated_s2_10 = _trmc_map_subst(s2_10, function(k_11, v_10) {
         return Tuple2(k_11, _trmc_apply_subst(s1_11, v_10, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_10 = _trmc_filter_subst(updated_s2_10, function(k_0_10, ___wildcard_x120__39_10) {
+      var ys_10006_10 = _trmc_filter_subst(updated_s2_10, function(k_0_10, ___wildcard_x136__39_10) {
         var b_10007_10 = subst_has(s1_11, k_0_10);
         return b_10007_10 ? false : true;
       }, _cctx_empty());
       return append(s1_11, ys_10006_10);
-    }, _y_x10299, s_53);
-    return foldl(fps, Tuple2(s1_5_0, env_21), function(_pat_x1063__35, _pat_x1063__45) {
-      var x_10_13289 = find(_open_none1(function(_this_3) {
+    }, _y_x10302, s_53);
+    return foldl(fps, Tuple2(s1_5_0, env_21), function(_pat_x1079__35, _pat_x1079__45) {
+      var x_10_13370 = find(_open_none1(function(_this_3) {
         return _this_3.fields;
-      }, sd), function(_pat_x1064__37) {
-        return _pat_x1064__37.fst === _pat_x1063__45.fst;
+      }, sd), function(_pat_x1080__37) {
+        return _pat_x1080__37.fst === _pat_x1079__45.fst;
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10301_0) {
-          return _mlift_infer_pattern_12713(_pat_x1063__35.snd, _pat_x1063__45.fst, _pat_x1063__45.snd, _pat_x1063__35.fst, sname_0, _y_x10301_0);
+        return yield_extend(function(_y_x10304_0) {
+          return _mlift_infer_pattern_12782(_pat_x1079__35.snd, _pat_x1079__45.fst, _pat_x1079__45.snd, _pat_x1079__35.fst, sname_0, _y_x10304_0);
         });
       } else {
-        return _mlift_infer_pattern_12713(_pat_x1063__35.snd, _pat_x1063__45.fst, _pat_x1063__45.snd, _pat_x1063__35.fst, sname_0, x_10_13289);
+        return _mlift_infer_pattern_12782(_pat_x1079__35.snd, _pat_x1079__45.fst, _pat_x1079__45.snd, _pat_x1079__35.fst, sname_0, x_10_13370);
       }
     });
   }
-  function _mlift_infer_pattern_12715(env_22, fps_0, s_57, scrut_type_7, sname_1, reg_0) {
+  function _mlift_infer_pattern_12784(env_22, fps_0, s_57, scrut_type_7, sname_1, reg_0) {
     var _x59 = _open_none2(struct_find, reg_0, sname_1);
     if (_x59 === null) {
-      var _x_x2_29_11631 = _lp__plus__plus__rp_("unknown struct in pattern: ", sname_1);
-      var x_11_13291 = _open_at2(0, emit_error, no_span, _x_x2_29_11631);
+      var _x_x2_29_11671 = _lp__plus__plus__rp_("unknown struct in pattern: ", sname_1);
+      var x_11_13372 = _open_at2(0, emit_error, no_span, _x_x2_29_11671);
       if (_yielding()) {
         return yield_extend(function(wild___1_0) {
-          return _mlift_infer_pattern_12711(env_22, s_57, wild___1_0);
+          return _mlift_infer_pattern_12780(env_22, s_57, wild___1_0);
         });
       } else {
-        return _mlift_infer_pattern_12711(env_22, s_57, x_11_13291);
+        return _mlift_infer_pattern_12780(env_22, s_57, x_11_13372);
       }
     } else {
-      var x_12_13293 = _open_at3(0, unify, scrut_type_7, TStruct(sname_1), no_span);
+      var x_12_13374 = _open_at3(0, unify, scrut_type_7, TStruct(sname_1), no_span);
       if (_yielding()) {
-        return yield_extend(function(_y_x10299_0) {
-          return _mlift_infer_pattern_12714(env_22, fps_0, s_57, _x59.value, sname_1, _y_x10299_0);
+        return yield_extend(function(_y_x10302_0) {
+          return _mlift_infer_pattern_12783(env_22, fps_0, s_57, _x59.value, sname_1, _y_x10302_0);
         });
       } else {
-        return _mlift_infer_pattern_12714(env_22, fps_0, s_57, _x59.value, sname_1, x_12_13293);
+        return _mlift_infer_pattern_12783(env_22, fps_0, s_57, _x59.value, sname_1, x_12_13374);
       }
     }
   }
-  function _mlift_infer_pattern_12716(elem_var_1, rest, _y_x10314) {
+  function _mlift_infer_pattern_12785(elem_var_1, rest, _y_x10317) {
     if (rest === null) {
-      return Tuple2(_y_x10314.fst, _y_x10314.snd);
+      return Tuple2(_y_x10317.fst, _y_x10317.snd);
     } else {
-      return infer_pattern(_y_x10314.snd, _y_x10314.fst, _open_none2(apply_subst, _y_x10314.fst, TList(elem_var_1)), rest.value);
+      return infer_pattern(_y_x10317.snd, _y_x10317.fst, _open_none2(apply_subst, _y_x10317.fst, TList(elem_var_1)), rest.value);
     }
   }
-  function _mlift_infer_pattern_12717(elem_var_1_0, elems_0_0, env_23, rest_0, s_58, _y_x10311) {
+  function _mlift_infer_pattern_12786(elem_var_1_0, elems_0_0, env_23, rest_0, s_58, _y_x10314) {
     var s1_6_0 = _open_none2(function(s1_12, s2_11) {
       var updated_s2_11 = _trmc_map_subst(s2_11, function(k_12, v_11) {
         return Tuple2(k_12, _trmc_apply_subst(s1_12, v_11, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_11 = _trmc_filter_subst(updated_s2_11, function(k_0_11, ___wildcard_x120__39_11) {
+      var ys_10006_11 = _trmc_filter_subst(updated_s2_11, function(k_0_11, ___wildcard_x136__39_11) {
         var b_10007_11 = subst_has(s1_12, k_0_11);
         return b_10007_11 ? false : true;
       }, _cctx_empty());
       return append(s1_12, ys_10006_11);
-    }, _y_x10311, s_58);
-    var x_13_13301 = foldl(elems_0_0, Tuple2(s1_6_0, env_23), function(_pat_x1073__50, pat_1) {
-      var resolved_0 = _open_none2(apply_subst, _pat_x1073__50.fst, elem_var_1_0);
-      return infer_pattern(_pat_x1073__50.snd, _pat_x1073__50.fst, resolved_0, pat_1);
+    }, _y_x10314, s_58);
+    var x_13_13382 = foldl(elems_0_0, Tuple2(s1_6_0, env_23), function(_pat_x1089__50, pat_1) {
+      var resolved_0 = _open_none2(apply_subst, _pat_x1089__50.fst, elem_var_1_0);
+      return infer_pattern(_pat_x1089__50.snd, _pat_x1089__50.fst, resolved_0, pat_1);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10314_0) {
-        return _mlift_infer_pattern_12716(elem_var_1_0, rest_0, _y_x10314_0);
+      return yield_extend(function(_y_x10317_0) {
+        return _mlift_infer_pattern_12785(elem_var_1_0, rest_0, _y_x10317_0);
       });
     } else {
-      return _mlift_infer_pattern_12716(elem_var_1_0, rest_0, x_13_13301);
+      return _mlift_infer_pattern_12785(elem_var_1_0, rest_0, x_13_13382);
     }
   }
-  function _mlift_infer_pattern_12718(elems_0_1, env_24, rest_1, s_62, scrut_type_8, elem_var_1_1) {
-    var x_14_13303 = _open_at3(0, unify, scrut_type_8, TList(elem_var_1_1), no_span);
+  function _mlift_infer_pattern_12787(elems_0_1, env_24, rest_1, s_62, scrut_type_8, elem_var_1_1) {
+    var x_14_13384 = _open_at3(0, unify, scrut_type_8, TList(elem_var_1_1), no_span);
     if (_yielding()) {
-      return yield_extend(function(_y_x10311_0) {
-        return _mlift_infer_pattern_12717(elem_var_1_1, elems_0_1, env_24, rest_1, s_62, _y_x10311_0);
+      return yield_extend(function(_y_x10314_0) {
+        return _mlift_infer_pattern_12786(elem_var_1_1, elems_0_1, env_24, rest_1, s_62, _y_x10314_0);
       });
     } else {
-      return _mlift_infer_pattern_12717(elem_var_1_1, elems_0_1, env_24, rest_1, s_62, x_14_13303);
+      return _mlift_infer_pattern_12786(elem_var_1_1, elems_0_1, env_24, rest_1, s_62, x_14_13384);
     }
   }
-  function _mlift_infer_pattern_12719(env_25, s_63, _y_x10318) {
+  function _mlift_infer_pattern_12788(env_25, s_63, _y_x10321) {
     return Tuple2(_open_none2(function(s1_13, s2_13) {
       var updated_s2_12 = _trmc_map_subst(s2_13, function(k_13, v_12) {
         return Tuple2(k_13, _trmc_apply_subst(s1_13, v_12, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_12 = _trmc_filter_subst(updated_s2_12, function(k_0_12, ___wildcard_x120__39_12) {
+      var ys_10006_12 = _trmc_filter_subst(updated_s2_12, function(k_0_12, ___wildcard_x136__39_12) {
         var b_10007_12 = subst_has(s1_13, k_0_12);
         return b_10007_12 ? false : true;
       }, _cctx_empty());
       return append(s1_13, ys_10006_12);
-    }, _y_x10318, s_63), env_25);
+    }, _y_x10321, s_63), env_25);
   }
-  function _mlift_infer_pattern_12720(env_26, s_67, _y_x10319) {
+  function _mlift_infer_pattern_12789(env_26, s_67, _y_x10322) {
     return Tuple2(_open_none2(function(s1_14, s2_14) {
       var updated_s2_13 = _trmc_map_subst(s2_14, function(k_14, v_13) {
         return Tuple2(k_14, _trmc_apply_subst(s1_14, v_13, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_13 = _trmc_filter_subst(updated_s2_13, function(k_0_13, ___wildcard_x120__39_13) {
+      var ys_10006_13 = _trmc_filter_subst(updated_s2_13, function(k_0_13, ___wildcard_x136__39_13) {
         var b_10007_13 = subst_has(s1_14, k_0_13);
         return b_10007_13 ? false : true;
       }, _cctx_empty());
       return append(s1_14, ys_10006_13);
-    }, _y_x10319, s_67), env_26);
+    }, _y_x10322, s_67), env_26);
   }
   function infer_pattern(env_27, s_71, scrut_type_9, p) {
     tailcall: while (1) {
@@ -19283,122 +19316,122 @@ var __hica = (() => {
       } else if (p._tag === 2) {
         return Tuple2(s_71, Cons(Tuple2(p.name, scrut_type_9), env_27));
       } else if (p._tag === 3 && p.lit._tag === 1) {
-        var x_15_13317 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
+        var x_15_13398 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10250_0) {
-            return _mlift_infer_pattern_12690(env_27, s_71, _y_x10250_0);
+          return yield_extend(function(_y_x10253_0) {
+            return _mlift_infer_pattern_12759(env_27, s_71, _y_x10253_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_15, s2_15) {
             var updated_s2_14 = _trmc_map_subst(s2_15, function(k_15, v_14) {
               return Tuple2(k_15, _trmc_apply_subst(s1_15, v_14, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_14 = _trmc_filter_subst(updated_s2_14, function(k_0_14, ___wildcard_x120__39_14) {
+            var ys_10006_14 = _trmc_filter_subst(updated_s2_14, function(k_0_14, ___wildcard_x136__39_14) {
               var b_10007_14 = subst_has(s1_15, k_0_14);
               return b_10007_14 ? false : true;
             }, _cctx_empty());
             return append(s1_15, ys_10006_14);
-          }, x_15_13317, s_71), env_27);
+          }, x_15_13398, s_71), env_27);
         }
       } else if (p._tag === 3 && p.lit._tag === 2) {
-        var x_16_13326 = _open_at3(0, unify, scrut_type_9, TFloat, no_span);
+        var x_16_13407 = _open_at3(0, unify, scrut_type_9, TFloat, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10251_0) {
-            return _mlift_infer_pattern_12691(env_27, s_71, _y_x10251_0);
+          return yield_extend(function(_y_x10254_0) {
+            return _mlift_infer_pattern_12760(env_27, s_71, _y_x10254_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_0_1, s2_0_0) {
             var updated_s2_0_0 = _trmc_map_subst(s2_0_0, function(k_1_0, v_0_0) {
               return Tuple2(k_1_0, _trmc_apply_subst(s1_0_1, v_0_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_0_0 = _trmc_filter_subst(updated_s2_0_0, function(k_0_0_0, ___wildcard_x120__39_0_0) {
+            var ys_10006_0_0 = _trmc_filter_subst(updated_s2_0_0, function(k_0_0_0, ___wildcard_x136__39_0_0) {
               var b_10007_0_0 = subst_has(s1_0_1, k_0_0_0);
               return b_10007_0_0 ? false : true;
             }, _cctx_empty());
             return append(s1_0_1, ys_10006_0_0);
-          }, x_16_13326, s_71), env_27);
+          }, x_16_13407, s_71), env_27);
         }
       } else if (p._tag === 3 && p.lit._tag === 3) {
-        var x_17_13335 = _open_at3(0, unify, scrut_type_9, TBool, no_span);
+        var x_17_13416 = _open_at3(0, unify, scrut_type_9, TBool, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10252_0) {
-            return _mlift_infer_pattern_12692(env_27, s_71, _y_x10252_0);
+          return yield_extend(function(_y_x10255_0) {
+            return _mlift_infer_pattern_12761(env_27, s_71, _y_x10255_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_1_1, s2_1_0) {
             var updated_s2_1_0 = _trmc_map_subst(s2_1_0, function(k_2_0, v_1_0) {
               return Tuple2(k_2_0, _trmc_apply_subst(s1_1_1, v_1_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_1_0 = _trmc_filter_subst(updated_s2_1_0, function(k_0_1_0, ___wildcard_x120__39_1_0) {
+            var ys_10006_1_0 = _trmc_filter_subst(updated_s2_1_0, function(k_0_1_0, ___wildcard_x136__39_1_0) {
               var b_10007_1_0 = subst_has(s1_1_1, k_0_1_0);
               return b_10007_1_0 ? false : true;
             }, _cctx_empty());
             return append(s1_1_1, ys_10006_1_0);
-          }, x_17_13335, s_71), env_27);
+          }, x_17_13416, s_71), env_27);
         }
       } else if (p._tag === 3 && p.lit._tag === 4) {
-        var x_18_13344 = _open_at3(0, unify, scrut_type_9, TString, no_span);
+        var x_18_13425 = _open_at3(0, unify, scrut_type_9, TString, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10253_0) {
-            return _mlift_infer_pattern_12693(env_27, s_71, _y_x10253_0);
+          return yield_extend(function(_y_x10256_0) {
+            return _mlift_infer_pattern_12762(env_27, s_71, _y_x10256_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_2_1, s2_2_0) {
             var updated_s2_2_0 = _trmc_map_subst(s2_2_0, function(k_3_0, v_2_0) {
               return Tuple2(k_3_0, _trmc_apply_subst(s1_2_1, v_2_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_2_0 = _trmc_filter_subst(updated_s2_2_0, function(k_0_2_0, ___wildcard_x120__39_2_0) {
+            var ys_10006_2_0 = _trmc_filter_subst(updated_s2_2_0, function(k_0_2_0, ___wildcard_x136__39_2_0) {
               var b_10007_2_0 = subst_has(s1_2_1, k_0_2_0);
               return b_10007_2_0 ? false : true;
             }, _cctx_empty());
             return append(s1_2_1, ys_10006_2_0);
-          }, x_18_13344, s_71), env_27);
+          }, x_18_13425, s_71), env_27);
         }
       } else if (p._tag === 3 && p.lit._tag === 5) {
-        var x_19_13353 = _open_at3(0, unify, scrut_type_9, TChar, no_span);
+        var x_19_13434 = _open_at3(0, unify, scrut_type_9, TChar, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10254_0) {
-            return _mlift_infer_pattern_12694(env_27, s_71, _y_x10254_0);
+          return yield_extend(function(_y_x10257_0) {
+            return _mlift_infer_pattern_12763(env_27, s_71, _y_x10257_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_3_1, s2_3_0) {
             var updated_s2_3_0 = _trmc_map_subst(s2_3_0, function(k_4_0, v_3_0) {
               return Tuple2(k_4_0, _trmc_apply_subst(s1_3_1, v_3_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_3_0 = _trmc_filter_subst(updated_s2_3_0, function(k_0_3_0, ___wildcard_x120__39_3_0) {
+            var ys_10006_3_0 = _trmc_filter_subst(updated_s2_3_0, function(k_0_3_0, ___wildcard_x136__39_3_0) {
               var b_10007_3_0 = subst_has(s1_3_1, k_0_3_0);
               return b_10007_3_0 ? false : true;
             }, _cctx_empty());
             return append(s1_3_1, ys_10006_3_0);
-          }, x_19_13353, s_71), env_27);
+          }, x_19_13434, s_71), env_27);
         }
       } else if (p._tag === 4) {
-        var x_20_13362 = _open_at0(1, function() {
-          var ev_1_13365 = _evv_at(0);
-          return ev_1_13365.hnd._fun_fresh_tvar(ev_1_13365.marker, ev_1_13365);
+        var x_20_13443 = _open_at0(1, function() {
+          var ev_1_13446 = _evv_at(0);
+          return ev_1_13446.hnd._fun_fresh_tvar(ev_1_13446.marker, ev_1_13446);
         });
         if (_yielding()) {
           return yield_extend(function(elem_var_2) {
-            return _mlift_infer_pattern_12696(env_27, p.inner, s_71, scrut_type_9, elem_var_2);
+            return _mlift_infer_pattern_12765(env_27, p.inner, s_71, scrut_type_9, elem_var_2);
           });
         } else {
-          var x_21_13367 = _open_at3(0, unify, scrut_type_9, TMaybe(x_20_13362), no_span);
+          var x_21_13448 = _open_at3(0, unify, scrut_type_9, TMaybe(x_20_13443), no_span);
           if (_yielding()) {
-            return yield_extend(function(_y_x10257_1) {
-              return _mlift_infer_pattern_12695(x_20_13362, env_27, p.inner, s_71, _y_x10257_1);
+            return yield_extend(function(_y_x10260_1) {
+              return _mlift_infer_pattern_12764(x_20_13443, env_27, p.inner, s_71, _y_x10260_1);
             });
           } else {
             var s1_5_1 = _open_none2(function(s1_4_1, s2_4_0) {
               var updated_s2_4_0 = _trmc_map_subst(s2_4_0, function(k_5_0, v_4_0) {
                 return Tuple2(k_5_0, _trmc_apply_subst(s1_4_1, v_4_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_4_0 = _trmc_filter_subst(updated_s2_4_0, function(k_0_4_0, ___wildcard_x120__39_4_0) {
+              var ys_10006_4_0 = _trmc_filter_subst(updated_s2_4_0, function(k_0_4_0, ___wildcard_x136__39_4_0) {
                 var b_10007_4_0 = subst_has(s1_4_1, k_0_4_0);
                 return b_10007_4_0 ? false : true;
               }, _cctx_empty());
               return append(s1_4_1, ys_10006_4_0);
-            }, x_21_13367, s_71);
-            var inner_type_2 = _open_none2(apply_subst, s1_5_1, x_20_13362);
+            }, x_21_13448, s_71);
+            var inner_type_2 = _open_none2(apply_subst, s1_5_1, x_20_13443);
             {
               s_71 = s1_5_1;
               scrut_type_9 = inner_type_2;
@@ -19408,70 +19441,70 @@ var __hica = (() => {
           }
         }
       } else if (p._tag === 5) {
-        var x_22_13376 = _open_at0(1, function() {
-          var ev_2_13379 = _evv_at(0);
-          return ev_2_13379.hnd._fun_fresh_tvar(ev_2_13379.marker, ev_2_13379);
+        var x_22_13457 = _open_at0(1, function() {
+          var ev_2_13460 = _evv_at(0);
+          return ev_2_13460.hnd._fun_fresh_tvar(ev_2_13460.marker, ev_2_13460);
         });
         if (_yielding()) {
           return yield_extend(function(elem_var_0_1) {
-            return _mlift_infer_pattern_12698(env_27, s_71, scrut_type_9, elem_var_0_1);
+            return _mlift_infer_pattern_12767(env_27, s_71, scrut_type_9, elem_var_0_1);
           });
         } else {
-          var x_23_13381 = _open_at3(0, unify, scrut_type_9, TMaybe(x_22_13376), no_span);
+          var x_23_13462 = _open_at3(0, unify, scrut_type_9, TMaybe(x_22_13457), no_span);
           if (_yielding()) {
-            return yield_extend(function(_y_x10261_1) {
-              return _mlift_infer_pattern_12697(env_27, s_71, _y_x10261_1);
+            return yield_extend(function(_y_x10264_1) {
+              return _mlift_infer_pattern_12766(env_27, s_71, _y_x10264_1);
             });
           } else {
             var s1_0_0_0 = _open_none2(function(s1_6_1, s2_5_0) {
               var updated_s2_5_0 = _trmc_map_subst(s2_5_0, function(k_6_0, v_5_0) {
                 return Tuple2(k_6_0, _trmc_apply_subst(s1_6_1, v_5_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_5_0 = _trmc_filter_subst(updated_s2_5_0, function(k_0_5_0, ___wildcard_x120__39_5_0) {
+              var ys_10006_5_0 = _trmc_filter_subst(updated_s2_5_0, function(k_0_5_0, ___wildcard_x136__39_5_0) {
                 var b_10007_5_0 = subst_has(s1_6_1, k_0_5_0);
                 return b_10007_5_0 ? false : true;
               }, _cctx_empty());
               return append(s1_6_1, ys_10006_5_0);
-            }, x_23_13381, s_71);
+            }, x_23_13462, s_71);
             return Tuple2(s1_0_0_0, env_27);
           }
         }
       } else if (p._tag === 6) {
-        var x_24_13390 = _open_at0(1, function() {
-          var ev_3_13393 = _evv_at(0);
-          return ev_3_13393.hnd._fun_fresh_tvar(ev_3_13393.marker, ev_3_13393);
+        var x_24_13471 = _open_at0(1, function() {
+          var ev_3_13474 = _evv_at(0);
+          return ev_3_13474.hnd._fun_fresh_tvar(ev_3_13474.marker, ev_3_13474);
         });
         if (_yielding()) {
           return yield_extend(function(ok_var_2) {
-            return _mlift_infer_pattern_12701(env_27, p.inner, s_71, scrut_type_9, ok_var_2);
+            return _mlift_infer_pattern_12770(env_27, p.inner, s_71, scrut_type_9, ok_var_2);
           });
         } else {
-          var x_25_13395 = _open_at0(1, function() {
-            var ev_4_13398 = _evv_at(0);
-            return ev_4_13398.hnd._fun_fresh_tvar(ev_4_13398.marker, ev_4_13398);
+          var x_25_13476 = _open_at0(1, function() {
+            var ev_4_13479 = _evv_at(0);
+            return ev_4_13479.hnd._fun_fresh_tvar(ev_4_13479.marker, ev_4_13479);
           });
           if (_yielding()) {
             return yield_extend(function(err_var_1) {
-              return _mlift_infer_pattern_12700(env_27, p.inner, x_24_13390, s_71, scrut_type_9, err_var_1);
+              return _mlift_infer_pattern_12769(env_27, p.inner, x_24_13471, s_71, scrut_type_9, err_var_1);
             });
           } else {
-            var x_26_13400 = _open_at3(0, unify, scrut_type_9, TResult(x_24_13390, x_25_13395), no_span);
+            var x_26_13481 = _open_at3(0, unify, scrut_type_9, TResult(x_24_13471, x_25_13476), no_span);
             if (_yielding()) {
-              return yield_extend(function(_y_x10266_1) {
-                return _mlift_infer_pattern_12699(env_27, p.inner, x_24_13390, s_71, _y_x10266_1);
+              return yield_extend(function(_y_x10269_1) {
+                return _mlift_infer_pattern_12768(env_27, p.inner, x_24_13471, s_71, _y_x10269_1);
               });
             } else {
               var s1_1_0_0 = _open_none2(function(s1_7_0, s2_6_0) {
                 var updated_s2_6_0 = _trmc_map_subst(s2_6_0, function(k_7_0, v_6_0) {
                   return Tuple2(k_7_0, _trmc_apply_subst(s1_7_0, v_6_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_6_0 = _trmc_filter_subst(updated_s2_6_0, function(k_0_6_0, ___wildcard_x120__39_6_0) {
+                var ys_10006_6_0 = _trmc_filter_subst(updated_s2_6_0, function(k_0_6_0, ___wildcard_x136__39_6_0) {
                   var b_10007_6_0 = subst_has(s1_7_0, k_0_6_0);
                   return b_10007_6_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_7_0, ys_10006_6_0);
-              }, x_26_13400, s_71);
-              var inner_type_0_0 = _open_none2(apply_subst, s1_1_0_0, x_24_13390);
+              }, x_26_13481, s_71);
+              var inner_type_0_0 = _open_none2(apply_subst, s1_1_0_0, x_24_13471);
               {
                 s_71 = s1_1_0_0;
                 scrut_type_9 = inner_type_0_0;
@@ -19482,41 +19515,41 @@ var __hica = (() => {
           }
         }
       } else if (p._tag === 7) {
-        var x_27_13409 = _open_at0(1, function() {
-          var ev_5_13412 = _evv_at(0);
-          return ev_5_13412.hnd._fun_fresh_tvar(ev_5_13412.marker, ev_5_13412);
+        var x_27_13490 = _open_at0(1, function() {
+          var ev_5_13493 = _evv_at(0);
+          return ev_5_13493.hnd._fun_fresh_tvar(ev_5_13493.marker, ev_5_13493);
         });
         if (_yielding()) {
           return yield_extend(function(ok_var_0_2) {
-            return _mlift_infer_pattern_12704(env_27, p.inner, s_71, scrut_type_9, ok_var_0_2);
+            return _mlift_infer_pattern_12773(env_27, p.inner, s_71, scrut_type_9, ok_var_0_2);
           });
         } else {
-          var x_28_13414 = _open_at0(1, function() {
-            var ev_6_13417 = _evv_at(0);
-            return ev_6_13417.hnd._fun_fresh_tvar(ev_6_13417.marker, ev_6_13417);
+          var x_28_13495 = _open_at0(1, function() {
+            var ev_6_13498 = _evv_at(0);
+            return ev_6_13498.hnd._fun_fresh_tvar(ev_6_13498.marker, ev_6_13498);
           });
           if (_yielding()) {
             return yield_extend(function(err_var_0_3) {
-              return _mlift_infer_pattern_12703(env_27, p.inner, x_27_13409, s_71, scrut_type_9, err_var_0_3);
+              return _mlift_infer_pattern_12772(env_27, p.inner, x_27_13490, s_71, scrut_type_9, err_var_0_3);
             });
           } else {
-            var x_29_13419 = _open_at3(0, unify, scrut_type_9, TResult(x_27_13409, x_28_13414), no_span);
+            var x_29_13500 = _open_at3(0, unify, scrut_type_9, TResult(x_27_13490, x_28_13495), no_span);
             if (_yielding()) {
-              return yield_extend(function(_y_x10272_1) {
-                return _mlift_infer_pattern_12702(env_27, x_28_13414, p.inner, s_71, _y_x10272_1);
+              return yield_extend(function(_y_x10275_1) {
+                return _mlift_infer_pattern_12771(env_27, x_28_13495, p.inner, s_71, _y_x10275_1);
               });
             } else {
               var s1_2_0_0 = _open_none2(function(s1_8_0, s2_7_0) {
                 var updated_s2_7_0 = _trmc_map_subst(s2_7_0, function(k_8_0, v_7_0) {
                   return Tuple2(k_8_0, _trmc_apply_subst(s1_8_0, v_7_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_7_0 = _trmc_filter_subst(updated_s2_7_0, function(k_0_7_0, ___wildcard_x120__39_7_0) {
+                var ys_10006_7_0 = _trmc_filter_subst(updated_s2_7_0, function(k_0_7_0, ___wildcard_x136__39_7_0) {
                   var b_10007_7_0 = subst_has(s1_8_0, k_0_7_0);
                   return b_10007_7_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_8_0, ys_10006_7_0);
-              }, x_29_13419, s_71);
-              var inner_type_1_0 = _open_none2(apply_subst, s1_2_0_0, x_28_13414);
+              }, x_29_13500, s_71);
+              var inner_type_1_0 = _open_none2(apply_subst, s1_2_0_0, x_28_13495);
               {
                 s_71 = s1_2_0_0;
                 scrut_type_9 = inner_type_1_0;
@@ -19527,210 +19560,210 @@ var __hica = (() => {
           }
         }
       } else if (p._tag === 8) {
-        var x_30_13428 = map(p.elems, function(___wildcard_x1031__36) {
+        var x_30_13509 = map(p.elems, function(___wildcard_x1047__36) {
           return _open_at0(1, function() {
-            var ev_7_13431 = _evv_at(0);
-            return ev_7_13431.hnd._fun_fresh_tvar(ev_7_13431.marker, ev_7_13431);
+            var ev_7_13512 = _evv_at(0);
+            return ev_7_13512.hnd._fun_fresh_tvar(ev_7_13512.marker, ev_7_13512);
           });
         });
         if (_yielding()) {
           return yield_extend(function(elem_vars_1) {
-            return _mlift_infer_pattern_12706(p.elems, env_27, s_71, scrut_type_9, elem_vars_1);
+            return _mlift_infer_pattern_12775(p.elems, env_27, s_71, scrut_type_9, elem_vars_1);
           });
         } else {
-          var x_31_13433 = _open_at3(0, unify, scrut_type_9, TTuple(x_30_13428), no_span);
+          var x_31_13514 = _open_at3(0, unify, scrut_type_9, TTuple(x_30_13509), no_span);
           if (_yielding()) {
-            return yield_extend(function(_y_x10277_1) {
-              return _mlift_infer_pattern_12705(x_30_13428, p.elems, env_27, s_71, _y_x10277_1);
+            return yield_extend(function(_y_x10280_1) {
+              return _mlift_infer_pattern_12774(x_30_13509, p.elems, env_27, s_71, _y_x10280_1);
             });
           } else {
             var s1_3_0_0 = _open_none2(function(s1_9_0, s2_8_0) {
               var updated_s2_8_0 = _trmc_map_subst(s2_8_0, function(k_9_0, v_8_0) {
                 return Tuple2(k_9_0, _trmc_apply_subst(s1_9_0, v_8_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_8_0 = _trmc_filter_subst(updated_s2_8_0, function(k_0_8_0, ___wildcard_x120__39_8_0) {
+              var ys_10006_8_0 = _trmc_filter_subst(updated_s2_8_0, function(k_0_8_0, ___wildcard_x136__39_8_0) {
                 var b_10007_8_0 = subst_has(s1_9_0, k_0_8_0);
                 return b_10007_8_0 ? false : true;
               }, _cctx_empty());
               return append(s1_9_0, ys_10006_8_0);
-            }, x_31_13433, s_71);
-            return foldl(zip(p.elems, x_30_13428), Tuple2(s1_3_0_0, env_27), function(_pat_x1033__48_0, _pat_x1033__58_0) {
-              var resolved_1 = _open_none2(apply_subst, _pat_x1033__48_0.fst, _pat_x1033__58_0.snd);
-              return infer_pattern(_pat_x1033__48_0.snd, _pat_x1033__48_0.fst, resolved_1, _pat_x1033__58_0.fst);
+            }, x_31_13514, s_71);
+            return foldl(zip(p.elems, x_30_13509), Tuple2(s1_3_0_0, env_27), function(_pat_x1049__48_0, _pat_x1049__58_0) {
+              var resolved_1 = _open_none2(apply_subst, _pat_x1049__48_0.fst, _pat_x1049__58_0.snd);
+              return infer_pattern(_pat_x1049__48_0.snd, _pat_x1049__48_0.fst, resolved_1, _pat_x1049__58_0.fst);
             });
           }
         }
       } else if (p._tag === 9) {
-        return foldl(p.alts, Tuple2(s_71, env_27), function(_pat_x1038__31, alt) {
-          return infer_pattern(_pat_x1038__31.snd, _pat_x1038__31.fst, scrut_type_9, alt);
+        return foldl(p.alts, Tuple2(s_71, env_27), function(_pat_x1054__31, alt) {
+          return infer_pattern(_pat_x1054__31.snd, _pat_x1054__31.fst, scrut_type_9, alt);
         });
       } else if (p._tag === 10) {
-        var x_32_13442 = _open_at0(3, function() {
-          var ev_8_13445 = _evv_at(0);
-          return ev_8_13445.hnd._fun_get_types(ev_8_13445.marker, ev_8_13445);
+        var x_32_13523 = _open_at0(3, function() {
+          var ev_8_13526 = _evv_at(0);
+          return ev_8_13526.hnd._fun_get_types(ev_8_13526.marker, ev_8_13526);
         });
         if (_yielding()) {
           return yield_extend(function(reg_1) {
-            return _mlift_infer_pattern_12710(p.ctor_args, p.ctor_name, env_27, s_71, scrut_type_9, reg_1);
+            return _mlift_infer_pattern_12779(p.ctor_args, p.ctor_name, env_27, s_71, scrut_type_9, reg_1);
           });
         } else {
-          var _x60 = _open_none2(type_find_by_ctor, x_32_13442, p.ctor_name);
+          var _x60 = _open_none2(type_find_by_ctor, x_32_13523, p.ctor_name);
           if (_x60 === null) {
-            var _x_x2_24_11615_0 = _lp__plus__plus__rp_("unknown constructor in pattern: ", p.ctor_name);
-            var x_33_13447 = _open_at2(0, emit_error, no_span, _x_x2_24_11615_0);
+            var _x_x2_24_11655_0 = _lp__plus__plus__rp_("unknown constructor in pattern: ", p.ctor_name);
+            var x_33_13528 = _open_at2(0, emit_error, no_span, _x_x2_24_11655_0);
             if (_yielding()) {
               return yield_extend(function(wild___3) {
-                return _mlift_infer_pattern_12707(env_27, s_71, wild___3);
+                return _mlift_infer_pattern_12776(env_27, s_71, wild___3);
               });
             } else {
               return Tuple2(s_71, env_27);
             }
           } else {
-            var _x_x2_25_11617_0 = TEnum(_open_none1(function(_this_4) {
+            var _x_x2_25_11657_0 = TEnum(_open_none1(function(_this_4) {
               return _this_4.name;
             }, _x60.value.fst));
-            var x_34_13450 = _open_at3(0, unify, scrut_type_9, _x_x2_25_11617_0, no_span);
+            var x_34_13531 = _open_at3(0, unify, scrut_type_9, _x_x2_25_11657_0, no_span);
             if (_yielding()) {
-              return yield_extend(function(_y_x10288_1) {
-                return _mlift_infer_pattern_12709(p.ctor_args, p.ctor_name, env_27, s_71, _x60.value.snd, _y_x10288_1);
+              return yield_extend(function(_y_x10291_1) {
+                return _mlift_infer_pattern_12778(p.ctor_args, p.ctor_name, env_27, s_71, _x60.value.snd, _y_x10291_1);
               });
             } else {
               var s1_4_0_1 = _open_none2(function(s1_10_0, s2_9_0) {
                 var updated_s2_9_0 = _trmc_map_subst(s2_9_0, function(k_10_0, v_9_0) {
                   return Tuple2(k_10_0, _trmc_apply_subst(s1_10_0, v_9_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_9_0 = _trmc_filter_subst(updated_s2_9_0, function(k_0_9_0, ___wildcard_x120__39_9_0) {
+                var ys_10006_9_0 = _trmc_filter_subst(updated_s2_9_0, function(k_0_9_0, ___wildcard_x136__39_9_0) {
                   var b_10007_9_0 = subst_has(s1_10_0, k_0_9_0);
                   return b_10007_9_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_10_0, ys_10006_9_0);
-              }, x_34_13450, s_71);
-              var xs_0_10834_0 = _open_none1(function(_this_0_0) {
+              }, x_34_13531, s_71);
+              var xs_0_10852_0 = _open_none1(function(_this_0_0) {
                 return _this_0_0.fields;
               }, _x60.value.snd);
-              var _x61 = _int_ne(_lift_length_6003(p.ctor_args, 0), _lift_length_6003(xs_0_10834_0, 0));
+              var _x61 = _int_ne(_lift_length_6003(p.ctor_args, 0), _lift_length_6003(xs_0_10852_0, 0));
               if (_x61) {
-                var xs_1_10837_0 = _open_none1(function(_this_1_0) {
+                var xs_1_10855_0 = _open_none1(function(_this_1_0) {
                   return _this_1_0.fields;
                 }, _x60.value.snd);
-                var _x_x2_27_11624_0 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(p.ctor_name, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_1_10837_0, 0)), _lp__plus__plus__rp_(" field(s) in pattern, got ", show(_lift_length_6003(p.ctor_args, 0)))))));
-                var x_35_13459 = _open_at2(0, emit_error, no_span, _x_x2_27_11624_0);
+                var _x_x2_27_11664_0 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(p.ctor_name, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_1_10855_0, 0)), _lp__plus__plus__rp_(" field(s) in pattern, got ", show(_lift_length_6003(p.ctor_args, 0)))))));
+                var x_35_13540 = _open_at2(0, emit_error, no_span, _x_x2_27_11664_0);
               } else {
-                var x_35_13459 = Unit;
+                var x_35_13540 = Unit;
               }
               if (_yielding()) {
-                return yield_extend(function(_c_x10290_1) {
-                  return _mlift_infer_pattern_12708(p.ctor_args, env_27, s1_4_0_1, _x60.value.snd, _c_x10290_1);
+                return yield_extend(function(_c_x10293_1) {
+                  return _mlift_infer_pattern_12777(p.ctor_args, env_27, s1_4_0_1, _x60.value.snd, _c_x10293_1);
                 });
               } else {
                 return foldl(zip(p.ctor_args, _open_none1(function(_this_2_0) {
                   return _this_2_0.fields;
-                }, _x60.value.snd)), Tuple2(s1_4_0_1, env_27), function(_pat_x1053__51_0, _pat_x1053__61_0) {
-                  return infer_pattern(_pat_x1053__51_0.snd, _pat_x1053__51_0.fst, _open_none1(function(tuple2_0) {
+                }, _x60.value.snd)), Tuple2(s1_4_0_1, env_27), function(_pat_x1069__51_0, _pat_x1069__61_0) {
+                  return infer_pattern(_pat_x1069__51_0.snd, _pat_x1069__51_0.fst, _open_none1(function(tuple2_0) {
                     return tuple2_0.snd;
-                  }, _pat_x1053__61_0.snd), _pat_x1053__61_0.fst);
+                  }, _pat_x1069__61_0.snd), _pat_x1069__61_0.fst);
                 });
               }
             }
           }
         }
       } else if (p._tag === 11) {
-        var x_36_13462 = _open_at0(2, function() {
-          var ev_9_13465 = _evv_at(0);
-          return ev_9_13465.hnd._fun_get_structs(ev_9_13465.marker, ev_9_13465);
+        var x_36_13543 = _open_at0(2, function() {
+          var ev_9_13546 = _evv_at(0);
+          return ev_9_13546.hnd._fun_get_structs(ev_9_13546.marker, ev_9_13546);
         });
         if (_yielding()) {
           return yield_extend(function(reg_0_0) {
-            return _mlift_infer_pattern_12715(env_27, p.field_pats, s_71, scrut_type_9, p.struct_name, reg_0_0);
+            return _mlift_infer_pattern_12784(env_27, p.field_pats, s_71, scrut_type_9, p.struct_name, reg_0_0);
           });
         } else {
-          var _x61 = _open_none2(struct_find, x_36_13462, p.struct_name);
+          var _x61 = _open_none2(struct_find, x_36_13543, p.struct_name);
           if (_x61 === null) {
-            var _x_x2_29_11631_0 = _lp__plus__plus__rp_("unknown struct in pattern: ", p.struct_name);
-            var x_37_13467 = _open_at2(0, emit_error, no_span, _x_x2_29_11631_0);
+            var _x_x2_29_11671_0 = _lp__plus__plus__rp_("unknown struct in pattern: ", p.struct_name);
+            var x_37_13548 = _open_at2(0, emit_error, no_span, _x_x2_29_11671_0);
             if (_yielding()) {
               return yield_extend(function(wild___1_1) {
-                return _mlift_infer_pattern_12711(env_27, s_71, wild___1_1);
+                return _mlift_infer_pattern_12780(env_27, s_71, wild___1_1);
               });
             } else {
               return Tuple2(s_71, env_27);
             }
           } else {
-            var x_38_13470 = _open_at3(0, unify, scrut_type_9, TStruct(p.struct_name), no_span);
+            var x_38_13551 = _open_at3(0, unify, scrut_type_9, TStruct(p.struct_name), no_span);
             if (_yielding()) {
-              return yield_extend(function(_y_x10299_1) {
-                return _mlift_infer_pattern_12714(env_27, p.field_pats, s_71, _x61.value, p.struct_name, _y_x10299_1);
+              return yield_extend(function(_y_x10302_1) {
+                return _mlift_infer_pattern_12783(env_27, p.field_pats, s_71, _x61.value, p.struct_name, _y_x10302_1);
               });
             } else {
               var s1_5_0_0 = _open_none2(function(s1_11_0, s2_10_0) {
                 var updated_s2_10_0 = _trmc_map_subst(s2_10_0, function(k_11_0, v_10_0) {
                   return Tuple2(k_11_0, _trmc_apply_subst(s1_11_0, v_10_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_10_0 = _trmc_filter_subst(updated_s2_10_0, function(k_0_10_0, ___wildcard_x120__39_10_0) {
+                var ys_10006_10_0 = _trmc_filter_subst(updated_s2_10_0, function(k_0_10_0, ___wildcard_x136__39_10_0) {
                   var b_10007_10_0 = subst_has(s1_11_0, k_0_10_0);
                   return b_10007_10_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_11_0, ys_10006_10_0);
-              }, x_38_13470, s_71);
-              return foldl(p.field_pats, Tuple2(s1_5_0_0, env_27), function(_pat_x1063__35_0, _pat_x1063__45_0) {
-                var x_39_13479 = find(_open_none1(function(_this_3_0) {
+              }, x_38_13551, s_71);
+              return foldl(p.field_pats, Tuple2(s1_5_0_0, env_27), function(_pat_x1079__35_0, _pat_x1079__45_0) {
+                var x_39_13560 = find(_open_none1(function(_this_3_0) {
                   return _this_3_0.fields;
-                }, _x61.value), function(_pat_x1064__37_0) {
-                  return _pat_x1064__37_0.fst === _pat_x1063__45_0.fst;
+                }, _x61.value), function(_pat_x1080__37_0) {
+                  return _pat_x1080__37_0.fst === _pat_x1079__45_0.fst;
                 });
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10301_1) {
-                    return _mlift_infer_pattern_12713(_pat_x1063__35_0.snd, _pat_x1063__45_0.fst, _pat_x1063__45_0.snd, _pat_x1063__35_0.fst, p.struct_name, _y_x10301_1);
+                  return yield_extend(function(_y_x10304_1) {
+                    return _mlift_infer_pattern_12782(_pat_x1079__35_0.snd, _pat_x1079__45_0.fst, _pat_x1079__45_0.snd, _pat_x1079__35_0.fst, p.struct_name, _y_x10304_1);
                   });
                 } else {
-                  return _mlift_infer_pattern_12713(_pat_x1063__35_0.snd, _pat_x1063__45_0.fst, _pat_x1063__45_0.snd, _pat_x1063__35_0.fst, p.struct_name, x_39_13479);
+                  return _mlift_infer_pattern_12782(_pat_x1079__35_0.snd, _pat_x1079__45_0.fst, _pat_x1079__45_0.snd, _pat_x1079__35_0.fst, p.struct_name, x_39_13560);
                 }
               });
             }
           }
         }
       } else if (p._tag === 12) {
-        var x_40_13481 = _open_at0(1, function() {
-          var ev_10_13484 = _evv_at(0);
-          return ev_10_13484.hnd._fun_fresh_tvar(ev_10_13484.marker, ev_10_13484);
+        var x_40_13562 = _open_at0(1, function() {
+          var ev_10_13565 = _evv_at(0);
+          return ev_10_13565.hnd._fun_fresh_tvar(ev_10_13565.marker, ev_10_13565);
         });
         if (_yielding()) {
           return yield_extend(function(elem_var_1_2) {
-            return _mlift_infer_pattern_12718(p.elems, env_27, p.rest, s_71, scrut_type_9, elem_var_1_2);
+            return _mlift_infer_pattern_12787(p.elems, env_27, p.rest, s_71, scrut_type_9, elem_var_1_2);
           });
         } else {
-          var x_41_13486 = _open_at3(0, unify, scrut_type_9, TList(x_40_13481), no_span);
+          var x_41_13567 = _open_at3(0, unify, scrut_type_9, TList(x_40_13562), no_span);
           if (_yielding()) {
-            return yield_extend(function(_y_x10311_1) {
-              return _mlift_infer_pattern_12717(x_40_13481, p.elems, env_27, p.rest, s_71, _y_x10311_1);
+            return yield_extend(function(_y_x10314_1) {
+              return _mlift_infer_pattern_12786(x_40_13562, p.elems, env_27, p.rest, s_71, _y_x10314_1);
             });
           } else {
             var s1_6_0_0 = _open_none2(function(s1_12_0, s2_11_0) {
               var updated_s2_11_0 = _trmc_map_subst(s2_11_0, function(k_12_0, v_11_0) {
                 return Tuple2(k_12_0, _trmc_apply_subst(s1_12_0, v_11_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_11_0 = _trmc_filter_subst(updated_s2_11_0, function(k_0_11_0, ___wildcard_x120__39_11_0) {
+              var ys_10006_11_0 = _trmc_filter_subst(updated_s2_11_0, function(k_0_11_0, ___wildcard_x136__39_11_0) {
                 var b_10007_11_0 = subst_has(s1_12_0, k_0_11_0);
                 return b_10007_11_0 ? false : true;
               }, _cctx_empty());
               return append(s1_12_0, ys_10006_11_0);
-            }, x_41_13486, s_71);
-            var x_42_13495 = foldl(p.elems, Tuple2(s1_6_0_0, env_27), function(_pat_x1073__50_0, pat_1_0) {
-              var resolved_0_0 = _open_none2(apply_subst, _pat_x1073__50_0.fst, x_40_13481);
-              return infer_pattern(_pat_x1073__50_0.snd, _pat_x1073__50_0.fst, resolved_0_0, pat_1_0);
+            }, x_41_13567, s_71);
+            var x_42_13576 = foldl(p.elems, Tuple2(s1_6_0_0, env_27), function(_pat_x1089__50_0, pat_1_0) {
+              var resolved_0_0 = _open_none2(apply_subst, _pat_x1089__50_0.fst, x_40_13562);
+              return infer_pattern(_pat_x1089__50_0.snd, _pat_x1089__50_0.fst, resolved_0_0, pat_1_0);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10314_1) {
-                return _mlift_infer_pattern_12716(x_40_13481, p.rest, _y_x10314_1);
+              return yield_extend(function(_y_x10317_1) {
+                return _mlift_infer_pattern_12785(x_40_13562, p.rest, _y_x10317_1);
               });
             } else {
               if (p.rest === null) {
-                return Tuple2(x_42_13495.fst, x_42_13495.snd);
+                return Tuple2(x_42_13576.fst, x_42_13576.snd);
               } else {
                 {
-                  var _x62 = _open_none2(apply_subst, x_42_13495.fst, TList(x_40_13481));
-                  env_27 = x_42_13495.snd;
-                  s_71 = x_42_13495.fst;
+                  var _x62 = _open_none2(apply_subst, x_42_13576.fst, TList(x_40_13562));
+                  env_27 = x_42_13576.snd;
+                  s_71 = x_42_13576.fst;
                   scrut_type_9 = _x62;
                   p = p.rest.value;
                   continue tailcall;
@@ -19740,80 +19773,80 @@ var __hica = (() => {
           }
         }
       } else if (p._tag === 13) {
-        var x_43_13498 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
+        var x_43_13579 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10318_0) {
-            return _mlift_infer_pattern_12719(env_27, s_71, _y_x10318_0);
+          return yield_extend(function(_y_x10321_0) {
+            return _mlift_infer_pattern_12788(env_27, s_71, _y_x10321_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_13_0, s2_13_0) {
             var updated_s2_12_0 = _trmc_map_subst(s2_13_0, function(k_13_0, v_12_0) {
               return Tuple2(k_13_0, _trmc_apply_subst(s1_13_0, v_12_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_12_0 = _trmc_filter_subst(updated_s2_12_0, function(k_0_12_0, ___wildcard_x120__39_12_0) {
+            var ys_10006_12_0 = _trmc_filter_subst(updated_s2_12_0, function(k_0_12_0, ___wildcard_x136__39_12_0) {
               var b_10007_12_0 = subst_has(s1_13_0, k_0_12_0);
               return b_10007_12_0 ? false : true;
             }, _cctx_empty());
             return append(s1_13_0, ys_10006_12_0);
-          }, x_43_13498, s_71), env_27);
+          }, x_43_13579, s_71), env_27);
         }
       } else {
-        var x_44_13507 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
+        var x_44_13588 = _open_at3(0, unify, scrut_type_9, TInt, no_span);
         if (_yielding()) {
-          return yield_extend(function(_y_x10319_0) {
-            return _mlift_infer_pattern_12720(env_27, s_71, _y_x10319_0);
+          return yield_extend(function(_y_x10322_0) {
+            return _mlift_infer_pattern_12789(env_27, s_71, _y_x10322_0);
           });
         } else {
           return Tuple2(_open_none2(function(s1_14_0, s2_14_0) {
             var updated_s2_13_0 = _trmc_map_subst(s2_14_0, function(k_14_0, v_13_0) {
               return Tuple2(k_14_0, _trmc_apply_subst(s1_14_0, v_13_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_13_0 = _trmc_filter_subst(updated_s2_13_0, function(k_0_13_0, ___wildcard_x120__39_13_0) {
+            var ys_10006_13_0 = _trmc_filter_subst(updated_s2_13_0, function(k_0_13_0, ___wildcard_x136__39_13_0) {
               var b_10007_13_0 = subst_has(s1_14_0, k_0_13_0);
               return b_10007_13_0 ? false : true;
             }, _cctx_empty());
             return append(s1_14_0, ys_10006_13_0);
-          }, x_44_13507, s_71), env_27);
+          }, x_44_13588, s_71), env_27);
         }
       }
     }
   }
-  function _mlift_unify_ctor_args_12721(arest, frest, s, sp, _y_x10321) {
+  function _mlift_unify_ctor_args_12790(arest, frest, s, sp, _y_x10324) {
     var s1_0 = _open_none2(function(s1, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1, ys_10006);
-    }, _y_x10321, s);
+    }, _y_x10324, s);
     return unify_ctor_args(s1_0, frest, arest, sp);
   }
   function unify_ctor_args(s_3, def_fields, args, sp_0) {
     tailcall: while (1) {
       if (def_fields !== null && args !== null) {
-        var _x_x2_11660 = _open_none1(function(n) {
+        var _x_x2_11700 = _open_none1(function(n) {
           return n.typ !== null ? n.typ.value : TUnit;
         }, args.head);
-        var arg_type = _open_none2(apply_subst, s_3, _x_x2_11660);
-        var x_13522 = _open_at3(0, unify, arg_type, def_fields.head.snd, sp_0);
+        var arg_type = _open_none2(apply_subst, s_3, _x_x2_11700);
+        var x_13603 = _open_at3(0, unify, arg_type, def_fields.head.snd, sp_0);
         if (_yielding()) {
-          return yield_extend(function(_y_x10321_0) {
-            return _mlift_unify_ctor_args_12721(args.tail, def_fields.tail, s_3, sp_0, _y_x10321_0);
+          return yield_extend(function(_y_x10324_0) {
+            return _mlift_unify_ctor_args_12790(args.tail, def_fields.tail, s_3, sp_0, _y_x10324_0);
           });
         } else {
           var s1_0_0 = _open_none2(function(s1_1, s2_0) {
             var updated_s2_0 = _trmc_map_subst(s2_0, function(k_1, v_0) {
               return Tuple2(k_1, _trmc_apply_subst(s1_1, v_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+            var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
               var b_10007_0 = subst_has(s1_1, k_0_0);
               return b_10007_0 ? false : true;
             }, _cctx_empty());
             return append(s1_1, ys_10006_0);
-          }, x_13522, s_3);
+          }, x_13603, s_3);
           {
             s_3 = s1_0_0;
             def_fields = def_fields.tail;
@@ -19866,7 +19899,7 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_infer_12722(n, s, t) {
+  function _mlift_infer_12791(n, s, t) {
     var resolved = _open_none2(apply_subst, s, t);
     return Tuple2(s, _open_none4(function(_this_4, span_4, expr_4, typ_4) {
       if (span_4 !== void 0) {
@@ -19887,333 +19920,333 @@ var __hica = (() => {
       return Node(_x65, _x66, _x67);
     }, n, void 0, void 0, Just(resolved)));
   }
-  function _mlift_infer_12723(ann, init_sq_, n_0, name_0, _y_x10328) {
+  function _mlift_infer_12792(ann, init_sq_, n_0, name_0, _y_x10331) {
     var body_type = _open_none1(function(n_1) {
       return n_1.typ !== null ? n_1.typ.value : TUnit;
-    }, _y_x10328.snd);
-    var _x_x1_15_11708 = _open_none1(function(node_4) {
+    }, _y_x10331.snd);
+    var _x_x1_15_11748 = _open_none1(function(node_4) {
       return node_4.span;
     }, n_0);
-    return Tuple2(_y_x10328.fst, _open_none3(function(span_5, expr_5, typ_5) {
+    return Tuple2(_y_x10331.fst, _open_none3(function(span_5, expr_5, typ_5) {
       var _x68 = typ_5 !== void 0 ? typ_5 : Nothing;
       return Node(span_5, expr_5, _x68);
-    }, _x_x1_15_11708, Let(name_0, ann, init_sq_, _y_x10328.snd), Just(body_type)));
+    }, _x_x1_15_11748, Let(name_0, ann, init_sq_, _y_x10331.snd), Just(body_type)));
   }
-  function _mlift_infer_12724(s1, _y_x10326) {
+  function _mlift_infer_12793(s1, _y_x10329) {
     return _open_none2(function(s1_0, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1_0, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1_0, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1_0, ys_10006);
-    }, _y_x10326, s1);
+    }, _y_x10329, s1);
   }
-  function _mlift_infer_12725(ann_0, body, env, init_0_sq_, init_type, n_2, name_0_0, _c_x10327) {
-    var bound_type = _open_none2(apply_subst, _c_x10327, init_type);
-    var x_13543 = infer(Cons(Tuple2(name_0_0, bound_type), env), _c_x10327, body);
+  function _mlift_infer_12794(ann_0, body, env, init_0_sq_, init_type, n_2, name_0_0, _c_x10330) {
+    var bound_type = _open_none2(apply_subst, _c_x10330, init_type);
+    var x_13624 = infer(Cons(Tuple2(name_0_0, bound_type), env), _c_x10330, body);
     if (_yielding()) {
-      return yield_extend(function(_y_x10328_0) {
-        return _mlift_infer_12723(ann_0, init_0_sq_, n_2, name_0_0, _y_x10328_0);
+      return yield_extend(function(_y_x10331_0) {
+        return _mlift_infer_12792(ann_0, init_0_sq_, n_2, name_0_0, _y_x10331_0);
       });
     } else {
-      return _mlift_infer_12723(ann_0, init_0_sq_, n_2, name_0_0, x_13543);
+      return _mlift_infer_12792(ann_0, init_0_sq_, n_2, name_0_0, x_13624);
     }
   }
-  function _mlift_infer_12726(ann_1, body_0, env_0, init, n_3, name_0_1, _y_x10325) {
+  function _mlift_infer_12795(ann_1, body_0, env_0, init, n_3, name_0_1, _y_x10328) {
     var init_type_0 = _open_none1(function(n_0_0) {
       return n_0_0.typ !== null ? n_0_0.typ.value : TUnit;
-    }, _y_x10325.snd);
+    }, _y_x10328.snd);
     if (ann_1 !== null) {
-      var _x_x3_6_11701 = _open_none1(function(node_2) {
+      var _x_x3_6_11741 = _open_none1(function(node_2) {
         return node_2.span;
       }, init);
-      var x_1_13547 = _open_at3(0, unify, init_type_0, ann_1.value, _x_x3_6_11701);
+      var x_1_13628 = _open_at3(0, unify, init_type_0, ann_1.value, _x_x3_6_11741);
       if (_yielding()) {
-        var x_0_13545 = yield_extend(function(_y_x10326_0) {
-          return _mlift_infer_12724(_y_x10325.fst, _y_x10326_0);
+        var x_0_13626 = yield_extend(function(_y_x10329_0) {
+          return _mlift_infer_12793(_y_x10328.fst, _y_x10329_0);
         });
       } else {
-        var x_0_13545 = _mlift_infer_12724(_y_x10325.fst, x_1_13547);
+        var x_0_13626 = _mlift_infer_12793(_y_x10328.fst, x_1_13628);
       }
     } else {
-      var x_0_13545 = _y_x10325.fst;
+      var x_0_13626 = _y_x10328.fst;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10327_0) {
-        return _mlift_infer_12725(ann_1, body_0, env_0, _y_x10325.snd, init_type_0, n_3, name_0_1, _c_x10327_0);
+      return yield_extend(function(_c_x10330_0) {
+        return _mlift_infer_12794(ann_1, body_0, env_0, _y_x10328.snd, init_type_0, n_3, name_0_1, _c_x10330_0);
       });
     } else {
-      return _mlift_infer_12725(ann_1, body_0, env_0, _y_x10325.snd, init_type_0, n_3, name_0_1, x_0_13545);
+      return _mlift_infer_12794(ann_1, body_0, env_0, _y_x10328.snd, init_type_0, n_3, name_0_1, x_0_13626);
     }
   }
-  function _mlift_infer_12727(ann_0_0, init_0_0_sq_, n_4, name_1_0, _y_x10334) {
+  function _mlift_infer_12796(ann_0_0, init_0_0_sq_, n_4, name_1_0, _y_x10337) {
     var body_type_0 = _open_none1(function(n_3_0) {
       return n_3_0.typ !== null ? n_3_0.typ.value : TUnit;
-    }, _y_x10334.snd);
-    var _x_x1_23_11722 = _open_none1(function(node_8) {
+    }, _y_x10337.snd);
+    var _x_x1_23_11762 = _open_none1(function(node_8) {
       return node_8.span;
     }, n_4);
-    return Tuple2(_y_x10334.fst, _open_none3(function(span_6, expr_6, typ_6) {
+    return Tuple2(_y_x10337.fst, _open_none3(function(span_6, expr_6, typ_6) {
       var _x69 = typ_6 !== void 0 ? typ_6 : Nothing;
       return Node(span_6, expr_6, _x69);
-    }, _x_x1_23_11722, VarDecl(name_1_0, ann_0_0, init_0_0_sq_, _y_x10334.snd), Just(body_type_0)));
+    }, _x_x1_23_11762, VarDecl(name_1_0, ann_0_0, init_0_0_sq_, _y_x10337.snd), Just(body_type_0)));
   }
-  function _mlift_infer_12728(s1_0_0, _y_x10332) {
+  function _mlift_infer_12797(s1_0_0, _y_x10335) {
     return _open_none2(function(s1_1_0, s2_1) {
       var updated_s2_0 = _trmc_map_subst(s2_1, function(k_1, v_0) {
         return Tuple2(k_1, _trmc_apply_subst(s1_1_0, v_0, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x120__39_0) {
+      var ys_10006_0 = _trmc_filter_subst(updated_s2_0, function(k_0_0, ___wildcard_x136__39_0) {
         var b_10007_0 = subst_has(s1_1_0, k_0_0);
         return b_10007_0 ? false : true;
       }, _cctx_empty());
       return append(s1_1_0, ys_10006_0);
-    }, _y_x10332, s1_0_0);
+    }, _y_x10335, s1_0_0);
   }
-  function _mlift_infer_12729(ann_0_1, body_0_0, env_1, init_type_0_0, init_0_1_sq_, n_5, name_1_0_0, _c_x10333) {
-    var bound_type_0 = _open_none2(apply_subst, _c_x10333, init_type_0_0);
-    var x_2_13555 = infer(Cons(Tuple2(name_1_0_0, bound_type_0), env_1), _c_x10333, body_0_0);
+  function _mlift_infer_12798(ann_0_1, body_0_0, env_1, init_type_0_0, init_0_1_sq_, n_5, name_1_0_0, _c_x10336) {
+    var bound_type_0 = _open_none2(apply_subst, _c_x10336, init_type_0_0);
+    var x_2_13636 = infer(Cons(Tuple2(name_1_0_0, bound_type_0), env_1), _c_x10336, body_0_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10334_0) {
-        return _mlift_infer_12727(ann_0_1, init_0_1_sq_, n_5, name_1_0_0, _y_x10334_0);
+      return yield_extend(function(_y_x10337_0) {
+        return _mlift_infer_12796(ann_0_1, init_0_1_sq_, n_5, name_1_0_0, _y_x10337_0);
       });
     } else {
-      return _mlift_infer_12727(ann_0_1, init_0_1_sq_, n_5, name_1_0_0, x_2_13555);
+      return _mlift_infer_12796(ann_0_1, init_0_1_sq_, n_5, name_1_0_0, x_2_13636);
     }
   }
-  function _mlift_infer_12730(ann_0_2, body_0_1, env_2, init_0, n_6, name_1_0_1, _y_x10331) {
+  function _mlift_infer_12799(ann_0_2, body_0_1, env_2, init_0, n_6, name_1_0_1, _y_x10334) {
     var init_type_0_1 = _open_none1(function(n_2_0) {
       return n_2_0.typ !== null ? n_2_0.typ.value : TUnit;
-    }, _y_x10331.snd);
+    }, _y_x10334.snd);
     if (ann_0_2 !== null) {
-      var _x_x3_8_11715 = _open_none1(function(node_6) {
+      var _x_x3_8_11755 = _open_none1(function(node_6) {
         return node_6.span;
       }, init_0);
-      var x_4_13559 = _open_at3(0, unify, init_type_0_1, ann_0_2.value, _x_x3_8_11715);
+      var x_4_13640 = _open_at3(0, unify, init_type_0_1, ann_0_2.value, _x_x3_8_11755);
       if (_yielding()) {
-        var x_3_13557 = yield_extend(function(_y_x10332_0) {
-          return _mlift_infer_12728(_y_x10331.fst, _y_x10332_0);
+        var x_3_13638 = yield_extend(function(_y_x10335_0) {
+          return _mlift_infer_12797(_y_x10334.fst, _y_x10335_0);
         });
       } else {
-        var x_3_13557 = _mlift_infer_12728(_y_x10331.fst, x_4_13559);
+        var x_3_13638 = _mlift_infer_12797(_y_x10334.fst, x_4_13640);
       }
     } else {
-      var x_3_13557 = _y_x10331.fst;
+      var x_3_13638 = _y_x10334.fst;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10333_0) {
-        return _mlift_infer_12729(ann_0_2, body_0_1, env_2, init_type_0_1, _y_x10331.snd, n_6, name_1_0_1, _c_x10333_0);
+      return yield_extend(function(_c_x10336_0) {
+        return _mlift_infer_12798(ann_0_2, body_0_1, env_2, init_type_0_1, _y_x10334.snd, n_6, name_1_0_1, _c_x10336_0);
       });
     } else {
-      return _mlift_infer_12729(ann_0_2, body_0_1, env_2, init_type_0_1, _y_x10331.snd, n_6, name_1_0_1, x_3_13557);
+      return _mlift_infer_12798(ann_0_2, body_0_1, env_2, init_type_0_1, _y_x10334.snd, n_6, name_1_0_1, x_3_13638);
     }
   }
-  function _mlift_infer_12731(n_7, name_2_0, s1_1_0_0, value_sq_, _y_x10339) {
+  function _mlift_infer_12800(n_7, name_2_0, s1_1_0_0, value_sq_, _y_x10342) {
     var s2_1_0 = _open_none2(function(s1_2, s2_2) {
       var updated_s2_1 = _trmc_map_subst(s2_2, function(k_2, v_1) {
         return Tuple2(k_2, _trmc_apply_subst(s1_2, v_1, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_1 = _trmc_filter_subst(updated_s2_1, function(k_0_1, ___wildcard_x120__39_1) {
+      var ys_10006_1 = _trmc_filter_subst(updated_s2_1, function(k_0_1, ___wildcard_x136__39_1) {
         var b_10007_1 = subst_has(s1_2, k_0_1);
         return b_10007_1 ? false : true;
       }, _cctx_empty());
       return append(s1_2, ys_10006_1);
-    }, _y_x10339, s1_1_0_0);
-    var _x_x1_32_11739 = _open_none1(function(node_12) {
+    }, _y_x10342, s1_1_0_0);
+    var _x_x1_32_11779 = _open_none1(function(node_12) {
       return node_12.span;
     }, n_7);
     return Tuple2(s2_1_0, _open_none3(function(span_7, expr_7, typ_7) {
       var _x70 = typ_7 !== void 0 ? typ_7 : Nothing;
       return Node(span_7, expr_7, _x70);
-    }, _x_x1_32_11739, Assign(name_2_0, value_sq_), Just(TUnit)));
+    }, _x_x1_32_11779, Assign(name_2_0, value_sq_), Just(TUnit)));
   }
-  function _mlift_infer_12732(n_8, name_2_0_0, value, var_type, _y_x10338) {
-    var _x_x2_16_11731 = _open_none1(function(n_4_0) {
+  function _mlift_infer_12801(n_8, name_2_0_0, value, var_type, _y_x10341) {
+    var _x_x2_16_11771 = _open_none1(function(n_4_0) {
       return n_4_0.typ !== null ? n_4_0.typ.value : TUnit;
-    }, _y_x10338.snd);
-    var value_type = _open_none2(apply_subst, _y_x10338.fst, _x_x2_16_11731);
-    var _x_x3_11_11735 = _open_none1(function(node_11) {
+    }, _y_x10341.snd);
+    var value_type = _open_none2(apply_subst, _y_x10341.fst, _x_x2_16_11771);
+    var _x_x3_11_11775 = _open_none1(function(node_11) {
       return node_11.span;
     }, value);
-    var x_5_13567 = _open_at3(0, unify, var_type, value_type, _x_x3_11_11735);
+    var x_5_13648 = _open_at3(0, unify, var_type, value_type, _x_x3_11_11775);
     if (_yielding()) {
-      return yield_extend(function(_y_x10339_0) {
-        return _mlift_infer_12731(n_8, name_2_0_0, _y_x10338.fst, _y_x10338.snd, _y_x10339_0);
+      return yield_extend(function(_y_x10342_0) {
+        return _mlift_infer_12800(n_8, name_2_0_0, _y_x10341.fst, _y_x10341.snd, _y_x10342_0);
       });
     } else {
-      return _mlift_infer_12731(n_8, name_2_0_0, _y_x10338.fst, _y_x10338.snd, x_5_13567);
+      return _mlift_infer_12800(n_8, name_2_0_0, _y_x10341.fst, _y_x10341.snd, x_5_13648);
     }
   }
-  function _mlift_infer_12733(env_3, n_9, name_2_0_1, s_9, value_0, var_type_0) {
-    var x_6_13569 = infer(env_3, s_9, value_0);
+  function _mlift_infer_12802(env_3, n_9, name_2_0_1, s_9, value_0, var_type_0) {
+    var x_6_13650 = infer(env_3, s_9, value_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10338_0) {
-        return _mlift_infer_12732(n_9, name_2_0_1, value_0, var_type_0, _y_x10338_0);
+      return yield_extend(function(_y_x10341_0) {
+        return _mlift_infer_12801(n_9, name_2_0_1, value_0, var_type_0, _y_x10341_0);
       });
     } else {
-      return _mlift_infer_12732(n_9, name_2_0_1, value_0, var_type_0, x_6_13569);
+      return _mlift_infer_12801(n_9, name_2_0_1, value_0, var_type_0, x_6_13650);
     }
   }
-  function _mlift_infer_12734(n_10, _y_x10341) {
-    var _x_x1_34_11743 = _open_none1(function(node_13) {
+  function _mlift_infer_12803(n_10, _y_x10344) {
+    var _x_x1_34_11783 = _open_none1(function(node_13) {
       return node_13.span;
     }, n_10);
-    return Tuple2(_y_x10341.fst, _open_none3(function(span_8, expr_8, typ_8) {
+    return Tuple2(_y_x10344.fst, _open_none3(function(span_8, expr_8, typ_8) {
       var _x71 = typ_8 !== void 0 ? typ_8 : Nothing;
       return Node(span_8, expr_8, _x71);
-    }, _x_x1_34_11743, Block(_y_x10341.snd), Just(_y_x10341.thd)));
+    }, _x_x1_34_11783, Block(_y_x10344.snd), Just(_y_x10344.thd)));
   }
-  function _mlift_infer_12735(body_1_sq_, n_11, params, s1_2_0, resolved_params) {
-    var _x_x2_22_11750 = _open_none1(function(n_5_0) {
+  function _mlift_infer_12804(body_1_sq_, n_11, params, s1_2_0, resolved_params) {
+    var _x_x2_22_11790 = _open_none1(function(n_5_0) {
       return n_5_0.typ !== null ? n_5_0.typ.value : TUnit;
     }, body_1_sq_);
-    var ret_type = _open_none2(apply_subst, s1_2_0, _x_x2_22_11750);
-    var _x_x1_39_11752 = _open_none1(function(node_15) {
+    var ret_type = _open_none2(apply_subst, s1_2_0, _x_x2_22_11790);
+    var _x_x1_39_11792 = _open_none1(function(node_15) {
       return node_15.span;
     }, n_11);
     return Tuple2(s1_2_0, _open_none3(function(span_9, expr_9, typ_9) {
       var _x72 = typ_9 !== void 0 ? typ_9 : Nothing;
       return Node(span_9, expr_9, _x72);
-    }, _x_x1_39_11752, Fun(params, body_1_sq_), Just(TFun(resolved_params, ret_type))));
+    }, _x_x1_39_11792, Fun(params, body_1_sq_), Just(TFun(resolved_params, ret_type))));
   }
-  function _mlift_infer_12736(n_12, param_types, params_0, _y_x10348) {
-    var x_7_13571 = map(param_types, function(t_1_0) {
-      return _open_none2(apply_subst, _y_x10348.fst, t_1_0);
+  function _mlift_infer_12805(n_12, param_types, params_0, _y_x10351) {
+    var x_7_13652 = map(param_types, function(t_1_0) {
+      return _open_none2(apply_subst, _y_x10351.fst, t_1_0);
     });
     if (_yielding()) {
       return yield_extend(function(resolved_params_0) {
-        return _mlift_infer_12735(_y_x10348.snd, n_12, params_0, _y_x10348.fst, resolved_params_0);
+        return _mlift_infer_12804(_y_x10351.snd, n_12, params_0, _y_x10351.fst, resolved_params_0);
       });
     } else {
-      return _mlift_infer_12735(_y_x10348.snd, n_12, params_0, _y_x10348.fst, x_7_13571);
+      return _mlift_infer_12804(_y_x10351.snd, n_12, params_0, _y_x10351.fst, x_7_13652);
     }
   }
-  function _mlift_infer_12737(body_1, n_13, param_types_0, params_1, s_10, fun_env) {
-    var x_8_13573 = infer(fun_env, s_10, body_1);
+  function _mlift_infer_12806(body_1, n_13, param_types_0, params_1, s_10, fun_env) {
+    var x_8_13654 = infer(fun_env, s_10, body_1);
     if (_yielding()) {
-      return yield_extend(function(_y_x10348_0) {
-        return _mlift_infer_12736(n_13, param_types_0, params_1, _y_x10348_0);
+      return yield_extend(function(_y_x10351_0) {
+        return _mlift_infer_12805(n_13, param_types_0, params_1, _y_x10351_0);
       });
     } else {
-      return _mlift_infer_12736(n_13, param_types_0, params_1, x_8_13573);
+      return _mlift_infer_12805(n_13, param_types_0, params_1, x_8_13654);
     }
   }
-  function _mlift_infer_12738(body_1_0, env_4, n_14, params_2, s_11, param_types_1) {
-    var x_9_13575 = foldl(zip(params_2, param_types_1), env_4, function(e, entry) {
+  function _mlift_infer_12807(body_1_0, env_4, n_14, params_2, s_11, param_types_1) {
+    var x_9_13656 = foldl(zip(params_2, param_types_1), env_4, function(e, entry) {
       return Cons(Tuple2(entry.fst, entry.snd), e);
     });
     if (_yielding()) {
       return yield_extend(function(fun_env_0) {
-        return _mlift_infer_12737(body_1_0, n_14, param_types_1, params_2, s_11, fun_env_0);
+        return _mlift_infer_12806(body_1_0, n_14, param_types_1, params_2, s_11, fun_env_0);
       });
     } else {
-      return _mlift_infer_12737(body_1_0, n_14, param_types_1, params_2, s_11, x_9_13575);
+      return _mlift_infer_12806(body_1_0, n_14, param_types_1, params_2, s_11, x_9_13656);
     }
   }
-  function _mlift_infer_12739(args_sq_, callee_sq_, n_15, ret_var, s2_2_0, _y_x10356) {
+  function _mlift_infer_12808(args_sq_, callee_sq_, n_15, ret_var, s2_2_0, _y_x10359) {
     var s3_1 = _open_none2(function(s1_4, s2_3) {
       var updated_s2_2 = _trmc_map_subst(s2_3, function(k_3, v_2) {
         return Tuple2(k_3, _trmc_apply_subst(s1_4, v_2, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_2 = _trmc_filter_subst(updated_s2_2, function(k_0_2, ___wildcard_x120__39_2) {
+      var ys_10006_2 = _trmc_filter_subst(updated_s2_2, function(k_0_2, ___wildcard_x136__39_2) {
         var b_10007_2 = subst_has(s1_4, k_0_2);
         return b_10007_2 ? false : true;
       }, _cctx_empty());
       return append(s1_4, ys_10006_2);
-    }, _y_x10356, s2_2_0);
+    }, _y_x10359, s2_2_0);
     var result_type = _open_none2(apply_subst, s3_1, ret_var);
-    var _x_x1_49_11770 = _open_none1(function(node_19) {
+    var _x_x1_49_11810 = _open_none1(function(node_19) {
       return node_19.span;
     }, n_15);
     return Tuple2(s3_1, _open_none3(function(span_10, expr_10, typ_10) {
       var _x73 = typ_10 !== void 0 ? typ_10 : Nothing;
       return Node(span_10, expr_10, _x73);
-    }, _x_x1_49_11770, Call(callee_sq_, args_sq_), Just(result_type)));
+    }, _x_x1_49_11810, Call(callee_sq_, args_sq_), Just(result_type)));
   }
-  function _mlift_infer_12740(arg_types, args_0_sq_, callee_0_sq_, callee_type, n_16, s2_2_0_0, ret_var_0) {
-    var _x_x3_15_11764 = _open_none1(function(node_18) {
+  function _mlift_infer_12809(arg_types, args_0_sq_, callee_0_sq_, callee_type, n_16, s2_2_0_0, ret_var_0) {
+    var _x_x3_15_11804 = _open_none1(function(node_18) {
       return node_18.span;
     }, n_16);
-    var x_10_13583 = _open_at3(0, unify, callee_type, TFun(arg_types, ret_var_0), _x_x3_15_11764);
+    var x_10_13664 = _open_at3(0, unify, callee_type, TFun(arg_types, ret_var_0), _x_x3_15_11804);
     if (_yielding()) {
-      return yield_extend(function(_y_x10356_0) {
-        return _mlift_infer_12739(args_0_sq_, callee_0_sq_, n_16, ret_var_0, s2_2_0_0, _y_x10356_0);
+      return yield_extend(function(_y_x10359_0) {
+        return _mlift_infer_12808(args_0_sq_, callee_0_sq_, n_16, ret_var_0, s2_2_0_0, _y_x10359_0);
       });
     } else {
-      return _mlift_infer_12739(args_0_sq_, callee_0_sq_, n_16, ret_var_0, s2_2_0_0, x_10_13583);
+      return _mlift_infer_12808(args_0_sq_, callee_0_sq_, n_16, ret_var_0, s2_2_0_0, x_10_13664);
     }
   }
-  function _mlift_infer_12741(args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, arg_types_0) {
-    var x_11_13585 = _open_at0(1, function() {
-      var ev_13587 = _evv_at(0);
-      return ev_13587.hnd._fun_fresh_tvar(ev_13587.marker, ev_13587);
+  function _mlift_infer_12810(args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, arg_types_0) {
+    var x_11_13666 = _open_at0(1, function() {
+      var ev_13668 = _evv_at(0);
+      return ev_13668.hnd._fun_fresh_tvar(ev_13668.marker, ev_13668);
     });
     if (_yielding()) {
       return yield_extend(function(ret_var_1) {
-        return _mlift_infer_12740(arg_types_0, args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, ret_var_1);
+        return _mlift_infer_12809(arg_types_0, args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, ret_var_1);
       });
     } else {
-      return _mlift_infer_12740(arg_types_0, args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, x_11_13585);
+      return _mlift_infer_12809(arg_types_0, args_1_sq_, callee_1_sq_, callee_type_0, n_17, s2_2_0_1, x_11_13666);
     }
   }
-  function _mlift_infer_12742(callee_2_sq_, n_18, _y_x10352) {
-    var _x_x2_24_11757 = _open_none1(function(n_6_0) {
+  function _mlift_infer_12811(callee_2_sq_, n_18, _y_x10355) {
+    var _x_x2_24_11797 = _open_none1(function(n_6_0) {
       return n_6_0.typ !== null ? n_6_0.typ.value : TUnit;
     }, callee_2_sq_);
-    var callee_type_1 = _open_none2(apply_subst, _y_x10352.fst, _x_x2_24_11757);
-    var x_12_13589 = map(_y_x10352.snd, function(a) {
-      var _x_x2_25_11760 = _open_none1(function(n_7_0) {
+    var callee_type_1 = _open_none2(apply_subst, _y_x10355.fst, _x_x2_24_11797);
+    var x_12_13670 = map(_y_x10355.snd, function(a) {
+      var _x_x2_25_11800 = _open_none1(function(n_7_0) {
         return n_7_0.typ !== null ? n_7_0.typ.value : TUnit;
       }, a);
-      return _open_none2(apply_subst, _y_x10352.fst, _x_x2_25_11760);
+      return _open_none2(apply_subst, _y_x10355.fst, _x_x2_25_11800);
     });
     if (_yielding()) {
       return yield_extend(function(arg_types_1) {
-        return _mlift_infer_12741(_y_x10352.snd, callee_2_sq_, callee_type_1, n_18, _y_x10352.fst, arg_types_1);
+        return _mlift_infer_12810(_y_x10355.snd, callee_2_sq_, callee_type_1, n_18, _y_x10355.fst, arg_types_1);
       });
     } else {
-      return _mlift_infer_12741(_y_x10352.snd, callee_2_sq_, callee_type_1, n_18, _y_x10352.fst, x_12_13589);
+      return _mlift_infer_12810(_y_x10355.snd, callee_2_sq_, callee_type_1, n_18, _y_x10355.fst, x_12_13670);
     }
   }
-  function _mlift_infer_12743(args, env_5, n_19, _y_x10351) {
-    var x_13_13591 = infer_args(env_5, _y_x10351.fst, args);
+  function _mlift_infer_12812(args, env_5, n_19, _y_x10354) {
+    var x_13_13672 = infer_args(env_5, _y_x10354.fst, args);
     if (_yielding()) {
-      return yield_extend(function(_y_x10352_0) {
-        return _mlift_infer_12742(_y_x10351.snd, n_19, _y_x10352_0);
+      return yield_extend(function(_y_x10355_0) {
+        return _mlift_infer_12811(_y_x10354.snd, n_19, _y_x10355_0);
       });
     } else {
-      return _mlift_infer_12742(_y_x10351.snd, n_19, x_13_13591);
+      return _mlift_infer_12811(_y_x10354.snd, n_19, x_13_13672);
     }
   }
-  function _mlift_infer_12744(s_lr, _y_x10362) {
+  function _mlift_infer_12813(s_lr, _y_x10365) {
     return Tuple2(_open_none2(function(s1_6, s2_5) {
       var updated_s2_4 = _trmc_map_subst(s2_5, function(k_5, v_4) {
         return Tuple2(k_5, _trmc_apply_subst(s1_6, v_4, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_4 = _trmc_filter_subst(updated_s2_4, function(k_0_4, ___wildcard_x120__39_4) {
+      var ys_10006_4 = _trmc_filter_subst(updated_s2_4, function(k_0_4, ___wildcard_x136__39_4) {
         var b_10007_4 = subst_has(s1_6, k_0_4);
         return b_10007_4 ? false : true;
       }, _cctx_empty());
       return append(s1_6, ys_10006_4);
-    }, _y_x10362, s_lr), TInt);
+    }, _y_x10365, s_lr), TInt);
   }
-  function _mlift_infer_12745(s_lr_0, wild__) {
+  function _mlift_infer_12814(s_lr_0, wild__) {
     return Tuple2(s_lr_0, TInt);
   }
-  function _mlift_infer_12746(lt, n_20, s2_3_0, _y_x10361) {
+  function _mlift_infer_12815(lt, n_20, s2_3_0, _y_x10364) {
     var s_lr_1 = _open_none2(function(s1_5, s2_4) {
       var updated_s2_3 = _trmc_map_subst(s2_4, function(k_4, v_3) {
         return Tuple2(k_4, _trmc_apply_subst(s1_5, v_3, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_3 = _trmc_filter_subst(updated_s2_3, function(k_0_3, ___wildcard_x120__39_3) {
+      var ys_10006_3 = _trmc_filter_subst(updated_s2_3, function(k_0_3, ___wildcard_x136__39_3) {
         var b_10007_3 = subst_has(s1_5, k_0_3);
         return b_10007_3 ? false : true;
       }, _cctx_empty());
       return append(s1_5, ys_10006_3);
-    }, _y_x10361, s2_3_0);
+    }, _y_x10364, s2_3_0);
     var resolved_0 = _open_none2(apply_subst, s_lr_1, lt);
     if (resolved_0._tag === 1) {
       return Tuple2(s_lr_1, TInt);
@@ -20224,967 +20257,967 @@ var __hica = (() => {
     } else if (resolved_0._tag === 8) {
       return Tuple2(s_lr_1, resolved_0);
     } else if (resolved_0._tag === 14) {
-      var _x_x3_18_11790 = _open_none1(function(node_23) {
+      var _x_x3_18_11830 = _open_none1(function(node_23) {
         return node_23.span;
       }, n_20);
-      var x_14_13605 = _open_at3(0, unify, resolved_0, TInt, _x_x3_18_11790);
+      var x_14_13686 = _open_at3(0, unify, resolved_0, TInt, _x_x3_18_11830);
       if (_yielding()) {
-        return yield_extend(function(_y_x10362_0) {
-          return _mlift_infer_12744(s_lr_1, _y_x10362_0);
+        return yield_extend(function(_y_x10365_0) {
+          return _mlift_infer_12813(s_lr_1, _y_x10365_0);
         });
       } else {
-        return _mlift_infer_12744(s_lr_1, x_14_13605);
+        return _mlift_infer_12813(s_lr_1, x_14_13686);
       }
     } else {
-      var _x_x1_62_11794 = _open_none1(function(node_24) {
+      var _x_x1_62_11834 = _open_none1(function(node_24) {
         return node_24.span;
       }, n_20);
-      var _x_x2_37_11795 = _lp__plus__plus__rp_("operator + requires int, float, string, or list operands, got ", _open_none1(hica_type_fs_show, resolved_0));
-      var x_15_13607 = _open_at2(0, emit_error, _x_x1_62_11794, _x_x2_37_11795);
+      var _x_x2_37_11835 = _lp__plus__plus__rp_("operator + requires int, float, string, or list operands, got ", _open_none1(hica_type_fs_show, resolved_0));
+      var x_15_13688 = _open_at2(0, emit_error, _x_x1_62_11834, _x_x2_37_11835);
       if (_yielding()) {
         return yield_extend(function(wild___0) {
-          return _mlift_infer_12745(s_lr_1, wild___0);
+          return _mlift_infer_12814(s_lr_1, wild___0);
         });
       } else {
-        return _mlift_infer_12745(s_lr_1, x_15_13607);
+        return _mlift_infer_12814(s_lr_1, x_15_13688);
       }
     }
   }
-  function _mlift_infer_12747(s2_3_0_0, _y_x10369) {
+  function _mlift_infer_12816(s2_3_0_0, _y_x10372) {
     return Tuple2(_open_none2(function(s1_7, s2_6) {
       var updated_s2_5 = _trmc_map_subst(s2_6, function(k_6, v_5) {
         return Tuple2(k_6, _trmc_apply_subst(s1_7, v_5, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_5 = _trmc_filter_subst(updated_s2_5, function(k_0_5, ___wildcard_x120__39_5) {
+      var ys_10006_5 = _trmc_filter_subst(updated_s2_5, function(k_0_5, ___wildcard_x136__39_5) {
         var b_10007_5 = subst_has(s1_7, k_0_5);
         return b_10007_5 ? false : true;
       }, _cctx_empty());
       return append(s1_7, ys_10006_5);
-    }, _y_x10369, s2_3_0_0), TBool);
+    }, _y_x10372, s2_3_0_0), TBool);
   }
-  function _mlift_infer_12748(s2_3_0_1, _y_x10370) {
+  function _mlift_infer_12817(s2_3_0_1, _y_x10373) {
     return Tuple2(_open_none2(function(s1_8, s2_7) {
       var updated_s2_6 = _trmc_map_subst(s2_7, function(k_7, v_6) {
         return Tuple2(k_7, _trmc_apply_subst(s1_8, v_6, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_6 = _trmc_filter_subst(updated_s2_6, function(k_0_6, ___wildcard_x120__39_6) {
+      var ys_10006_6 = _trmc_filter_subst(updated_s2_6, function(k_0_6, ___wildcard_x136__39_6) {
         var b_10007_6 = subst_has(s1_8, k_0_6);
         return b_10007_6 ? false : true;
       }, _cctx_empty());
       return append(s1_8, ys_10006_6);
-    }, _y_x10370, s2_3_0_1), TBool);
+    }, _y_x10373, s2_3_0_1), TBool);
   }
-  function _mlift_infer_12749(_y_x10375, s2_3_0_2, _y_x10376) {
-    var _x_x2_52_11867 = _open_none2(function(s1_10, s2_9) {
+  function _mlift_infer_12818(_y_x10378, s2_3_0_2, _y_x10379) {
+    var _x_x2_52_11907 = _open_none2(function(s1_10, s2_9) {
       var updated_s2_8 = _trmc_map_subst(s2_9, function(k_9, v_8) {
         return Tuple2(k_9, _trmc_apply_subst(s1_10, v_8, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_8 = _trmc_filter_subst(updated_s2_8, function(k_0_8, ___wildcard_x120__39_8) {
+      var ys_10006_8 = _trmc_filter_subst(updated_s2_8, function(k_0_8, ___wildcard_x136__39_8) {
         var b_10007_8 = subst_has(s1_10, k_0_8);
         return b_10007_8 ? false : true;
       }, _cctx_empty());
       return append(s1_10, ys_10006_8);
-    }, _y_x10376, s2_3_0_2);
+    }, _y_x10379, s2_3_0_2);
     return Tuple2(_open_none2(function(s1_9, s2_8) {
       var updated_s2_7 = _trmc_map_subst(s2_8, function(k_8, v_7) {
         return Tuple2(k_8, _trmc_apply_subst(s1_9, v_7, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_7 = _trmc_filter_subst(updated_s2_7, function(k_0_7, ___wildcard_x120__39_7) {
+      var ys_10006_7 = _trmc_filter_subst(updated_s2_7, function(k_0_7, ___wildcard_x136__39_7) {
         var b_10007_7 = subst_has(s1_9, k_0_7);
         return b_10007_7 ? false : true;
       }, _cctx_empty());
       return append(s1_9, ys_10006_7);
-    }, _y_x10375, _x_x2_52_11867), TBool);
+    }, _y_x10378, _x_x2_52_11907), TBool);
   }
-  function _mlift_infer_12750(lhs, lt_0, s2_3_0_3, _y_x10375_0) {
-    var _x_x3_30_11864 = _open_none1(function(node_28) {
+  function _mlift_infer_12819(lhs, lt_0, s2_3_0_3, _y_x10378_0) {
+    var _x_x3_30_11904 = _open_none1(function(node_28) {
       return node_28.span;
     }, lhs);
-    var x_16_13633 = _open_at3(0, unify, lt_0, TBool, _x_x3_30_11864);
+    var x_16_13714 = _open_at3(0, unify, lt_0, TBool, _x_x3_30_11904);
     if (_yielding()) {
-      return yield_extend(function(_y_x10376_0) {
-        return _mlift_infer_12749(_y_x10375_0, s2_3_0_3, _y_x10376_0);
+      return yield_extend(function(_y_x10379_0) {
+        return _mlift_infer_12818(_y_x10378_0, s2_3_0_3, _y_x10379_0);
       });
     } else {
-      return _mlift_infer_12749(_y_x10375_0, s2_3_0_3, x_16_13633);
+      return _mlift_infer_12818(_y_x10378_0, s2_3_0_3, x_16_13714);
     }
   }
-  function _mlift_infer_12751(_y_x10377, s2_3_0_4, _y_x10378) {
-    var _x_x2_56_11879 = _open_none2(function(s1_12, s2_11) {
+  function _mlift_infer_12820(_y_x10380, s2_3_0_4, _y_x10381) {
+    var _x_x2_56_11919 = _open_none2(function(s1_12, s2_11) {
       var updated_s2_10 = _trmc_map_subst(s2_11, function(k_11, v_10) {
         return Tuple2(k_11, _trmc_apply_subst(s1_12, v_10, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_10 = _trmc_filter_subst(updated_s2_10, function(k_0_10, ___wildcard_x120__39_10) {
+      var ys_10006_10 = _trmc_filter_subst(updated_s2_10, function(k_0_10, ___wildcard_x136__39_10) {
         var b_10007_10 = subst_has(s1_12, k_0_10);
         return b_10007_10 ? false : true;
       }, _cctx_empty());
       return append(s1_12, ys_10006_10);
-    }, _y_x10378, s2_3_0_4);
+    }, _y_x10381, s2_3_0_4);
     return Tuple2(_open_none2(function(s1_11, s2_10) {
       var updated_s2_9 = _trmc_map_subst(s2_10, function(k_10, v_9) {
         return Tuple2(k_10, _trmc_apply_subst(s1_11, v_9, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_9 = _trmc_filter_subst(updated_s2_9, function(k_0_9, ___wildcard_x120__39_9) {
+      var ys_10006_9 = _trmc_filter_subst(updated_s2_9, function(k_0_9, ___wildcard_x136__39_9) {
         var b_10007_9 = subst_has(s1_11, k_0_9);
         return b_10007_9 ? false : true;
       }, _cctx_empty());
       return append(s1_11, ys_10006_9);
-    }, _y_x10377, _x_x2_56_11879), TBool);
+    }, _y_x10380, _x_x2_56_11919), TBool);
   }
-  function _mlift_infer_12752(lhs_0, lt_1, s2_3_0_5, _y_x10377_0) {
-    var _x_x3_32_11876 = _open_none1(function(node_30) {
+  function _mlift_infer_12821(lhs_0, lt_1, s2_3_0_5, _y_x10380_0) {
+    var _x_x3_32_11916 = _open_none1(function(node_30) {
       return node_30.span;
     }, lhs_0);
-    var x_17_13647 = _open_at3(0, unify, lt_1, TBool, _x_x3_32_11876);
+    var x_17_13728 = _open_at3(0, unify, lt_1, TBool, _x_x3_32_11916);
     if (_yielding()) {
-      return yield_extend(function(_y_x10378_0) {
-        return _mlift_infer_12751(_y_x10377_0, s2_3_0_5, _y_x10378_0);
+      return yield_extend(function(_y_x10381_0) {
+        return _mlift_infer_12820(_y_x10380_0, s2_3_0_5, _y_x10381_0);
       });
     } else {
-      return _mlift_infer_12751(_y_x10377_0, s2_3_0_5, x_17_13647);
+      return _mlift_infer_12820(_y_x10380_0, s2_3_0_5, x_17_13728);
     }
   }
-  function _mlift_infer_12753(s_list, _y_x10382) {
+  function _mlift_infer_12822(s_list, _y_x10385) {
     var s_elem = _open_none2(function(s1_14, s2_13) {
       var updated_s2_12 = _trmc_map_subst(s2_13, function(k_13, v_12) {
         return Tuple2(k_13, _trmc_apply_subst(s1_14, v_12, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_12 = _trmc_filter_subst(updated_s2_12, function(k_0_12, ___wildcard_x120__39_12) {
+      var ys_10006_12 = _trmc_filter_subst(updated_s2_12, function(k_0_12, ___wildcard_x136__39_12) {
         var b_10007_12 = subst_has(s1_14, k_0_12);
         return b_10007_12 ? false : true;
       }, _cctx_empty());
       return append(s1_14, ys_10006_12);
-    }, _y_x10382, s_list);
+    }, _y_x10385, s_list);
     return Tuple2(s_elem, TBool);
   }
-  function _mlift_infer_12754(elem_var, lhs_1, lt_2, s2_3_0_6, _y_x10381) {
+  function _mlift_infer_12823(elem_var, lhs_1, lt_2, s2_3_0_6, _y_x10384) {
     var s_list_0 = _open_none2(function(s1_13, s2_12) {
       var updated_s2_11 = _trmc_map_subst(s2_12, function(k_12, v_11) {
         return Tuple2(k_12, _trmc_apply_subst(s1_13, v_11, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_11 = _trmc_filter_subst(updated_s2_11, function(k_0_11, ___wildcard_x120__39_11) {
+      var ys_10006_11 = _trmc_filter_subst(updated_s2_11, function(k_0_11, ___wildcard_x136__39_11) {
         var b_10007_11 = subst_has(s1_13, k_0_11);
         return b_10007_11 ? false : true;
       }, _cctx_empty());
       return append(s1_13, ys_10006_11);
-    }, _y_x10381, s2_3_0_6);
+    }, _y_x10384, s2_3_0_6);
     var resolved_elem = _open_none2(apply_subst, s_list_0, elem_var);
-    var _x_x3_34_11892 = _open_none1(function(node_32) {
+    var _x_x3_34_11932 = _open_none1(function(node_32) {
       return node_32.span;
     }, lhs_1);
-    var x_18_13661 = _open_at3(0, unify, lt_2, resolved_elem, _x_x3_34_11892);
+    var x_18_13742 = _open_at3(0, unify, lt_2, resolved_elem, _x_x3_34_11932);
     if (_yielding()) {
-      return yield_extend(function(_y_x10382_0) {
-        return _mlift_infer_12753(s_list_0, _y_x10382_0);
+      return yield_extend(function(_y_x10385_0) {
+        return _mlift_infer_12822(s_list_0, _y_x10385_0);
       });
     } else {
-      return _mlift_infer_12753(s_list_0, x_18_13661);
+      return _mlift_infer_12822(s_list_0, x_18_13742);
     }
   }
-  function _mlift_infer_12755(lhs_2, lt_3, rhs, rt, s2_3_0_7, elem_var_0) {
-    var _x_x3_33_11884 = _open_none1(function(node_31) {
+  function _mlift_infer_12824(lhs_2, lt_3, rhs, rt, s2_3_0_7, elem_var_0) {
+    var _x_x3_33_11924 = _open_none1(function(node_31) {
       return node_31.span;
     }, rhs);
-    var x_19_13663 = _open_at3(0, unify, rt, TList(elem_var_0), _x_x3_33_11884);
+    var x_19_13744 = _open_at3(0, unify, rt, TList(elem_var_0), _x_x3_33_11924);
     if (_yielding()) {
-      return yield_extend(function(_y_x10381_0) {
-        return _mlift_infer_12754(elem_var_0, lhs_2, lt_3, s2_3_0_7, _y_x10381_0);
+      return yield_extend(function(_y_x10384_0) {
+        return _mlift_infer_12823(elem_var_0, lhs_2, lt_3, s2_3_0_7, _y_x10384_0);
       });
     } else {
-      return _mlift_infer_12754(elem_var_0, lhs_2, lt_3, s2_3_0_7, x_19_13663);
+      return _mlift_infer_12823(elem_var_0, lhs_2, lt_3, s2_3_0_7, x_19_13744);
     }
   }
-  function _mlift_infer_12756(lhs_sq_, n_21, op_0, rhs_sq_, _c_x10383) {
-    var _x_x1_98_11896 = _open_none1(function(node_33) {
+  function _mlift_infer_12825(lhs_sq_, n_21, op_0, rhs_sq_, _c_x10386) {
+    var _x_x1_98_11936 = _open_none1(function(node_33) {
       return node_33.span;
     }, n_21);
-    return Tuple2(_c_x10383.fst, _open_none3(function(span_11, expr_11, typ_11) {
+    return Tuple2(_c_x10386.fst, _open_none3(function(span_11, expr_11, typ_11) {
       var _x74 = typ_11 !== void 0 ? typ_11 : Nothing;
       return Node(span_11, expr_11, _x74);
-    }, _x_x1_98_11896, Binary(op_0, lhs_sq_, rhs_sq_), Just(_c_x10383.snd)));
+    }, _x_x1_98_11936, Binary(op_0, lhs_sq_, rhs_sq_), Just(_c_x10386.snd)));
   }
-  function _mlift_infer_12757(lhs_3, lhs_0_sq_, n_22, op_1, rhs_0, _y_x10360) {
-    var _x_x2_30_11775 = _open_none1(function(n_8_0) {
+  function _mlift_infer_12826(lhs_3, lhs_0_sq_, n_22, op_1, rhs_0, _y_x10363) {
+    var _x_x2_30_11815 = _open_none1(function(n_8_0) {
       return n_8_0.typ !== null ? n_8_0.typ.value : TUnit;
     }, lhs_0_sq_);
-    var lt_4 = _open_none2(apply_subst, _y_x10360.fst, _x_x2_30_11775);
-    var _x_x2_31_11778 = _open_none1(function(n_9_0) {
+    var lt_4 = _open_none2(apply_subst, _y_x10363.fst, _x_x2_30_11815);
+    var _x_x2_31_11818 = _open_none1(function(n_9_0) {
       return n_9_0.typ !== null ? n_9_0.typ.value : TUnit;
-    }, _y_x10360.snd);
-    var rt_0 = _open_none2(apply_subst, _y_x10360.fst, _x_x2_31_11778);
+    }, _y_x10363.snd);
+    var rt_0 = _open_none2(apply_subst, _y_x10363.fst, _x_x2_31_11818);
     if (op_1 === 1) {
-      var _x_x3_17_11782 = _open_none1(function(node_22) {
+      var _x_x3_17_11822 = _open_none1(function(node_22) {
         return node_22.span;
       }, n_22);
-      var x_21_13667 = _open_at3(0, unify, lt_4, rt_0, _x_x3_17_11782);
+      var x_21_13748 = _open_at3(0, unify, lt_4, rt_0, _x_x3_17_11822);
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(_y_x10361_0) {
-          return _mlift_infer_12746(lt_4, n_22, _y_x10360.fst, _y_x10361_0);
+        var x_20_13746 = yield_extend(function(_y_x10364_0) {
+          return _mlift_infer_12815(lt_4, n_22, _y_x10363.fst, _y_x10364_0);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12746(lt_4, n_22, _y_x10360.fst, x_21_13667);
+        var x_20_13746 = _mlift_infer_12815(lt_4, n_22, _y_x10363.fst, x_21_13748);
       }
     } else if (op_1 === 2) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 3) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 4) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 5) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_numeric_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 6) {
-      var _x_x3_23_11824 = _open_none1(function(node_25) {
+      var _x_x3_23_11864 = _open_none1(function(node_25) {
         return node_25.span;
       }, n_22);
-      var x_22_13669 = _open_at3(0, unify, lt_4, rt_0, _x_x3_23_11824);
+      var x_22_13750 = _open_at3(0, unify, lt_4, rt_0, _x_x3_23_11864);
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(_y_x10369_0) {
-          return _mlift_infer_12747(_y_x10360.fst, _y_x10369_0);
+        var x_20_13746 = yield_extend(function(_y_x10372_0) {
+          return _mlift_infer_12816(_y_x10363.fst, _y_x10372_0);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12747(_y_x10360.fst, x_22_13669);
+        var x_20_13746 = _mlift_infer_12816(_y_x10363.fst, x_22_13750);
       }
     } else if (op_1 === 7) {
-      var _x_x3_24_11830 = _open_none1(function(node_26) {
+      var _x_x3_24_11870 = _open_none1(function(node_26) {
         return node_26.span;
       }, n_22);
-      var x_23_13671 = _open_at3(0, unify, lt_4, rt_0, _x_x3_24_11830);
+      var x_23_13752 = _open_at3(0, unify, lt_4, rt_0, _x_x3_24_11870);
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(_y_x10370_0) {
-          return _mlift_infer_12748(_y_x10360.fst, _y_x10370_0);
+        var x_20_13746 = yield_extend(function(_y_x10373_0) {
+          return _mlift_infer_12817(_y_x10363.fst, _y_x10373_0);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12748(_y_x10360.fst, x_23_13671);
+        var x_20_13746 = _mlift_infer_12817(_y_x10363.fst, x_23_13752);
       }
     } else if (op_1 === 8) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 9) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 10) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 11) {
-      var x_20_13665 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10360.fst);
+      var x_20_13746 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+        return infer_comparison_op(lt_4, rt_0, lhs_3, rhs_0, n_22, _y_x10363.fst);
       });
     } else if (op_1 === 12) {
-      var _x_x3_29_11860 = _open_none1(function(node_27) {
+      var _x_x3_29_11900 = _open_none1(function(node_27) {
         return node_27.span;
       }, rhs_0);
-      var x_24_13673 = _open_at3(0, unify, rt_0, TBool, _x_x3_29_11860);
+      var x_24_13754 = _open_at3(0, unify, rt_0, TBool, _x_x3_29_11900);
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(_y_x10375_1) {
-          return _mlift_infer_12750(lhs_3, lt_4, _y_x10360.fst, _y_x10375_1);
+        var x_20_13746 = yield_extend(function(_y_x10378_1) {
+          return _mlift_infer_12819(lhs_3, lt_4, _y_x10363.fst, _y_x10378_1);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12750(lhs_3, lt_4, _y_x10360.fst, x_24_13673);
+        var x_20_13746 = _mlift_infer_12819(lhs_3, lt_4, _y_x10363.fst, x_24_13754);
       }
     } else if (op_1 === 13) {
-      var _x_x3_31_11872 = _open_none1(function(node_29) {
+      var _x_x3_31_11912 = _open_none1(function(node_29) {
         return node_29.span;
       }, rhs_0);
-      var x_25_13675 = _open_at3(0, unify, rt_0, TBool, _x_x3_31_11872);
+      var x_25_13756 = _open_at3(0, unify, rt_0, TBool, _x_x3_31_11912);
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(_y_x10377_1) {
-          return _mlift_infer_12752(lhs_3, lt_4, _y_x10360.fst, _y_x10377_1);
+        var x_20_13746 = yield_extend(function(_y_x10380_1) {
+          return _mlift_infer_12821(lhs_3, lt_4, _y_x10363.fst, _y_x10380_1);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12752(lhs_3, lt_4, _y_x10360.fst, x_25_13675);
+        var x_20_13746 = _mlift_infer_12821(lhs_3, lt_4, _y_x10363.fst, x_25_13756);
       }
     } else {
-      var x_26_13677 = _open_at0(1, function() {
-        var ev_0_13679 = _evv_at(0);
-        return ev_0_13679.hnd._fun_fresh_tvar(ev_0_13679.marker, ev_0_13679);
+      var x_26_13758 = _open_at0(1, function() {
+        var ev_0_13760 = _evv_at(0);
+        return ev_0_13760.hnd._fun_fresh_tvar(ev_0_13760.marker, ev_0_13760);
       });
       if (_yielding()) {
-        var x_20_13665 = yield_extend(function(elem_var_1) {
-          return _mlift_infer_12755(lhs_3, lt_4, rhs_0, rt_0, _y_x10360.fst, elem_var_1);
+        var x_20_13746 = yield_extend(function(elem_var_1) {
+          return _mlift_infer_12824(lhs_3, lt_4, rhs_0, rt_0, _y_x10363.fst, elem_var_1);
         });
       } else {
-        var x_20_13665 = _mlift_infer_12755(lhs_3, lt_4, rhs_0, rt_0, _y_x10360.fst, x_26_13677);
+        var x_20_13746 = _mlift_infer_12824(lhs_3, lt_4, rhs_0, rt_0, _y_x10363.fst, x_26_13758);
       }
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10383_0) {
-        return _mlift_infer_12756(lhs_0_sq_, n_22, op_1, _y_x10360.snd, _c_x10383_0);
+      return yield_extend(function(_c_x10386_0) {
+        return _mlift_infer_12825(lhs_0_sq_, n_22, op_1, _y_x10363.snd, _c_x10386_0);
       });
     } else {
-      return _mlift_infer_12756(lhs_0_sq_, n_22, op_1, _y_x10360.snd, x_20_13665);
+      return _mlift_infer_12825(lhs_0_sq_, n_22, op_1, _y_x10363.snd, x_20_13746);
     }
   }
-  function _mlift_infer_12758(env_6, lhs_4, n_23, op_3, rhs_1, _y_x10359) {
-    var x_27_13681 = infer(env_6, _y_x10359.fst, rhs_1);
+  function _mlift_infer_12827(env_6, lhs_4, n_23, op_3, rhs_1, _y_x10362) {
+    var x_27_13762 = infer(env_6, _y_x10362.fst, rhs_1);
     if (_yielding()) {
-      return yield_extend(function(_y_x10360_0) {
-        return _mlift_infer_12757(lhs_4, _y_x10359.snd, n_23, op_3, rhs_1, _y_x10360_0);
+      return yield_extend(function(_y_x10363_0) {
+        return _mlift_infer_12826(lhs_4, _y_x10362.snd, n_23, op_3, rhs_1, _y_x10363_0);
       });
     } else {
-      return _mlift_infer_12757(lhs_4, _y_x10359.snd, n_23, op_3, rhs_1, x_27_13681);
+      return _mlift_infer_12826(lhs_4, _y_x10362.snd, n_23, op_3, rhs_1, x_27_13762);
     }
   }
-  function _mlift_infer_12759(n_24, op_0_0, operand_sq_, s_u, _y_x10389) {
+  function _mlift_infer_12828(n_24, op_0_0, operand_sq_, s_u, _y_x10392) {
     var s2_4_0 = _open_none2(function(s1_16, s2_15) {
       var updated_s2_14 = _trmc_map_subst(s2_15, function(k_15, v_14) {
         return Tuple2(k_15, _trmc_apply_subst(s1_16, v_14, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_14 = _trmc_filter_subst(updated_s2_14, function(k_0_14, ___wildcard_x120__39_14) {
+      var ys_10006_14 = _trmc_filter_subst(updated_s2_14, function(k_0_14, ___wildcard_x136__39_14) {
         var b_10007_14 = subst_has(s1_16, k_0_14);
         return b_10007_14 ? false : true;
       }, _cctx_empty());
       return append(s1_16, ys_10006_14);
-    }, _y_x10389, s_u);
-    var _x_x1_113_11925 = _open_none1(function(node_39) {
+    }, _y_x10392, s_u);
+    var _x_x1_113_11965 = _open_none1(function(node_39) {
       return node_39.span;
     }, n_24);
     return Tuple2(s2_4_0, _open_none3(function(span_14, expr_14, typ_14) {
       var _x75 = typ_14 !== void 0 ? typ_14 : Nothing;
       return Node(span_14, expr_14, _x75);
-    }, _x_x1_113_11925, Unary(op_0_0, operand_sq_), Just(TInt)));
+    }, _x_x1_113_11965, Unary(op_0_0, operand_sq_), Just(TInt)));
   }
-  function _mlift_infer_12760(n_25, op_0_1, operand_0_sq_, s_u_0, wild___0_0) {
-    var _x_x1_118_11933 = _open_none1(function(node_41) {
+  function _mlift_infer_12829(n_25, op_0_1, operand_0_sq_, s_u_0, wild___0_0) {
+    var _x_x1_118_11973 = _open_none1(function(node_41) {
       return node_41.span;
     }, n_25);
     return Tuple2(s_u_0, _open_none3(function(span_15, expr_15, typ_15) {
       var _x76 = typ_15 !== void 0 ? typ_15 : Nothing;
       return Node(span_15, expr_15, _x76);
-    }, _x_x1_118_11933, Unary(op_0_1, operand_0_sq_), Just(TInt)));
+    }, _x_x1_118_11973, Unary(op_0_1, operand_0_sq_), Just(TInt)));
   }
-  function _mlift_infer_12761(n_26, op_0_2, operand, operand_1_sq_, ot, s1_5_0, _y_x10388) {
+  function _mlift_infer_12830(n_26, op_0_2, operand, operand_1_sq_, ot, s1_5_0, _y_x10391) {
     var s_u_1 = _open_none2(function(s1_15, s2_14) {
       var updated_s2_13 = _trmc_map_subst(s2_14, function(k_14, v_13) {
         return Tuple2(k_14, _trmc_apply_subst(s1_15, v_13, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_13 = _trmc_filter_subst(updated_s2_13, function(k_0_13, ___wildcard_x120__39_13) {
+      var ys_10006_13 = _trmc_filter_subst(updated_s2_13, function(k_0_13, ___wildcard_x136__39_13) {
         var b_10007_13 = subst_has(s1_15, k_0_13);
         return b_10007_13 ? false : true;
       }, _cctx_empty());
       return append(s1_15, ys_10006_13);
-    }, _y_x10388, s1_5_0);
+    }, _y_x10391, s1_5_0);
     var resolved_1 = _open_none2(apply_subst, s_u_1, ot);
     if (resolved_1._tag === 1) {
-      var _x_x1_106_11911 = _open_none1(function(node_36) {
+      var _x_x1_106_11951 = _open_none1(function(node_36) {
         return node_36.span;
       }, n_26);
       return Tuple2(s_u_1, _open_none3(function(span_12, expr_12, typ_12) {
         var _x77 = typ_12 !== void 0 ? typ_12 : Nothing;
         return Node(span_12, expr_12, _x77);
-      }, _x_x1_106_11911, Unary(op_0_2, operand_1_sq_), Just(TInt)));
+      }, _x_x1_106_11951, Unary(op_0_2, operand_1_sq_), Just(TInt)));
     } else if (resolved_1._tag === 2) {
-      var _x_x1_108_11915 = _open_none1(function(node_37) {
+      var _x_x1_108_11955 = _open_none1(function(node_37) {
         return node_37.span;
       }, n_26);
       return Tuple2(s_u_1, _open_none3(function(span_13, expr_13, typ_13) {
         var _x78 = typ_13 !== void 0 ? typ_13 : Nothing;
         return Node(span_13, expr_13, _x78);
-      }, _x_x1_108_11915, Unary(op_0_2, operand_1_sq_), Just(TFloat)));
+      }, _x_x1_108_11955, Unary(op_0_2, operand_1_sq_), Just(TFloat)));
     } else if (resolved_1._tag === 14) {
-      var _x_x3_39_11921 = _open_none1(function(node_38) {
+      var _x_x3_39_11961 = _open_none1(function(node_38) {
         return node_38.span;
       }, operand);
-      var x_28_13695 = _open_at3(0, unify, resolved_1, TInt, _x_x3_39_11921);
+      var x_28_13776 = _open_at3(0, unify, resolved_1, TInt, _x_x3_39_11961);
       if (_yielding()) {
-        return yield_extend(function(_y_x10389_0) {
-          return _mlift_infer_12759(n_26, op_0_2, operand_1_sq_, s_u_1, _y_x10389_0);
+        return yield_extend(function(_y_x10392_0) {
+          return _mlift_infer_12828(n_26, op_0_2, operand_1_sq_, s_u_1, _y_x10392_0);
         });
       } else {
-        return _mlift_infer_12759(n_26, op_0_2, operand_1_sq_, s_u_1, x_28_13695);
+        return _mlift_infer_12828(n_26, op_0_2, operand_1_sq_, s_u_1, x_28_13776);
       }
     } else {
-      var _x_x1_115_11929 = _open_none1(function(node_40) {
+      var _x_x1_115_11969 = _open_none1(function(node_40) {
         return node_40.span;
       }, operand);
-      var _x_x2_73_11930 = _lp__plus__plus__rp_("operator - requires int or float operand, got ", _open_none1(hica_type_fs_show, resolved_1));
-      var x_29_13697 = _open_at2(0, emit_error, _x_x1_115_11929, _x_x2_73_11930);
+      var _x_x2_73_11970 = _lp__plus__plus__rp_("operator - requires int or float operand, got ", _open_none1(hica_type_fs_show, resolved_1));
+      var x_29_13778 = _open_at2(0, emit_error, _x_x1_115_11969, _x_x2_73_11970);
       if (_yielding()) {
         return yield_extend(function(wild___0_1) {
-          return _mlift_infer_12760(n_26, op_0_2, operand_1_sq_, s_u_1, wild___0_1);
+          return _mlift_infer_12829(n_26, op_0_2, operand_1_sq_, s_u_1, wild___0_1);
         });
       } else {
-        return _mlift_infer_12760(n_26, op_0_2, operand_1_sq_, s_u_1, x_29_13697);
+        return _mlift_infer_12829(n_26, op_0_2, operand_1_sq_, s_u_1, x_29_13778);
       }
     }
   }
-  function _mlift_infer_12762(n_27, op_0_3, operand_2_sq_, s1_5_0_0, _y_x10392) {
+  function _mlift_infer_12831(n_27, op_0_3, operand_2_sq_, s1_5_0_0, _y_x10395) {
     var s2_4_0_0 = _open_none2(function(s1_17, s2_16) {
       var updated_s2_15 = _trmc_map_subst(s2_16, function(k_16, v_15) {
         return Tuple2(k_16, _trmc_apply_subst(s1_17, v_15, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_15 = _trmc_filter_subst(updated_s2_15, function(k_0_15, ___wildcard_x120__39_15) {
+      var ys_10006_15 = _trmc_filter_subst(updated_s2_15, function(k_0_15, ___wildcard_x136__39_15) {
         var b_10007_15 = subst_has(s1_17, k_0_15);
         return b_10007_15 ? false : true;
       }, _cctx_empty());
       return append(s1_17, ys_10006_15);
-    }, _y_x10392, s1_5_0_0);
-    var _x_x1_123_11943 = _open_none1(function(node_43) {
+    }, _y_x10395, s1_5_0_0);
+    var _x_x1_123_11983 = _open_none1(function(node_43) {
       return node_43.span;
     }, n_27);
     return Tuple2(s2_4_0_0, _open_none3(function(span_16, expr_16, typ_16) {
       var _x79 = typ_16 !== void 0 ? typ_16 : Nothing;
       return Node(span_16, expr_16, _x79);
-    }, _x_x1_123_11943, Unary(op_0_3, operand_2_sq_), Just(TBool)));
+    }, _x_x1_123_11983, Unary(op_0_3, operand_2_sq_), Just(TBool)));
   }
-  function _mlift_infer_12763(n_28, op_0_4, operand_0, _y_x10387) {
-    var _x_x2_64_11901 = _open_none1(function(n_10_0) {
+  function _mlift_infer_12832(n_28, op_0_4, operand_0, _y_x10390) {
+    var _x_x2_64_11941 = _open_none1(function(n_10_0) {
       return n_10_0.typ !== null ? n_10_0.typ.value : TUnit;
-    }, _y_x10387.snd);
-    var ot_0 = _open_none2(apply_subst, _y_x10387.fst, _x_x2_64_11901);
+    }, _y_x10390.snd);
+    var ot_0 = _open_none2(apply_subst, _y_x10390.fst, _x_x2_64_11941);
     if (op_0_4 === 1) {
-      var _x_x3_36_11905 = _open_none1(function(node_35) {
+      var _x_x3_36_11945 = _open_none1(function(node_35) {
         return node_35.span;
       }, operand_0);
-      var x_30_13705 = _open_at3(0, unify, ot_0, ot_0, _x_x3_36_11905);
+      var x_30_13786 = _open_at3(0, unify, ot_0, ot_0, _x_x3_36_11945);
       if (_yielding()) {
-        return yield_extend(function(_y_x10388_0) {
-          return _mlift_infer_12761(n_28, op_0_4, operand_0, _y_x10387.snd, ot_0, _y_x10387.fst, _y_x10388_0);
+        return yield_extend(function(_y_x10391_0) {
+          return _mlift_infer_12830(n_28, op_0_4, operand_0, _y_x10390.snd, ot_0, _y_x10390.fst, _y_x10391_0);
         });
       } else {
-        return _mlift_infer_12761(n_28, op_0_4, operand_0, _y_x10387.snd, ot_0, _y_x10387.fst, x_30_13705);
+        return _mlift_infer_12830(n_28, op_0_4, operand_0, _y_x10390.snd, ot_0, _y_x10390.fst, x_30_13786);
       }
     } else {
-      var _x_x3_42_11939 = _open_none1(function(node_42) {
+      var _x_x3_42_11979 = _open_none1(function(node_42) {
         return node_42.span;
       }, operand_0);
-      var x_31_13707 = _open_at3(0, unify, ot_0, TBool, _x_x3_42_11939);
+      var x_31_13788 = _open_at3(0, unify, ot_0, TBool, _x_x3_42_11979);
       if (_yielding()) {
-        return yield_extend(function(_y_x10392_0) {
-          return _mlift_infer_12762(n_28, op_0_4, _y_x10387.snd, _y_x10387.fst, _y_x10392_0);
+        return yield_extend(function(_y_x10395_0) {
+          return _mlift_infer_12831(n_28, op_0_4, _y_x10390.snd, _y_x10390.fst, _y_x10395_0);
         });
       } else {
-        return _mlift_infer_12762(n_28, op_0_4, _y_x10387.snd, _y_x10387.fst, x_31_13707);
+        return _mlift_infer_12831(n_28, op_0_4, _y_x10390.snd, _y_x10390.fst, x_31_13788);
       }
     }
   }
-  function _mlift_infer_12764(cond_sq_, else_sq_, n_29, s4, then_sq_, then_type, _y_x10399) {
+  function _mlift_infer_12833(cond_sq_, else_sq_, n_29, s4, then_sq_, then_type, _y_x10402) {
     var s5 = _open_none2(function(s1_19, s2_18) {
       var updated_s2_17 = _trmc_map_subst(s2_18, function(k_18, v_17) {
         return Tuple2(k_18, _trmc_apply_subst(s1_19, v_17, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_17 = _trmc_filter_subst(updated_s2_17, function(k_0_17, ___wildcard_x120__39_17) {
+      var ys_10006_17 = _trmc_filter_subst(updated_s2_17, function(k_0_17, ___wildcard_x136__39_17) {
         var b_10007_17 = subst_has(s1_19, k_0_17);
         return b_10007_17 ? false : true;
       }, _cctx_empty());
       return append(s1_19, ys_10006_17);
-    }, _y_x10399, s4);
+    }, _y_x10402, s4);
     var result_type_2 = _open_none2(apply_subst, s5, then_type);
-    var _x_x1_138_11970 = _open_none1(function(node_49) {
+    var _x_x1_138_12010 = _open_none1(function(node_49) {
       return node_49.span;
     }, n_29);
     return Tuple2(s5, _open_none3(function(span_17, expr_17, typ_17) {
       var _x80 = typ_17 !== void 0 ? typ_17 : Nothing;
       return Node(span_17, expr_17, _x80);
-    }, _x_x1_138_11970, If(cond_sq_, then_sq_, else_sq_), Just(result_type_2)));
+    }, _x_x1_138_12010, If(cond_sq_, then_sq_, else_sq_), Just(result_type_2)));
   }
-  function _mlift_infer_12765(cond_0_sq_, n_30, then_0_sq_, _y_x10398) {
-    var _x_x2_81_11957 = _open_none1(function(n_12_0) {
+  function _mlift_infer_12834(cond_0_sq_, n_30, then_0_sq_, _y_x10401) {
+    var _x_x2_81_11997 = _open_none1(function(n_12_0) {
       return n_12_0.typ !== null ? n_12_0.typ.value : TUnit;
     }, then_0_sq_);
-    var then_type_0 = _open_none2(apply_subst, _y_x10398.fst, _x_x2_81_11957);
-    var _x_x2_82_11960 = _open_none1(function(n_13_0) {
+    var then_type_0 = _open_none2(apply_subst, _y_x10401.fst, _x_x2_81_11997);
+    var _x_x2_82_12000 = _open_none1(function(n_13_0) {
       return n_13_0.typ !== null ? n_13_0.typ.value : TUnit;
-    }, _y_x10398.snd);
-    var else_type = _open_none2(apply_subst, _y_x10398.fst, _x_x2_82_11960);
-    var _x_x3_45_11964 = _open_none1(function(node_48) {
+    }, _y_x10401.snd);
+    var else_type = _open_none2(apply_subst, _y_x10401.fst, _x_x2_82_12000);
+    var _x_x3_45_12004 = _open_none1(function(node_48) {
       return node_48.span;
     }, n_30);
-    var x_32_13715 = _open_at3(0, unify, then_type_0, else_type, _x_x3_45_11964);
+    var x_32_13796 = _open_at3(0, unify, then_type_0, else_type, _x_x3_45_12004);
     if (_yielding()) {
-      return yield_extend(function(_y_x10399_0) {
-        return _mlift_infer_12764(cond_0_sq_, _y_x10398.snd, n_30, _y_x10398.fst, then_0_sq_, then_type_0, _y_x10399_0);
+      return yield_extend(function(_y_x10402_0) {
+        return _mlift_infer_12833(cond_0_sq_, _y_x10401.snd, n_30, _y_x10401.fst, then_0_sq_, then_type_0, _y_x10402_0);
       });
     } else {
-      return _mlift_infer_12764(cond_0_sq_, _y_x10398.snd, n_30, _y_x10398.fst, then_0_sq_, then_type_0, x_32_13715);
+      return _mlift_infer_12833(cond_0_sq_, _y_x10401.snd, n_30, _y_x10401.fst, then_0_sq_, then_type_0, x_32_13796);
     }
   }
-  function _mlift_infer_12766(cond_1_sq_, else_e, env_7, n_31, _y_x10397) {
-    var x_33_13717 = infer(env_7, _y_x10397.fst, else_e);
+  function _mlift_infer_12835(cond_1_sq_, else_e, env_7, n_31, _y_x10400) {
+    var x_33_13798 = infer(env_7, _y_x10400.fst, else_e);
     if (_yielding()) {
-      return yield_extend(function(_y_x10398_0) {
-        return _mlift_infer_12765(cond_1_sq_, n_31, _y_x10397.snd, _y_x10398_0);
+      return yield_extend(function(_y_x10401_0) {
+        return _mlift_infer_12834(cond_1_sq_, n_31, _y_x10400.snd, _y_x10401_0);
       });
     } else {
-      return _mlift_infer_12765(cond_1_sq_, n_31, _y_x10397.snd, x_33_13717);
+      return _mlift_infer_12834(cond_1_sq_, n_31, _y_x10400.snd, x_33_13798);
     }
   }
-  function _mlift_infer_12767(cond_2_sq_, else_e_0, env_8, n_32, s1_6_0, then_e, _y_x10396) {
+  function _mlift_infer_12836(cond_2_sq_, else_e_0, env_8, n_32, s1_6_0, then_e, _y_x10399) {
     var s2_5_0 = _open_none2(function(s1_18, s2_17) {
       var updated_s2_16 = _trmc_map_subst(s2_17, function(k_17, v_16) {
         return Tuple2(k_17, _trmc_apply_subst(s1_18, v_16, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_16 = _trmc_filter_subst(updated_s2_16, function(k_0_16, ___wildcard_x120__39_16) {
+      var ys_10006_16 = _trmc_filter_subst(updated_s2_16, function(k_0_16, ___wildcard_x136__39_16) {
         var b_10007_16 = subst_has(s1_18, k_0_16);
         return b_10007_16 ? false : true;
       }, _cctx_empty());
       return append(s1_18, ys_10006_16);
-    }, _y_x10396, s1_6_0);
-    var x_34_13725 = infer(env_8, s2_5_0, then_e);
+    }, _y_x10399, s1_6_0);
+    var x_34_13806 = infer(env_8, s2_5_0, then_e);
     if (_yielding()) {
-      return yield_extend(function(_y_x10397_0) {
-        return _mlift_infer_12766(cond_2_sq_, else_e_0, env_8, n_32, _y_x10397_0);
+      return yield_extend(function(_y_x10400_0) {
+        return _mlift_infer_12835(cond_2_sq_, else_e_0, env_8, n_32, _y_x10400_0);
       });
     } else {
-      return _mlift_infer_12766(cond_2_sq_, else_e_0, env_8, n_32, x_34_13725);
+      return _mlift_infer_12835(cond_2_sq_, else_e_0, env_8, n_32, x_34_13806);
     }
   }
-  function _mlift_infer_12768(cond, else_e_1, env_9, n_33, then_e_0, _y_x10395) {
-    var _x_x2_78_11948 = _open_none1(function(n_11_0) {
+  function _mlift_infer_12837(cond, else_e_1, env_9, n_33, then_e_0, _y_x10398) {
+    var _x_x2_78_11988 = _open_none1(function(n_11_0) {
       return n_11_0.typ !== null ? n_11_0.typ.value : TUnit;
-    }, _y_x10395.snd);
-    var cond_type = _open_none2(apply_subst, _y_x10395.fst, _x_x2_78_11948);
-    var _x_x3_44_11952 = _open_none1(function(node_45) {
+    }, _y_x10398.snd);
+    var cond_type = _open_none2(apply_subst, _y_x10398.fst, _x_x2_78_11988);
+    var _x_x3_44_11992 = _open_none1(function(node_45) {
       return node_45.span;
     }, cond);
-    var x_35_13727 = _open_at3(0, unify, cond_type, TBool, _x_x3_44_11952);
+    var x_35_13808 = _open_at3(0, unify, cond_type, TBool, _x_x3_44_11992);
     if (_yielding()) {
-      return yield_extend(function(_y_x10396_0) {
-        return _mlift_infer_12767(_y_x10395.snd, else_e_1, env_9, n_33, _y_x10395.fst, then_e_0, _y_x10396_0);
+      return yield_extend(function(_y_x10399_0) {
+        return _mlift_infer_12836(_y_x10398.snd, else_e_1, env_9, n_33, _y_x10398.fst, then_e_0, _y_x10399_0);
       });
     } else {
-      return _mlift_infer_12767(_y_x10395.snd, else_e_1, env_9, n_33, _y_x10395.fst, then_e_0, x_35_13727);
+      return _mlift_infer_12836(_y_x10398.snd, else_e_1, env_9, n_33, _y_x10398.fst, then_e_0, x_35_13808);
     }
   }
-  function _mlift_infer_12769(arms_sq_, n_34, result_var, s2_6_0, scrut_sq_, wild___1) {
+  function _mlift_infer_12838(arms_sq_, n_34, result_var, s2_6_0, scrut_sq_, wild___1) {
     var result_type_3 = _open_none2(apply_subst, s2_6_0, result_var);
-    var _x_x1_146_11985 = _open_none1(function(node_52) {
+    var _x_x1_146_12025 = _open_none1(function(node_52) {
       return node_52.span;
     }, n_34);
     return Tuple2(s2_6_0, _open_none3(function(span_18, expr_18, typ_18) {
       var _x81 = typ_18 !== void 0 ? typ_18 : Nothing;
       return Node(span_18, expr_18, _x81);
-    }, _x_x1_146_11985, Match(scrut_sq_, arms_sq_), Just(result_type_3)));
+    }, _x_x1_146_12025, Match(scrut_sq_, arms_sq_), Just(result_type_3)));
   }
-  function _mlift_infer_12770(n_35, result_var_0, scrut_0_sq_, scrut_type, _y_x10406) {
-    var resolved_scrut = _open_none2(apply_subst, _y_x10406.fst, scrut_type);
-    var _x_x3_47_11981 = _open_none1(function(node_51) {
+  function _mlift_infer_12839(n_35, result_var_0, scrut_0_sq_, scrut_type, _y_x10409) {
+    var resolved_scrut = _open_none2(apply_subst, _y_x10409.fst, scrut_type);
+    var _x_x3_47_12021 = _open_none1(function(node_51) {
       return node_51.span;
     }, n_35);
-    var x_36_13729 = _open3(unvlist(Cons(0, Cons(4, Nil))), check_exhaustive, resolved_scrut, _y_x10406.snd, _x_x3_47_11981);
+    var x_36_13810 = _open3(unvlist(Cons(0, Cons(4, Nil))), check_exhaustive, resolved_scrut, _y_x10409.snd, _x_x3_47_12021);
     if (_yielding()) {
       return yield_extend(function(wild___1_0) {
-        return _mlift_infer_12769(_y_x10406.snd, n_35, result_var_0, _y_x10406.fst, scrut_0_sq_, wild___1_0);
+        return _mlift_infer_12838(_y_x10409.snd, n_35, result_var_0, _y_x10409.fst, scrut_0_sq_, wild___1_0);
       });
     } else {
-      return _mlift_infer_12769(_y_x10406.snd, n_35, result_var_0, _y_x10406.fst, scrut_0_sq_, x_36_13729);
+      return _mlift_infer_12838(_y_x10409.snd, n_35, result_var_0, _y_x10409.fst, scrut_0_sq_, x_36_13810);
     }
   }
-  function _mlift_infer_12771(arms, env_10, n_36, s1_7_0, scrut_1_sq_, scrut_type_0, result_var_1) {
-    var x_37_13731 = infer_arms(env_10, s1_7_0, scrut_type_0, result_var_1, arms);
+  function _mlift_infer_12840(arms, env_10, n_36, s1_7_0, scrut_1_sq_, scrut_type_0, result_var_1) {
+    var x_37_13812 = infer_arms(env_10, s1_7_0, scrut_type_0, result_var_1, arms);
     if (_yielding()) {
-      return yield_extend(function(_y_x10406_0) {
-        return _mlift_infer_12770(n_36, result_var_1, scrut_1_sq_, scrut_type_0, _y_x10406_0);
+      return yield_extend(function(_y_x10409_0) {
+        return _mlift_infer_12839(n_36, result_var_1, scrut_1_sq_, scrut_type_0, _y_x10409_0);
       });
     } else {
-      return _mlift_infer_12770(n_36, result_var_1, scrut_1_sq_, scrut_type_0, x_37_13731);
+      return _mlift_infer_12839(n_36, result_var_1, scrut_1_sq_, scrut_type_0, x_37_13812);
     }
   }
-  function _mlift_infer_12772(arms_0, env_11, n_37, _y_x10403) {
-    var _x_x2_87_11975 = _open_none1(function(n_14_0) {
+  function _mlift_infer_12841(arms_0, env_11, n_37, _y_x10406) {
+    var _x_x2_87_12015 = _open_none1(function(n_14_0) {
       return n_14_0.typ !== null ? n_14_0.typ.value : TUnit;
-    }, _y_x10403.snd);
-    var scrut_type_1 = _open_none2(apply_subst, _y_x10403.fst, _x_x2_87_11975);
-    var x_38_13733 = _open_at0(1, function() {
-      var ev_1_13735 = _evv_at(0);
-      return ev_1_13735.hnd._fun_fresh_tvar(ev_1_13735.marker, ev_1_13735);
+    }, _y_x10406.snd);
+    var scrut_type_1 = _open_none2(apply_subst, _y_x10406.fst, _x_x2_87_12015);
+    var x_38_13814 = _open_at0(1, function() {
+      var ev_1_13816 = _evv_at(0);
+      return ev_1_13816.hnd._fun_fresh_tvar(ev_1_13816.marker, ev_1_13816);
     });
     if (_yielding()) {
       return yield_extend(function(result_var_2) {
-        return _mlift_infer_12771(arms_0, env_11, n_37, _y_x10403.fst, _y_x10403.snd, scrut_type_1, result_var_2);
+        return _mlift_infer_12840(arms_0, env_11, n_37, _y_x10406.fst, _y_x10406.snd, scrut_type_1, result_var_2);
       });
     } else {
-      return _mlift_infer_12771(arms_0, env_11, n_37, _y_x10403.fst, _y_x10403.snd, scrut_type_1, x_38_13733);
+      return _mlift_infer_12840(arms_0, env_11, n_37, _y_x10406.fst, _y_x10406.snd, scrut_type_1, x_38_13814);
     }
   }
-  function _mlift_infer_12773(count_sq_, n_38, _y_x10412) {
-    var _x_x1_153_11998 = _open_none1(function(node_55) {
+  function _mlift_infer_12842(count_sq_, n_38, _y_x10415) {
+    var _x_x1_153_12038 = _open_none1(function(node_55) {
       return node_55.span;
     }, n_38);
-    return Tuple2(_y_x10412.fst, _open_none3(function(span_19, expr_19, typ_19) {
+    return Tuple2(_y_x10415.fst, _open_none3(function(span_19, expr_19, typ_19) {
       var _x82 = typ_19 !== void 0 ? typ_19 : Nothing;
       return Node(span_19, expr_19, _x82);
-    }, _x_x1_153_11998, Repeat(count_sq_, _y_x10412.snd), Just(TUnit)));
+    }, _x_x1_153_12038, Repeat(count_sq_, _y_x10415.snd), Just(TUnit)));
   }
-  function _mlift_infer_12774(body_2, count_0_sq_, env_12, n_39, s1_8_0, _y_x10411) {
+  function _mlift_infer_12843(body_2, count_0_sq_, env_12, n_39, s1_8_0, _y_x10414) {
     var s2_7_0 = _open_none2(function(s1_20, s2_19) {
       var updated_s2_18 = _trmc_map_subst(s2_19, function(k_19, v_18) {
         return Tuple2(k_19, _trmc_apply_subst(s1_20, v_18, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_18 = _trmc_filter_subst(updated_s2_18, function(k_0_18, ___wildcard_x120__39_18) {
+      var ys_10006_18 = _trmc_filter_subst(updated_s2_18, function(k_0_18, ___wildcard_x136__39_18) {
         var b_10007_18 = subst_has(s1_20, k_0_18);
         return b_10007_18 ? false : true;
       }, _cctx_empty());
       return append(s1_20, ys_10006_18);
-    }, _y_x10411, s1_8_0);
-    var x_39_13743 = infer_loop_body(env_12, s2_7_0, body_2);
+    }, _y_x10414, s1_8_0);
+    var x_39_13824 = infer_loop_body(env_12, s2_7_0, body_2);
     if (_yielding()) {
-      return yield_extend(function(_y_x10412_0) {
-        return _mlift_infer_12773(count_0_sq_, n_39, _y_x10412_0);
+      return yield_extend(function(_y_x10415_0) {
+        return _mlift_infer_12842(count_0_sq_, n_39, _y_x10415_0);
       });
     } else {
-      return _mlift_infer_12773(count_0_sq_, n_39, x_39_13743);
+      return _mlift_infer_12842(count_0_sq_, n_39, x_39_13824);
     }
   }
-  function _mlift_infer_12775(body_2_0, count, env_13, n_40, _y_x10410) {
-    var _x_x2_92_11990 = _open_none1(function(n_15_0) {
+  function _mlift_infer_12844(body_2_0, count, env_13, n_40, _y_x10413) {
+    var _x_x2_92_12030 = _open_none1(function(n_15_0) {
       return n_15_0.typ !== null ? n_15_0.typ.value : TUnit;
-    }, _y_x10410.snd);
-    var count_type = _open_none2(apply_subst, _y_x10410.fst, _x_x2_92_11990);
-    var _x_x3_49_11994 = _open_none1(function(node_54) {
+    }, _y_x10413.snd);
+    var count_type = _open_none2(apply_subst, _y_x10413.fst, _x_x2_92_12030);
+    var _x_x3_49_12034 = _open_none1(function(node_54) {
       return node_54.span;
     }, count);
-    var x_40_13745 = _open_at3(0, unify, count_type, TInt, _x_x3_49_11994);
+    var x_40_13826 = _open_at3(0, unify, count_type, TInt, _x_x3_49_12034);
     if (_yielding()) {
-      return yield_extend(function(_y_x10411_0) {
-        return _mlift_infer_12774(body_2_0, _y_x10410.snd, env_13, n_40, _y_x10410.fst, _y_x10411_0);
+      return yield_extend(function(_y_x10414_0) {
+        return _mlift_infer_12843(body_2_0, _y_x10413.snd, env_13, n_40, _y_x10413.fst, _y_x10414_0);
       });
     } else {
-      return _mlift_infer_12774(body_2_0, _y_x10410.snd, env_13, n_40, _y_x10410.fst, x_40_13745);
+      return _mlift_infer_12843(body_2_0, _y_x10413.snd, env_13, n_40, _y_x10413.fst, x_40_13826);
     }
   }
-  function _mlift_infer_12776(end_sq_, n_41, name_3_0, start_sq_, _y_x10419) {
-    var _x_x1_165_12020 = _open_none1(function(node_60) {
+  function _mlift_infer_12845(end_sq_, n_41, name_3_0, start_sq_, _y_x10422) {
+    var _x_x1_165_12060 = _open_none1(function(node_60) {
       return node_60.span;
     }, n_41);
-    return Tuple2(_y_x10419.fst, _open_none3(function(span_20, expr_20, typ_20) {
+    return Tuple2(_y_x10422.fst, _open_none3(function(span_20, expr_20, typ_20) {
       var _x83 = typ_20 !== void 0 ? typ_20 : Nothing;
       return Node(span_20, expr_20, _x83);
-    }, _x_x1_165_12020, ForIn(name_3_0, start_sq_, end_sq_, _y_x10419.snd), Just(TUnit)));
+    }, _x_x1_165_12060, ForIn(name_3_0, start_sq_, end_sq_, _y_x10422.snd), Just(TUnit)));
   }
-  function _mlift_infer_12777(body_3, end_0_sq_, env_14, n_42, name_3_0_0, s3_5, start_0_sq_, _y_x10418) {
+  function _mlift_infer_12846(body_3, end_0_sq_, env_14, n_42, name_3_0_0, s3_5, start_0_sq_, _y_x10421) {
     var s4_0_0 = _open_none2(function(s1_22, s2_21) {
       var updated_s2_20 = _trmc_map_subst(s2_21, function(k_21, v_20) {
         return Tuple2(k_21, _trmc_apply_subst(s1_22, v_20, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_20 = _trmc_filter_subst(updated_s2_20, function(k_0_20, ___wildcard_x120__39_20) {
+      var ys_10006_20 = _trmc_filter_subst(updated_s2_20, function(k_0_20, ___wildcard_x136__39_20) {
         var b_10007_20 = subst_has(s1_22, k_0_20);
         return b_10007_20 ? false : true;
       }, _cctx_empty());
       return append(s1_22, ys_10006_20);
-    }, _y_x10418, s3_5);
-    var x_41_13753 = infer_loop_body(Cons(Tuple2(name_3_0_0, TInt), env_14), s4_0_0, body_3);
+    }, _y_x10421, s3_5);
+    var x_41_13834 = infer_loop_body(Cons(Tuple2(name_3_0_0, TInt), env_14), s4_0_0, body_3);
     if (_yielding()) {
-      return yield_extend(function(_y_x10419_0) {
-        return _mlift_infer_12776(end_0_sq_, n_42, name_3_0_0, start_0_sq_, _y_x10419_0);
+      return yield_extend(function(_y_x10422_0) {
+        return _mlift_infer_12845(end_0_sq_, n_42, name_3_0_0, start_0_sq_, _y_x10422_0);
       });
     } else {
-      return _mlift_infer_12776(end_0_sq_, n_42, name_3_0_0, start_0_sq_, x_41_13753);
+      return _mlift_infer_12845(end_0_sq_, n_42, name_3_0_0, start_0_sq_, x_41_13834);
     }
   }
-  function _mlift_infer_12778(body_3_0, end_e, env_15, n_43, name_3_0_1, start_1_sq_, _y_x10417) {
-    var _x_x2_99_12012 = _open_none1(function(n_17_0) {
+  function _mlift_infer_12847(body_3_0, end_e, env_15, n_43, name_3_0_1, start_1_sq_, _y_x10420) {
+    var _x_x2_99_12052 = _open_none1(function(n_17_0) {
       return n_17_0.typ !== null ? n_17_0.typ.value : TUnit;
-    }, _y_x10417.snd);
-    var end_type = _open_none2(apply_subst, _y_x10417.fst, _x_x2_99_12012);
-    var _x_x3_52_12016 = _open_none1(function(node_59) {
+    }, _y_x10420.snd);
+    var end_type = _open_none2(apply_subst, _y_x10420.fst, _x_x2_99_12052);
+    var _x_x3_52_12056 = _open_none1(function(node_59) {
       return node_59.span;
     }, end_e);
-    var x_42_13755 = _open_at3(0, unify, end_type, TInt, _x_x3_52_12016);
+    var x_42_13836 = _open_at3(0, unify, end_type, TInt, _x_x3_52_12056);
     if (_yielding()) {
-      return yield_extend(function(_y_x10418_0) {
-        return _mlift_infer_12777(body_3_0, _y_x10417.snd, env_15, n_43, name_3_0_1, _y_x10417.fst, start_1_sq_, _y_x10418_0);
+      return yield_extend(function(_y_x10421_0) {
+        return _mlift_infer_12846(body_3_0, _y_x10420.snd, env_15, n_43, name_3_0_1, _y_x10420.fst, start_1_sq_, _y_x10421_0);
       });
     } else {
-      return _mlift_infer_12777(body_3_0, _y_x10417.snd, env_15, n_43, name_3_0_1, _y_x10417.fst, start_1_sq_, x_42_13755);
+      return _mlift_infer_12846(body_3_0, _y_x10420.snd, env_15, n_43, name_3_0_1, _y_x10420.fst, start_1_sq_, x_42_13836);
     }
   }
-  function _mlift_infer_12779(body_3_1, end_e_0, env_16, n_44, name_3_0_2, s1_9_0, start_2_sq_, _y_x10416) {
+  function _mlift_infer_12848(body_3_1, end_e_0, env_16, n_44, name_3_0_2, s1_9_0, start_2_sq_, _y_x10419) {
     var s2_8_0 = _open_none2(function(s1_21, s2_20) {
       var updated_s2_19 = _trmc_map_subst(s2_20, function(k_20, v_19) {
         return Tuple2(k_20, _trmc_apply_subst(s1_21, v_19, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_19 = _trmc_filter_subst(updated_s2_19, function(k_0_19, ___wildcard_x120__39_19) {
+      var ys_10006_19 = _trmc_filter_subst(updated_s2_19, function(k_0_19, ___wildcard_x136__39_19) {
         var b_10007_19 = subst_has(s1_21, k_0_19);
         return b_10007_19 ? false : true;
       }, _cctx_empty());
       return append(s1_21, ys_10006_19);
-    }, _y_x10416, s1_9_0);
-    var x_43_13763 = infer(env_16, s2_8_0, end_e_0);
+    }, _y_x10419, s1_9_0);
+    var x_43_13844 = infer(env_16, s2_8_0, end_e_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10417_0) {
-        return _mlift_infer_12778(body_3_1, end_e_0, env_16, n_44, name_3_0_2, start_2_sq_, _y_x10417_0);
+      return yield_extend(function(_y_x10420_0) {
+        return _mlift_infer_12847(body_3_1, end_e_0, env_16, n_44, name_3_0_2, start_2_sq_, _y_x10420_0);
       });
     } else {
-      return _mlift_infer_12778(body_3_1, end_e_0, env_16, n_44, name_3_0_2, start_2_sq_, x_43_13763);
+      return _mlift_infer_12847(body_3_1, end_e_0, env_16, n_44, name_3_0_2, start_2_sq_, x_43_13844);
     }
   }
-  function _mlift_infer_12780(body_3_2, end_e_1, env_17, n_45, name_3_0_3, start_e, _y_x10415) {
-    var _x_x2_96_12003 = _open_none1(function(n_16_0) {
+  function _mlift_infer_12849(body_3_2, end_e_1, env_17, n_45, name_3_0_3, start_e, _y_x10418) {
+    var _x_x2_96_12043 = _open_none1(function(n_16_0) {
       return n_16_0.typ !== null ? n_16_0.typ.value : TUnit;
-    }, _y_x10415.snd);
-    var start_type = _open_none2(apply_subst, _y_x10415.fst, _x_x2_96_12003);
-    var _x_x3_51_12007 = _open_none1(function(node_57) {
+    }, _y_x10418.snd);
+    var start_type = _open_none2(apply_subst, _y_x10418.fst, _x_x2_96_12043);
+    var _x_x3_51_12047 = _open_none1(function(node_57) {
       return node_57.span;
     }, start_e);
-    var x_44_13765 = _open_at3(0, unify, start_type, TInt, _x_x3_51_12007);
+    var x_44_13846 = _open_at3(0, unify, start_type, TInt, _x_x3_51_12047);
     if (_yielding()) {
-      return yield_extend(function(_y_x10416_0) {
-        return _mlift_infer_12779(body_3_2, end_e_1, env_17, n_45, name_3_0_3, _y_x10415.fst, _y_x10415.snd, _y_x10416_0);
+      return yield_extend(function(_y_x10419_0) {
+        return _mlift_infer_12848(body_3_2, end_e_1, env_17, n_45, name_3_0_3, _y_x10418.fst, _y_x10418.snd, _y_x10419_0);
       });
     } else {
-      return _mlift_infer_12779(body_3_2, end_e_1, env_17, n_45, name_3_0_3, _y_x10415.fst, _y_x10415.snd, x_44_13765);
+      return _mlift_infer_12848(body_3_2, end_e_1, env_17, n_45, name_3_0_3, _y_x10418.fst, _y_x10418.snd, x_44_13846);
     }
   }
-  function _mlift_infer_12781(coll_sq_, n_46, name_4_0, _y_x10427) {
-    var _x_x1_173_12035 = _open_none1(function(node_63) {
+  function _mlift_infer_12850(coll_sq_, n_46, name_4_0, _y_x10430) {
+    var _x_x1_173_12075 = _open_none1(function(node_63) {
       return node_63.span;
     }, n_46);
-    return Tuple2(_y_x10427.fst, _open_none3(function(span_21, expr_21, typ_21) {
+    return Tuple2(_y_x10430.fst, _open_none3(function(span_21, expr_21, typ_21) {
       var _x84 = typ_21 !== void 0 ? typ_21 : Nothing;
       return Node(span_21, expr_21, _x84);
-    }, _x_x1_173_12035, ForEach(name_4_0, coll_sq_, _y_x10427.snd), Just(TUnit)));
+    }, _x_x1_173_12075, ForEach(name_4_0, coll_sq_, _y_x10430.snd), Just(TUnit)));
   }
-  function _mlift_infer_12782(body_4, coll_0_sq_, elem_type, env_18, n_47, name_4_0_0, s1_10_0, _y_x10426) {
+  function _mlift_infer_12851(body_4, coll_0_sq_, elem_type, env_18, n_47, name_4_0_0, s1_10_0, _y_x10429) {
     var s2_9_0 = _open_none2(function(s1_23, s2_22) {
       var updated_s2_21 = _trmc_map_subst(s2_22, function(k_22, v_21) {
         return Tuple2(k_22, _trmc_apply_subst(s1_23, v_21, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_21 = _trmc_filter_subst(updated_s2_21, function(k_0_21, ___wildcard_x120__39_21) {
+      var ys_10006_21 = _trmc_filter_subst(updated_s2_21, function(k_0_21, ___wildcard_x136__39_21) {
         var b_10007_21 = subst_has(s1_23, k_0_21);
         return b_10007_21 ? false : true;
       }, _cctx_empty());
       return append(s1_23, ys_10006_21);
-    }, _y_x10426, s1_10_0);
+    }, _y_x10429, s1_10_0);
     var resolved_elem_0 = _open_none2(apply_subst, s2_9_0, elem_type);
-    var x_45_13773 = infer_loop_body(Cons(Tuple2(name_4_0_0, resolved_elem_0), env_18), s2_9_0, body_4);
+    var x_45_13854 = infer_loop_body(Cons(Tuple2(name_4_0_0, resolved_elem_0), env_18), s2_9_0, body_4);
     if (_yielding()) {
-      return yield_extend(function(_y_x10427_0) {
-        return _mlift_infer_12781(coll_0_sq_, n_47, name_4_0_0, _y_x10427_0);
+      return yield_extend(function(_y_x10430_0) {
+        return _mlift_infer_12850(coll_0_sq_, n_47, name_4_0_0, _y_x10430_0);
       });
     } else {
-      return _mlift_infer_12781(coll_0_sq_, n_47, name_4_0_0, x_45_13773);
+      return _mlift_infer_12850(coll_0_sq_, n_47, name_4_0_0, x_45_13854);
     }
   }
-  function _mlift_infer_12783(body_4_0, coll, coll_1_sq_, coll_type, env_19, n_48, name_4_0_1, s1_10_0_0, elem_type_0) {
-    var _x_x3_54_12029 = _open_none1(function(node_62) {
+  function _mlift_infer_12852(body_4_0, coll, coll_1_sq_, coll_type, env_19, n_48, name_4_0_1, s1_10_0_0, elem_type_0) {
+    var _x_x3_54_12069 = _open_none1(function(node_62) {
       return node_62.span;
     }, coll);
-    var x_46_13775 = _open_at3(0, unify, coll_type, TList(elem_type_0), _x_x3_54_12029);
+    var x_46_13856 = _open_at3(0, unify, coll_type, TList(elem_type_0), _x_x3_54_12069);
     if (_yielding()) {
-      return yield_extend(function(_y_x10426_0) {
-        return _mlift_infer_12782(body_4_0, coll_1_sq_, elem_type_0, env_19, n_48, name_4_0_1, s1_10_0_0, _y_x10426_0);
+      return yield_extend(function(_y_x10429_0) {
+        return _mlift_infer_12851(body_4_0, coll_1_sq_, elem_type_0, env_19, n_48, name_4_0_1, s1_10_0_0, _y_x10429_0);
       });
     } else {
-      return _mlift_infer_12782(body_4_0, coll_1_sq_, elem_type_0, env_19, n_48, name_4_0_1, s1_10_0_0, x_46_13775);
+      return _mlift_infer_12851(body_4_0, coll_1_sq_, elem_type_0, env_19, n_48, name_4_0_1, s1_10_0_0, x_46_13856);
     }
   }
-  function _mlift_infer_12784(body_4_1, coll_0, env_20, n_49, name_4_0_2, _y_x10423) {
-    var _x_x2_103_12025 = _open_none1(function(n_18_0) {
+  function _mlift_infer_12853(body_4_1, coll_0, env_20, n_49, name_4_0_2, _y_x10426) {
+    var _x_x2_103_12065 = _open_none1(function(n_18_0) {
       return n_18_0.typ !== null ? n_18_0.typ.value : TUnit;
-    }, _y_x10423.snd);
-    var coll_type_0 = _open_none2(apply_subst, _y_x10423.fst, _x_x2_103_12025);
-    var x_47_13777 = _open_at0(1, function() {
-      var ev_2_13779 = _evv_at(0);
-      return ev_2_13779.hnd._fun_fresh_tvar(ev_2_13779.marker, ev_2_13779);
+    }, _y_x10426.snd);
+    var coll_type_0 = _open_none2(apply_subst, _y_x10426.fst, _x_x2_103_12065);
+    var x_47_13858 = _open_at0(1, function() {
+      var ev_2_13860 = _evv_at(0);
+      return ev_2_13860.hnd._fun_fresh_tvar(ev_2_13860.marker, ev_2_13860);
     });
     if (_yielding()) {
       return yield_extend(function(elem_type_1) {
-        return _mlift_infer_12783(body_4_1, coll_0, _y_x10423.snd, coll_type_0, env_20, n_49, name_4_0_2, _y_x10423.fst, elem_type_1);
+        return _mlift_infer_12852(body_4_1, coll_0, _y_x10426.snd, coll_type_0, env_20, n_49, name_4_0_2, _y_x10426.fst, elem_type_1);
       });
     } else {
-      return _mlift_infer_12783(body_4_1, coll_0, _y_x10423.snd, coll_type_0, env_20, n_49, name_4_0_2, _y_x10423.fst, x_47_13777);
+      return _mlift_infer_12852(body_4_1, coll_0, _y_x10426.snd, coll_type_0, env_20, n_49, name_4_0_2, _y_x10426.fst, x_47_13858);
     }
   }
-  function _mlift_infer_12785(cond_0_0_sq_, n_50, _y_x10432) {
-    var _x_x1_180_12048 = _open_none1(function(node_66) {
+  function _mlift_infer_12854(cond_0_0_sq_, n_50, _y_x10435) {
+    var _x_x1_180_12088 = _open_none1(function(node_66) {
       return node_66.span;
     }, n_50);
-    return Tuple2(_y_x10432.fst, _open_none3(function(span_22, expr_22, typ_22) {
+    return Tuple2(_y_x10435.fst, _open_none3(function(span_22, expr_22, typ_22) {
       var _x85 = typ_22 !== void 0 ? typ_22 : Nothing;
       return Node(span_22, expr_22, _x85);
-    }, _x_x1_180_12048, While(cond_0_0_sq_, _y_x10432.snd), Just(TUnit)));
+    }, _x_x1_180_12088, While(cond_0_0_sq_, _y_x10435.snd), Just(TUnit)));
   }
-  function _mlift_infer_12786(body_5, cond_0_1_sq_, env_21, n_51, s1_11_0, _y_x10431) {
+  function _mlift_infer_12855(body_5, cond_0_1_sq_, env_21, n_51, s1_11_0, _y_x10434) {
     var s2_10_0 = _open_none2(function(s1_24, s2_23) {
       var updated_s2_22 = _trmc_map_subst(s2_23, function(k_23, v_22) {
         return Tuple2(k_23, _trmc_apply_subst(s1_24, v_22, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_22 = _trmc_filter_subst(updated_s2_22, function(k_0_22, ___wildcard_x120__39_22) {
+      var ys_10006_22 = _trmc_filter_subst(updated_s2_22, function(k_0_22, ___wildcard_x136__39_22) {
         var b_10007_22 = subst_has(s1_24, k_0_22);
         return b_10007_22 ? false : true;
       }, _cctx_empty());
       return append(s1_24, ys_10006_22);
-    }, _y_x10431, s1_11_0);
-    var x_48_13787 = infer_loop_body(env_21, s2_10_0, body_5);
+    }, _y_x10434, s1_11_0);
+    var x_48_13868 = infer_loop_body(env_21, s2_10_0, body_5);
     if (_yielding()) {
-      return yield_extend(function(_y_x10432_0) {
-        return _mlift_infer_12785(cond_0_1_sq_, n_51, _y_x10432_0);
+      return yield_extend(function(_y_x10435_0) {
+        return _mlift_infer_12854(cond_0_1_sq_, n_51, _y_x10435_0);
       });
     } else {
-      return _mlift_infer_12785(cond_0_1_sq_, n_51, x_48_13787);
+      return _mlift_infer_12854(cond_0_1_sq_, n_51, x_48_13868);
     }
   }
-  function _mlift_infer_12787(body_5_0, cond_0, env_22, n_52, _y_x10430) {
-    var _x_x2_108_12040 = _open_none1(function(n_19_0) {
+  function _mlift_infer_12856(body_5_0, cond_0, env_22, n_52, _y_x10433) {
+    var _x_x2_108_12080 = _open_none1(function(n_19_0) {
       return n_19_0.typ !== null ? n_19_0.typ.value : TUnit;
-    }, _y_x10430.snd);
-    var cond_type_0 = _open_none2(apply_subst, _y_x10430.fst, _x_x2_108_12040);
-    var _x_x3_56_12044 = _open_none1(function(node_65) {
+    }, _y_x10433.snd);
+    var cond_type_0 = _open_none2(apply_subst, _y_x10433.fst, _x_x2_108_12080);
+    var _x_x3_56_12084 = _open_none1(function(node_65) {
       return node_65.span;
     }, cond_0);
-    var x_49_13789 = _open_at3(0, unify, cond_type_0, TBool, _x_x3_56_12044);
+    var x_49_13870 = _open_at3(0, unify, cond_type_0, TBool, _x_x3_56_12084);
     if (_yielding()) {
-      return yield_extend(function(_y_x10431_0) {
-        return _mlift_infer_12786(body_5_0, _y_x10430.snd, env_22, n_52, _y_x10430.fst, _y_x10431_0);
+      return yield_extend(function(_y_x10434_0) {
+        return _mlift_infer_12855(body_5_0, _y_x10433.snd, env_22, n_52, _y_x10433.fst, _y_x10434_0);
       });
     } else {
-      return _mlift_infer_12786(body_5_0, _y_x10430.snd, env_22, n_52, _y_x10430.fst, x_49_13789);
+      return _mlift_infer_12855(body_5_0, _y_x10433.snd, env_22, n_52, _y_x10433.fst, x_49_13870);
     }
   }
-  function _mlift_infer_12788(n_53, _y_x10435) {
-    var _x_x1_182_12052 = _open_none1(function(node_67) {
+  function _mlift_infer_12857(n_53, _y_x10438) {
+    var _x_x1_182_12092 = _open_none1(function(node_67) {
       return node_67.span;
     }, n_53);
-    return Tuple2(_y_x10435.fst, _open_none3(function(span_23, expr_23, typ_23) {
+    return Tuple2(_y_x10438.fst, _open_none3(function(span_23, expr_23, typ_23) {
       var _x86 = typ_23 !== void 0 ? typ_23 : Nothing;
       return Node(span_23, expr_23, _x86);
-    }, _x_x1_182_12052, Loop(_y_x10435.snd), Just(TUnit)));
+    }, _x_x1_182_12092, Loop(_y_x10438.snd), Just(TUnit)));
   }
-  function _mlift_infer_12789(n_54, s_75, _c_x10440) {
-    var _x_x1_187_12060 = _open_none1(function(node_69) {
+  function _mlift_infer_12858(n_54, s_75, _c_x10443) {
+    var _x_x1_187_12100 = _open_none1(function(node_69) {
       return node_69.span;
     }, n_54);
     return Tuple2(s_75, _open_none3(function(span_24, expr_24, typ_24) {
       var _x87 = typ_24 !== void 0 ? typ_24 : Nothing;
       return Node(span_24, expr_24, _x87);
-    }, _x_x1_187_12060, Break, Just(TUnit)));
+    }, _x_x1_187_12100, Break, Just(TUnit)));
   }
-  function _mlift_infer_12790(n_55, s_76, _y_x10438) {
+  function _mlift_infer_12859(n_55, s_76, _y_x10441) {
     var _x88 = _open_none1(function(b) {
       return b ? false : true;
-    }, _y_x10438);
+    }, _y_x10441);
     if (_x88) {
-      var _x_x1_185_12057 = _open_none1(function(node_68) {
+      var _x_x1_185_12097 = _open_none1(function(node_68) {
         return node_68.span;
       }, n_55);
-      var x_50_13791 = _open_at2(0, emit_error, _x_x1_185_12057, "'break' can only be used inside a loop");
+      var x_50_13872 = _open_at2(0, emit_error, _x_x1_185_12097, "'break' can only be used inside a loop");
     } else {
-      var x_50_13791 = Unit;
+      var x_50_13872 = Unit;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10440_0) {
-        return _mlift_infer_12789(n_55, s_76, _c_x10440_0);
+      return yield_extend(function(_c_x10443_0) {
+        return _mlift_infer_12858(n_55, s_76, _c_x10443_0);
       });
     } else {
-      return _mlift_infer_12789(n_55, s_76, x_50_13791);
+      return _mlift_infer_12858(n_55, s_76, x_50_13872);
     }
   }
-  function _mlift_infer_12791(n_56, s_77, _c_x10444) {
-    var _x_x1_192_12068 = _open_none1(function(node_71) {
+  function _mlift_infer_12860(n_56, s_77, _c_x10447) {
+    var _x_x1_192_12108 = _open_none1(function(node_71) {
       return node_71.span;
     }, n_56);
     return Tuple2(s_77, _open_none3(function(span_25, expr_25, typ_25) {
       var _x88 = typ_25 !== void 0 ? typ_25 : Nothing;
       return Node(span_25, expr_25, _x88);
-    }, _x_x1_192_12068, Continue, Just(TUnit)));
+    }, _x_x1_192_12108, Continue, Just(TUnit)));
   }
-  function _mlift_infer_12792(n_57, s_78, _y_x10442) {
+  function _mlift_infer_12861(n_57, s_78, _y_x10445) {
     var _x89 = _open_none1(function(b_0) {
       return b_0 ? false : true;
-    }, _y_x10442);
+    }, _y_x10445);
     if (_x89) {
-      var _x_x1_190_12065 = _open_none1(function(node_70) {
+      var _x_x1_190_12105 = _open_none1(function(node_70) {
         return node_70.span;
       }, n_57);
-      var x_51_13793 = _open_at2(0, emit_error, _x_x1_190_12065, "'continue' can only be used inside a loop");
+      var x_51_13874 = _open_at2(0, emit_error, _x_x1_190_12105, "'continue' can only be used inside a loop");
     } else {
-      var x_51_13793 = Unit;
+      var x_51_13874 = Unit;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10444_0) {
-        return _mlift_infer_12791(n_57, s_78, _c_x10444_0);
+      return yield_extend(function(_c_x10447_0) {
+        return _mlift_infer_12860(n_57, s_78, _c_x10447_0);
       });
     } else {
-      return _mlift_infer_12791(n_57, s_78, x_51_13793);
+      return _mlift_infer_12860(n_57, s_78, x_51_13874);
     }
   }
-  function _mlift_infer_12793(n_58, _y_x10445) {
-    var _x_x1_194_12072 = _open_none1(function(node_72) {
+  function _mlift_infer_12862(n_58, _y_x10448) {
+    var _x_x1_194_12112 = _open_none1(function(node_72) {
       return node_72.span;
     }, n_58);
-    return Tuple2(_y_x10445.fst, _open_none3(function(span_26, expr_26, typ_26) {
+    return Tuple2(_y_x10448.fst, _open_none3(function(span_26, expr_26, typ_26) {
       var _x89 = typ_26 !== void 0 ? typ_26 : Nothing;
       return Node(span_26, expr_26, _x89);
-    }, _x_x1_194_12072, StringInterp(_y_x10445.snd), Just(TString)));
+    }, _x_x1_194_12112, StringInterp(_y_x10448.snd), Just(TString)));
   }
-  function _mlift_infer_12794(elems_sq_, n_59, s1_14_0, elem_types) {
-    var _x_x1_200_12082 = _open_none1(function(node_75) {
+  function _mlift_infer_12863(elems_sq_, n_59, s1_14_0, elem_types) {
+    var _x_x1_200_12122 = _open_none1(function(node_75) {
       return node_75.span;
     }, n_59);
     return Tuple2(s1_14_0, _open_none3(function(span_27, expr_27, typ_27) {
       var _x90 = typ_27 !== void 0 ? typ_27 : Nothing;
       return Node(span_27, expr_27, _x90);
-    }, _x_x1_200_12082, Tuple(elems_sq_), Just(TTuple(elem_types))));
+    }, _x_x1_200_12122, Tuple(elems_sq_), Just(TTuple(elem_types))));
   }
-  function _mlift_infer_12795(n_60, _y_x10449) {
-    var x_52_13795 = map(_y_x10449.snd, function(e_0) {
-      var _x_x2_119_12080 = _open_none1(function(n_20_0) {
+  function _mlift_infer_12864(n_60, _y_x10452) {
+    var x_52_13876 = map(_y_x10452.snd, function(e_0) {
+      var _x_x2_119_12120 = _open_none1(function(n_20_0) {
         return n_20_0.typ !== null ? n_20_0.typ.value : TUnit;
       }, e_0);
-      return _open_none2(apply_subst, _y_x10449.fst, _x_x2_119_12080);
+      return _open_none2(apply_subst, _y_x10452.fst, _x_x2_119_12120);
     });
     if (_yielding()) {
       return yield_extend(function(elem_types_0) {
-        return _mlift_infer_12794(_y_x10449.snd, n_60, _y_x10449.fst, elem_types_0);
+        return _mlift_infer_12863(_y_x10452.snd, n_60, _y_x10452.fst, elem_types_0);
       });
     } else {
-      return _mlift_infer_12794(_y_x10449.snd, n_60, _y_x10449.fst, x_52_13795);
+      return _mlift_infer_12863(_y_x10452.snd, n_60, _y_x10452.fst, x_52_13876);
     }
   }
-  function _mlift_infer_12796(elems, env_23, n_61, s_79, _c_x10448) {
-    var x_53_13797 = infer_args(env_23, s_79, elems);
+  function _mlift_infer_12865(elems, env_23, n_61, s_79, _c_x10451) {
+    var x_53_13878 = infer_args(env_23, s_79, elems);
     if (_yielding()) {
-      return yield_extend(function(_y_x10449_0) {
-        return _mlift_infer_12795(n_61, _y_x10449_0);
+      return yield_extend(function(_y_x10452_0) {
+        return _mlift_infer_12864(n_61, _y_x10452_0);
       });
     } else {
-      return _mlift_infer_12795(n_61, x_53_13797);
+      return _mlift_infer_12864(n_61, x_53_13878);
     }
   }
-  function _mlift_infer_12797(n_62, s_80, elem_var_0_0) {
-    var _x_x1_202_12086 = _open_none1(function(node_76) {
+  function _mlift_infer_12866(n_62, s_80, elem_var_0_0) {
+    var _x_x1_202_12126 = _open_none1(function(node_76) {
       return node_76.span;
     }, n_62);
     return Tuple2(s_80, _open_none3(function(span_28, expr_28, typ_28) {
       var _x91 = typ_28 !== void 0 ? typ_28 : Nothing;
       return Node(span_28, expr_28, _x91);
-    }, _x_x1_202_12086, EList(Nil), Just(TList(elem_var_0_0))));
+    }, _x_x1_202_12126, EList(Nil), Just(TList(elem_var_0_0))));
   }
-  function _mlift_infer_12798(acc, _y_x10456) {
+  function _mlift_infer_12867(acc, _y_x10459) {
     return _open_none2(function(s1_25, s2_24) {
       var updated_s2_23 = _trmc_map_subst(s2_24, function(k_24, v_23) {
         return Tuple2(k_24, _trmc_apply_subst(s1_25, v_23, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_23 = _trmc_filter_subst(updated_s2_23, function(k_0_23, ___wildcard_x120__39_23) {
+      var ys_10006_23 = _trmc_filter_subst(updated_s2_23, function(k_0_23, ___wildcard_x136__39_23) {
         var b_10007_23 = subst_has(s1_25, k_0_23);
         return b_10007_23 ? false : true;
       }, _cctx_empty());
       return append(s1_25, ys_10006_23);
-    }, _y_x10456, acc);
+    }, _y_x10459, acc);
   }
-  function _mlift_infer_12799(elems_0_0_sq_, first_type, n_63, s2_11_0) {
-    var _x_x1_214_12107 = _open_none1(function(node_79) {
+  function _mlift_infer_12868(elems_0_0_sq_, first_type, n_63, s2_11_0) {
+    var _x_x1_214_12147 = _open_none1(function(node_79) {
       return node_79.span;
     }, n_63);
-    var _x_x3_65_12109 = Just(TList(_open_none2(apply_subst, s2_11_0, first_type)));
+    var _x_x3_65_12149 = Just(TList(_open_none2(apply_subst, s2_11_0, first_type)));
     return Tuple2(s2_11_0, _open_none3(function(span_29, expr_29, typ_29) {
       var _x92 = typ_29 !== void 0 ? typ_29 : Nothing;
       return Node(span_29, expr_29, _x92);
-    }, _x_x1_214_12107, EList(elems_0_0_sq_), _x_x3_65_12109));
+    }, _x_x1_214_12147, EList(elems_0_0_sq_), _x_x3_65_12149));
   }
-  function _mlift_infer_12800(elems_0_1_sq_, n_64, s1_15_0, elem_types_0_0) {
-    var _x_x1_206_12093 = _open_none1(function(xs_1) {
+  function _mlift_infer_12869(elems_0_1_sq_, n_64, s1_15_0, elem_types_0_0) {
+    var _x_x1_206_12133 = _open_none1(function(xs_1) {
       if (xs_1 !== null) {
         return Just(xs_1.head);
       } else {
@@ -21193,131 +21226,131 @@ var __hica = (() => {
     }, elem_types_0_0);
     var first_type_0 = _open_none2(function(m_3, nothing) {
       return m_3 === null ? nothing : m_3.value;
-    }, _x_x1_206_12093, TUnit);
-    var x_55_13805 = foldl(_open_none1(function(xs_2) {
+    }, _x_x1_206_12133, TUnit);
+    var x_55_13886 = foldl(_open_none1(function(xs_2) {
       return xs_2 !== null ? xs_2.tail : Nil;
     }, elem_types_0_0), s1_15_0, function(acc_0, et) {
-      var _x_x1_209_12097 = _open_none2(apply_subst, acc_0, first_type_0);
-      var _x_x2_124_12098 = _open_none2(apply_subst, acc_0, et);
-      var _x_x3_64_12099 = _open_none1(function(node_78) {
+      var _x_x1_209_12137 = _open_none2(apply_subst, acc_0, first_type_0);
+      var _x_x2_124_12138 = _open_none2(apply_subst, acc_0, et);
+      var _x_x3_64_12139 = _open_none1(function(node_78) {
         return node_78.span;
       }, n_64);
-      var x_56_13807 = _open_at3(0, unify, _x_x1_209_12097, _x_x2_124_12098, _x_x3_64_12099);
+      var x_56_13888 = _open_at3(0, unify, _x_x1_209_12137, _x_x2_124_12138, _x_x3_64_12139);
       if (_yielding()) {
-        return yield_extend(function(_y_x10456_0) {
-          return _mlift_infer_12798(acc_0, _y_x10456_0);
+        return yield_extend(function(_y_x10459_0) {
+          return _mlift_infer_12867(acc_0, _y_x10459_0);
         });
       } else {
-        return _mlift_infer_12798(acc_0, x_56_13807);
+        return _mlift_infer_12867(acc_0, x_56_13888);
       }
     });
     if (_yielding()) {
       return yield_extend(function(s2_11_0_0) {
-        return _mlift_infer_12799(elems_0_1_sq_, first_type_0, n_64, s2_11_0_0);
+        return _mlift_infer_12868(elems_0_1_sq_, first_type_0, n_64, s2_11_0_0);
       });
     } else {
-      return _mlift_infer_12799(elems_0_1_sq_, first_type_0, n_64, x_55_13805);
+      return _mlift_infer_12868(elems_0_1_sq_, first_type_0, n_64, x_55_13886);
     }
   }
-  function _mlift_infer_12801(n_65, _y_x10454) {
-    var x_57_13809 = map(_y_x10454.snd, function(e_1) {
-      var _x_x2_122_12091 = _open_none1(function(n_21_0) {
+  function _mlift_infer_12870(n_65, _y_x10457) {
+    var x_57_13890 = map(_y_x10457.snd, function(e_1) {
+      var _x_x2_122_12131 = _open_none1(function(n_21_0) {
         return n_21_0.typ !== null ? n_21_0.typ.value : TUnit;
       }, e_1);
-      return _open_none2(apply_subst, _y_x10454.fst, _x_x2_122_12091);
+      return _open_none2(apply_subst, _y_x10457.fst, _x_x2_122_12131);
     });
     if (_yielding()) {
       return yield_extend(function(elem_types_0_1) {
-        return _mlift_infer_12800(_y_x10454.snd, n_65, _y_x10454.fst, elem_types_0_1);
+        return _mlift_infer_12869(_y_x10457.snd, n_65, _y_x10457.fst, elem_types_0_1);
       });
     } else {
-      return _mlift_infer_12800(_y_x10454.snd, n_65, _y_x10454.fst, x_57_13809);
+      return _mlift_infer_12869(_y_x10457.snd, n_65, _y_x10457.fst, x_57_13890);
     }
   }
-  function _mlift_infer_12802(key_var, n_66, s_84, val_var) {
-    var _x_x1_217_12113 = _open_none1(function(node_80) {
+  function _mlift_infer_12871(key_var, n_66, s_84, val_var) {
+    var _x_x1_217_12153 = _open_none1(function(node_80) {
       return node_80.span;
     }, n_66);
     return Tuple2(s_84, _open_none3(function(span_30, expr_30, typ_30) {
       var _x93 = typ_30 !== void 0 ? typ_30 : Nothing;
       return Node(span_30, expr_30, _x93);
-    }, _x_x1_217_12113, MapLit(Nil), Just(TList(TTuple(Cons(key_var, Cons(val_var, Nil)))))));
+    }, _x_x1_217_12153, MapLit(Nil), Just(TList(TTuple(Cons(key_var, Cons(val_var, Nil)))))));
   }
-  function _mlift_infer_12803(n_67, s_85, key_var_0) {
-    var x_58_13811 = _open_at0(1, function() {
-      var ev_3_13813 = _evv_at(0);
-      return ev_3_13813.hnd._fun_fresh_tvar(ev_3_13813.marker, ev_3_13813);
+  function _mlift_infer_12872(n_67, s_85, key_var_0) {
+    var x_58_13892 = _open_at0(1, function() {
+      var ev_3_13894 = _evv_at(0);
+      return ev_3_13894.hnd._fun_fresh_tvar(ev_3_13894.marker, ev_3_13894);
     });
     if (_yielding()) {
       return yield_extend(function(val_var_0) {
-        return _mlift_infer_12802(key_var_0, n_67, s_85, val_var_0);
+        return _mlift_infer_12871(key_var_0, n_67, s_85, val_var_0);
       });
     } else {
-      return _mlift_infer_12802(key_var_0, n_67, s_85, x_58_13811);
+      return _mlift_infer_12871(key_var_0, n_67, s_85, x_58_13892);
     }
   }
-  function _mlift_infer_12804(acc_1, _y_x10471) {
+  function _mlift_infer_12873(acc_1, _y_x10474) {
     return _open_none2(function(s1_27, s2_26) {
       var updated_s2_25 = _trmc_map_subst(s2_26, function(k_27, v_26) {
         return Tuple2(k_27, _trmc_apply_subst(s1_27, v_26, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_25 = _trmc_filter_subst(updated_s2_25, function(k_0_25, ___wildcard_x120__39_25) {
+      var ys_10006_25 = _trmc_filter_subst(updated_s2_25, function(k_0_25, ___wildcard_x136__39_25) {
         var b_10007_25 = subst_has(s1_27, k_0_25);
         return b_10007_25 ? false : true;
       }, _cctx_empty());
       return append(s1_27, ys_10006_25);
-    }, _y_x10471, acc_1);
+    }, _y_x10474, acc_1);
   }
-  function _mlift_infer_12805(entries_sq_, first_key, first_val, n_68, s3_8) {
-    var _x_x1_239_12151 = _open_none1(function(node_85) {
+  function _mlift_infer_12874(entries_sq_, first_key, first_val, n_68, s3_8) {
+    var _x_x1_239_12191 = _open_none1(function(node_85) {
       return node_85.span;
     }, n_68);
-    var _x_x3_69_12153 = Just(TList(TTuple(Cons(_open_none2(apply_subst, s3_8, first_key), Cons(_open_none2(apply_subst, s3_8, first_val), Nil)))));
+    var _x_x3_69_12193 = Just(TList(TTuple(Cons(_open_none2(apply_subst, s3_8, first_key), Cons(_open_none2(apply_subst, s3_8, first_val), Nil)))));
     return Tuple2(s3_8, _open_none3(function(span_31, expr_31, typ_31) {
       var _x94 = typ_31 !== void 0 ? typ_31 : Nothing;
       return Node(span_31, expr_31, _x94);
-    }, _x_x1_239_12151, MapLit(entries_sq_), _x_x3_69_12153));
+    }, _x_x1_239_12191, MapLit(entries_sq_), _x_x3_69_12193));
   }
-  function _mlift_infer_12806(acc_0_0, _y_x10469) {
+  function _mlift_infer_12875(acc_0_0, _y_x10472) {
     return _open_none2(function(s1_26, s2_25) {
       var updated_s2_24 = _trmc_map_subst(s2_25, function(k_26, v_25) {
         return Tuple2(k_26, _trmc_apply_subst(s1_26, v_25, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_24 = _trmc_filter_subst(updated_s2_24, function(k_0_24, ___wildcard_x120__39_24) {
+      var ys_10006_24 = _trmc_filter_subst(updated_s2_24, function(k_0_24, ___wildcard_x136__39_24) {
         var b_10007_24 = subst_has(s1_26, k_0_24);
         return b_10007_24 ? false : true;
       }, _cctx_empty());
       return append(s1_26, ys_10006_24);
-    }, _y_x10469, acc_0_0);
+    }, _y_x10472, acc_0_0);
   }
-  function _mlift_infer_12807(entries_0_sq_, first_key_0, first_val_0, n_69, val_types, s2_12_0) {
-    var x_59_13827 = foldl(_open_none1(function(xs_6) {
+  function _mlift_infer_12876(entries_0_sq_, first_key_0, first_val_0, n_69, val_types, s2_12_0) {
+    var x_59_13908 = foldl(_open_none1(function(xs_6) {
       return xs_6 !== null ? xs_6.tail : Nil;
     }, val_types), s2_12_0, function(acc_1_0, vt) {
-      var _x_x1_234_12141 = _open_none2(apply_subst, acc_1_0, first_val_0);
-      var _x_x2_139_12142 = _open_none2(apply_subst, acc_1_0, vt);
-      var _x_x3_68_12143 = _open_none1(function(node_84) {
+      var _x_x1_234_12181 = _open_none2(apply_subst, acc_1_0, first_val_0);
+      var _x_x2_139_12182 = _open_none2(apply_subst, acc_1_0, vt);
+      var _x_x3_68_12183 = _open_none1(function(node_84) {
         return node_84.span;
       }, n_69);
-      var x_60_13829 = _open_at3(0, unify, _x_x1_234_12141, _x_x2_139_12142, _x_x3_68_12143);
+      var x_60_13910 = _open_at3(0, unify, _x_x1_234_12181, _x_x2_139_12182, _x_x3_68_12183);
       if (_yielding()) {
-        return yield_extend(function(_y_x10471_0) {
-          return _mlift_infer_12804(acc_1_0, _y_x10471_0);
+        return yield_extend(function(_y_x10474_0) {
+          return _mlift_infer_12873(acc_1_0, _y_x10474_0);
         });
       } else {
-        return _mlift_infer_12804(acc_1_0, x_60_13829);
+        return _mlift_infer_12873(acc_1_0, x_60_13910);
       }
     });
     if (_yielding()) {
       return yield_extend(function(s3_8_0) {
-        return _mlift_infer_12805(entries_0_sq_, first_key_0, first_val_0, n_69, s3_8_0);
+        return _mlift_infer_12874(entries_0_sq_, first_key_0, first_val_0, n_69, s3_8_0);
       });
     } else {
-      return _mlift_infer_12805(entries_0_sq_, first_key_0, first_val_0, n_69, x_59_13827);
+      return _mlift_infer_12874(entries_0_sq_, first_key_0, first_val_0, n_69, x_59_13908);
     }
   }
-  function _mlift_infer_12808(entries_1_sq_, key_types, n_70, s1_16_0, val_types_0) {
-    var _x_x1_223_12123 = _open_none1(function(xs_3) {
+  function _mlift_infer_12877(entries_1_sq_, key_types, n_70, s1_16_0, val_types_0) {
+    var _x_x1_223_12163 = _open_none1(function(xs_3) {
       if (xs_3 !== null) {
         return Just(xs_3.head);
       } else {
@@ -21326,8 +21359,8 @@ var __hica = (() => {
     }, key_types);
     var first_key_1 = _open_none2(function(m_0_0, nothing_0) {
       return m_0_0 === null ? nothing_0 : m_0_0.value;
-    }, _x_x1_223_12123, TUnit);
-    var _x_x1_225_12126 = _open_none1(function(xs_4) {
+    }, _x_x1_223_12163, TUnit);
+    var _x_x1_225_12166 = _open_none1(function(xs_4) {
       if (xs_4 !== null) {
         return Just(xs_4.head);
       } else {
@@ -21336,824 +21369,824 @@ var __hica = (() => {
     }, val_types_0);
     var first_val_1 = _open_none2(function(m_1_0, nothing_1) {
       return m_1_0 === null ? nothing_1 : m_1_0.value;
-    }, _x_x1_225_12126, TUnit);
-    var x_61_13831 = foldl(_open_none1(function(xs_5) {
+    }, _x_x1_225_12166, TUnit);
+    var x_61_13912 = foldl(_open_none1(function(xs_5) {
       return xs_5 !== null ? xs_5.tail : Nil;
     }, key_types), s1_16_0, function(acc_0_1, kt) {
-      var _x_x1_228_12130 = _open_none2(apply_subst, acc_0_1, first_key_1);
-      var _x_x2_135_12131 = _open_none2(apply_subst, acc_0_1, kt);
-      var _x_x3_67_12132 = _open_none1(function(node_83) {
+      var _x_x1_228_12170 = _open_none2(apply_subst, acc_0_1, first_key_1);
+      var _x_x2_135_12171 = _open_none2(apply_subst, acc_0_1, kt);
+      var _x_x3_67_12172 = _open_none1(function(node_83) {
         return node_83.span;
       }, n_70);
-      var x_62_13833 = _open_at3(0, unify, _x_x1_228_12130, _x_x2_135_12131, _x_x3_67_12132);
+      var x_62_13914 = _open_at3(0, unify, _x_x1_228_12170, _x_x2_135_12171, _x_x3_67_12172);
       if (_yielding()) {
-        return yield_extend(function(_y_x10469_0) {
-          return _mlift_infer_12806(acc_0_1, _y_x10469_0);
+        return yield_extend(function(_y_x10472_0) {
+          return _mlift_infer_12875(acc_0_1, _y_x10472_0);
         });
       } else {
-        return _mlift_infer_12806(acc_0_1, x_62_13833);
+        return _mlift_infer_12875(acc_0_1, x_62_13914);
       }
     });
     if (_yielding()) {
       return yield_extend(function(s2_12_0_0) {
-        return _mlift_infer_12807(entries_1_sq_, first_key_1, first_val_1, n_70, val_types_0, s2_12_0_0);
+        return _mlift_infer_12876(entries_1_sq_, first_key_1, first_val_1, n_70, val_types_0, s2_12_0_0);
       });
     } else {
-      return _mlift_infer_12807(entries_1_sq_, first_key_1, first_val_1, n_70, val_types_0, x_61_13831);
+      return _mlift_infer_12876(entries_1_sq_, first_key_1, first_val_1, n_70, val_types_0, x_61_13912);
     }
   }
-  function _mlift_infer_12809(entries_2_sq_, n_71, s1_16_0_0, key_types_0) {
-    var x_63_13835 = map(entries_2_sq_, function(_pat_x578__43) {
-      var _x_x2_132_12121 = _open_none1(function(n_23_0) {
+  function _mlift_infer_12878(entries_2_sq_, n_71, s1_16_0_0, key_types_0) {
+    var x_63_13916 = map(entries_2_sq_, function(_pat_x594__43) {
+      var _x_x2_132_12161 = _open_none1(function(n_23_0) {
         return n_23_0.typ !== null ? n_23_0.typ.value : TUnit;
-      }, _pat_x578__43.snd);
-      return _open_none2(apply_subst, s1_16_0_0, _x_x2_132_12121);
+      }, _pat_x594__43.snd);
+      return _open_none2(apply_subst, s1_16_0_0, _x_x2_132_12161);
     });
     if (_yielding()) {
       return yield_extend(function(val_types_1) {
-        return _mlift_infer_12808(entries_2_sq_, key_types_0, n_71, s1_16_0_0, val_types_1);
+        return _mlift_infer_12877(entries_2_sq_, key_types_0, n_71, s1_16_0_0, val_types_1);
       });
     } else {
-      return _mlift_infer_12808(entries_2_sq_, key_types_0, n_71, s1_16_0_0, x_63_13835);
+      return _mlift_infer_12877(entries_2_sq_, key_types_0, n_71, s1_16_0_0, x_63_13916);
     }
   }
-  function _mlift_infer_12810(n_72, _y_x10464) {
-    var x_64_13837 = map(_y_x10464.snd, function(_pat_x577__43) {
-      var _x_x2_131_12118 = _open_none1(function(n_22_0) {
+  function _mlift_infer_12879(n_72, _y_x10467) {
+    var x_64_13918 = map(_y_x10467.snd, function(_pat_x593__43) {
+      var _x_x2_131_12158 = _open_none1(function(n_22_0) {
         return n_22_0.typ !== null ? n_22_0.typ.value : TUnit;
-      }, _pat_x577__43.fst);
-      return _open_none2(apply_subst, _y_x10464.fst, _x_x2_131_12118);
+      }, _pat_x593__43.fst);
+      return _open_none2(apply_subst, _y_x10467.fst, _x_x2_131_12158);
     });
     if (_yielding()) {
       return yield_extend(function(key_types_1) {
-        return _mlift_infer_12809(_y_x10464.snd, n_72, _y_x10464.fst, key_types_1);
+        return _mlift_infer_12878(_y_x10467.snd, n_72, _y_x10467.fst, key_types_1);
       });
     } else {
-      return _mlift_infer_12809(_y_x10464.snd, n_72, _y_x10464.fst, x_64_13837);
+      return _mlift_infer_12878(_y_x10467.snd, n_72, _y_x10467.fst, x_64_13918);
     }
   }
-  function _mlift_infer_12811(idx, n_73, s1_17_0, tup_sq_, _y_x10478) {
-    var _x_x1_251_12172 = _open_none1(function(node_89) {
+  function _mlift_infer_12880(idx, n_73, s1_17_0, tup_sq_, _y_x10481) {
+    var _x_x1_251_12212 = _open_none1(function(node_89) {
       return node_89.span;
     }, n_73);
     return Tuple2(s1_17_0, _open_none3(function(span_33, expr_33, typ_33) {
       var _x95 = typ_33 !== void 0 ? typ_33 : Nothing;
       return Node(span_33, expr_33, _x95);
-    }, _x_x1_251_12172, TupleIndex(tup_sq_, idx), Just(_y_x10478)));
+    }, _x_x1_251_12212, TupleIndex(tup_sq_, idx), Just(_y_x10481)));
   }
-  function _mlift_infer_12812(idx_0, n_74, s1_17_0_0, tup_0_sq_, wild___5) {
-    var x_65_13839 = _open_at0(1, function() {
-      var ev_4_13841 = _evv_at(0);
-      return ev_4_13841.hnd._fun_fresh_tvar(ev_4_13841.marker, ev_4_13841);
+  function _mlift_infer_12881(idx_0, n_74, s1_17_0_0, tup_0_sq_, wild___5) {
+    var x_65_13920 = _open_at0(1, function() {
+      var ev_4_13922 = _evv_at(0);
+      return ev_4_13922.hnd._fun_fresh_tvar(ev_4_13922.marker, ev_4_13922);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10478_0) {
-        return _mlift_infer_12811(idx_0, n_74, s1_17_0_0, tup_0_sq_, _y_x10478_0);
+      return yield_extend(function(_y_x10481_0) {
+        return _mlift_infer_12880(idx_0, n_74, s1_17_0_0, tup_0_sq_, _y_x10481_0);
       });
     } else {
-      return _mlift_infer_12811(idx_0, n_74, s1_17_0_0, tup_0_sq_, x_65_13839);
+      return _mlift_infer_12880(idx_0, n_74, s1_17_0_0, tup_0_sq_, x_65_13920);
     }
   }
-  function _mlift_infer_12813(idx_1, n_75, s1_17_0_1, tup_1_sq_, _y_x10482) {
-    var _x_x1_256_12180 = _open_none1(function(node_91) {
+  function _mlift_infer_12882(idx_1, n_75, s1_17_0_1, tup_1_sq_, _y_x10485) {
+    var _x_x1_256_12220 = _open_none1(function(node_91) {
       return node_91.span;
     }, n_75);
     return Tuple2(s1_17_0_1, _open_none3(function(span_34, expr_34, typ_34) {
       var _x96 = typ_34 !== void 0 ? typ_34 : Nothing;
       return Node(span_34, expr_34, _x96);
-    }, _x_x1_256_12180, TupleIndex(tup_1_sq_, idx_1), Just(_y_x10482)));
+    }, _x_x1_256_12220, TupleIndex(tup_1_sq_, idx_1), Just(_y_x10485)));
   }
-  function _mlift_infer_12814(idx_2, n_76, s1_17_0_2, tup_2_sq_, wild___5_0) {
-    var x_66_13843 = _open_at0(1, function() {
-      var ev_5_13845 = _evv_at(0);
-      return ev_5_13845.hnd._fun_fresh_tvar(ev_5_13845.marker, ev_5_13845);
+  function _mlift_infer_12883(idx_2, n_76, s1_17_0_2, tup_2_sq_, wild___5_0) {
+    var x_66_13924 = _open_at0(1, function() {
+      var ev_5_13926 = _evv_at(0);
+      return ev_5_13926.hnd._fun_fresh_tvar(ev_5_13926.marker, ev_5_13926);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10482_0) {
-        return _mlift_infer_12813(idx_2, n_76, s1_17_0_2, tup_2_sq_, _y_x10482_0);
+      return yield_extend(function(_y_x10485_0) {
+        return _mlift_infer_12882(idx_2, n_76, s1_17_0_2, tup_2_sq_, _y_x10485_0);
       });
     } else {
-      return _mlift_infer_12813(idx_2, n_76, s1_17_0_2, tup_2_sq_, x_66_13843);
+      return _mlift_infer_12882(idx_2, n_76, s1_17_0_2, tup_2_sq_, x_66_13924);
     }
   }
-  function _mlift_infer_12815(idx_3, n_77, s1_17_0_3, tup_3_sq_, result_var_0_0) {
-    var _x_x1_258_12184 = _open_none1(function(node_92) {
+  function _mlift_infer_12884(idx_3, n_77, s1_17_0_3, tup_3_sq_, result_var_0_0) {
+    var _x_x1_258_12224 = _open_none1(function(node_92) {
       return node_92.span;
     }, n_77);
     return Tuple2(s1_17_0_3, _open_none3(function(span_35, expr_35, typ_35) {
       var _x97 = typ_35 !== void 0 ? typ_35 : Nothing;
       return Node(span_35, expr_35, _x97);
-    }, _x_x1_258_12184, TupleIndex(tup_3_sq_, idx_3), Just(result_var_0_0)));
+    }, _x_x1_258_12224, TupleIndex(tup_3_sq_, idx_3), Just(result_var_0_0)));
   }
-  function _mlift_infer_12816(idx_4, n_78, s1_17_0_4, tup_4_sq_, _y_x10488) {
-    var _x_x1_263_12192 = _open_none1(function(node_94) {
+  function _mlift_infer_12885(idx_4, n_78, s1_17_0_4, tup_4_sq_, _y_x10491) {
+    var _x_x1_263_12232 = _open_none1(function(node_94) {
       return node_94.span;
     }, n_78);
     return Tuple2(s1_17_0_4, _open_none3(function(span_36, expr_36, typ_36) {
       var _x98 = typ_36 !== void 0 ? typ_36 : Nothing;
       return Node(span_36, expr_36, _x98);
-    }, _x_x1_263_12192, TupleIndex(tup_4_sq_, idx_4), Just(_y_x10488)));
+    }, _x_x1_263_12232, TupleIndex(tup_4_sq_, idx_4), Just(_y_x10491)));
   }
-  function _mlift_infer_12817(idx_5, n_79, s1_17_0_5, tup_5_sq_, wild___6) {
-    var x_67_13847 = _open_at0(1, function() {
-      var ev_6_13849 = _evv_at(0);
-      return ev_6_13849.hnd._fun_fresh_tvar(ev_6_13849.marker, ev_6_13849);
+  function _mlift_infer_12886(idx_5, n_79, s1_17_0_5, tup_5_sq_, wild___6) {
+    var x_67_13928 = _open_at0(1, function() {
+      var ev_6_13930 = _evv_at(0);
+      return ev_6_13930.hnd._fun_fresh_tvar(ev_6_13930.marker, ev_6_13930);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10488_0) {
-        return _mlift_infer_12816(idx_5, n_79, s1_17_0_5, tup_5_sq_, _y_x10488_0);
+      return yield_extend(function(_y_x10491_0) {
+        return _mlift_infer_12885(idx_5, n_79, s1_17_0_5, tup_5_sq_, _y_x10491_0);
       });
     } else {
-      return _mlift_infer_12816(idx_5, n_79, s1_17_0_5, tup_5_sq_, x_67_13847);
+      return _mlift_infer_12885(idx_5, n_79, s1_17_0_5, tup_5_sq_, x_67_13928);
     }
   }
-  function _mlift_infer_12818(idx_6, n_80, _y_x10475) {
-    var _x_x2_146_12160 = _open_none1(function(n_24_0) {
+  function _mlift_infer_12887(idx_6, n_80, _y_x10478) {
+    var _x_x2_146_12200 = _open_none1(function(n_24_0) {
       return n_24_0.typ !== null ? n_24_0.typ.value : TUnit;
-    }, _y_x10475.snd);
-    var tup_type = _open_none2(apply_subst, _y_x10475.fst, _x_x2_146_12160);
+    }, _y_x10478.snd);
+    var tup_type = _open_none2(apply_subst, _y_x10478.fst, _x_x2_146_12200);
     if (tup_type._tag === 7) {
       if (_int_ge(idx_6, 0)) {
         var _x99 = _int_lt(idx_6, _lift_length_6003(tup_type.elems, 0));
         if (_x99) {
-          var _x_x1_245_12162 = _index(tup_type.elems, idx_6);
+          var _x_x1_245_12202 = _index(tup_type.elems, idx_6);
           var elem_type_0_0 = _open_none2(function(m_2_0, nothing_2) {
             return m_2_0 === null ? nothing_2 : m_2_0.value;
-          }, _x_x1_245_12162, TUnit);
-          var _x_x1_246_12164 = _open_none1(function(node_87) {
+          }, _x_x1_245_12202, TUnit);
+          var _x_x1_246_12204 = _open_none1(function(node_87) {
             return node_87.span;
           }, n_80);
-          return Tuple2(_y_x10475.fst, _open_none3(function(span_32, expr_32, typ_32) {
+          return Tuple2(_y_x10478.fst, _open_none3(function(span_32, expr_32, typ_32) {
             var _x100 = typ_32 !== void 0 ? typ_32 : Nothing;
             return Node(span_32, expr_32, _x100);
-          }, _x_x1_246_12164, TupleIndex(_y_x10475.snd, idx_6), Just(elem_type_0_0)));
+          }, _x_x1_246_12204, TupleIndex(_y_x10478.snd, idx_6), Just(elem_type_0_0)));
         } else {
-          var _x_x1_248_12168 = _open_none1(function(node_88) {
+          var _x_x1_248_12208 = _open_none1(function(node_88) {
             return node_88.span;
           }, n_80);
-          var _x_x2_149_12169 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(idx_6), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type))));
-          var x_68_13851 = _open_at2(0, emit_error, _x_x1_248_12168, _x_x2_149_12169);
+          var _x_x2_149_12209 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(idx_6), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type))));
+          var x_68_13932 = _open_at2(0, emit_error, _x_x1_248_12208, _x_x2_149_12209);
           if (_yielding()) {
             return yield_extend(function(wild___5_1) {
-              return _mlift_infer_12812(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, wild___5_1);
+              return _mlift_infer_12881(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, wild___5_1);
             });
           } else {
-            return _mlift_infer_12812(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, x_68_13851);
+            return _mlift_infer_12881(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, x_68_13932);
           }
         }
       } else {
-        var _x_x1_253_12176 = _open_none1(function(node_90) {
+        var _x_x1_253_12216 = _open_none1(function(node_90) {
           return node_90.span;
         }, n_80);
-        var _x_x2_151_12177 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(idx_6), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type))));
-        var x_69_13853 = _open_at2(0, emit_error, _x_x1_253_12176, _x_x2_151_12177);
+        var _x_x2_151_12217 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(idx_6), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type))));
+        var x_69_13934 = _open_at2(0, emit_error, _x_x1_253_12216, _x_x2_151_12217);
         if (_yielding()) {
           return yield_extend(function(wild___5_0_0) {
-            return _mlift_infer_12814(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, wild___5_0_0);
+            return _mlift_infer_12883(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, wild___5_0_0);
           });
         } else {
-          return _mlift_infer_12814(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, x_69_13853);
+          return _mlift_infer_12883(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, x_69_13934);
         }
       }
     } else if (tup_type._tag === 14) {
-      var x_70_13855 = _open_at0(1, function() {
-        var ev_7_13857 = _evv_at(0);
-        return ev_7_13857.hnd._fun_fresh_tvar(ev_7_13857.marker, ev_7_13857);
+      var x_70_13936 = _open_at0(1, function() {
+        var ev_7_13938 = _evv_at(0);
+        return ev_7_13938.hnd._fun_fresh_tvar(ev_7_13938.marker, ev_7_13938);
       });
       if (_yielding()) {
         return yield_extend(function(result_var_0_1) {
-          return _mlift_infer_12815(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, result_var_0_1);
+          return _mlift_infer_12884(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, result_var_0_1);
         });
       } else {
-        return _mlift_infer_12815(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, x_70_13855);
+        return _mlift_infer_12884(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, x_70_13936);
       }
     } else {
-      var _x_x1_260_12188 = _open_none1(function(node_93) {
+      var _x_x1_260_12228 = _open_none1(function(node_93) {
         return node_93.span;
       }, n_80);
-      var _x_x2_154_12189 = _lp__plus__plus__rp_("cannot index non-tuple type ", _open_none1(hica_type_fs_show, tup_type));
-      var x_71_13859 = _open_at2(0, emit_error, _x_x1_260_12188, _x_x2_154_12189);
+      var _x_x2_154_12229 = _lp__plus__plus__rp_("cannot index non-tuple type ", _open_none1(hica_type_fs_show, tup_type));
+      var x_71_13940 = _open_at2(0, emit_error, _x_x1_260_12228, _x_x2_154_12229);
       if (_yielding()) {
         return yield_extend(function(wild___6_0) {
-          return _mlift_infer_12817(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, wild___6_0);
+          return _mlift_infer_12886(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, wild___6_0);
         });
       } else {
-        return _mlift_infer_12817(idx_6, n_80, _y_x10475.fst, _y_x10475.snd, x_71_13859);
+        return _mlift_infer_12886(idx_6, n_80, _y_x10478.fst, _y_x10478.snd, x_71_13940);
       }
     }
   }
-  function _mlift_infer_12819(init_1_0_sq_, n_81, names, _y_x10499) {
+  function _mlift_infer_12888(init_1_0_sq_, n_81, names, _y_x10502) {
     var body_type_1 = _open_none1(function(n_26_0) {
       return n_26_0.typ !== null ? n_26_0.typ.value : TUnit;
-    }, _y_x10499.snd);
-    var _x_x1_272_12208 = _open_none1(function(node_98) {
+    }, _y_x10502.snd);
+    var _x_x1_272_12248 = _open_none1(function(node_98) {
       return node_98.span;
     }, n_81);
-    return Tuple2(_y_x10499.fst, _open_none3(function(span_37, expr_37, typ_37) {
+    return Tuple2(_y_x10502.fst, _open_none3(function(span_37, expr_37, typ_37) {
       var _x101 = typ_37 !== void 0 ? typ_37 : Nothing;
       return Node(span_37, expr_37, _x101);
-    }, _x_x1_272_12208, LetTuple(names, init_1_0_sq_, _y_x10499.snd), Just(body_type_1)));
+    }, _x_x1_272_12248, LetTuple(names, init_1_0_sq_, _y_x10502.snd), Just(body_type_1)));
   }
-  function _mlift_infer_12820(body_7, init_1_1_sq_, n_82, names_0, s2_13_0, env_3_sq_) {
-    var x_72_13861 = infer(env_3_sq_, s2_13_0, body_7);
+  function _mlift_infer_12889(body_7, init_1_1_sq_, n_82, names_0, s2_13_0, env_3_sq_) {
+    var x_72_13942 = infer(env_3_sq_, s2_13_0, body_7);
     if (_yielding()) {
-      return yield_extend(function(_y_x10499_0) {
-        return _mlift_infer_12819(init_1_1_sq_, n_82, names_0, _y_x10499_0);
+      return yield_extend(function(_y_x10502_0) {
+        return _mlift_infer_12888(init_1_1_sq_, n_82, names_0, _y_x10502_0);
       });
     } else {
-      return _mlift_infer_12819(init_1_1_sq_, n_82, names_0, x_72_13861);
+      return _mlift_infer_12888(init_1_1_sq_, n_82, names_0, x_72_13942);
     }
   }
-  function _mlift_infer_12821(body_7_0, env_24, init_1_2_sq_, n_83, names_1, s2_13_0_0, bound_types) {
-    var x_73_13863 = foldl(zip(names_1, bound_types), env_24, function(e_2, entry_0) {
+  function _mlift_infer_12890(body_7_0, env_24, init_1_2_sq_, n_83, names_1, s2_13_0_0, bound_types) {
+    var x_73_13944 = foldl(zip(names_1, bound_types), env_24, function(e_2, entry_0) {
       return Cons(Tuple2(entry_0.fst, entry_0.snd), e_2);
     });
     if (_yielding()) {
       return yield_extend(function(env_3_0_sq_) {
-        return _mlift_infer_12820(body_7_0, init_1_2_sq_, n_83, names_1, s2_13_0_0, env_3_0_sq_);
+        return _mlift_infer_12889(body_7_0, init_1_2_sq_, n_83, names_1, s2_13_0_0, env_3_0_sq_);
       });
     } else {
-      return _mlift_infer_12820(body_7_0, init_1_2_sq_, n_83, names_1, s2_13_0_0, x_73_13863);
+      return _mlift_infer_12889(body_7_0, init_1_2_sq_, n_83, names_1, s2_13_0_0, x_73_13944);
     }
   }
-  function _mlift_infer_12822(body_7_1, env_25, init_1_3_sq_, n_84, name_vars, names_2, s1_18_0, _y_x10495) {
+  function _mlift_infer_12891(body_7_1, env_25, init_1_3_sq_, n_84, name_vars, names_2, s1_18_0, _y_x10498) {
     var s2_13_0_1 = _open_none2(function(s1_28, s2_27) {
       var updated_s2_26 = _trmc_map_subst(s2_27, function(k_28, v_27) {
         return Tuple2(k_28, _trmc_apply_subst(s1_28, v_27, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_26 = _trmc_filter_subst(updated_s2_26, function(k_0_26, ___wildcard_x120__39_26) {
+      var ys_10006_26 = _trmc_filter_subst(updated_s2_26, function(k_0_26, ___wildcard_x136__39_26) {
         var b_10007_26 = subst_has(s1_28, k_0_26);
         return b_10007_26 ? false : true;
       }, _cctx_empty());
       return append(s1_28, ys_10006_26);
-    }, _y_x10495, s1_18_0);
-    var x_74_13871 = map(name_vars, function(v_0_0) {
+    }, _y_x10498, s1_18_0);
+    var x_74_13952 = map(name_vars, function(v_0_0) {
       return _open_none2(apply_subst, s2_13_0_1, v_0_0);
     });
     if (_yielding()) {
       return yield_extend(function(bound_types_0) {
-        return _mlift_infer_12821(body_7_1, env_25, init_1_3_sq_, n_84, names_2, s2_13_0_1, bound_types_0);
+        return _mlift_infer_12890(body_7_1, env_25, init_1_3_sq_, n_84, names_2, s2_13_0_1, bound_types_0);
       });
     } else {
-      return _mlift_infer_12821(body_7_1, env_25, init_1_3_sq_, n_84, names_2, s2_13_0_1, x_74_13871);
+      return _mlift_infer_12890(body_7_1, env_25, init_1_3_sq_, n_84, names_2, s2_13_0_1, x_74_13952);
     }
   }
-  function _mlift_infer_12823(body_7_2, env_26, init_type_1, init_1, init_1_4_sq_, n_85, names_3, s1_18_0_0, name_vars_0) {
-    var _x_x3_75_12201 = _open_none1(function(node_96) {
+  function _mlift_infer_12892(body_7_2, env_26, init_type_1, init_1, init_1_4_sq_, n_85, names_3, s1_18_0_0, name_vars_0) {
+    var _x_x3_75_12241 = _open_none1(function(node_96) {
       return node_96.span;
     }, init_1);
-    var x_75_13873 = _open_at3(0, unify, init_type_1, TTuple(name_vars_0), _x_x3_75_12201);
+    var x_75_13954 = _open_at3(0, unify, init_type_1, TTuple(name_vars_0), _x_x3_75_12241);
     if (_yielding()) {
-      return yield_extend(function(_y_x10495_0) {
-        return _mlift_infer_12822(body_7_2, env_26, init_1_4_sq_, n_85, name_vars_0, names_3, s1_18_0_0, _y_x10495_0);
+      return yield_extend(function(_y_x10498_0) {
+        return _mlift_infer_12891(body_7_2, env_26, init_1_4_sq_, n_85, name_vars_0, names_3, s1_18_0_0, _y_x10498_0);
       });
     } else {
-      return _mlift_infer_12822(body_7_2, env_26, init_1_4_sq_, n_85, name_vars_0, names_3, s1_18_0_0, x_75_13873);
+      return _mlift_infer_12891(body_7_2, env_26, init_1_4_sq_, n_85, name_vars_0, names_3, s1_18_0_0, x_75_13954);
     }
   }
-  function _mlift_infer_12824(body_7_3, env_27, init_1_0, n_86, names_4, _y_x10491) {
-    var _x_x2_156_12197 = _open_none1(function(n_25_0) {
+  function _mlift_infer_12893(body_7_3, env_27, init_1_0, n_86, names_4, _y_x10494) {
+    var _x_x2_156_12237 = _open_none1(function(n_25_0) {
       return n_25_0.typ !== null ? n_25_0.typ.value : TUnit;
-    }, _y_x10491.snd);
-    var init_type_1_0 = _open_none2(apply_subst, _y_x10491.fst, _x_x2_156_12197);
-    var x_76_13875 = map(names_4, function(___wildcard_x608__36) {
+    }, _y_x10494.snd);
+    var init_type_1_0 = _open_none2(apply_subst, _y_x10494.fst, _x_x2_156_12237);
+    var x_76_13956 = map(names_4, function(___wildcard_x624__36) {
       return _open_at0(1, function() {
-        var ev_8_13877 = _evv_at(0);
-        return ev_8_13877.hnd._fun_fresh_tvar(ev_8_13877.marker, ev_8_13877);
+        var ev_8_13958 = _evv_at(0);
+        return ev_8_13958.hnd._fun_fresh_tvar(ev_8_13958.marker, ev_8_13958);
       });
     });
     if (_yielding()) {
       return yield_extend(function(name_vars_1) {
-        return _mlift_infer_12823(body_7_3, env_27, init_type_1_0, init_1_0, _y_x10491.snd, n_86, names_4, _y_x10491.fst, name_vars_1);
+        return _mlift_infer_12892(body_7_3, env_27, init_type_1_0, init_1_0, _y_x10494.snd, n_86, names_4, _y_x10494.fst, name_vars_1);
       });
     } else {
-      return _mlift_infer_12823(body_7_3, env_27, init_type_1_0, init_1_0, _y_x10491.snd, n_86, names_4, _y_x10491.fst, x_76_13875);
+      return _mlift_infer_12892(body_7_3, env_27, init_type_1_0, init_1_0, _y_x10494.snd, n_86, names_4, _y_x10494.fst, x_76_13956);
     }
   }
-  function _mlift_infer_12825(elem_var_1_0, idx_sq_, lst_sq_, n_87, s3_10, _y_x10507) {
+  function _mlift_infer_12894(elem_var_1_0, idx_sq_, lst_sq_, n_87, s3_10, _y_x10510) {
     var s4_1 = _open_none2(function(s1_30, s2_29) {
       var updated_s2_28 = _trmc_map_subst(s2_29, function(k_30, v_29) {
         return Tuple2(k_30, _trmc_apply_subst(s1_30, v_29, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_28 = _trmc_filter_subst(updated_s2_28, function(k_0_28, ___wildcard_x120__39_28) {
+      var ys_10006_28 = _trmc_filter_subst(updated_s2_28, function(k_0_28, ___wildcard_x136__39_28) {
         var b_10007_28 = subst_has(s1_30, k_0_28);
         return b_10007_28 ? false : true;
       }, _cctx_empty());
       return append(s1_30, ys_10006_28);
-    }, _y_x10507, s3_10);
-    var _x_x1_286_12234 = _open_none1(function(node_104) {
+    }, _y_x10510, s3_10);
+    var _x_x1_286_12274 = _open_none1(function(node_104) {
       return node_104.span;
     }, n_87);
-    var _x_x3_80_12236 = Just(_open_none2(apply_subst, s4_1, elem_var_1_0));
+    var _x_x3_80_12276 = Just(_open_none2(apply_subst, s4_1, elem_var_1_0));
     return Tuple2(s4_1, _open_none3(function(span_39, expr_39, typ_39) {
       var _x102 = typ_39 !== void 0 ? typ_39 : Nothing;
       return Node(span_39, expr_39, _x102);
-    }, _x_x1_286_12234, ListIndex(lst_sq_, idx_sq_), _x_x3_80_12236));
+    }, _x_x1_286_12274, ListIndex(lst_sq_, idx_sq_), _x_x3_80_12276));
   }
-  function _mlift_infer_12826(idx_0_sq_, lst_0_sq_, lst_type, n_88, s3_10_0, elem_var_1_1) {
-    var _x_x3_79_12230 = _open_none1(function(node_103) {
+  function _mlift_infer_12895(idx_0_sq_, lst_0_sq_, lst_type, n_88, s3_10_0, elem_var_1_1) {
+    var _x_x3_79_12270 = _open_none1(function(node_103) {
       return node_103.span;
     }, n_88);
-    var x_77_13885 = _open_at3(0, unify, lst_type, TList(elem_var_1_1), _x_x3_79_12230);
+    var x_77_13966 = _open_at3(0, unify, lst_type, TList(elem_var_1_1), _x_x3_79_12270);
     if (_yielding()) {
-      return yield_extend(function(_y_x10507_0) {
-        return _mlift_infer_12825(elem_var_1_1, idx_0_sq_, lst_0_sq_, n_88, s3_10_0, _y_x10507_0);
+      return yield_extend(function(_y_x10510_0) {
+        return _mlift_infer_12894(elem_var_1_1, idx_0_sq_, lst_0_sq_, n_88, s3_10_0, _y_x10510_0);
       });
     } else {
-      return _mlift_infer_12825(elem_var_1_1, idx_0_sq_, lst_0_sq_, n_88, s3_10_0, x_77_13885);
+      return _mlift_infer_12894(elem_var_1_1, idx_0_sq_, lst_0_sq_, n_88, s3_10_0, x_77_13966);
     }
   }
-  function _mlift_infer_12827(idx_1_sq_, lst_1_sq_, n_89, s2_14_0, _y_x10504) {
+  function _mlift_infer_12896(idx_1_sq_, lst_1_sq_, n_89, s2_14_0, _y_x10507) {
     var s3_10_1 = _open_none2(function(s1_29, s2_28) {
       var updated_s2_27 = _trmc_map_subst(s2_28, function(k_29, v_28) {
         return Tuple2(k_29, _trmc_apply_subst(s1_29, v_28, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_27 = _trmc_filter_subst(updated_s2_27, function(k_0_27, ___wildcard_x120__39_27) {
+      var ys_10006_27 = _trmc_filter_subst(updated_s2_27, function(k_0_27, ___wildcard_x136__39_27) {
         var b_10007_27 = subst_has(s1_29, k_0_27);
         return b_10007_27 ? false : true;
       }, _cctx_empty());
       return append(s1_29, ys_10006_27);
-    }, _y_x10504, s2_14_0);
-    var _x_x2_164_12222 = _open_none1(function(n_28_0) {
+    }, _y_x10507, s2_14_0);
+    var _x_x2_164_12262 = _open_none1(function(n_28_0) {
       return n_28_0.typ !== null ? n_28_0.typ.value : TUnit;
     }, lst_1_sq_);
-    var lst_type_0 = _open_none2(apply_subst, s3_10_1, _x_x2_164_12222);
+    var lst_type_0 = _open_none2(apply_subst, s3_10_1, _x_x2_164_12262);
     if (lst_type_0._tag === 4) {
-      var _x_x1_281_12224 = _open_none1(function(node_102) {
+      var _x_x1_281_12264 = _open_none1(function(node_102) {
         return node_102.span;
       }, n_89);
       return Tuple2(s3_10_1, _open_none3(function(span_38, expr_38, typ_38) {
         var _x103 = typ_38 !== void 0 ? typ_38 : Nothing;
         return Node(span_38, expr_38, _x103);
-      }, _x_x1_281_12224, ListIndex(lst_1_sq_, idx_1_sq_), Just(TChar)));
+      }, _x_x1_281_12264, ListIndex(lst_1_sq_, idx_1_sq_), Just(TChar)));
     } else {
-      var x_78_13893 = _open_at0(1, function() {
-        var ev_9_13895 = _evv_at(0);
-        return ev_9_13895.hnd._fun_fresh_tvar(ev_9_13895.marker, ev_9_13895);
+      var x_78_13974 = _open_at0(1, function() {
+        var ev_9_13976 = _evv_at(0);
+        return ev_9_13976.hnd._fun_fresh_tvar(ev_9_13976.marker, ev_9_13976);
       });
       if (_yielding()) {
         return yield_extend(function(elem_var_1_2) {
-          return _mlift_infer_12826(idx_1_sq_, lst_1_sq_, lst_type_0, n_89, s3_10_1, elem_var_1_2);
+          return _mlift_infer_12895(idx_1_sq_, lst_1_sq_, lst_type_0, n_89, s3_10_1, elem_var_1_2);
         });
       } else {
-        return _mlift_infer_12826(idx_1_sq_, lst_1_sq_, lst_type_0, n_89, s3_10_1, x_78_13893);
+        return _mlift_infer_12895(idx_1_sq_, lst_1_sq_, lst_type_0, n_89, s3_10_1, x_78_13974);
       }
     }
   }
-  function _mlift_infer_12828(lst_2_sq_, n_90, _y_x10503) {
-    var _x_x2_162_12216 = _open_none1(function(n_27_0) {
+  function _mlift_infer_12897(lst_2_sq_, n_90, _y_x10506) {
+    var _x_x2_162_12256 = _open_none1(function(n_27_0) {
       return n_27_0.typ !== null ? n_27_0.typ.value : TUnit;
-    }, _y_x10503.snd);
-    var _x_x1_274_12212 = _open_none2(apply_subst, _y_x10503.fst, _x_x2_162_12216);
-    var _x_x3_77_12214 = _open_none1(function(node_100) {
+    }, _y_x10506.snd);
+    var _x_x1_274_12252 = _open_none2(apply_subst, _y_x10506.fst, _x_x2_162_12256);
+    var _x_x3_77_12254 = _open_none1(function(node_100) {
       return node_100.span;
     }, n_90);
-    var x_79_13897 = _open_at3(0, unify, _x_x1_274_12212, TInt, _x_x3_77_12214);
+    var x_79_13978 = _open_at3(0, unify, _x_x1_274_12252, TInt, _x_x3_77_12254);
     if (_yielding()) {
-      return yield_extend(function(_y_x10504_0) {
-        return _mlift_infer_12827(_y_x10503.snd, lst_2_sq_, n_90, _y_x10503.fst, _y_x10504_0);
+      return yield_extend(function(_y_x10507_0) {
+        return _mlift_infer_12896(_y_x10506.snd, lst_2_sq_, n_90, _y_x10506.fst, _y_x10507_0);
       });
     } else {
-      return _mlift_infer_12827(_y_x10503.snd, lst_2_sq_, n_90, _y_x10503.fst, x_79_13897);
+      return _mlift_infer_12896(_y_x10506.snd, lst_2_sq_, n_90, _y_x10506.fst, x_79_13978);
     }
   }
-  function _mlift_infer_12829(env_28, idx_0_0, n_91, _y_x10502) {
-    var x_80_13899 = infer(env_28, _y_x10502.fst, idx_0_0);
+  function _mlift_infer_12898(env_28, idx_0_0, n_91, _y_x10505) {
+    var x_80_13980 = infer(env_28, _y_x10505.fst, idx_0_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10503_0) {
-        return _mlift_infer_12828(_y_x10502.snd, n_91, _y_x10503_0);
+      return yield_extend(function(_y_x10506_0) {
+        return _mlift_infer_12897(_y_x10505.snd, n_91, _y_x10506_0);
       });
     } else {
-      return _mlift_infer_12828(_y_x10502.snd, n_91, x_80_13899);
+      return _mlift_infer_12897(_y_x10505.snd, n_91, x_80_13980);
     }
   }
-  function _mlift_infer_12830(ee_sq_, lst_0_0_sq_, n_92, si_0, start_m_sq_, _y_x10515) {
+  function _mlift_infer_12899(ee_sq_, lst_0_0_sq_, n_92, si_0, start_m_sq_, _y_x10518) {
     var si2_0 = _open_none2(function(s1_32, s2_31) {
       var updated_s2_30 = _trmc_map_subst(s2_31, function(k_32, v_31) {
         return Tuple2(k_32, _trmc_apply_subst(s1_32, v_31, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_30 = _trmc_filter_subst(updated_s2_30, function(k_0_30, ___wildcard_x120__39_30) {
+      var ys_10006_30 = _trmc_filter_subst(updated_s2_30, function(k_0_30, ___wildcard_x136__39_30) {
         var b_10007_30 = subst_has(s1_32, k_0_30);
         return b_10007_30 ? false : true;
       }, _cctx_empty());
       return append(s1_32, ys_10006_30);
-    }, _y_x10515, si_0);
-    var _x_x1_301_12261 = _open_none1(function(node_110) {
+    }, _y_x10518, si_0);
+    var _x_x1_301_12301 = _open_none1(function(node_110) {
       return node_110.span;
     }, n_92);
-    var _x_x3_83_12263 = Just(_open_none2(apply_subst, si2_0, TString));
+    var _x_x3_83_12303 = Just(_open_none2(apply_subst, si2_0, TString));
     return Tuple2(si2_0, _open_none3(function(span_40, expr_40, typ_40) {
       var _x104 = typ_40 !== void 0 ? typ_40 : Nothing;
       return Node(span_40, expr_40, _x104);
-    }, _x_x1_301_12261, ListSlice(lst_0_0_sq_, start_m_sq_, Just(ee_sq_)), _x_x3_83_12263));
+    }, _x_x1_301_12301, ListSlice(lst_0_0_sq_, start_m_sq_, Just(ee_sq_)), _x_x3_83_12303));
   }
-  function _mlift_infer_12831(lst_0_1_sq_, n_93, start_m_0_sq_, _y_x10514) {
-    var _x_x2_175_12256 = _open_none1(function(n_31_0) {
+  function _mlift_infer_12900(lst_0_1_sq_, n_93, start_m_0_sq_, _y_x10517) {
+    var _x_x2_175_12296 = _open_none1(function(n_31_0) {
       return n_31_0.typ !== null ? n_31_0.typ.value : TUnit;
-    }, _y_x10514.snd);
-    var _x_x1_296_12252 = _open_none2(apply_subst, _y_x10514.fst, _x_x2_175_12256);
-    var _x_x3_82_12254 = _open_none1(function(node_109) {
+    }, _y_x10517.snd);
+    var _x_x1_296_12292 = _open_none2(apply_subst, _y_x10517.fst, _x_x2_175_12296);
+    var _x_x3_82_12294 = _open_none1(function(node_109) {
       return node_109.span;
     }, n_93);
-    var x_81_13907 = _open_at3(0, unify, _x_x1_296_12252, TInt, _x_x3_82_12254);
+    var x_81_13988 = _open_at3(0, unify, _x_x1_296_12292, TInt, _x_x3_82_12294);
     if (_yielding()) {
-      return yield_extend(function(_y_x10515_0) {
-        return _mlift_infer_12830(_y_x10514.snd, lst_0_1_sq_, n_93, _y_x10514.fst, start_m_0_sq_, _y_x10515_0);
+      return yield_extend(function(_y_x10518_0) {
+        return _mlift_infer_12899(_y_x10517.snd, lst_0_1_sq_, n_93, _y_x10517.fst, start_m_0_sq_, _y_x10518_0);
       });
     } else {
-      return _mlift_infer_12830(_y_x10514.snd, lst_0_1_sq_, n_93, _y_x10514.fst, start_m_0_sq_, x_81_13907);
+      return _mlift_infer_12899(_y_x10517.snd, lst_0_1_sq_, n_93, _y_x10517.fst, start_m_0_sq_, x_81_13988);
     }
   }
-  function _mlift_infer_12832(end_m, env_29, lst_0_2_sq_, n_94, se_sq_, si, _y_x10513) {
+  function _mlift_infer_12901(end_m, env_29, lst_0_2_sq_, n_94, se_sq_, si, _y_x10516) {
     var si2 = _open_none2(function(s1_31, s2_30) {
       var updated_s2_29 = _trmc_map_subst(s2_30, function(k_31, v_30) {
         return Tuple2(k_31, _trmc_apply_subst(s1_31, v_30, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_29 = _trmc_filter_subst(updated_s2_29, function(k_0_29, ___wildcard_x120__39_29) {
+      var ys_10006_29 = _trmc_filter_subst(updated_s2_29, function(k_0_29, ___wildcard_x136__39_29) {
         var b_10007_29 = subst_has(s1_31, k_0_29);
         return b_10007_29 ? false : true;
       }, _cctx_empty());
       return append(s1_31, ys_10006_29);
-    }, _y_x10513, si);
+    }, _y_x10516, si);
     var start_m_1_sq_ = Just(se_sq_);
     if (end_m !== null) {
-      var x_82_13915 = infer(env_29, si2, end_m.value);
+      var x_82_13996 = infer(env_29, si2, end_m.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10514_0) {
-          return _mlift_infer_12831(lst_0_2_sq_, n_94, start_m_1_sq_, _y_x10514_0);
+        return yield_extend(function(_y_x10517_0) {
+          return _mlift_infer_12900(lst_0_2_sq_, n_94, start_m_1_sq_, _y_x10517_0);
         });
       } else {
-        return _mlift_infer_12831(lst_0_2_sq_, n_94, start_m_1_sq_, x_82_13915);
+        return _mlift_infer_12900(lst_0_2_sq_, n_94, start_m_1_sq_, x_82_13996);
       }
     } else {
-      var _x_x1_304_12267 = _open_none1(function(node_111) {
+      var _x_x1_304_12307 = _open_none1(function(node_111) {
         return node_111.span;
       }, n_94);
-      var _x_x3_84_12269 = Just(_open_none2(apply_subst, si2, TString));
+      var _x_x3_84_12309 = Just(_open_none2(apply_subst, si2, TString));
       return Tuple2(si2, _open_none3(function(span_41, expr_41, typ_41) {
         var _x105 = typ_41 !== void 0 ? typ_41 : Nothing;
         return Node(span_41, expr_41, _x105);
-      }, _x_x1_304_12267, ListSlice(lst_0_2_sq_, start_m_1_sq_, Nothing), _x_x3_84_12269));
+      }, _x_x1_304_12307, ListSlice(lst_0_2_sq_, start_m_1_sq_, Nothing), _x_x3_84_12309));
     }
   }
-  function _mlift_infer_12833(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10512) {
-    var _x_x2_172_12247 = _open_none1(function(n_30_0) {
+  function _mlift_infer_12902(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10515) {
+    var _x_x2_172_12287 = _open_none1(function(n_30_0) {
       return n_30_0.typ !== null ? n_30_0.typ.value : TUnit;
-    }, _y_x10512.snd);
-    var _x_x1_291_12243 = _open_none2(apply_subst, _y_x10512.fst, _x_x2_172_12247);
-    var _x_x3_81_12245 = _open_none1(function(node_107) {
+    }, _y_x10515.snd);
+    var _x_x1_291_12283 = _open_none2(apply_subst, _y_x10515.fst, _x_x2_172_12287);
+    var _x_x3_81_12285 = _open_none1(function(node_107) {
       return node_107.span;
     }, n_95);
-    var x_83_13917 = _open_at3(0, unify, _x_x1_291_12243, TInt, _x_x3_81_12245);
+    var x_83_13998 = _open_at3(0, unify, _x_x1_291_12283, TInt, _x_x3_81_12285);
     if (_yielding()) {
-      return yield_extend(function(_y_x10513_0) {
-        return _mlift_infer_12832(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10512.snd, _y_x10512.fst, _y_x10513_0);
+      return yield_extend(function(_y_x10516_0) {
+        return _mlift_infer_12901(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10515.snd, _y_x10515.fst, _y_x10516_0);
       });
     } else {
-      return _mlift_infer_12832(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10512.snd, _y_x10512.fst, x_83_13917);
+      return _mlift_infer_12901(end_m_0, env_30, lst_0_3_sq_, n_95, _y_x10515.snd, _y_x10515.fst, x_83_13998);
     }
   }
-  function _mlift_infer_12834(ee_0_0_sq_, lst_0_4_sq_, n_96, si_0_0_0, _y_x10520) {
+  function _mlift_infer_12903(ee_0_0_sq_, lst_0_4_sq_, n_96, si_0_0_0, _y_x10523) {
     var si2_0_0 = _open_none2(function(s1_33, s2_32) {
       var updated_s2_31 = _trmc_map_subst(s2_32, function(k_33, v_32) {
         return Tuple2(k_33, _trmc_apply_subst(s1_33, v_32, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_31 = _trmc_filter_subst(updated_s2_31, function(k_0_31, ___wildcard_x120__39_31) {
+      var ys_10006_31 = _trmc_filter_subst(updated_s2_31, function(k_0_31, ___wildcard_x136__39_31) {
         var b_10007_31 = subst_has(s1_33, k_0_31);
         return b_10007_31 ? false : true;
       }, _cctx_empty());
       return append(s1_33, ys_10006_31);
-    }, _y_x10520, si_0_0_0);
-    var _x_x1_312_12282 = _open_none1(function(node_114) {
+    }, _y_x10523, si_0_0_0);
+    var _x_x1_312_12322 = _open_none1(function(node_114) {
       return node_114.span;
     }, n_96);
-    var _x_x3_86_12284 = Just(_open_none2(apply_subst, si2_0_0, TString));
+    var _x_x3_86_12324 = Just(_open_none2(apply_subst, si2_0_0, TString));
     return Tuple2(si2_0_0, _open_none3(function(span_42, expr_42, typ_42) {
       var _x106 = typ_42 !== void 0 ? typ_42 : Nothing;
       return Node(span_42, expr_42, _x106);
-    }, _x_x1_312_12282, ListSlice(lst_0_4_sq_, Nothing, Just(ee_0_0_sq_)), _x_x3_86_12284));
+    }, _x_x1_312_12322, ListSlice(lst_0_4_sq_, Nothing, Just(ee_0_0_sq_)), _x_x3_86_12324));
   }
-  function _mlift_infer_12835(lst_0_5_sq_, n_97, _y_x10519) {
-    var _x_x2_182_12277 = _open_none1(function(n_32_0) {
+  function _mlift_infer_12904(lst_0_5_sq_, n_97, _y_x10522) {
+    var _x_x2_182_12317 = _open_none1(function(n_32_0) {
       return n_32_0.typ !== null ? n_32_0.typ.value : TUnit;
-    }, _y_x10519.snd);
-    var _x_x1_307_12273 = _open_none2(apply_subst, _y_x10519.fst, _x_x2_182_12277);
-    var _x_x3_85_12275 = _open_none1(function(node_113) {
+    }, _y_x10522.snd);
+    var _x_x1_307_12313 = _open_none2(apply_subst, _y_x10522.fst, _x_x2_182_12317);
+    var _x_x3_85_12315 = _open_none1(function(node_113) {
       return node_113.span;
     }, n_97);
-    var x_84_13925 = _open_at3(0, unify, _x_x1_307_12273, TInt, _x_x3_85_12275);
+    var x_84_14006 = _open_at3(0, unify, _x_x1_307_12313, TInt, _x_x3_85_12315);
     if (_yielding()) {
-      return yield_extend(function(_y_x10520_0) {
-        return _mlift_infer_12834(_y_x10519.snd, lst_0_5_sq_, n_97, _y_x10519.fst, _y_x10520_0);
+      return yield_extend(function(_y_x10523_0) {
+        return _mlift_infer_12903(_y_x10522.snd, lst_0_5_sq_, n_97, _y_x10522.fst, _y_x10523_0);
       });
     } else {
-      return _mlift_infer_12834(_y_x10519.snd, lst_0_5_sq_, n_97, _y_x10519.fst, x_84_13925);
+      return _mlift_infer_12903(_y_x10522.snd, lst_0_5_sq_, n_97, _y_x10522.fst, x_84_14006);
     }
   }
-  function _mlift_infer_12836(ee_1_sq_, lst_0_6_sq_, n_98, result_type_4, si_0_1, start_m_0_0_sq_, _y_x10530) {
+  function _mlift_infer_12905(ee_1_sq_, lst_0_6_sq_, n_98, result_type_4, si_0_1, start_m_0_0_sq_, _y_x10533) {
     var si2_0_1 = _open_none2(function(s1_36, s2_35) {
       var updated_s2_34 = _trmc_map_subst(s2_35, function(k_36, v_35) {
         return Tuple2(k_36, _trmc_apply_subst(s1_36, v_35, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_34 = _trmc_filter_subst(updated_s2_34, function(k_0_34, ___wildcard_x120__39_34) {
+      var ys_10006_34 = _trmc_filter_subst(updated_s2_34, function(k_0_34, ___wildcard_x136__39_34) {
         var b_10007_34 = subst_has(s1_36, k_0_34);
         return b_10007_34 ? false : true;
       }, _cctx_empty());
       return append(s1_36, ys_10006_34);
-    }, _y_x10530, si_0_1);
-    var _x_x1_332_12320 = _open_none1(function(node_121) {
+    }, _y_x10533, si_0_1);
+    var _x_x1_332_12360 = _open_none1(function(node_121) {
       return node_121.span;
     }, n_98);
-    var _x_x3_91_12322 = Just(_open_none2(apply_subst, si2_0_1, result_type_4));
+    var _x_x3_91_12362 = Just(_open_none2(apply_subst, si2_0_1, result_type_4));
     return Tuple2(si2_0_1, _open_none3(function(span_44, expr_44, typ_44) {
       var _x107 = typ_44 !== void 0 ? typ_44 : Nothing;
       return Node(span_44, expr_44, _x107);
-    }, _x_x1_332_12320, ListSlice(lst_0_6_sq_, start_m_0_0_sq_, Just(ee_1_sq_)), _x_x3_91_12322));
+    }, _x_x1_332_12360, ListSlice(lst_0_6_sq_, start_m_0_0_sq_, Just(ee_1_sq_)), _x_x3_91_12362));
   }
-  function _mlift_infer_12837(lst_0_7_sq_, n_99, result_type_4_0, start_m_0_1_sq_, _y_x10529) {
-    var _x_x2_195_12315 = _open_none1(function(n_34_0) {
+  function _mlift_infer_12906(lst_0_7_sq_, n_99, result_type_4_0, start_m_0_1_sq_, _y_x10532) {
+    var _x_x2_195_12355 = _open_none1(function(n_34_0) {
       return n_34_0.typ !== null ? n_34_0.typ.value : TUnit;
-    }, _y_x10529.snd);
-    var _x_x1_327_12311 = _open_none2(apply_subst, _y_x10529.fst, _x_x2_195_12315);
-    var _x_x3_90_12313 = _open_none1(function(node_120) {
+    }, _y_x10532.snd);
+    var _x_x1_327_12351 = _open_none2(apply_subst, _y_x10532.fst, _x_x2_195_12355);
+    var _x_x3_90_12353 = _open_none1(function(node_120) {
       return node_120.span;
     }, n_99);
-    var x_85_13933 = _open_at3(0, unify, _x_x1_327_12311, TInt, _x_x3_90_12313);
+    var x_85_14014 = _open_at3(0, unify, _x_x1_327_12351, TInt, _x_x3_90_12353);
     if (_yielding()) {
-      return yield_extend(function(_y_x10530_0) {
-        return _mlift_infer_12836(_y_x10529.snd, lst_0_7_sq_, n_99, result_type_4_0, _y_x10529.fst, start_m_0_1_sq_, _y_x10530_0);
+      return yield_extend(function(_y_x10533_0) {
+        return _mlift_infer_12905(_y_x10532.snd, lst_0_7_sq_, n_99, result_type_4_0, _y_x10532.fst, start_m_0_1_sq_, _y_x10533_0);
       });
     } else {
-      return _mlift_infer_12836(_y_x10529.snd, lst_0_7_sq_, n_99, result_type_4_0, _y_x10529.fst, start_m_0_1_sq_, x_85_13933);
+      return _mlift_infer_12905(_y_x10532.snd, lst_0_7_sq_, n_99, result_type_4_0, _y_x10532.fst, start_m_0_1_sq_, x_85_14014);
     }
   }
-  function _mlift_infer_12838(end_m_1, env_31, lst_0_8_sq_, n_100, result_type_4_1, se_0_0_sq_, si_1_0, _y_x10528) {
+  function _mlift_infer_12907(end_m_1, env_31, lst_0_8_sq_, n_100, result_type_4_1, se_0_0_sq_, si_1_0, _y_x10531) {
     var si2_1 = _open_none2(function(s1_35, s2_34) {
       var updated_s2_33 = _trmc_map_subst(s2_34, function(k_35, v_34) {
         return Tuple2(k_35, _trmc_apply_subst(s1_35, v_34, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_33 = _trmc_filter_subst(updated_s2_33, function(k_0_33, ___wildcard_x120__39_33) {
+      var ys_10006_33 = _trmc_filter_subst(updated_s2_33, function(k_0_33, ___wildcard_x136__39_33) {
         var b_10007_33 = subst_has(s1_35, k_0_33);
         return b_10007_33 ? false : true;
       }, _cctx_empty());
       return append(s1_35, ys_10006_33);
-    }, _y_x10528, si_1_0);
+    }, _y_x10531, si_1_0);
     var start_m_0_2_sq_ = Just(se_0_0_sq_);
     if (end_m_1 !== null) {
-      var x_86_13941 = infer(env_31, si2_1, end_m_1.value);
+      var x_86_14022 = infer(env_31, si2_1, end_m_1.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10529_0) {
-          return _mlift_infer_12837(lst_0_8_sq_, n_100, result_type_4_1, start_m_0_2_sq_, _y_x10529_0);
+        return yield_extend(function(_y_x10532_0) {
+          return _mlift_infer_12906(lst_0_8_sq_, n_100, result_type_4_1, start_m_0_2_sq_, _y_x10532_0);
         });
       } else {
-        return _mlift_infer_12837(lst_0_8_sq_, n_100, result_type_4_1, start_m_0_2_sq_, x_86_13941);
+        return _mlift_infer_12906(lst_0_8_sq_, n_100, result_type_4_1, start_m_0_2_sq_, x_86_14022);
       }
     } else {
-      var _x_x1_335_12326 = _open_none1(function(node_122) {
+      var _x_x1_335_12366 = _open_none1(function(node_122) {
         return node_122.span;
       }, n_100);
-      var _x_x3_92_12328 = Just(_open_none2(apply_subst, si2_1, result_type_4_1));
+      var _x_x3_92_12368 = Just(_open_none2(apply_subst, si2_1, result_type_4_1));
       return Tuple2(si2_1, _open_none3(function(span_45, expr_45, typ_45) {
         var _x108 = typ_45 !== void 0 ? typ_45 : Nothing;
         return Node(span_45, expr_45, _x108);
-      }, _x_x1_335_12326, ListSlice(lst_0_8_sq_, start_m_0_2_sq_, Nothing), _x_x3_92_12328));
+      }, _x_x1_335_12366, ListSlice(lst_0_8_sq_, start_m_0_2_sq_, Nothing), _x_x3_92_12368));
     }
   }
-  function _mlift_infer_12839(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10527) {
-    var _x_x2_192_12306 = _open_none1(function(n_33_0) {
+  function _mlift_infer_12908(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10530) {
+    var _x_x2_192_12346 = _open_none1(function(n_33_0) {
       return n_33_0.typ !== null ? n_33_0.typ.value : TUnit;
-    }, _y_x10527.snd);
-    var _x_x1_322_12302 = _open_none2(apply_subst, _y_x10527.fst, _x_x2_192_12306);
-    var _x_x3_89_12304 = _open_none1(function(node_118) {
+    }, _y_x10530.snd);
+    var _x_x1_322_12342 = _open_none2(apply_subst, _y_x10530.fst, _x_x2_192_12346);
+    var _x_x3_89_12344 = _open_none1(function(node_118) {
       return node_118.span;
     }, n_101);
-    var x_87_13943 = _open_at3(0, unify, _x_x1_322_12302, TInt, _x_x3_89_12304);
+    var x_87_14024 = _open_at3(0, unify, _x_x1_322_12342, TInt, _x_x3_89_12344);
     if (_yielding()) {
-      return yield_extend(function(_y_x10528_0) {
-        return _mlift_infer_12838(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10527.snd, _y_x10527.fst, _y_x10528_0);
+      return yield_extend(function(_y_x10531_0) {
+        return _mlift_infer_12907(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10530.snd, _y_x10530.fst, _y_x10531_0);
       });
     } else {
-      return _mlift_infer_12838(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10527.snd, _y_x10527.fst, x_87_13943);
+      return _mlift_infer_12907(end_m_2, env_32, lst_0_9_sq_, n_101, result_type_4_2, _y_x10530.snd, _y_x10530.fst, x_87_14024);
     }
   }
-  function _mlift_infer_12840(ee_0_0_0_sq_, lst_0_10_sq_, n_102, result_type_4_3, si_0_0_0_0, _y_x10535) {
+  function _mlift_infer_12909(ee_0_0_0_sq_, lst_0_10_sq_, n_102, result_type_4_3, si_0_0_0_0, _y_x10538) {
     var si2_0_0_0 = _open_none2(function(s1_37, s2_36) {
       var updated_s2_35 = _trmc_map_subst(s2_36, function(k_37, v_36) {
         return Tuple2(k_37, _trmc_apply_subst(s1_37, v_36, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_35 = _trmc_filter_subst(updated_s2_35, function(k_0_35, ___wildcard_x120__39_35) {
+      var ys_10006_35 = _trmc_filter_subst(updated_s2_35, function(k_0_35, ___wildcard_x136__39_35) {
         var b_10007_35 = subst_has(s1_37, k_0_35);
         return b_10007_35 ? false : true;
       }, _cctx_empty());
       return append(s1_37, ys_10006_35);
-    }, _y_x10535, si_0_0_0_0);
-    var _x_x1_343_12341 = _open_none1(function(node_125) {
+    }, _y_x10538, si_0_0_0_0);
+    var _x_x1_343_12381 = _open_none1(function(node_125) {
       return node_125.span;
     }, n_102);
-    var _x_x3_94_12343 = Just(_open_none2(apply_subst, si2_0_0_0, result_type_4_3));
+    var _x_x3_94_12383 = Just(_open_none2(apply_subst, si2_0_0_0, result_type_4_3));
     return Tuple2(si2_0_0_0, _open_none3(function(span_46, expr_46, typ_46) {
       var _x109 = typ_46 !== void 0 ? typ_46 : Nothing;
       return Node(span_46, expr_46, _x109);
-    }, _x_x1_343_12341, ListSlice(lst_0_10_sq_, Nothing, Just(ee_0_0_0_sq_)), _x_x3_94_12343));
+    }, _x_x1_343_12381, ListSlice(lst_0_10_sq_, Nothing, Just(ee_0_0_0_sq_)), _x_x3_94_12383));
   }
-  function _mlift_infer_12841(lst_0_11_sq_, n_103, result_type_4_4, _y_x10534) {
-    var _x_x2_202_12336 = _open_none1(function(n_35_0) {
+  function _mlift_infer_12910(lst_0_11_sq_, n_103, result_type_4_4, _y_x10537) {
+    var _x_x2_202_12376 = _open_none1(function(n_35_0) {
       return n_35_0.typ !== null ? n_35_0.typ.value : TUnit;
-    }, _y_x10534.snd);
-    var _x_x1_338_12332 = _open_none2(apply_subst, _y_x10534.fst, _x_x2_202_12336);
-    var _x_x3_93_12334 = _open_none1(function(node_124) {
+    }, _y_x10537.snd);
+    var _x_x1_338_12372 = _open_none2(apply_subst, _y_x10537.fst, _x_x2_202_12376);
+    var _x_x3_93_12374 = _open_none1(function(node_124) {
       return node_124.span;
     }, n_103);
-    var x_88_13951 = _open_at3(0, unify, _x_x1_338_12332, TInt, _x_x3_93_12334);
+    var x_88_14032 = _open_at3(0, unify, _x_x1_338_12372, TInt, _x_x3_93_12374);
     if (_yielding()) {
-      return yield_extend(function(_y_x10535_0) {
-        return _mlift_infer_12840(_y_x10534.snd, lst_0_11_sq_, n_103, result_type_4_4, _y_x10534.fst, _y_x10535_0);
+      return yield_extend(function(_y_x10538_0) {
+        return _mlift_infer_12909(_y_x10537.snd, lst_0_11_sq_, n_103, result_type_4_4, _y_x10537.fst, _y_x10538_0);
       });
     } else {
-      return _mlift_infer_12840(_y_x10534.snd, lst_0_11_sq_, n_103, result_type_4_4, _y_x10534.fst, x_88_13951);
+      return _mlift_infer_12909(_y_x10537.snd, lst_0_11_sq_, n_103, result_type_4_4, _y_x10537.fst, x_88_14032);
     }
   }
-  function _mlift_infer_12842(elem_var_2, end_m_3, env_33, lst_0_12_sq_, n_104, s1_20_0, start_m, _y_x10526) {
+  function _mlift_infer_12911(elem_var_2, end_m_3, env_33, lst_0_12_sq_, n_104, s1_20_0, start_m, _y_x10529) {
     var s_0_sq_ = _open_none2(function(s1_34, s2_33) {
       var updated_s2_32 = _trmc_map_subst(s2_33, function(k_34, v_33) {
         return Tuple2(k_34, _trmc_apply_subst(s1_34, v_33, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_32 = _trmc_filter_subst(updated_s2_32, function(k_0_32, ___wildcard_x120__39_32) {
+      var ys_10006_32 = _trmc_filter_subst(updated_s2_32, function(k_0_32, ___wildcard_x136__39_32) {
         var b_10007_32 = subst_has(s1_34, k_0_32);
         return b_10007_32 ? false : true;
       }, _cctx_empty());
       return append(s1_34, ys_10006_32);
-    }, _y_x10526, s1_20_0);
+    }, _y_x10529, s1_20_0);
     var result_type_4_5 = TList(_open_none2(apply_subst, s_0_sq_, elem_var_2));
     if (start_m !== null) {
-      var x_89_13959 = infer(env_33, s_0_sq_, start_m.value);
+      var x_89_14040 = infer(env_33, s_0_sq_, start_m.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10527_0) {
-          return _mlift_infer_12839(end_m_3, env_33, lst_0_12_sq_, n_104, result_type_4_5, _y_x10527_0);
+        return yield_extend(function(_y_x10530_0) {
+          return _mlift_infer_12908(end_m_3, env_33, lst_0_12_sq_, n_104, result_type_4_5, _y_x10530_0);
         });
       } else {
-        return _mlift_infer_12839(end_m_3, env_33, lst_0_12_sq_, n_104, result_type_4_5, x_89_13959);
+        return _mlift_infer_12908(end_m_3, env_33, lst_0_12_sq_, n_104, result_type_4_5, x_89_14040);
       }
     } else {
       if (end_m_3 !== null) {
-        var x_90_13961 = infer(env_33, s_0_sq_, end_m_3.value);
+        var x_90_14042 = infer(env_33, s_0_sq_, end_m_3.value);
         if (_yielding()) {
-          return yield_extend(function(_y_x10534_0) {
-            return _mlift_infer_12841(lst_0_12_sq_, n_104, result_type_4_5, _y_x10534_0);
+          return yield_extend(function(_y_x10537_0) {
+            return _mlift_infer_12910(lst_0_12_sq_, n_104, result_type_4_5, _y_x10537_0);
           });
         } else {
-          return _mlift_infer_12841(lst_0_12_sq_, n_104, result_type_4_5, x_90_13961);
+          return _mlift_infer_12910(lst_0_12_sq_, n_104, result_type_4_5, x_90_14042);
         }
       } else {
-        var _x_x1_346_12347 = _open_none1(function(node_126) {
+        var _x_x1_346_12387 = _open_none1(function(node_126) {
           return node_126.span;
         }, n_104);
-        var _x_x3_95_12349 = Just(_open_none2(apply_subst, s_0_sq_, result_type_4_5));
+        var _x_x3_95_12389 = Just(_open_none2(apply_subst, s_0_sq_, result_type_4_5));
         return Tuple2(s_0_sq_, _open_none3(function(span_47, expr_47, typ_47) {
           var _x110 = typ_47 !== void 0 ? typ_47 : Nothing;
           return Node(span_47, expr_47, _x110);
-        }, _x_x1_346_12347, ListSlice(lst_0_12_sq_, Nothing, Nothing), _x_x3_95_12349));
+        }, _x_x1_346_12387, ListSlice(lst_0_12_sq_, Nothing, Nothing), _x_x3_95_12389));
       }
     }
   }
-  function _mlift_infer_12843(end_m_4, env_34, lst_type_0_0, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, elem_var_2_0) {
-    var _x_x3_88_12296 = _open_none1(function(node_116) {
+  function _mlift_infer_12912(end_m_4, env_34, lst_type_0_0, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, elem_var_2_0) {
+    var _x_x3_88_12336 = _open_none1(function(node_116) {
       return node_116.span;
     }, n_105);
-    var x_91_13963 = _open_at3(0, unify, lst_type_0_0, TList(elem_var_2_0), _x_x3_88_12296);
+    var x_91_14044 = _open_at3(0, unify, lst_type_0_0, TList(elem_var_2_0), _x_x3_88_12336);
     if (_yielding()) {
-      return yield_extend(function(_y_x10526_0) {
-        return _mlift_infer_12842(elem_var_2_0, end_m_4, env_34, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, _y_x10526_0);
+      return yield_extend(function(_y_x10529_0) {
+        return _mlift_infer_12911(elem_var_2_0, end_m_4, env_34, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, _y_x10529_0);
       });
     } else {
-      return _mlift_infer_12842(elem_var_2_0, end_m_4, env_34, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, x_91_13963);
+      return _mlift_infer_12911(elem_var_2_0, end_m_4, env_34, lst_0_13_sq_, n_105, s1_20_0_0, start_m_0, x_91_14044);
     }
   }
-  function _mlift_infer_12844(end_m_5, env_35, n_106, start_m_1, _y_x10511) {
-    var _x_x2_170_12241 = _open_none1(function(n_29_0) {
+  function _mlift_infer_12913(end_m_5, env_35, n_106, start_m_1, _y_x10514) {
+    var _x_x2_170_12281 = _open_none1(function(n_29_0) {
       return n_29_0.typ !== null ? n_29_0.typ.value : TUnit;
-    }, _y_x10511.snd);
-    var lst_type_0_1 = _open_none2(apply_subst, _y_x10511.fst, _x_x2_170_12241);
+    }, _y_x10514.snd);
+    var lst_type_0_1 = _open_none2(apply_subst, _y_x10514.fst, _x_x2_170_12281);
     if (lst_type_0_1._tag === 4) {
       if (start_m_1 !== null) {
-        var x_92_13965 = infer(env_35, _y_x10511.fst, start_m_1.value);
+        var x_92_14046 = infer(env_35, _y_x10514.fst, start_m_1.value);
         if (_yielding()) {
-          return yield_extend(function(_y_x10512_0) {
-            return _mlift_infer_12833(end_m_5, env_35, _y_x10511.snd, n_106, _y_x10512_0);
+          return yield_extend(function(_y_x10515_0) {
+            return _mlift_infer_12902(end_m_5, env_35, _y_x10514.snd, n_106, _y_x10515_0);
           });
         } else {
-          return _mlift_infer_12833(end_m_5, env_35, _y_x10511.snd, n_106, x_92_13965);
+          return _mlift_infer_12902(end_m_5, env_35, _y_x10514.snd, n_106, x_92_14046);
         }
       } else {
         if (end_m_5 !== null) {
-          var x_93_13967 = infer(env_35, _y_x10511.fst, end_m_5.value);
+          var x_93_14048 = infer(env_35, _y_x10514.fst, end_m_5.value);
           if (_yielding()) {
-            return yield_extend(function(_y_x10519_0) {
-              return _mlift_infer_12835(_y_x10511.snd, n_106, _y_x10519_0);
+            return yield_extend(function(_y_x10522_0) {
+              return _mlift_infer_12904(_y_x10514.snd, n_106, _y_x10522_0);
             });
           } else {
-            return _mlift_infer_12835(_y_x10511.snd, n_106, x_93_13967);
+            return _mlift_infer_12904(_y_x10514.snd, n_106, x_93_14048);
           }
         } else {
-          var _x_x1_315_12288 = _open_none1(function(node_115) {
+          var _x_x1_315_12328 = _open_none1(function(node_115) {
             return node_115.span;
           }, n_106);
-          var _x_x3_87_12290 = Just(_open_none2(apply_subst, _y_x10511.fst, TString));
-          return Tuple2(_y_x10511.fst, _open_none3(function(span_43, expr_43, typ_43) {
+          var _x_x3_87_12330 = Just(_open_none2(apply_subst, _y_x10514.fst, TString));
+          return Tuple2(_y_x10514.fst, _open_none3(function(span_43, expr_43, typ_43) {
             var _x111 = typ_43 !== void 0 ? typ_43 : Nothing;
             return Node(span_43, expr_43, _x111);
-          }, _x_x1_315_12288, ListSlice(_y_x10511.snd, Nothing, Nothing), _x_x3_87_12290));
+          }, _x_x1_315_12328, ListSlice(_y_x10514.snd, Nothing, Nothing), _x_x3_87_12330));
         }
       }
     } else {
-      var x_94_13969 = _open_at0(1, function() {
-        var ev_10_13971 = _evv_at(0);
-        return ev_10_13971.hnd._fun_fresh_tvar(ev_10_13971.marker, ev_10_13971);
+      var x_94_14050 = _open_at0(1, function() {
+        var ev_10_14052 = _evv_at(0);
+        return ev_10_14052.hnd._fun_fresh_tvar(ev_10_14052.marker, ev_10_14052);
       });
       if (_yielding()) {
         return yield_extend(function(elem_var_2_1) {
-          return _mlift_infer_12843(end_m_5, env_35, lst_type_0_1, _y_x10511.snd, n_106, _y_x10511.fst, start_m_1, elem_var_2_1);
+          return _mlift_infer_12912(end_m_5, env_35, lst_type_0_1, _y_x10514.snd, n_106, _y_x10514.fst, start_m_1, elem_var_2_1);
         });
       } else {
-        return _mlift_infer_12843(end_m_5, env_35, lst_type_0_1, _y_x10511.snd, n_106, _y_x10511.fst, start_m_1, x_94_13969);
+        return _mlift_infer_12912(end_m_5, env_35, lst_type_0_1, _y_x10514.snd, n_106, _y_x10514.fst, start_m_1, x_94_14050);
       }
     }
   }
-  function _mlift_infer_12845(n_107, _y_x10541) {
-    var _x_x2_208_12354 = _open_none1(function(n_36_0) {
+  function _mlift_infer_12914(n_107, _y_x10544) {
+    var _x_x2_208_12394 = _open_none1(function(n_36_0) {
       return n_36_0.typ !== null ? n_36_0.typ.value : TUnit;
-    }, _y_x10541.snd);
-    var val_type = _open_none2(apply_subst, _y_x10541.fst, _x_x2_208_12354);
-    var _x_x1_351_12356 = _open_none1(function(node_128) {
+    }, _y_x10544.snd);
+    var val_type = _open_none2(apply_subst, _y_x10544.fst, _x_x2_208_12394);
+    var _x_x1_351_12396 = _open_none1(function(node_128) {
       return node_128.span;
     }, n_107);
-    return Tuple2(_y_x10541.fst, _open_none3(function(span_48, expr_48, typ_48) {
+    return Tuple2(_y_x10544.fst, _open_none3(function(span_48, expr_48, typ_48) {
       var _x112 = typ_48 !== void 0 ? typ_48 : Nothing;
       return Node(span_48, expr_48, _x112);
-    }, _x_x1_351_12356, ESome(_y_x10541.snd), Just(TMaybe(val_type))));
+    }, _x_x1_351_12396, ESome(_y_x10544.snd), Just(TMaybe(val_type))));
   }
-  function _mlift_infer_12846(n_108, s_122, elem_var_3) {
-    var _x_x1_353_12360 = _open_none1(function(node_129) {
+  function _mlift_infer_12915(n_108, s_122, elem_var_3) {
+    var _x_x1_353_12400 = _open_none1(function(node_129) {
       return node_129.span;
     }, n_108);
     return Tuple2(s_122, _open_none3(function(span_49, expr_49, typ_49) {
       var _x113 = typ_49 !== void 0 ? typ_49 : Nothing;
       return Node(span_49, expr_49, _x113);
-    }, _x_x1_353_12360, ENone, Just(TMaybe(elem_var_3))));
+    }, _x_x1_353_12400, ENone, Just(TMaybe(elem_var_3))));
   }
-  function _mlift_infer_12847(n_109, s1_22_0, val_type_0, value_1_sq_, err_var) {
-    var _x_x1_357_12367 = _open_none1(function(node_131) {
+  function _mlift_infer_12916(n_109, s1_22_0, val_type_0, value_1_sq_, err_var) {
+    var _x_x1_357_12407 = _open_none1(function(node_131) {
       return node_131.span;
     }, n_109);
     return Tuple2(s1_22_0, _open_none3(function(span_50, expr_50, typ_50) {
       var _x114 = typ_50 !== void 0 ? typ_50 : Nothing;
       return Node(span_50, expr_50, _x114);
-    }, _x_x1_357_12367, EOk(value_1_sq_), Just(TResult(val_type_0, err_var))));
+    }, _x_x1_357_12407, EOk(value_1_sq_), Just(TResult(val_type_0, err_var))));
   }
-  function _mlift_infer_12848(n_110, _y_x10545) {
-    var _x_x2_211_12365 = _open_none1(function(n_37_0) {
+  function _mlift_infer_12917(n_110, _y_x10548) {
+    var _x_x2_211_12405 = _open_none1(function(n_37_0) {
       return n_37_0.typ !== null ? n_37_0.typ.value : TUnit;
-    }, _y_x10545.snd);
-    var val_type_0_0 = _open_none2(apply_subst, _y_x10545.fst, _x_x2_211_12365);
-    var x_95_13973 = _open_at0(1, function() {
-      var ev_11_13975 = _evv_at(0);
-      return ev_11_13975.hnd._fun_fresh_tvar(ev_11_13975.marker, ev_11_13975);
+    }, _y_x10548.snd);
+    var val_type_0_0 = _open_none2(apply_subst, _y_x10548.fst, _x_x2_211_12405);
+    var x_95_14054 = _open_at0(1, function() {
+      var ev_11_14056 = _evv_at(0);
+      return ev_11_14056.hnd._fun_fresh_tvar(ev_11_14056.marker, ev_11_14056);
     });
     if (_yielding()) {
       return yield_extend(function(err_var_0) {
-        return _mlift_infer_12847(n_110, _y_x10545.fst, val_type_0_0, _y_x10545.snd, err_var_0);
+        return _mlift_infer_12916(n_110, _y_x10548.fst, val_type_0_0, _y_x10548.snd, err_var_0);
       });
     } else {
-      return _mlift_infer_12847(n_110, _y_x10545.fst, val_type_0_0, _y_x10545.snd, x_95_13973);
+      return _mlift_infer_12916(n_110, _y_x10548.fst, val_type_0_0, _y_x10548.snd, x_95_14054);
     }
   }
-  function _mlift_infer_12849(n_111, s1_23_0, val_type_1, value_2_sq_, ok_var) {
-    var _x_x1_361_12374 = _open_none1(function(node_133) {
+  function _mlift_infer_12918(n_111, s1_23_0, val_type_1, value_2_sq_, ok_var) {
+    var _x_x1_361_12414 = _open_none1(function(node_133) {
       return node_133.span;
     }, n_111);
     return Tuple2(s1_23_0, _open_none3(function(span_51, expr_51, typ_51) {
       var _x115 = typ_51 !== void 0 ? typ_51 : Nothing;
       return Node(span_51, expr_51, _x115);
-    }, _x_x1_361_12374, EErr(value_2_sq_), Just(TResult(ok_var, val_type_1))));
+    }, _x_x1_361_12414, EErr(value_2_sq_), Just(TResult(ok_var, val_type_1))));
   }
-  function _mlift_infer_12850(n_112, _y_x10549) {
-    var _x_x2_213_12372 = _open_none1(function(n_38_0) {
+  function _mlift_infer_12919(n_112, _y_x10552) {
+    var _x_x2_213_12412 = _open_none1(function(n_38_0) {
       return n_38_0.typ !== null ? n_38_0.typ.value : TUnit;
-    }, _y_x10549.snd);
-    var val_type_1_0 = _open_none2(apply_subst, _y_x10549.fst, _x_x2_213_12372);
-    var x_96_13977 = _open_at0(1, function() {
-      var ev_12_13979 = _evv_at(0);
-      return ev_12_13979.hnd._fun_fresh_tvar(ev_12_13979.marker, ev_12_13979);
+    }, _y_x10552.snd);
+    var val_type_1_0 = _open_none2(apply_subst, _y_x10552.fst, _x_x2_213_12412);
+    var x_96_14058 = _open_at0(1, function() {
+      var ev_12_14060 = _evv_at(0);
+      return ev_12_14060.hnd._fun_fresh_tvar(ev_12_14060.marker, ev_12_14060);
     });
     if (_yielding()) {
       return yield_extend(function(ok_var_0) {
-        return _mlift_infer_12849(n_112, _y_x10549.fst, val_type_1_0, _y_x10549.snd, ok_var_0);
+        return _mlift_infer_12918(n_112, _y_x10552.fst, val_type_1_0, _y_x10552.snd, ok_var_0);
       });
     } else {
-      return _mlift_infer_12849(n_112, _y_x10549.fst, val_type_1_0, _y_x10549.snd, x_96_13977);
+      return _mlift_infer_12918(n_112, _y_x10552.fst, val_type_1_0, _y_x10552.snd, x_96_14058);
     }
   }
-  function _mlift_infer_12851(n_113, s_123, _y_x10557) {
+  function _mlift_infer_12920(n_113, s_123, _y_x10560) {
     return Tuple2(s_123, _open_none4(function(_this_5, span_52, expr_52, typ_52) {
       if (span_52 !== void 0) {
         var _x116 = span_52;
@@ -22171,157 +22204,157 @@ var __hica = (() => {
         var _x118 = _this_5.typ;
       }
       return Node(_x116, _x117, _x118);
-    }, n_113, void 0, void 0, Just(_y_x10557)));
+    }, n_113, void 0, void 0, Just(_y_x10560)));
   }
-  function _mlift_infer_12852(n_114, s_124, wild___7) {
-    var x_97_13981 = _open_at0(1, function() {
-      var ev_13_13983 = _evv_at(0);
-      return ev_13_13983.hnd._fun_fresh_tvar(ev_13_13983.marker, ev_13_13983);
+  function _mlift_infer_12921(n_114, s_124, wild___7) {
+    var x_97_14062 = _open_at0(1, function() {
+      var ev_13_14064 = _evv_at(0);
+      return ev_13_14064.hnd._fun_fresh_tvar(ev_13_14064.marker, ev_13_14064);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10557_0) {
-        return _mlift_infer_12851(n_114, s_124, _y_x10557_0);
+      return yield_extend(function(_y_x10560_0) {
+        return _mlift_infer_12920(n_114, s_124, _y_x10560_0);
       });
     } else {
-      return _mlift_infer_12851(n_114, s_124, x_97_13981);
+      return _mlift_infer_12920(n_114, s_124, x_97_14062);
     }
   }
-  function _mlift_infer_12853(args_0_0_sq_, cname, n_115, td, s2_16_0) {
-    var _x_x1_373_12394 = _open_none1(function(node_137) {
+  function _mlift_infer_12922(args_0_0_sq_, cname, n_115, td, s2_16_0) {
+    var _x_x1_373_12434 = _open_none1(function(node_137) {
       return node_137.span;
     }, n_115);
-    var _x_x3_101_12396 = Just(TEnum(_open_none1(function(_this_9) {
+    var _x_x3_101_12436 = Just(TEnum(_open_none1(function(_this_9) {
       return _this_9.name;
     }, td)));
     return Tuple2(s2_16_0, _open_none3(function(span_53, expr_53, typ_53) {
       var _x119 = typ_53 !== void 0 ? typ_53 : Nothing;
       return Node(span_53, expr_53, _x119);
-    }, _x_x1_373_12394, EConstructor(cname, args_0_0_sq_), _x_x3_101_12396));
+    }, _x_x1_373_12434, EConstructor(cname, args_0_0_sq_), _x_x3_101_12436));
   }
-  function _mlift_infer_12854(cname_0, n_116, td_0, vd, _y_x10560) {
-    var x_98_13985 = unify_ctor_args(_y_x10560.fst, _open_none1(function(_this_8) {
+  function _mlift_infer_12923(cname_0, n_116, td_0, vd, _y_x10563) {
+    var x_98_14066 = unify_ctor_args(_y_x10563.fst, _open_none1(function(_this_8) {
       return _this_8.fields;
-    }, vd), _y_x10560.snd, _open_none1(function(node_136) {
+    }, vd), _y_x10563.snd, _open_none1(function(node_136) {
       return node_136.span;
     }, n_116));
     if (_yielding()) {
       return yield_extend(function(s2_16_0_0) {
-        return _mlift_infer_12853(_y_x10560.snd, cname_0, n_116, td_0, s2_16_0_0);
+        return _mlift_infer_12922(_y_x10563.snd, cname_0, n_116, td_0, s2_16_0_0);
       });
     } else {
-      return _mlift_infer_12853(_y_x10560.snd, cname_0, n_116, td_0, x_98_13985);
+      return _mlift_infer_12922(_y_x10563.snd, cname_0, n_116, td_0, x_98_14066);
     }
   }
-  function _mlift_infer_12855(args_0, cname_1, env_36, n_117, s_125, td_1, vd_0, _c_x10559) {
-    var x_99_13987 = infer_args(env_36, s_125, args_0);
+  function _mlift_infer_12924(args_0, cname_1, env_36, n_117, s_125, td_1, vd_0, _c_x10562) {
+    var x_99_14068 = infer_args(env_36, s_125, args_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10560_0) {
-        return _mlift_infer_12854(cname_1, n_117, td_1, vd_0, _y_x10560_0);
+      return yield_extend(function(_y_x10563_0) {
+        return _mlift_infer_12923(cname_1, n_117, td_1, vd_0, _y_x10563_0);
       });
     } else {
-      return _mlift_infer_12854(cname_1, n_117, td_1, vd_0, x_99_13987);
+      return _mlift_infer_12923(cname_1, n_117, td_1, vd_0, x_99_14068);
     }
   }
-  function _mlift_infer_12856(args_0_0, cname_2, env_37, n_118, s_126, reg) {
+  function _mlift_infer_12925(args_0_0, cname_2, env_37, n_118, s_126, reg) {
     var _x120 = _open_none2(type_find_by_ctor, reg, cname_2);
     if (_x120 === null) {
-      var _x_x1_364_12380 = _open_none1(function(node_134) {
+      var _x_x1_364_12420 = _open_none1(function(node_134) {
         return node_134.span;
       }, n_118);
-      var _x_x2_216_12381 = _lp__plus__plus__rp_("unknown constructor: ", cname_2);
-      var x_100_13989 = _open_at2(0, emit_error, _x_x1_364_12380, _x_x2_216_12381);
+      var _x_x2_216_12421 = _lp__plus__plus__rp_("unknown constructor: ", cname_2);
+      var x_100_14070 = _open_at2(0, emit_error, _x_x1_364_12420, _x_x2_216_12421);
       if (_yielding()) {
         return yield_extend(function(wild___7_0) {
-          return _mlift_infer_12852(n_118, s_126, wild___7_0);
+          return _mlift_infer_12921(n_118, s_126, wild___7_0);
         });
       } else {
-        return _mlift_infer_12852(n_118, s_126, x_100_13989);
+        return _mlift_infer_12921(n_118, s_126, x_100_14070);
       }
     } else {
-      var xs_9_11274 = _open_none1(function(_this_6) {
+      var xs_9_11292 = _open_none1(function(_this_6) {
         return _this_6.fields;
       }, _x120.value.snd);
-      var _x121 = _int_ne(_lift_length_6003(args_0_0, 0), _lift_length_6003(xs_9_11274, 0));
+      var _x121 = _int_ne(_lift_length_6003(args_0_0, 0), _lift_length_6003(xs_9_11292, 0));
       if (_x121) {
-        var _x_x1_368_12388 = _open_none1(function(node_135) {
+        var _x_x1_368_12428 = _open_none1(function(node_135) {
           return node_135.span;
         }, n_118);
-        var xs_10_11278 = _open_none1(function(_this_7) {
+        var xs_10_11296 = _open_none1(function(_this_7) {
           return _this_7.fields;
         }, _x120.value.snd);
-        var _x_x2_218_12389 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(cname_2, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_10_11278, 0)), _lp__plus__plus__rp_(" argument(s), got ", show(_lift_length_6003(args_0_0, 0)))))));
-        var x_101_13991 = _open_at2(0, emit_error, _x_x1_368_12388, _x_x2_218_12389);
+        var _x_x2_218_12429 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(cname_2, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_10_11296, 0)), _lp__plus__plus__rp_(" argument(s), got ", show(_lift_length_6003(args_0_0, 0)))))));
+        var x_101_14072 = _open_at2(0, emit_error, _x_x1_368_12428, _x_x2_218_12429);
       } else {
-        var x_101_13991 = Unit;
+        var x_101_14072 = Unit;
       }
       if (_yielding()) {
-        return yield_extend(function(_c_x10559_0) {
-          return _mlift_infer_12855(args_0_0, cname_2, env_37, n_118, s_126, _x120.value.fst, _x120.value.snd, _c_x10559_0);
+        return yield_extend(function(_c_x10562_0) {
+          return _mlift_infer_12924(args_0_0, cname_2, env_37, n_118, s_126, _x120.value.fst, _x120.value.snd, _c_x10562_0);
         });
       } else {
-        return _mlift_infer_12855(args_0_0, cname_2, env_37, n_118, s_126, _x120.value.fst, _x120.value.snd, x_101_13991);
+        return _mlift_infer_12924(args_0_0, cname_2, env_37, n_118, s_126, _x120.value.fst, _x120.value.snd, x_101_14072);
       }
     }
   }
-  function _mlift_infer_12857(inner_sq_, n_119, s1_25_0, _y_x10567) {
-    var _x_x1_385_12414 = _open_none1(function(node_142) {
+  function _mlift_infer_12926(inner_sq_, n_119, s1_25_0, _y_x10570) {
+    var _x_x1_385_12454 = _open_none1(function(node_142) {
       return node_142.span;
     }, n_119);
     return Tuple2(s1_25_0, _open_none3(function(span_56, expr_56, typ_56) {
       var _x121 = typ_56 !== void 0 ? typ_56 : Nothing;
       return Node(span_56, expr_56, _x121);
-    }, _x_x1_385_12414, ETry(inner_sq_), Just(_y_x10567)));
+    }, _x_x1_385_12454, ETry(inner_sq_), Just(_y_x10570)));
   }
-  function _mlift_infer_12858(inner_0_sq_, n_120, s1_25_0_0, wild___9) {
-    var x_102_13993 = _open_at0(1, function() {
-      var ev_14_13995 = _evv_at(0);
-      return ev_14_13995.hnd._fun_fresh_tvar(ev_14_13995.marker, ev_14_13995);
+  function _mlift_infer_12927(inner_0_sq_, n_120, s1_25_0_0, wild___9) {
+    var x_102_14074 = _open_at0(1, function() {
+      var ev_14_14076 = _evv_at(0);
+      return ev_14_14076.hnd._fun_fresh_tvar(ev_14_14076.marker, ev_14_14076);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10567_0) {
-        return _mlift_infer_12857(inner_0_sq_, n_120, s1_25_0_0, _y_x10567_0);
+      return yield_extend(function(_y_x10570_0) {
+        return _mlift_infer_12926(inner_0_sq_, n_120, s1_25_0_0, _y_x10570_0);
       });
     } else {
-      return _mlift_infer_12857(inner_0_sq_, n_120, s1_25_0_0, x_102_13993);
+      return _mlift_infer_12926(inner_0_sq_, n_120, s1_25_0_0, x_102_14074);
     }
   }
-  function _mlift_infer_12859(n_121, _y_x10564) {
-    var _x_x2_220_12400 = _open_none1(function(n_39_0) {
+  function _mlift_infer_12928(n_121, _y_x10567) {
+    var _x_x2_220_12440 = _open_none1(function(n_39_0) {
       return n_39_0.typ !== null ? n_39_0.typ.value : TUnit;
-    }, _y_x10564.snd);
-    var inner_type = _open_none2(apply_subst, _y_x10564.fst, _x_x2_220_12400);
+    }, _y_x10567.snd);
+    var inner_type = _open_none2(apply_subst, _y_x10567.fst, _x_x2_220_12440);
     if (inner_type._tag === 9) {
-      var _x_x1_378_12402 = _open_none1(function(node_139) {
+      var _x_x1_378_12442 = _open_none1(function(node_139) {
         return node_139.span;
       }, n_121);
-      return Tuple2(_y_x10564.fst, _open_none3(function(span_54, expr_54, typ_54) {
+      return Tuple2(_y_x10567.fst, _open_none3(function(span_54, expr_54, typ_54) {
         var _x122 = typ_54 !== void 0 ? typ_54 : Nothing;
         return Node(span_54, expr_54, _x122);
-      }, _x_x1_378_12402, ETry(_y_x10564.snd), Just(inner_type.elem)));
+      }, _x_x1_378_12442, ETry(_y_x10567.snd), Just(inner_type.elem)));
     } else if (inner_type._tag === 10) {
-      var _x_x1_380_12406 = _open_none1(function(node_140) {
+      var _x_x1_380_12446 = _open_none1(function(node_140) {
         return node_140.span;
       }, n_121);
-      return Tuple2(_y_x10564.fst, _open_none3(function(span_55, expr_55, typ_55) {
+      return Tuple2(_y_x10567.fst, _open_none3(function(span_55, expr_55, typ_55) {
         var _x123 = typ_55 !== void 0 ? typ_55 : Nothing;
         return Node(span_55, expr_55, _x123);
-      }, _x_x1_380_12406, ETry(_y_x10564.snd), Just(inner_type.ok_type)));
+      }, _x_x1_380_12446, ETry(_y_x10567.snd), Just(inner_type.ok_type)));
     } else {
-      var _x_x1_382_12410 = _open_none1(function(node_141) {
+      var _x_x1_382_12450 = _open_none1(function(node_141) {
         return node_141.span;
       }, n_121);
-      var _x_x2_223_12411 = _lp__plus__plus__rp_("? operator requires maybe or result type, got ", _open_none1(hica_type_fs_show, inner_type));
-      var x_103_13997 = _open_at2(0, emit_error, _x_x1_382_12410, _x_x2_223_12411);
+      var _x_x2_223_12451 = _lp__plus__plus__rp_("? operator requires maybe or result type, got ", _open_none1(hica_type_fs_show, inner_type));
+      var x_103_14078 = _open_at2(0, emit_error, _x_x1_382_12450, _x_x2_223_12451);
       if (_yielding()) {
         return yield_extend(function(wild___9_0) {
-          return _mlift_infer_12858(_y_x10564.snd, n_121, _y_x10564.fst, wild___9_0);
+          return _mlift_infer_12927(_y_x10567.snd, n_121, _y_x10567.fst, wild___9_0);
         });
       } else {
-        return _mlift_infer_12858(_y_x10564.snd, n_121, _y_x10564.fst, x_103_13997);
+        return _mlift_infer_12927(_y_x10567.snd, n_121, _y_x10567.fst, x_103_14078);
       }
     }
   }
-  function _mlift_infer_12860(n_122, s_127, _y_x10574) {
+  function _mlift_infer_12929(n_122, s_127, _y_x10577) {
     return Tuple2(s_127, _open_none4(function(_this_10, span_57, expr_57, typ_57) {
       if (span_57 !== void 0) {
         var _x124 = span_57;
@@ -22339,157 +22372,157 @@ var __hica = (() => {
         var _x126 = _this_10.typ;
       }
       return Node(_x124, _x125, _x126);
-    }, n_122, void 0, void 0, Just(_y_x10574)));
+    }, n_122, void 0, void 0, Just(_y_x10577)));
   }
-  function _mlift_infer_12861(n_123, s_128, wild___10) {
-    var x_104_13999 = _open_at0(1, function() {
-      var ev_15_14001 = _evv_at(0);
-      return ev_15_14001.hnd._fun_fresh_tvar(ev_15_14001.marker, ev_15_14001);
+  function _mlift_infer_12930(n_123, s_128, wild___10) {
+    var x_104_14080 = _open_at0(1, function() {
+      var ev_15_14082 = _evv_at(0);
+      return ev_15_14082.hnd._fun_fresh_tvar(ev_15_14082.marker, ev_15_14082);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10574_0) {
-        return _mlift_infer_12860(n_123, s_128, _y_x10574_0);
+      return yield_extend(function(_y_x10577_0) {
+        return _mlift_infer_12929(n_123, s_128, _y_x10577_0);
       });
     } else {
-      return _mlift_infer_12860(n_123, s_128, x_104_13999);
+      return _mlift_infer_12929(n_123, s_128, x_104_14080);
     }
   }
-  function _mlift_infer_12862(n_124, sname, _y_x10585) {
-    var _x_x1_400_12438 = _open_none1(function(node_147) {
+  function _mlift_infer_12931(n_124, sname, _y_x10588) {
+    var _x_x1_400_12478 = _open_none1(function(node_147) {
       return node_147.span;
     }, n_124);
-    return Tuple2(_y_x10585.fst, _open_none3(function(span_58, expr_58, typ_58) {
+    return Tuple2(_y_x10588.fst, _open_none3(function(span_58, expr_58, typ_58) {
       var _x127 = typ_58 !== void 0 ? typ_58 : Nothing;
       return Node(span_58, expr_58, _x127);
-    }, _x_x1_400_12438, StructLit(sname, _y_x10585.snd), Just(TStruct(sname))));
+    }, _x_x1_400_12478, StructLit(sname, _y_x10588.snd), Just(TStruct(sname))));
   }
-  function _mlift_infer_12863(ln_0, n_125, sname_0, _y_x10581) {
+  function _mlift_infer_12932(ln_0, n_125, sname_0, _y_x10584) {
     var _x128 = _open_none1(function(b_2) {
       return b_2 ? false : true;
-    }, _y_x10581);
+    }, _y_x10584);
     if (_x128) {
-      var _x_x1_396_12433 = _open_none1(function(node_145) {
+      var _x_x1_396_12473 = _open_none1(function(node_145) {
         return node_145.span;
       }, n_125);
-      var _x_x2_229_12434 = _lp__plus__plus__rp_("unknown field '", _lp__plus__plus__rp_(ln_0, _lp__plus__plus__rp_("' in ", sname_0)));
-      return _open_at2(0, emit_error, _x_x1_396_12433, _x_x2_229_12434);
+      var _x_x2_229_12474 = _lp__plus__plus__rp_("unknown field '", _lp__plus__plus__rp_(ln_0, _lp__plus__plus__rp_("' in ", sname_0)));
+      return _open_at2(0, emit_error, _x_x1_396_12473, _x_x2_229_12474);
     } else {
       return Unit;
     }
   }
-  function _mlift_infer_12864(env_38, lit_fields, n_126, s_129, sd, sname_1, wild___12) {
-    var x_105_14003 = infer_struct_fields(env_38, s_129, _open_none1(function(_this_12) {
+  function _mlift_infer_12933(env_38, lit_fields, n_126, s_129, sd, sname_1, wild___12) {
+    var x_105_14084 = infer_struct_fields(env_38, s_129, _open_none1(function(_this_12) {
       return _this_12.fields;
     }, sd), lit_fields, _open_none1(function(node_146) {
       return node_146.span;
     }, n_126));
     if (_yielding()) {
-      return yield_extend(function(_y_x10585_0) {
-        return _mlift_infer_12862(n_126, sname_1, _y_x10585_0);
+      return yield_extend(function(_y_x10588_0) {
+        return _mlift_infer_12931(n_126, sname_1, _y_x10588_0);
       });
     } else {
-      return _mlift_infer_12862(n_126, sname_1, x_105_14003);
+      return _mlift_infer_12931(n_126, sname_1, x_105_14084);
     }
   }
-  function _mlift_infer_12865(dn, n_127, sname_2, _y_x10577) {
+  function _mlift_infer_12934(dn, n_127, sname_2, _y_x10580) {
     var _x129 = _open_none1(function(b_1) {
       return b_1 ? false : true;
-    }, _y_x10577);
+    }, _y_x10580);
     if (_x129) {
-      var _x_x1_393_12429 = _open_none1(function(node_144) {
+      var _x_x1_393_12469 = _open_none1(function(node_144) {
         return node_144.span;
       }, n_127);
-      var _x_x2_228_12430 = _lp__plus__plus__rp_("missing field '", _lp__plus__plus__rp_(dn, _lp__plus__plus__rp_("' in ", _lp__plus__plus__rp_(sname_2, " literal"))));
-      return _open_at2(0, emit_error, _x_x1_393_12429, _x_x2_228_12430);
+      var _x_x2_228_12470 = _lp__plus__plus__rp_("missing field '", _lp__plus__plus__rp_(dn, _lp__plus__plus__rp_("' in ", _lp__plus__plus__rp_(sname_2, " literal"))));
+      return _open_at2(0, emit_error, _x_x1_393_12469, _x_x2_228_12470);
     } else {
       return Unit;
     }
   }
-  function _mlift_infer_12866(def_names, env_39, lit_fields_0, lit_names, n_128, s_130, sd_0, sname_3, wild___11) {
-    var x_106_14005 = foreach(lit_names, function(ln_0_0) {
-      var x_107_14007 = any(def_names, function(dn_0) {
+  function _mlift_infer_12935(def_names, env_39, lit_fields_0, lit_names, n_128, s_130, sd_0, sname_3, wild___11) {
+    var x_106_14086 = foreach(lit_names, function(ln_0_0) {
+      var x_107_14088 = any(def_names, function(dn_0) {
         return dn_0 === ln_0_0;
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10581_0) {
-          return _mlift_infer_12863(ln_0_0, n_128, sname_3, _y_x10581_0);
+        return yield_extend(function(_y_x10584_0) {
+          return _mlift_infer_12932(ln_0_0, n_128, sname_3, _y_x10584_0);
         });
       } else {
-        return _mlift_infer_12863(ln_0_0, n_128, sname_3, x_107_14007);
+        return _mlift_infer_12932(ln_0_0, n_128, sname_3, x_107_14088);
       }
     });
     if (_yielding()) {
       return yield_extend(function(wild___12_0) {
-        return _mlift_infer_12864(env_39, lit_fields_0, n_128, s_130, sd_0, sname_3, wild___12_0);
+        return _mlift_infer_12933(env_39, lit_fields_0, n_128, s_130, sd_0, sname_3, wild___12_0);
       });
     } else {
-      return _mlift_infer_12864(env_39, lit_fields_0, n_128, s_130, sd_0, sname_3, x_106_14005);
+      return _mlift_infer_12933(env_39, lit_fields_0, n_128, s_130, sd_0, sname_3, x_106_14086);
     }
   }
-  function _mlift_infer_12867(def_names_0, env_40, lit_fields_1, n_129, s_131, sd_1, sname_4, lit_names_0) {
-    var x_108_14009 = foreach(def_names_0, function(dn_1) {
-      var x_109_14011 = any(lit_names_0, function(ln) {
+  function _mlift_infer_12936(def_names_0, env_40, lit_fields_1, n_129, s_131, sd_1, sname_4, lit_names_0) {
+    var x_108_14090 = foreach(def_names_0, function(dn_1) {
+      var x_109_14092 = any(lit_names_0, function(ln) {
         return ln === dn_1;
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10577_0) {
-          return _mlift_infer_12865(dn_1, n_129, sname_4, _y_x10577_0);
+        return yield_extend(function(_y_x10580_0) {
+          return _mlift_infer_12934(dn_1, n_129, sname_4, _y_x10580_0);
         });
       } else {
-        return _mlift_infer_12865(dn_1, n_129, sname_4, x_109_14011);
+        return _mlift_infer_12934(dn_1, n_129, sname_4, x_109_14092);
       }
     });
     if (_yielding()) {
       return yield_extend(function(wild___11_0) {
-        return _mlift_infer_12866(def_names_0, env_40, lit_fields_1, lit_names_0, n_129, s_131, sd_1, sname_4, wild___11_0);
+        return _mlift_infer_12935(def_names_0, env_40, lit_fields_1, lit_names_0, n_129, s_131, sd_1, sname_4, wild___11_0);
       });
     } else {
-      return _mlift_infer_12866(def_names_0, env_40, lit_fields_1, lit_names_0, n_129, s_131, sd_1, sname_4, x_108_14009);
+      return _mlift_infer_12935(def_names_0, env_40, lit_fields_1, lit_names_0, n_129, s_131, sd_1, sname_4, x_108_14090);
     }
   }
-  function _mlift_infer_12868(env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, def_names_1) {
-    var x_110_14013 = map(lit_fields_2, function(_pat_x717__45) {
-      return _pat_x717__45.fst;
+  function _mlift_infer_12937(env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, def_names_1) {
+    var x_110_14094 = map(lit_fields_2, function(_pat_x733__45) {
+      return _pat_x733__45.fst;
     });
     if (_yielding()) {
       return yield_extend(function(lit_names_1) {
-        return _mlift_infer_12867(def_names_1, env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, lit_names_1);
+        return _mlift_infer_12936(def_names_1, env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, lit_names_1);
       });
     } else {
-      return _mlift_infer_12867(def_names_1, env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, x_110_14013);
+      return _mlift_infer_12936(def_names_1, env_41, lit_fields_2, n_130, s_132, sd_2, sname_5, x_110_14094);
     }
   }
-  function _mlift_infer_12869(env_42, lit_fields_3, n_131, s_133, sname_6, reg_0) {
+  function _mlift_infer_12938(env_42, lit_fields_3, n_131, s_133, sname_6, reg_0) {
     var _x130 = _open_none2(struct_find, reg_0, sname_6);
     if (_x130 === null) {
-      var _x_x1_388_12420 = _open_none1(function(node_143) {
+      var _x_x1_388_12460 = _open_none1(function(node_143) {
         return node_143.span;
       }, n_131);
-      var _x_x2_226_12421 = _lp__plus__plus__rp_("unknown struct: ", sname_6);
-      var x_111_14015 = _open_at2(0, emit_error, _x_x1_388_12420, _x_x2_226_12421);
+      var _x_x2_226_12461 = _lp__plus__plus__rp_("unknown struct: ", sname_6);
+      var x_111_14096 = _open_at2(0, emit_error, _x_x1_388_12460, _x_x2_226_12461);
       if (_yielding()) {
         return yield_extend(function(wild___10_0) {
-          return _mlift_infer_12861(n_131, s_133, wild___10_0);
+          return _mlift_infer_12930(n_131, s_133, wild___10_0);
         });
       } else {
-        return _mlift_infer_12861(n_131, s_133, x_111_14015);
+        return _mlift_infer_12930(n_131, s_133, x_111_14096);
       }
     } else {
-      var x_112_14017 = map(_open_none1(function(_this_11) {
+      var x_112_14098 = map(_open_none1(function(_this_11) {
         return _this_11.fields;
-      }, _x130.value), function(_pat_x716__44) {
-        return _pat_x716__44.fst;
+      }, _x130.value), function(_pat_x732__44) {
+        return _pat_x732__44.fst;
       });
       if (_yielding()) {
         return yield_extend(function(def_names_2) {
-          return _mlift_infer_12868(env_42, lit_fields_3, n_131, s_133, _x130.value, sname_6, def_names_2);
+          return _mlift_infer_12937(env_42, lit_fields_3, n_131, s_133, _x130.value, sname_6, def_names_2);
         });
       } else {
-        return _mlift_infer_12868(env_42, lit_fields_3, n_131, s_133, _x130.value, sname_6, x_112_14017);
+        return _mlift_infer_12937(env_42, lit_fields_3, n_131, s_133, _x130.value, sname_6, x_112_14098);
       }
     }
   }
-  function _mlift_infer_12870(n_132, s_134, _y_x10592) {
+  function _mlift_infer_12939(n_132, s_134, _y_x10595) {
     return Tuple2(s_134, _open_none4(function(_this_13, span_59, expr_59, typ_59) {
       if (span_59 !== void 0) {
         var _x131 = span_59;
@@ -22507,616 +22540,616 @@ var __hica = (() => {
         var _x133 = _this_13.typ;
       }
       return Node(_x131, _x132, _x133);
-    }, n_132, void 0, void 0, Just(_y_x10592)));
+    }, n_132, void 0, void 0, Just(_y_x10595)));
   }
-  function _mlift_infer_12871(n_133, s_135, wild___13) {
-    var x_113_14019 = _open_at0(1, function() {
-      var ev_16_14021 = _evv_at(0);
-      return ev_16_14021.hnd._fun_fresh_tvar(ev_16_14021.marker, ev_16_14021);
+  function _mlift_infer_12940(n_133, s_135, wild___13) {
+    var x_113_14100 = _open_at0(1, function() {
+      var ev_16_14102 = _evv_at(0);
+      return ev_16_14102.hnd._fun_fresh_tvar(ev_16_14102.marker, ev_16_14102);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10592_0) {
-        return _mlift_infer_12870(n_133, s_135, _y_x10592_0);
+      return yield_extend(function(_y_x10595_0) {
+        return _mlift_infer_12939(n_133, s_135, _y_x10595_0);
       });
     } else {
-      return _mlift_infer_12870(n_133, s_135, x_113_14019);
+      return _mlift_infer_12939(n_133, s_135, x_113_14100);
     }
   }
-  function _mlift_infer_12872(base_sq_, def_names_0_0, n_134, sname_0_0, _y_x10601) {
-    var _x_x1_417_12467 = _open_none1(function(node_153) {
+  function _mlift_infer_12941(base_sq_, def_names_0_0, n_134, sname_0_0, _y_x10604) {
+    var _x_x1_417_12507 = _open_none1(function(node_153) {
       return node_153.span;
     }, n_134);
-    return Tuple2(_y_x10601.fst, _open_none3(function(span_60, expr_60, typ_60) {
+    return Tuple2(_y_x10604.fst, _open_none3(function(span_60, expr_60, typ_60) {
       var _x134 = typ_60 !== void 0 ? typ_60 : Nothing;
       return Node(span_60, expr_60, _x134);
-    }, _x_x1_417_12467, StructUpdate(sname_0_0, base_sq_, _y_x10601.snd, def_names_0_0), Just(TStruct(sname_0_0))));
+    }, _x_x1_417_12507, StructUpdate(sname_0_0, base_sq_, _y_x10604.snd, def_names_0_0), Just(TStruct(sname_0_0))));
   }
-  function _mlift_infer_12873(ln_1, n_135, sname_0_1, _y_x10597) {
+  function _mlift_infer_12942(ln_1, n_135, sname_0_1, _y_x10600) {
     var _x135 = _open_none1(function(b_3) {
       return b_3 ? false : true;
-    }, _y_x10597);
+    }, _y_x10600);
     if (_x135) {
-      var _x_x1_413_12462 = _open_none1(function(node_151) {
+      var _x_x1_413_12502 = _open_none1(function(node_151) {
         return node_151.span;
       }, n_135);
-      var _x_x2_237_12463 = _lp__plus__plus__rp_("unknown field '", _lp__plus__plus__rp_(ln_1, _lp__plus__plus__rp_("' in ", sname_0_1)));
-      return _open_at2(0, emit_error, _x_x1_413_12462, _x_x2_237_12463);
+      var _x_x2_237_12503 = _lp__plus__plus__rp_("unknown field '", _lp__plus__plus__rp_(ln_1, _lp__plus__plus__rp_("' in ", sname_0_1)));
+      return _open_at2(0, emit_error, _x_x1_413_12502, _x_x2_237_12503);
     } else {
       return Unit;
     }
   }
-  function _mlift_infer_12874(base_0_sq_, def_names_0_1, env_43, lit_fields_0_0, n_136, s2_17_0, sd_0_0, sname_0_2, wild___14) {
-    var x_114_14023 = infer_struct_fields(env_43, s2_17_0, _open_none1(function(_this_15) {
+  function _mlift_infer_12943(base_0_sq_, def_names_0_1, env_43, lit_fields_0_0, n_136, s2_17_0, sd_0_0, sname_0_2, wild___14) {
+    var x_114_14104 = infer_struct_fields(env_43, s2_17_0, _open_none1(function(_this_15) {
       return _this_15.fields;
     }, sd_0_0), lit_fields_0_0, _open_none1(function(node_152) {
       return node_152.span;
     }, n_136));
     if (_yielding()) {
-      return yield_extend(function(_y_x10601_0) {
-        return _mlift_infer_12872(base_0_sq_, def_names_0_1, n_136, sname_0_2, _y_x10601_0);
+      return yield_extend(function(_y_x10604_0) {
+        return _mlift_infer_12941(base_0_sq_, def_names_0_1, n_136, sname_0_2, _y_x10604_0);
       });
     } else {
-      return _mlift_infer_12872(base_0_sq_, def_names_0_1, n_136, sname_0_2, x_114_14023);
+      return _mlift_infer_12941(base_0_sq_, def_names_0_1, n_136, sname_0_2, x_114_14104);
     }
   }
-  function _mlift_infer_12875(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, lit_names_0_0) {
-    var x_115_14025 = foreach(lit_names_0_0, function(ln_1_0) {
-      var x_116_14027 = any(def_names_0_2, function(dn_1_0) {
+  function _mlift_infer_12944(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, lit_names_0_0) {
+    var x_115_14106 = foreach(lit_names_0_0, function(ln_1_0) {
+      var x_116_14108 = any(def_names_0_2, function(dn_1_0) {
         return dn_1_0 === ln_1_0;
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10597_0) {
-          return _mlift_infer_12873(ln_1_0, n_137, sname_0_3, _y_x10597_0);
+        return yield_extend(function(_y_x10600_0) {
+          return _mlift_infer_12942(ln_1_0, n_137, sname_0_3, _y_x10600_0);
         });
       } else {
-        return _mlift_infer_12873(ln_1_0, n_137, sname_0_3, x_116_14027);
+        return _mlift_infer_12942(ln_1_0, n_137, sname_0_3, x_116_14108);
       }
     });
     if (_yielding()) {
       return yield_extend(function(wild___14_0) {
-        return _mlift_infer_12874(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, wild___14_0);
+        return _mlift_infer_12943(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, wild___14_0);
       });
     } else {
-      return _mlift_infer_12874(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, x_115_14025);
+      return _mlift_infer_12943(base_1_sq_, def_names_0_2, env_44, lit_fields_0_1, n_137, s2_17_0_0, sd_0_1, sname_0_3, x_115_14106);
     }
   }
-  function _mlift_infer_12876(base_2_sq_, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, def_names_0_3) {
-    var x_117_14029 = map(lit_fields_0_2, function(_pat_x745__45) {
-      return _pat_x745__45.fst;
+  function _mlift_infer_12945(base_2_sq_, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, def_names_0_3) {
+    var x_117_14110 = map(lit_fields_0_2, function(_pat_x761__45) {
+      return _pat_x761__45.fst;
     });
     if (_yielding()) {
       return yield_extend(function(lit_names_0_1) {
-        return _mlift_infer_12875(base_2_sq_, def_names_0_3, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, lit_names_0_1);
+        return _mlift_infer_12944(base_2_sq_, def_names_0_3, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, lit_names_0_1);
       });
     } else {
-      return _mlift_infer_12875(base_2_sq_, def_names_0_3, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, x_117_14029);
+      return _mlift_infer_12944(base_2_sq_, def_names_0_3, env_45, lit_fields_0_2, n_138, s2_17_0_1, sd_0_2, sname_0_4, x_117_14110);
     }
   }
-  function _mlift_infer_12877(base_3_sq_, env_46, lit_fields_0_3, n_139, s1_27_0, sd_0_3, sname_0_5, _y_x10594) {
+  function _mlift_infer_12946(base_3_sq_, env_46, lit_fields_0_3, n_139, s1_27_0, sd_0_3, sname_0_5, _y_x10597) {
     var s2_17_0_2 = _open_none2(function(s1_38, s2_37) {
       var updated_s2_36 = _trmc_map_subst(s2_37, function(k_38, v_37) {
         return Tuple2(k_38, _trmc_apply_subst(s1_38, v_37, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_36 = _trmc_filter_subst(updated_s2_36, function(k_0_36, ___wildcard_x120__39_36) {
+      var ys_10006_36 = _trmc_filter_subst(updated_s2_36, function(k_0_36, ___wildcard_x136__39_36) {
         var b_10007_36 = subst_has(s1_38, k_0_36);
         return b_10007_36 ? false : true;
       }, _cctx_empty());
       return append(s1_38, ys_10006_36);
-    }, _y_x10594, s1_27_0);
-    var x_118_14037 = map(_open_none1(function(_this_14) {
+    }, _y_x10597, s1_27_0);
+    var x_118_14118 = map(_open_none1(function(_this_14) {
       return _this_14.fields;
-    }, sd_0_3), function(_pat_x744__44) {
-      return _pat_x744__44.fst;
+    }, sd_0_3), function(_pat_x760__44) {
+      return _pat_x760__44.fst;
     });
     if (_yielding()) {
       return yield_extend(function(def_names_0_4) {
-        return _mlift_infer_12876(base_3_sq_, env_46, lit_fields_0_3, n_139, s2_17_0_2, sd_0_3, sname_0_5, def_names_0_4);
+        return _mlift_infer_12945(base_3_sq_, env_46, lit_fields_0_3, n_139, s2_17_0_2, sd_0_3, sname_0_5, def_names_0_4);
       });
     } else {
-      return _mlift_infer_12876(base_3_sq_, env_46, lit_fields_0_3, n_139, s2_17_0_2, sd_0_3, sname_0_5, x_118_14037);
+      return _mlift_infer_12945(base_3_sq_, env_46, lit_fields_0_3, n_139, s2_17_0_2, sd_0_3, sname_0_5, x_118_14118);
     }
   }
-  function _mlift_infer_12878(env_47, lit_fields_0_4, n_140, sd_0_4, sname_0_6, _y_x10593) {
-    var _x_x2_234_12452 = _open_none1(function(n_40_0) {
+  function _mlift_infer_12947(env_47, lit_fields_0_4, n_140, sd_0_4, sname_0_6, _y_x10596) {
+    var _x_x2_234_12492 = _open_none1(function(n_40_0) {
       return n_40_0.typ !== null ? n_40_0.typ.value : TUnit;
-    }, _y_x10593.snd);
-    var base_type = _open_none2(apply_subst, _y_x10593.fst, _x_x2_234_12452);
-    var _x_x3_108_12456 = _open_none1(function(node_150) {
+    }, _y_x10596.snd);
+    var base_type = _open_none2(apply_subst, _y_x10596.fst, _x_x2_234_12492);
+    var _x_x3_108_12496 = _open_none1(function(node_150) {
       return node_150.span;
     }, n_140);
-    var x_119_14039 = _open_at3(0, unify, base_type, TStruct(sname_0_6), _x_x3_108_12456);
+    var x_119_14120 = _open_at3(0, unify, base_type, TStruct(sname_0_6), _x_x3_108_12496);
     if (_yielding()) {
-      return yield_extend(function(_y_x10594_0) {
-        return _mlift_infer_12877(_y_x10593.snd, env_47, lit_fields_0_4, n_140, _y_x10593.fst, sd_0_4, sname_0_6, _y_x10594_0);
+      return yield_extend(function(_y_x10597_0) {
+        return _mlift_infer_12946(_y_x10596.snd, env_47, lit_fields_0_4, n_140, _y_x10596.fst, sd_0_4, sname_0_6, _y_x10597_0);
       });
     } else {
-      return _mlift_infer_12877(_y_x10593.snd, env_47, lit_fields_0_4, n_140, _y_x10593.fst, sd_0_4, sname_0_6, x_119_14039);
+      return _mlift_infer_12946(_y_x10596.snd, env_47, lit_fields_0_4, n_140, _y_x10596.fst, sd_0_4, sname_0_6, x_119_14120);
     }
   }
-  function _mlift_infer_12879(base, env_48, lit_fields_0_5, n_141, s_139, sname_0_7, reg_1) {
+  function _mlift_infer_12948(base, env_48, lit_fields_0_5, n_141, s_139, sname_0_7, reg_1) {
     var _x136 = _open_none2(struct_find, reg_1, sname_0_7);
     if (_x136 === null) {
-      var _x_x1_403_12444 = _open_none1(function(node_148) {
+      var _x_x1_403_12484 = _open_none1(function(node_148) {
         return node_148.span;
       }, n_141);
-      var _x_x2_232_12445 = _lp__plus__plus__rp_("unknown struct: ", sname_0_7);
-      var x_120_14041 = _open_at2(0, emit_error, _x_x1_403_12444, _x_x2_232_12445);
+      var _x_x2_232_12485 = _lp__plus__plus__rp_("unknown struct: ", sname_0_7);
+      var x_120_14122 = _open_at2(0, emit_error, _x_x1_403_12484, _x_x2_232_12485);
       if (_yielding()) {
         return yield_extend(function(wild___13_0) {
-          return _mlift_infer_12871(n_141, s_139, wild___13_0);
+          return _mlift_infer_12940(n_141, s_139, wild___13_0);
         });
       } else {
-        return _mlift_infer_12871(n_141, s_139, x_120_14041);
+        return _mlift_infer_12940(n_141, s_139, x_120_14122);
       }
     } else {
-      var x_121_14043 = infer(env_48, s_139, base);
+      var x_121_14124 = infer(env_48, s_139, base);
       if (_yielding()) {
-        return yield_extend(function(_y_x10593_0) {
-          return _mlift_infer_12878(env_48, lit_fields_0_5, n_141, _x136.value, sname_0_7, _y_x10593_0);
+        return yield_extend(function(_y_x10596_0) {
+          return _mlift_infer_12947(env_48, lit_fields_0_5, n_141, _x136.value, sname_0_7, _y_x10596_0);
         });
       } else {
-        return _mlift_infer_12878(env_48, lit_fields_0_5, n_141, _x136.value, sname_0_7, x_121_14043);
+        return _mlift_infer_12947(env_48, lit_fields_0_5, n_141, _x136.value, sname_0_7, x_121_14124);
       }
     }
   }
-  function _mlift_infer_12880(fname, n_142, obj_sq_, s1_28_0, _y_x10612) {
-    var _x_x1_427_12484 = _open_none1(function(node_157) {
+  function _mlift_infer_12949(fname, n_142, obj_sq_, s1_28_0, _y_x10615) {
+    var _x_x1_427_12524 = _open_none1(function(node_157) {
       return node_157.span;
     }, n_142);
     return Tuple2(s1_28_0, _open_none3(function(span_62, expr_62, typ_62) {
       var _x137 = typ_62 !== void 0 ? typ_62 : Nothing;
       return Node(span_62, expr_62, _x137);
-    }, _x_x1_427_12484, FieldAccess(obj_sq_, fname), Just(_y_x10612)));
+    }, _x_x1_427_12524, FieldAccess(obj_sq_, fname), Just(_y_x10615)));
   }
-  function _mlift_infer_12881(fname_0, n_143, obj_0_sq_, s1_28_0_0, wild___15) {
-    var x_122_14045 = _open_at0(1, function() {
-      var ev_17_14047 = _evv_at(0);
-      return ev_17_14047.hnd._fun_fresh_tvar(ev_17_14047.marker, ev_17_14047);
+  function _mlift_infer_12950(fname_0, n_143, obj_0_sq_, s1_28_0_0, wild___15) {
+    var x_122_14126 = _open_at0(1, function() {
+      var ev_17_14128 = _evv_at(0);
+      return ev_17_14128.hnd._fun_fresh_tvar(ev_17_14128.marker, ev_17_14128);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10612_0) {
-        return _mlift_infer_12880(fname_0, n_143, obj_0_sq_, s1_28_0_0, _y_x10612_0);
+      return yield_extend(function(_y_x10615_0) {
+        return _mlift_infer_12949(fname_0, n_143, obj_0_sq_, s1_28_0_0, _y_x10615_0);
       });
     } else {
-      return _mlift_infer_12880(fname_0, n_143, obj_0_sq_, s1_28_0_0, x_122_14045);
+      return _mlift_infer_12949(fname_0, n_143, obj_0_sq_, s1_28_0_0, x_122_14126);
     }
   }
-  function _mlift_infer_12882(fname_1, n_144, obj_1_sq_, s1_28_0_1, sname_1_0, _y_x10609) {
-    if (_y_x10609 !== null) {
-      var _x_x1_423_12477 = _open_none1(function(node_155) {
+  function _mlift_infer_12951(fname_1, n_144, obj_1_sq_, s1_28_0_1, sname_1_0, _y_x10612) {
+    if (_y_x10612 !== null) {
+      var _x_x1_423_12517 = _open_none1(function(node_155) {
         return node_155.span;
       }, n_144);
       return Tuple2(s1_28_0_1, _open_none3(function(span_61, expr_61, typ_61) {
         var _x138 = typ_61 !== void 0 ? typ_61 : Nothing;
         return Node(span_61, expr_61, _x138);
-      }, _x_x1_423_12477, FieldAccess(obj_1_sq_, fname_1), Just(_y_x10609.value.snd)));
+      }, _x_x1_423_12517, FieldAccess(obj_1_sq_, fname_1), Just(_y_x10612.value.snd)));
     } else {
-      var _x_x1_425_12481 = _open_none1(function(node_156) {
+      var _x_x1_425_12521 = _open_none1(function(node_156) {
         return node_156.span;
       }, n_144);
-      var _x_x2_242_12482 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(sname_1_0, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(fname_1, "'"))));
-      var x_123_14049 = _open_at2(0, emit_error, _x_x1_425_12481, _x_x2_242_12482);
+      var _x_x2_242_12522 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(sname_1_0, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(fname_1, "'"))));
+      var x_123_14130 = _open_at2(0, emit_error, _x_x1_425_12521, _x_x2_242_12522);
       if (_yielding()) {
         return yield_extend(function(wild___15_0) {
-          return _mlift_infer_12881(fname_1, n_144, obj_1_sq_, s1_28_0_1, wild___15_0);
+          return _mlift_infer_12950(fname_1, n_144, obj_1_sq_, s1_28_0_1, wild___15_0);
         });
       } else {
-        return _mlift_infer_12881(fname_1, n_144, obj_1_sq_, s1_28_0_1, x_123_14049);
+        return _mlift_infer_12950(fname_1, n_144, obj_1_sq_, s1_28_0_1, x_123_14130);
       }
     }
   }
-  function _mlift_infer_12883(fname_2, n_145, obj_2_sq_, s1_28_0_2, _y_x10616) {
-    var _x_x1_431_12491 = _open_none1(function(node_159) {
+  function _mlift_infer_12952(fname_2, n_145, obj_2_sq_, s1_28_0_2, _y_x10619) {
+    var _x_x1_431_12531 = _open_none1(function(node_159) {
       return node_159.span;
     }, n_145);
     return Tuple2(s1_28_0_2, _open_none3(function(span_63, expr_63, typ_63) {
       var _x139 = typ_63 !== void 0 ? typ_63 : Nothing;
       return Node(span_63, expr_63, _x139);
-    }, _x_x1_431_12491, FieldAccess(obj_2_sq_, fname_2), Just(_y_x10616)));
+    }, _x_x1_431_12531, FieldAccess(obj_2_sq_, fname_2), Just(_y_x10619)));
   }
-  function _mlift_infer_12884(fname_3, n_146, obj_3_sq_, s1_28_0_3, wild___16) {
-    var x_124_14051 = _open_at0(1, function() {
-      var ev_18_14053 = _evv_at(0);
-      return ev_18_14053.hnd._fun_fresh_tvar(ev_18_14053.marker, ev_18_14053);
+  function _mlift_infer_12953(fname_3, n_146, obj_3_sq_, s1_28_0_3, wild___16) {
+    var x_124_14132 = _open_at0(1, function() {
+      var ev_18_14134 = _evv_at(0);
+      return ev_18_14134.hnd._fun_fresh_tvar(ev_18_14134.marker, ev_18_14134);
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10616_0) {
-        return _mlift_infer_12883(fname_3, n_146, obj_3_sq_, s1_28_0_3, _y_x10616_0);
+      return yield_extend(function(_y_x10619_0) {
+        return _mlift_infer_12952(fname_3, n_146, obj_3_sq_, s1_28_0_3, _y_x10619_0);
       });
     } else {
-      return _mlift_infer_12883(fname_3, n_146, obj_3_sq_, s1_28_0_3, x_124_14051);
+      return _mlift_infer_12952(fname_3, n_146, obj_3_sq_, s1_28_0_3, x_124_14132);
     }
   }
-  function _mlift_infer_12885(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, reg_2) {
+  function _mlift_infer_12954(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, reg_2) {
     var _x140 = _open_none2(struct_find, reg_2, sname_1_1);
     if (_x140 !== null) {
-      var x_125_14055 = find(_open_none1(function(_this_16) {
+      var x_125_14136 = find(_open_none1(function(_this_16) {
         return _this_16.fields;
-      }, _x140.value), function(_pat_x762__39) {
-        return _pat_x762__39.fst === fname_4;
+      }, _x140.value), function(_pat_x778__39) {
+        return _pat_x778__39.fst === fname_4;
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10609_0) {
-          return _mlift_infer_12882(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, _y_x10609_0);
+        return yield_extend(function(_y_x10612_0) {
+          return _mlift_infer_12951(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, _y_x10612_0);
         });
       } else {
-        return _mlift_infer_12882(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, x_125_14055);
+        return _mlift_infer_12951(fname_4, n_147, obj_4_sq_, s1_28_0_4, sname_1_1, x_125_14136);
       }
     } else {
-      var _x_x1_429_12488 = _open_none1(function(node_158) {
+      var _x_x1_429_12528 = _open_none1(function(node_158) {
         return node_158.span;
       }, n_147);
-      var _x_x2_244_12489 = _lp__plus__plus__rp_("unknown struct: ", sname_1_1);
-      var x_126_14057 = _open_at2(0, emit_error, _x_x1_429_12488, _x_x2_244_12489);
+      var _x_x2_244_12529 = _lp__plus__plus__rp_("unknown struct: ", sname_1_1);
+      var x_126_14138 = _open_at2(0, emit_error, _x_x1_429_12528, _x_x2_244_12529);
       if (_yielding()) {
         return yield_extend(function(wild___16_0) {
-          return _mlift_infer_12884(fname_4, n_147, obj_4_sq_, s1_28_0_4, wild___16_0);
+          return _mlift_infer_12953(fname_4, n_147, obj_4_sq_, s1_28_0_4, wild___16_0);
         });
       } else {
-        return _mlift_infer_12884(fname_4, n_147, obj_4_sq_, s1_28_0_4, x_126_14057);
+        return _mlift_infer_12953(fname_4, n_147, obj_4_sq_, s1_28_0_4, x_126_14138);
       }
     }
   }
-  function _mlift_infer_12886(fname_5, n_148, obj_5_sq_, s1_28_0_5, _y_x10619) {
-    var _x_x1_433_12495 = _open_none1(function(node_160) {
+  function _mlift_infer_12955(fname_5, n_148, obj_5_sq_, s1_28_0_5, _y_x10622) {
+    var _x_x1_433_12535 = _open_none1(function(node_160) {
       return node_160.span;
     }, n_148);
     return Tuple2(s1_28_0_5, _open_none3(function(span_64, expr_64, typ_64) {
       var _x141 = typ_64 !== void 0 ? typ_64 : Nothing;
       return Node(span_64, expr_64, _x141);
-    }, _x_x1_433_12495, FieldAccess(obj_5_sq_, fname_5), Just(_y_x10619)));
+    }, _x_x1_433_12535, FieldAccess(obj_5_sq_, fname_5), Just(_y_x10622)));
   }
-  function _mlift_infer_12887(fname_6, n_149, obj_6_sq_, s1_28_0_6, _y_x10621) {
-    var _x_x1_435_12499 = _open_none1(function(node_161) {
+  function _mlift_infer_12956(fname_6, n_149, obj_6_sq_, s1_28_0_6, _y_x10624) {
+    var _x_x1_435_12539 = _open_none1(function(node_161) {
       return node_161.span;
     }, n_149);
     return Tuple2(s1_28_0_6, _open_none3(function(span_65, expr_65, typ_65) {
       var _x142 = typ_65 !== void 0 ? typ_65 : Nothing;
       return Node(span_65, expr_65, _x142);
-    }, _x_x1_435_12499, FieldAccess(obj_6_sq_, fname_6), Just(_y_x10621)));
+    }, _x_x1_435_12539, FieldAccess(obj_6_sq_, fname_6), Just(_y_x10624)));
   }
-  function _mlift_infer_12888(fname_7, n_150, _y_x10605) {
-    var _x_x2_239_12472 = _open_none1(function(n_41_0) {
+  function _mlift_infer_12957(fname_7, n_150, _y_x10608) {
+    var _x_x2_239_12512 = _open_none1(function(n_41_0) {
       return n_41_0.typ !== null ? n_41_0.typ.value : TUnit;
-    }, _y_x10605.snd);
-    var obj_type = _open_none2(apply_subst, _y_x10605.fst, _x_x2_239_12472);
+    }, _y_x10608.snd);
+    var obj_type = _open_none2(apply_subst, _y_x10608.fst, _x_x2_239_12512);
     if (obj_type._tag === 12) {
-      var x_127_14059 = _open_at0(3, function() {
-        var ev_19_14061 = _evv_at(0);
-        return ev_19_14061.hnd._fun_get_structs(ev_19_14061.marker, ev_19_14061);
+      var x_127_14140 = _open_at0(3, function() {
+        var ev_19_14142 = _evv_at(0);
+        return ev_19_14142.hnd._fun_get_structs(ev_19_14142.marker, ev_19_14142);
       });
       if (_yielding()) {
         return yield_extend(function(reg_2_0) {
-          return _mlift_infer_12885(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, obj_type.name, reg_2_0);
+          return _mlift_infer_12954(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, obj_type.name, reg_2_0);
         });
       } else {
-        return _mlift_infer_12885(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, obj_type.name, x_127_14059);
+        return _mlift_infer_12954(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, obj_type.name, x_127_14140);
       }
     } else if (obj_type._tag === 14) {
-      var x_128_14063 = _open_at0(1, function() {
-        var ev_20_14065 = _evv_at(0);
-        return ev_20_14065.hnd._fun_fresh_tvar(ev_20_14065.marker, ev_20_14065);
+      var x_128_14144 = _open_at0(1, function() {
+        var ev_20_14146 = _evv_at(0);
+        return ev_20_14146.hnd._fun_fresh_tvar(ev_20_14146.marker, ev_20_14146);
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10619_0) {
-          return _mlift_infer_12886(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, _y_x10619_0);
+        return yield_extend(function(_y_x10622_0) {
+          return _mlift_infer_12955(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, _y_x10622_0);
         });
       } else {
-        return _mlift_infer_12886(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, x_128_14063);
+        return _mlift_infer_12955(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, x_128_14144);
       }
     } else {
-      var x_129_14067 = _open_at0(1, function() {
-        var ev_21_14069 = _evv_at(0);
-        return ev_21_14069.hnd._fun_fresh_tvar(ev_21_14069.marker, ev_21_14069);
+      var x_129_14148 = _open_at0(1, function() {
+        var ev_21_14150 = _evv_at(0);
+        return ev_21_14150.hnd._fun_fresh_tvar(ev_21_14150.marker, ev_21_14150);
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10621_0) {
-          return _mlift_infer_12887(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, _y_x10621_0);
+        return yield_extend(function(_y_x10624_0) {
+          return _mlift_infer_12956(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, _y_x10624_0);
         });
       } else {
-        return _mlift_infer_12887(fname_7, n_150, _y_x10605.snd, _y_x10605.fst, x_129_14067);
+        return _mlift_infer_12956(fname_7, n_150, _y_x10608.snd, _y_x10608.fst, x_129_14148);
       }
     }
   }
-  function _mlift_infer_args_12889(arg_sq_, _y_x10626) {
-    return Tuple2(_y_x10626.fst, Cons(arg_sq_, _y_x10626.snd));
+  function _mlift_infer_args_12958(arg_sq_, _y_x10629) {
+    return Tuple2(_y_x10629.fst, Cons(arg_sq_, _y_x10629.snd));
   }
-  function _mlift_infer_args_12890(env_0_0, rest, _y_x10625) {
-    var x_130_14071 = infer_args(env_0_0, _y_x10625.fst, rest);
+  function _mlift_infer_args_12959(env_0_0, rest, _y_x10628) {
+    var x_130_14152 = infer_args(env_0_0, _y_x10628.fst, rest);
     if (_yielding()) {
-      return yield_extend(function(_y_x10626_0) {
-        return _mlift_infer_args_12889(_y_x10625.snd, _y_x10626_0);
+      return yield_extend(function(_y_x10629_0) {
+        return _mlift_infer_args_12958(_y_x10628.snd, _y_x10629_0);
       });
     } else {
-      return _mlift_infer_args_12889(_y_x10625.snd, x_130_14071);
+      return _mlift_infer_args_12958(_y_x10628.snd, x_130_14152);
     }
   }
-  function _mlift_infer_arms_12891(body_8_sq_, g_sq_, pat_sq_, _y_x10635) {
-    return Tuple2(_y_x10635.fst, Cons(Match_arm(pat_sq_, Just(g_sq_), body_8_sq_), _y_x10635.snd));
+  function _mlift_infer_arms_12960(body_8_sq_, g_sq_, pat_sq_, _y_x10638) {
+    return Tuple2(_y_x10638.fst, Cons(Match_arm(pat_sq_, Just(g_sq_), body_8_sq_), _y_x10638.snd));
   }
-  function _mlift_infer_arms_12892(body_8_0_sq_, env_1_0, g_0_sq_, pat_0_sq_, rest_0, result_var_1_0, s3_11, scrut_type_0_0, _y_x10634) {
+  function _mlift_infer_arms_12961(body_8_0_sq_, env_1_0, g_0_sq_, pat_0_sq_, rest_0, result_var_1_0, s3_11, scrut_type_0_0, _y_x10637) {
     var s4_2 = _open_none2(function(s1_40, s2_39) {
       var updated_s2_38 = _trmc_map_subst(s2_39, function(k_40, v_39) {
         return Tuple2(k_40, _trmc_apply_subst(s1_40, v_39, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_38 = _trmc_filter_subst(updated_s2_38, function(k_0_38, ___wildcard_x120__39_38) {
+      var ys_10006_38 = _trmc_filter_subst(updated_s2_38, function(k_0_38, ___wildcard_x136__39_38) {
         var b_10007_38 = subst_has(s1_40, k_0_38);
         return b_10007_38 ? false : true;
       }, _cctx_empty());
       return append(s1_40, ys_10006_38);
-    }, _y_x10634, s3_11);
-    var x_131_14079 = infer_arms(env_1_0, s4_2, scrut_type_0_0, result_var_1_0, rest_0);
+    }, _y_x10637, s3_11);
+    var x_131_14160 = infer_arms(env_1_0, s4_2, scrut_type_0_0, result_var_1_0, rest_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10635_0) {
-        return _mlift_infer_arms_12891(body_8_0_sq_, g_0_sq_, pat_0_sq_, _y_x10635_0);
+      return yield_extend(function(_y_x10638_0) {
+        return _mlift_infer_arms_12960(body_8_0_sq_, g_0_sq_, pat_0_sq_, _y_x10638_0);
       });
     } else {
-      return _mlift_infer_arms_12891(body_8_0_sq_, g_0_sq_, pat_0_sq_, x_131_14079);
+      return _mlift_infer_arms_12960(body_8_0_sq_, g_0_sq_, pat_0_sq_, x_131_14160);
     }
   }
-  function _mlift_infer_arms_12893(arm, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, scrut_type_0_1, _y_x10633) {
-    var _x_x2_4_12524 = _open_none1(function(n_43_0) {
+  function _mlift_infer_arms_12962(arm, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, scrut_type_0_1, _y_x10636) {
+    var _x_x2_4_12564 = _open_none1(function(n_43_0) {
       return n_43_0.typ !== null ? n_43_0.typ.value : TUnit;
-    }, _y_x10633.snd);
-    var body_type_2 = _open_none2(apply_subst, _y_x10633.fst, _x_x2_4_12524);
-    var _x_x2_5_12527 = _open_none2(apply_subst, _y_x10633.fst, result_var_1_1);
-    var _x_x1_15_12531 = _open_none1(function(_this_21) {
+    }, _y_x10636.snd);
+    var body_type_2 = _open_none2(apply_subst, _y_x10636.fst, _x_x2_4_12564);
+    var _x_x2_5_12567 = _open_none2(apply_subst, _y_x10636.fst, result_var_1_1);
+    var _x_x1_15_12571 = _open_none1(function(_this_21) {
       return _this_21.body;
     }, arm);
-    var _x_x3_1_12528 = _open_none1(function(node_165) {
+    var _x_x3_1_12568 = _open_none1(function(node_165) {
       return node_165.span;
-    }, _x_x1_15_12531);
-    var x_132_14081 = _open_at3(0, unify, body_type_2, _x_x2_5_12527, _x_x3_1_12528);
+    }, _x_x1_15_12571);
+    var x_132_14162 = _open_at3(0, unify, body_type_2, _x_x2_5_12567, _x_x3_1_12568);
     if (_yielding()) {
-      return yield_extend(function(_y_x10634_0) {
-        return _mlift_infer_arms_12892(_y_x10633.snd, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, _y_x10633.fst, scrut_type_0_1, _y_x10634_0);
+      return yield_extend(function(_y_x10637_0) {
+        return _mlift_infer_arms_12961(_y_x10636.snd, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, _y_x10636.fst, scrut_type_0_1, _y_x10637_0);
       });
     } else {
-      return _mlift_infer_arms_12892(_y_x10633.snd, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, _y_x10633.fst, scrut_type_0_1, x_132_14081);
+      return _mlift_infer_arms_12961(_y_x10636.snd, env_1_0_0, g_1_sq_, pat_1_sq_, rest_0_0, result_var_1_1, _y_x10636.fst, scrut_type_0_1, x_132_14162);
     }
   }
-  function _mlift_infer_arms_12894(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, pat_env, rest_0_1, result_var_1_2, scrut_type_0_2, sg, _y_x10632) {
+  function _mlift_infer_arms_12963(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, pat_env, rest_0_1, result_var_1_2, scrut_type_0_2, sg, _y_x10635) {
     var sg2 = _open_none2(function(s1_39, s2_38) {
       var updated_s2_37 = _trmc_map_subst(s2_38, function(k_39, v_38) {
         return Tuple2(k_39, _trmc_apply_subst(s1_39, v_38, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_37 = _trmc_filter_subst(updated_s2_37, function(k_0_37, ___wildcard_x120__39_37) {
+      var ys_10006_37 = _trmc_filter_subst(updated_s2_37, function(k_0_37, ___wildcard_x136__39_37) {
         var b_10007_37 = subst_has(s1_39, k_0_37);
         return b_10007_37 ? false : true;
       }, _cctx_empty());
       return append(s1_39, ys_10006_37);
-    }, _y_x10632, sg);
-    var x_133_14089 = infer(pat_env, sg2, _open_none1(function(_this_20) {
+    }, _y_x10635, sg);
+    var x_133_14170 = infer(pat_env, sg2, _open_none1(function(_this_20) {
       return _this_20.body;
     }, arm_0));
     if (_yielding()) {
-      return yield_extend(function(_y_x10633_0) {
-        return _mlift_infer_arms_12893(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, rest_0_1, result_var_1_2, scrut_type_0_2, _y_x10633_0);
+      return yield_extend(function(_y_x10636_0) {
+        return _mlift_infer_arms_12962(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, rest_0_1, result_var_1_2, scrut_type_0_2, _y_x10636_0);
       });
     } else {
-      return _mlift_infer_arms_12893(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, rest_0_1, result_var_1_2, scrut_type_0_2, x_133_14089);
+      return _mlift_infer_arms_12962(arm_0, env_1_0_1, g_2_sq_, pat_2_sq_, rest_0_1, result_var_1_2, scrut_type_0_2, x_133_14170);
     }
   }
-  function _mlift_infer_arms_12895(arm_1, env_1_0_2, g, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10631) {
-    var _x_x2_1_12514 = _open_none1(function(n_42_0) {
+  function _mlift_infer_arms_12964(arm_1, env_1_0_2, g, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10634) {
+    var _x_x2_1_12554 = _open_none1(function(n_42_0) {
       return n_42_0.typ !== null ? n_42_0.typ.value : TUnit;
-    }, _y_x10631.snd);
-    var guard_type = _open_none2(apply_subst, _y_x10631.fst, _x_x2_1_12514);
-    var _x_x3_0_12518 = _open_none1(function(node_163) {
+    }, _y_x10634.snd);
+    var guard_type = _open_none2(apply_subst, _y_x10634.fst, _x_x2_1_12554);
+    var _x_x3_0_12558 = _open_none1(function(node_163) {
       return node_163.span;
     }, g);
-    var x_134_14091 = _open_at3(0, unify, guard_type, TBool, _x_x3_0_12518);
+    var x_134_14172 = _open_at3(0, unify, guard_type, TBool, _x_x3_0_12558);
     if (_yielding()) {
-      return yield_extend(function(_y_x10632_0) {
-        return _mlift_infer_arms_12894(arm_1, env_1_0_2, _y_x10631.snd, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10631.fst, _y_x10632_0);
+      return yield_extend(function(_y_x10635_0) {
+        return _mlift_infer_arms_12963(arm_1, env_1_0_2, _y_x10634.snd, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10634.fst, _y_x10635_0);
       });
     } else {
-      return _mlift_infer_arms_12894(arm_1, env_1_0_2, _y_x10631.snd, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10631.fst, x_134_14091);
+      return _mlift_infer_arms_12963(arm_1, env_1_0_2, _y_x10634.snd, pat_3_sq_, pat_env_0, rest_0_2, result_var_1_3, scrut_type_0_3, _y_x10634.fst, x_134_14172);
     }
   }
-  function _mlift_infer_arms_12896(body_9_sq_, pat_4_sq_, _y_x10640) {
-    return Tuple2(_y_x10640.fst, Cons(Match_arm(pat_4_sq_, Nothing, body_9_sq_), _y_x10640.snd));
+  function _mlift_infer_arms_12965(body_9_sq_, pat_4_sq_, _y_x10643) {
+    return Tuple2(_y_x10643.fst, Cons(Match_arm(pat_4_sq_, Nothing, body_9_sq_), _y_x10643.snd));
   }
-  function _mlift_infer_arms_12897(body_9_0_sq_, env_1_0_3, pat_5_sq_, rest_0_3, result_var_1_4, s3_13, scrut_type_0_4, _y_x10639) {
+  function _mlift_infer_arms_12966(body_9_0_sq_, env_1_0_3, pat_5_sq_, rest_0_3, result_var_1_4, s3_13, scrut_type_0_4, _y_x10642) {
     var s4_3 = _open_none2(function(s1_41, s2_40) {
       var updated_s2_39 = _trmc_map_subst(s2_40, function(k_41, v_40) {
         return Tuple2(k_41, _trmc_apply_subst(s1_41, v_40, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_39 = _trmc_filter_subst(updated_s2_39, function(k_0_39, ___wildcard_x120__39_39) {
+      var ys_10006_39 = _trmc_filter_subst(updated_s2_39, function(k_0_39, ___wildcard_x136__39_39) {
         var b_10007_39 = subst_has(s1_41, k_0_39);
         return b_10007_39 ? false : true;
       }, _cctx_empty());
       return append(s1_41, ys_10006_39);
-    }, _y_x10639, s3_13);
-    var x_135_14099 = infer_arms(env_1_0_3, s4_3, scrut_type_0_4, result_var_1_4, rest_0_3);
+    }, _y_x10642, s3_13);
+    var x_135_14180 = infer_arms(env_1_0_3, s4_3, scrut_type_0_4, result_var_1_4, rest_0_3);
     if (_yielding()) {
-      return yield_extend(function(_y_x10640_0) {
-        return _mlift_infer_arms_12896(body_9_0_sq_, pat_5_sq_, _y_x10640_0);
+      return yield_extend(function(_y_x10643_0) {
+        return _mlift_infer_arms_12965(body_9_0_sq_, pat_5_sq_, _y_x10643_0);
       });
     } else {
-      return _mlift_infer_arms_12896(body_9_0_sq_, pat_5_sq_, x_135_14099);
+      return _mlift_infer_arms_12965(body_9_0_sq_, pat_5_sq_, x_135_14180);
     }
   }
-  function _mlift_infer_arms_12898(arm_2, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, scrut_type_0_5, _y_x10638) {
-    var _x_x2_8_12537 = _open_none1(function(n_44_0) {
+  function _mlift_infer_arms_12967(arm_2, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, scrut_type_0_5, _y_x10641) {
+    var _x_x2_8_12577 = _open_none1(function(n_44_0) {
       return n_44_0.typ !== null ? n_44_0.typ.value : TUnit;
-    }, _y_x10638.snd);
-    var body_type_3 = _open_none2(apply_subst, _y_x10638.fst, _x_x2_8_12537);
-    var _x_x2_9_12540 = _open_none2(apply_subst, _y_x10638.fst, result_var_1_5);
-    var _x_x1_23_12544 = _open_none1(function(_this_23) {
+    }, _y_x10641.snd);
+    var body_type_3 = _open_none2(apply_subst, _y_x10641.fst, _x_x2_8_12577);
+    var _x_x2_9_12580 = _open_none2(apply_subst, _y_x10641.fst, result_var_1_5);
+    var _x_x1_23_12584 = _open_none1(function(_this_23) {
       return _this_23.body;
     }, arm_2);
-    var _x_x3_2_12541 = _open_none1(function(node_167) {
+    var _x_x3_2_12581 = _open_none1(function(node_167) {
       return node_167.span;
-    }, _x_x1_23_12544);
-    var x_136_14101 = _open_at3(0, unify, body_type_3, _x_x2_9_12540, _x_x3_2_12541);
+    }, _x_x1_23_12584);
+    var x_136_14182 = _open_at3(0, unify, body_type_3, _x_x2_9_12580, _x_x3_2_12581);
     if (_yielding()) {
-      return yield_extend(function(_y_x10639_0) {
-        return _mlift_infer_arms_12897(_y_x10638.snd, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, _y_x10638.fst, scrut_type_0_5, _y_x10639_0);
+      return yield_extend(function(_y_x10642_0) {
+        return _mlift_infer_arms_12966(_y_x10641.snd, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, _y_x10641.fst, scrut_type_0_5, _y_x10642_0);
       });
     } else {
-      return _mlift_infer_arms_12897(_y_x10638.snd, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, _y_x10638.fst, scrut_type_0_5, x_136_14101);
+      return _mlift_infer_arms_12966(_y_x10641.snd, env_1_0_4, pat_6_sq_, rest_0_4, result_var_1_5, _y_x10641.fst, scrut_type_0_5, x_136_14182);
     }
   }
-  function _mlift_infer_arms_12899(arm_3, env_1_0_5, pat_env_1, rest_0_5, result_var_1_6, s1_30_0, scrut_type_0_6, pat_7_sq_) {
+  function _mlift_infer_arms_12968(arm_3, env_1_0_5, pat_env_1, rest_0_5, result_var_1_6, s1_30_0, scrut_type_0_6, pat_7_sq_) {
     var _x143 = _open_none1(function(_this_19) {
       return _this_19.guard;
     }, arm_3);
     if (_x143 !== null) {
-      var x_137_14103 = infer(pat_env_1, s1_30_0, _x143.value);
+      var x_137_14184 = infer(pat_env_1, s1_30_0, _x143.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10631_0) {
-          return _mlift_infer_arms_12895(arm_3, env_1_0_5, _x143.value, pat_7_sq_, pat_env_1, rest_0_5, result_var_1_6, scrut_type_0_6, _y_x10631_0);
+        return yield_extend(function(_y_x10634_0) {
+          return _mlift_infer_arms_12964(arm_3, env_1_0_5, _x143.value, pat_7_sq_, pat_env_1, rest_0_5, result_var_1_6, scrut_type_0_6, _y_x10634_0);
         });
       } else {
-        return _mlift_infer_arms_12895(arm_3, env_1_0_5, _x143.value, pat_7_sq_, pat_env_1, rest_0_5, result_var_1_6, scrut_type_0_6, x_137_14103);
+        return _mlift_infer_arms_12964(arm_3, env_1_0_5, _x143.value, pat_7_sq_, pat_env_1, rest_0_5, result_var_1_6, scrut_type_0_6, x_137_14184);
       }
     } else {
-      var x_138_14105 = infer(pat_env_1, s1_30_0, _open_none1(function(_this_22) {
+      var x_138_14186 = infer(pat_env_1, s1_30_0, _open_none1(function(_this_22) {
         return _this_22.body;
       }, arm_3));
       if (_yielding()) {
-        return yield_extend(function(_y_x10638_0) {
-          return _mlift_infer_arms_12898(arm_3, env_1_0_5, pat_7_sq_, rest_0_5, result_var_1_6, scrut_type_0_6, _y_x10638_0);
+        return yield_extend(function(_y_x10641_0) {
+          return _mlift_infer_arms_12967(arm_3, env_1_0_5, pat_7_sq_, rest_0_5, result_var_1_6, scrut_type_0_6, _y_x10641_0);
         });
       } else {
-        return _mlift_infer_arms_12898(arm_3, env_1_0_5, pat_7_sq_, rest_0_5, result_var_1_6, scrut_type_0_6, x_138_14105);
+        return _mlift_infer_arms_12967(arm_3, env_1_0_5, pat_7_sq_, rest_0_5, result_var_1_6, scrut_type_0_6, x_138_14186);
       }
     }
   }
-  function _mlift_infer_arms_12900(arm_4, env_1_0_6, rest_0_6, result_var_1_7, scrut_type_0_7, _y_x10629) {
-    var _x_x1_2_12510 = _open_none1(function(_this_18) {
+  function _mlift_infer_arms_12969(arm_4, env_1_0_6, rest_0_6, result_var_1_7, scrut_type_0_7, _y_x10632) {
+    var _x_x1_2_12550 = _open_none1(function(_this_18) {
       return _this_18.pattern;
     }, arm_4);
-    var x_139_14107 = _open_at1(3, enrich_struct_pattern, _x_x1_2_12510);
+    var x_139_14188 = _open_at1(3, enrich_struct_pattern, _x_x1_2_12550);
     if (_yielding()) {
       return yield_extend(function(pat_8_sq_) {
-        return _mlift_infer_arms_12899(arm_4, env_1_0_6, _y_x10629.snd, rest_0_6, result_var_1_7, _y_x10629.fst, scrut_type_0_7, pat_8_sq_);
+        return _mlift_infer_arms_12968(arm_4, env_1_0_6, _y_x10632.snd, rest_0_6, result_var_1_7, _y_x10632.fst, scrut_type_0_7, pat_8_sq_);
       });
     } else {
-      return _mlift_infer_arms_12899(arm_4, env_1_0_6, _y_x10629.snd, rest_0_6, result_var_1_7, _y_x10629.fst, scrut_type_0_7, x_139_14107);
+      return _mlift_infer_arms_12968(arm_4, env_1_0_6, _y_x10632.snd, rest_0_6, result_var_1_7, _y_x10632.fst, scrut_type_0_7, x_139_14188);
     }
   }
-  function _mlift_infer_interp_parts_12901(part_sq_, _y_x10646) {
-    return Tuple2(_y_x10646.fst, Cons(part_sq_, _y_x10646.snd));
+  function _mlift_infer_interp_parts_12970(part_sq_, _y_x10649) {
+    return Tuple2(_y_x10649.fst, Cons(part_sq_, _y_x10649.snd));
   }
-  function _mlift_infer_interp_parts_12902(env_2_0, rest_1, _y_x10645) {
-    var x_140_14109 = infer_interp_parts(env_2_0, _y_x10645.fst, rest_1);
+  function _mlift_infer_interp_parts_12971(env_2_0, rest_1, _y_x10648) {
+    var x_140_14190 = infer_interp_parts(env_2_0, _y_x10648.fst, rest_1);
     if (_yielding()) {
-      return yield_extend(function(_y_x10646_0) {
-        return _mlift_infer_interp_parts_12901(_y_x10645.snd, _y_x10646_0);
+      return yield_extend(function(_y_x10649_0) {
+        return _mlift_infer_interp_parts_12970(_y_x10648.snd, _y_x10649_0);
       });
     } else {
-      return _mlift_infer_interp_parts_12901(_y_x10645.snd, x_140_14109);
+      return _mlift_infer_interp_parts_12970(_y_x10648.snd, x_140_14190);
     }
   }
-  function _mlift_infer_loop_body_12903(env_3_0, n_0_0_0, s_3_0, _y_x10649) {
-    return _mask_at(_y_x10649, true, function() {
+  function _mlift_infer_loop_body_12972(env_3_0, n_0_0_0, s_3_0, _y_x10652) {
+    return _mask_at(_y_x10652, true, function() {
       return infer(env_3_0, s_3_0, n_0_0_0);
     });
   }
-  function _mlift_infer_map_entries_12904(k_sq_, v_sq_, _y_x10655) {
-    return Tuple2(_y_x10655.fst, Cons(Tuple2(k_sq_, v_sq_), _y_x10655.snd));
+  function _mlift_infer_map_entries_12973(k_sq_, v_sq_, _y_x10658) {
+    return Tuple2(_y_x10658.fst, Cons(Tuple2(k_sq_, v_sq_), _y_x10658.snd));
   }
-  function _mlift_infer_map_entries_12905(env_4_0, k_0_sq_, rest_2, _y_x10654) {
-    var x_141_14111 = infer_map_entries(env_4_0, _y_x10654.fst, rest_2);
+  function _mlift_infer_map_entries_12974(env_4_0, k_0_sq_, rest_2, _y_x10657) {
+    var x_141_14192 = infer_map_entries(env_4_0, _y_x10657.fst, rest_2);
     if (_yielding()) {
-      return yield_extend(function(_y_x10655_0) {
-        return _mlift_infer_map_entries_12904(k_0_sq_, _y_x10654.snd, _y_x10655_0);
+      return yield_extend(function(_y_x10658_0) {
+        return _mlift_infer_map_entries_12973(k_0_sq_, _y_x10657.snd, _y_x10658_0);
       });
     } else {
-      return _mlift_infer_map_entries_12904(k_0_sq_, _y_x10654.snd, x_141_14111);
+      return _mlift_infer_map_entries_12973(k_0_sq_, _y_x10657.snd, x_141_14192);
     }
   }
-  function _mlift_infer_map_entries_12906(env_4_0_0, rest_2_0, v_1_0, _y_x10653) {
-    var x_142_14113 = infer(env_4_0_0, _y_x10653.fst, v_1_0);
+  function _mlift_infer_map_entries_12975(env_4_0_0, rest_2_0, v_1_0, _y_x10656) {
+    var x_142_14194 = infer(env_4_0_0, _y_x10656.fst, v_1_0);
     if (_yielding()) {
-      return yield_extend(function(_y_x10654_0) {
-        return _mlift_infer_map_entries_12905(env_4_0_0, _y_x10653.snd, rest_2_0, _y_x10654_0);
+      return yield_extend(function(_y_x10657_0) {
+        return _mlift_infer_map_entries_12974(env_4_0_0, _y_x10656.snd, rest_2_0, _y_x10657_0);
       });
     } else {
-      return _mlift_infer_map_entries_12905(env_4_0_0, _y_x10653.snd, rest_2_0, x_142_14113);
+      return _mlift_infer_map_entries_12974(env_4_0_0, _y_x10656.snd, rest_2_0, x_142_14194);
     }
   }
-  function _mlift_infer_stmts_12907(_y_x10659) {
-    return Tuple3(_y_x10659.fst, Cons(_y_x10659.snd, Nil), _open_none1(function(n_45_0) {
+  function _mlift_infer_stmts_12976(_y_x10662) {
+    return Tuple3(_y_x10662.fst, Cons(_y_x10662.snd, Nil), _open_none1(function(n_45_0) {
       return n_45_0.typ !== null ? n_45_0.typ.value : TUnit;
-    }, _y_x10659.snd));
+    }, _y_x10662.snd));
   }
-  function _mlift_infer_stmts_12908(stmt_0_sq_, _y_x10662) {
-    return Tuple3(_y_x10662.fst, Cons(stmt_0_sq_, _y_x10662.snd), _y_x10662.thd);
+  function _mlift_infer_stmts_12977(stmt_0_sq_, _y_x10665) {
+    return Tuple3(_y_x10665.fst, Cons(stmt_0_sq_, _y_x10665.snd), _y_x10665.thd);
   }
-  function _mlift_infer_stmts_12909(env_5_0, rest_3, _y_x10661) {
-    var env_4_sq_ = _open_none3(extend_let_chain, env_5_0, _y_x10661.fst, _y_x10661.snd);
-    var x_143_14115 = infer_stmts(env_4_sq_, _y_x10661.fst, rest_3);
+  function _mlift_infer_stmts_12978(env_5_0, rest_3, _y_x10664) {
+    var env_4_sq_ = _open_none3(extend_let_chain, env_5_0, _y_x10664.fst, _y_x10664.snd);
+    var x_143_14196 = infer_stmts(env_4_sq_, _y_x10664.fst, rest_3);
     if (_yielding()) {
-      return yield_extend(function(_y_x10662_0) {
-        return _mlift_infer_stmts_12908(_y_x10661.snd, _y_x10662_0);
+      return yield_extend(function(_y_x10665_0) {
+        return _mlift_infer_stmts_12977(_y_x10664.snd, _y_x10665_0);
       });
     } else {
-      return _mlift_infer_stmts_12908(_y_x10661.snd, x_143_14115);
+      return _mlift_infer_stmts_12977(_y_x10664.snd, x_143_14196);
     }
   }
-  function _mlift_infer_struct_fields_12910(fname_0_0, fval_sq_, _y_x10670) {
-    return Tuple2(_y_x10670.fst, Cons(Tuple2(fname_0_0, fval_sq_), _y_x10670.snd));
+  function _mlift_infer_struct_fields_12979(fname_0_0, fval_sq_, _y_x10673) {
+    return Tuple2(_y_x10673.fst, Cons(Tuple2(fname_0_0, fval_sq_), _y_x10673.snd));
   }
-  function _mlift_infer_struct_fields_12911(s1_34_0, _y_x10668) {
+  function _mlift_infer_struct_fields_12980(s1_34_0, _y_x10671) {
     return _open_none2(function(s1_42, s2_41) {
       var updated_s2_40 = _trmc_map_subst(s2_41, function(k_42, v_41) {
         return Tuple2(k_42, _trmc_apply_subst(s1_42, v_41, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006_40 = _trmc_filter_subst(updated_s2_40, function(k_0_41, ___wildcard_x120__39_40) {
+      var ys_10006_40 = _trmc_filter_subst(updated_s2_40, function(k_0_41, ___wildcard_x136__39_40) {
         var b_10007_40 = subst_has(s1_42, k_0_41);
         return b_10007_40 ? false : true;
       }, _cctx_empty());
       return append(s1_42, ys_10006_40);
-    }, _y_x10668, s1_34_0);
+    }, _y_x10671, s1_34_0);
   }
-  function _mlift_infer_struct_fields_12912(def_fields, env_6_0, fname_0_1, fval_0_sq_, rest_4, sp, _c_x10669) {
-    var x_144_14123 = infer_struct_fields(env_6_0, _c_x10669, def_fields, rest_4, sp);
+  function _mlift_infer_struct_fields_12981(def_fields, env_6_0, fname_0_1, fval_0_sq_, rest_4, sp, _c_x10672) {
+    var x_144_14204 = infer_struct_fields(env_6_0, _c_x10672, def_fields, rest_4, sp);
     if (_yielding()) {
-      return yield_extend(function(_y_x10670_0) {
-        return _mlift_infer_struct_fields_12910(fname_0_1, fval_0_sq_, _y_x10670_0);
+      return yield_extend(function(_y_x10673_0) {
+        return _mlift_infer_struct_fields_12979(fname_0_1, fval_0_sq_, _y_x10673_0);
       });
     } else {
-      return _mlift_infer_struct_fields_12910(fname_0_1, fval_0_sq_, x_144_14123);
+      return _mlift_infer_struct_fields_12979(fname_0_1, fval_0_sq_, x_144_14204);
     }
   }
-  function _mlift_infer_struct_fields_12913(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, fval_type, rest_4_0, s1_34_0_0, sp_0, _y_x10667) {
-    if (_y_x10667 !== null) {
-      var x_146_14127 = _open_at3(0, unify, fval_type, _y_x10667.value.snd, sp_0);
+  function _mlift_infer_struct_fields_12982(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, fval_type, rest_4_0, s1_34_0_0, sp_0, _y_x10670) {
+    if (_y_x10670 !== null) {
+      var x_146_14208 = _open_at3(0, unify, fval_type, _y_x10670.value.snd, sp_0);
       if (_yielding()) {
-        var x_145_14125 = yield_extend(function(_y_x10668_0) {
-          return _mlift_infer_struct_fields_12911(s1_34_0_0, _y_x10668_0);
+        var x_145_14206 = yield_extend(function(_y_x10671_0) {
+          return _mlift_infer_struct_fields_12980(s1_34_0_0, _y_x10671_0);
         });
       } else {
-        var x_145_14125 = _mlift_infer_struct_fields_12911(s1_34_0_0, x_146_14127);
+        var x_145_14206 = _mlift_infer_struct_fields_12980(s1_34_0_0, x_146_14208);
       }
     } else {
-      var x_145_14125 = s1_34_0_0;
+      var x_145_14206 = s1_34_0_0;
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10669_0) {
-        return _mlift_infer_struct_fields_12912(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, rest_4_0, sp_0, _c_x10669_0);
+      return yield_extend(function(_c_x10672_0) {
+        return _mlift_infer_struct_fields_12981(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, rest_4_0, sp_0, _c_x10672_0);
       });
     } else {
-      return _mlift_infer_struct_fields_12912(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, rest_4_0, sp_0, x_145_14125);
+      return _mlift_infer_struct_fields_12981(def_fields_0, env_6_1, fname_0_2, fval_1_sq_, rest_4_0, sp_0, x_145_14206);
     }
   }
-  function _mlift_infer_struct_fields_12914(def_fields_1, env_6_2, fname_0_3, rest_4_1, sp_1, _y_x10665) {
-    var _x_x2_12553 = _open_none1(function(n_46_0) {
+  function _mlift_infer_struct_fields_12983(def_fields_1, env_6_2, fname_0_3, rest_4_1, sp_1, _y_x10668) {
+    var _x_x2_12593 = _open_none1(function(n_46_0) {
       return n_46_0.typ !== null ? n_46_0.typ.value : TUnit;
-    }, _y_x10665.snd);
-    var fval_type_0 = _open_none2(apply_subst, _y_x10665.fst, _x_x2_12553);
-    var x_147_14129 = find(def_fields_1, function(_pat_x785__41) {
-      return _pat_x785__41.fst === fname_0_3;
+    }, _y_x10668.snd);
+    var fval_type_0 = _open_none2(apply_subst, _y_x10668.fst, _x_x2_12593);
+    var x_147_14210 = find(def_fields_1, function(_pat_x801__41) {
+      return _pat_x801__41.fst === fname_0_3;
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10667_0) {
-        return _mlift_infer_struct_fields_12913(def_fields_1, env_6_2, fname_0_3, _y_x10665.snd, fval_type_0, rest_4_1, _y_x10665.fst, sp_1, _y_x10667_0);
+      return yield_extend(function(_y_x10670_0) {
+        return _mlift_infer_struct_fields_12982(def_fields_1, env_6_2, fname_0_3, _y_x10668.snd, fval_type_0, rest_4_1, _y_x10668.fst, sp_1, _y_x10670_0);
       });
     } else {
-      return _mlift_infer_struct_fields_12913(def_fields_1, env_6_2, fname_0_3, _y_x10665.snd, fval_type_0, rest_4_1, _y_x10665.fst, sp_1, x_147_14129);
+      return _mlift_infer_struct_fields_12982(def_fields_1, env_6_2, fname_0_3, _y_x10668.snd, fval_type_0, rest_4_1, _y_x10668.fst, sp_1, x_147_14210);
     }
   }
   function infer(env_49, s_152, n_151) {
@@ -23219,16 +23252,16 @@ var __hica = (() => {
         return Node(_x157, _x158, _x159);
       }, n_151, void 0, void 0, Just(TChar)));
     } else if (_x144._tag === 2) {
-      var _x_x3_4_11690 = _open_none1(function(node_0) {
+      var _x_x3_4_11730 = _open_none1(function(node_0) {
         return node_0.span;
       }, n_151);
-      var x_148_14131 = _open3(unvlist(Cons(0, Cons(1, Nil))), env_fs_lookup, env_49, _x144.name, _x_x3_4_11690);
+      var x_148_14212 = _open3(unvlist(Cons(0, Cons(1, Nil))), env_fs_lookup, env_49, _x144.name, _x_x3_4_11730);
       if (_yielding()) {
         return yield_extend(function(t_53) {
-          return _mlift_infer_12722(n_151, s_152, t_53);
+          return _mlift_infer_12791(n_151, s_152, t_53);
         });
       } else {
-        var resolved_2 = _open_none2(apply_subst, s_152, x_148_14131);
+        var resolved_2 = _open_none2(apply_subst, s_152, x_148_14212);
         return Tuple2(s_152, _open_none4(function(_this_4_0, span_4_0, expr_4_0, typ_4_0) {
           if (span_4_0 !== void 0) {
             var _x160 = span_4_0;
@@ -23249,1265 +23282,1265 @@ var __hica = (() => {
         }, n_151, void 0, void 0, Just(resolved_2)));
       }
     } else if (_x144._tag === 3) {
-      var x_149_14134 = infer(env_49, s_152, _x144.init);
+      var x_149_14215 = infer(env_49, s_152, _x144.init);
       if (_yielding()) {
-        return yield_extend(function(_y_x10325_0) {
-          return _mlift_infer_12726(_x144.type_ann, _x144.body, env_49, _x144.init, n_151, _x144.name, _y_x10325_0);
+        return yield_extend(function(_y_x10328_0) {
+          return _mlift_infer_12795(_x144.type_ann, _x144.body, env_49, _x144.init, n_151, _x144.name, _y_x10328_0);
         });
       } else {
         var init_type_2 = _open_none1(function(n_0_1) {
           return n_0_1.typ !== null ? n_0_1.typ.value : TUnit;
-        }, x_149_14134.snd);
+        }, x_149_14215.snd);
         if (_x144.type_ann !== null) {
-          var _x_x3_6_11701_0 = _open_none1(function(node_2_0) {
+          var _x_x3_6_11741_0 = _open_none1(function(node_2_0) {
             return node_2_0.span;
           }, _x144.init);
-          var x_151_14140 = _open_at3(0, unify, init_type_2, _x144.type_ann.value, _x_x3_6_11701_0);
+          var x_151_14221 = _open_at3(0, unify, init_type_2, _x144.type_ann.value, _x_x3_6_11741_0);
           if (_yielding()) {
-            var x_150_14137 = yield_extend(function(_y_x10326_1) {
-              return _mlift_infer_12724(x_149_14134.fst, _y_x10326_1);
+            var x_150_14218 = yield_extend(function(_y_x10329_1) {
+              return _mlift_infer_12793(x_149_14215.fst, _y_x10329_1);
             });
           } else {
-            var x_150_14137 = _mlift_infer_12724(x_149_14134.fst, x_151_14140);
+            var x_150_14218 = _mlift_infer_12793(x_149_14215.fst, x_151_14221);
           }
         } else {
-          var x_150_14137 = x_149_14134.fst;
+          var x_150_14218 = x_149_14215.fst;
         }
         if (_yielding()) {
-          return yield_extend(function(_c_x10327_1) {
-            return _mlift_infer_12725(_x144.type_ann, _x144.body, env_49, x_149_14134.snd, init_type_2, n_151, _x144.name, _c_x10327_1);
+          return yield_extend(function(_c_x10330_1) {
+            return _mlift_infer_12794(_x144.type_ann, _x144.body, env_49, x_149_14215.snd, init_type_2, n_151, _x144.name, _c_x10330_1);
           });
         } else {
-          var bound_type_1 = _open_none2(apply_subst, x_150_14137, init_type_2);
-          var x_152_14142 = infer(Cons(Tuple2(_x144.name, bound_type_1), env_49), x_150_14137, _x144.body);
+          var bound_type_1 = _open_none2(apply_subst, x_150_14218, init_type_2);
+          var x_152_14223 = infer(Cons(Tuple2(_x144.name, bound_type_1), env_49), x_150_14218, _x144.body);
           if (_yielding()) {
-            return yield_extend(function(_y_x10328_1) {
-              return _mlift_infer_12723(_x144.type_ann, x_149_14134.snd, n_151, _x144.name, _y_x10328_1);
+            return yield_extend(function(_y_x10331_1) {
+              return _mlift_infer_12792(_x144.type_ann, x_149_14215.snd, n_151, _x144.name, _y_x10331_1);
             });
           } else {
             var body_type_4 = _open_none1(function(n_1_0) {
               return n_1_0.typ !== null ? n_1_0.typ.value : TUnit;
-            }, x_152_14142.snd);
-            var _x_x1_15_11708_0 = _open_none1(function(node_4_0) {
+            }, x_152_14223.snd);
+            var _x_x1_15_11748_0 = _open_none1(function(node_4_0) {
               return node_4_0.span;
             }, n_151);
-            return Tuple2(x_152_14142.fst, _open_none3(function(span_5_0, expr_5_0, typ_5_0) {
+            return Tuple2(x_152_14223.fst, _open_none3(function(span_5_0, expr_5_0, typ_5_0) {
               var _x163 = typ_5_0 !== void 0 ? typ_5_0 : Nothing;
               return Node(span_5_0, expr_5_0, _x163);
-            }, _x_x1_15_11708_0, Let(_x144.name, _x144.type_ann, x_149_14134.snd, x_152_14142.snd), Just(body_type_4)));
+            }, _x_x1_15_11748_0, Let(_x144.name, _x144.type_ann, x_149_14215.snd, x_152_14223.snd), Just(body_type_4)));
           }
         }
       }
     } else if (_x144._tag === 4) {
-      var x_153_14145 = infer(env_49, s_152, _x144.init);
+      var x_153_14226 = infer(env_49, s_152, _x144.init);
       if (_yielding()) {
-        return yield_extend(function(_y_x10331_0) {
-          return _mlift_infer_12730(_x144.type_ann, _x144.body, env_49, _x144.init, n_151, _x144.name, _y_x10331_0);
+        return yield_extend(function(_y_x10334_0) {
+          return _mlift_infer_12799(_x144.type_ann, _x144.body, env_49, _x144.init, n_151, _x144.name, _y_x10334_0);
         });
       } else {
         var init_type_0_2 = _open_none1(function(n_2_1) {
           return n_2_1.typ !== null ? n_2_1.typ.value : TUnit;
-        }, x_153_14145.snd);
+        }, x_153_14226.snd);
         if (_x144.type_ann !== null) {
-          var _x_x3_8_11715_0 = _open_none1(function(node_6_0) {
+          var _x_x3_8_11755_0 = _open_none1(function(node_6_0) {
             return node_6_0.span;
           }, _x144.init);
-          var x_155_14151 = _open_at3(0, unify, init_type_0_2, _x144.type_ann.value, _x_x3_8_11715_0);
+          var x_155_14232 = _open_at3(0, unify, init_type_0_2, _x144.type_ann.value, _x_x3_8_11755_0);
           if (_yielding()) {
-            var x_154_14148 = yield_extend(function(_y_x10332_1) {
-              return _mlift_infer_12728(x_153_14145.fst, _y_x10332_1);
+            var x_154_14229 = yield_extend(function(_y_x10335_1) {
+              return _mlift_infer_12797(x_153_14226.fst, _y_x10335_1);
             });
           } else {
-            var x_154_14148 = _mlift_infer_12728(x_153_14145.fst, x_155_14151);
+            var x_154_14229 = _mlift_infer_12797(x_153_14226.fst, x_155_14232);
           }
         } else {
-          var x_154_14148 = x_153_14145.fst;
+          var x_154_14229 = x_153_14226.fst;
         }
         if (_yielding()) {
-          return yield_extend(function(_c_x10333_1) {
-            return _mlift_infer_12729(_x144.type_ann, _x144.body, env_49, init_type_0_2, x_153_14145.snd, n_151, _x144.name, _c_x10333_1);
+          return yield_extend(function(_c_x10336_1) {
+            return _mlift_infer_12798(_x144.type_ann, _x144.body, env_49, init_type_0_2, x_153_14226.snd, n_151, _x144.name, _c_x10336_1);
           });
         } else {
-          var bound_type_0_0 = _open_none2(apply_subst, x_154_14148, init_type_0_2);
-          var x_156_14153 = infer(Cons(Tuple2(_x144.name, bound_type_0_0), env_49), x_154_14148, _x144.body);
+          var bound_type_0_0 = _open_none2(apply_subst, x_154_14229, init_type_0_2);
+          var x_156_14234 = infer(Cons(Tuple2(_x144.name, bound_type_0_0), env_49), x_154_14229, _x144.body);
           if (_yielding()) {
-            return yield_extend(function(_y_x10334_1) {
-              return _mlift_infer_12727(_x144.type_ann, x_153_14145.snd, n_151, _x144.name, _y_x10334_1);
+            return yield_extend(function(_y_x10337_1) {
+              return _mlift_infer_12796(_x144.type_ann, x_153_14226.snd, n_151, _x144.name, _y_x10337_1);
             });
           } else {
             var body_type_0_0 = _open_none1(function(n_3_1) {
               return n_3_1.typ !== null ? n_3_1.typ.value : TUnit;
-            }, x_156_14153.snd);
-            var _x_x1_23_11722_0 = _open_none1(function(node_8_0) {
+            }, x_156_14234.snd);
+            var _x_x1_23_11762_0 = _open_none1(function(node_8_0) {
               return node_8_0.span;
             }, n_151);
-            return Tuple2(x_156_14153.fst, _open_none3(function(span_6_0, expr_6_0, typ_6_0) {
+            return Tuple2(x_156_14234.fst, _open_none3(function(span_6_0, expr_6_0, typ_6_0) {
               var _x164 = typ_6_0 !== void 0 ? typ_6_0 : Nothing;
               return Node(span_6_0, expr_6_0, _x164);
-            }, _x_x1_23_11722_0, VarDecl(_x144.name, _x144.type_ann, x_153_14145.snd, x_156_14153.snd), Just(body_type_0_0)));
+            }, _x_x1_23_11762_0, VarDecl(_x144.name, _x144.type_ann, x_153_14226.snd, x_156_14234.snd), Just(body_type_0_0)));
           }
         }
       }
     } else if (_x144._tag === 5) {
-      var _x_x3_10_11728 = _open_none1(function(node_9) {
+      var _x_x3_10_11768 = _open_none1(function(node_9) {
         return node_9.span;
       }, n_151);
-      var x_157_14156 = _open3(unvlist(Cons(0, Cons(1, Nil))), env_fs_lookup, env_49, _x144.name, _x_x3_10_11728);
+      var x_157_14237 = _open3(unvlist(Cons(0, Cons(1, Nil))), env_fs_lookup, env_49, _x144.name, _x_x3_10_11768);
       if (_yielding()) {
         return yield_extend(function(var_type_1) {
-          return _mlift_infer_12733(env_49, n_151, _x144.name, s_152, _x144.value, var_type_1);
+          return _mlift_infer_12802(env_49, n_151, _x144.name, s_152, _x144.value, var_type_1);
         });
       } else {
-        var x_158_14159 = infer(env_49, s_152, _x144.value);
+        var x_158_14240 = infer(env_49, s_152, _x144.value);
         if (_yielding()) {
-          return yield_extend(function(_y_x10338_1) {
-            return _mlift_infer_12732(n_151, _x144.name, _x144.value, x_157_14156, _y_x10338_1);
+          return yield_extend(function(_y_x10341_1) {
+            return _mlift_infer_12801(n_151, _x144.name, _x144.value, x_157_14237, _y_x10341_1);
           });
         } else {
-          var _x_x2_16_11731_0 = _open_none1(function(n_4_1) {
+          var _x_x2_16_11771_0 = _open_none1(function(n_4_1) {
             return n_4_1.typ !== null ? n_4_1.typ.value : TUnit;
-          }, x_158_14159.snd);
-          var value_type_0 = _open_none2(apply_subst, x_158_14159.fst, _x_x2_16_11731_0);
-          var _x_x3_11_11735_0 = _open_none1(function(node_11_0) {
+          }, x_158_14240.snd);
+          var value_type_0 = _open_none2(apply_subst, x_158_14240.fst, _x_x2_16_11771_0);
+          var _x_x3_11_11775_0 = _open_none1(function(node_11_0) {
             return node_11_0.span;
           }, _x144.value);
-          var x_159_14162 = _open_at3(0, unify, x_157_14156, value_type_0, _x_x3_11_11735_0);
+          var x_159_14243 = _open_at3(0, unify, x_157_14237, value_type_0, _x_x3_11_11775_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10339_1) {
-              return _mlift_infer_12731(n_151, _x144.name, x_158_14159.fst, x_158_14159.snd, _y_x10339_1);
+            return yield_extend(function(_y_x10342_1) {
+              return _mlift_infer_12800(n_151, _x144.name, x_158_14240.fst, x_158_14240.snd, _y_x10342_1);
             });
           } else {
             var s2_1_0_0 = _open_none2(function(s1_2_1, s2_2_1) {
               var updated_s2_1_0 = _trmc_map_subst(s2_2_1, function(k_2_0, v_1_1) {
                 return Tuple2(k_2_0, _trmc_apply_subst(s1_2_1, v_1_1, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_1_0 = _trmc_filter_subst(updated_s2_1_0, function(k_0_1_0, ___wildcard_x120__39_1_0) {
+              var ys_10006_1_0 = _trmc_filter_subst(updated_s2_1_0, function(k_0_1_0, ___wildcard_x136__39_1_0) {
                 var b_10007_1_0 = subst_has(s1_2_1, k_0_1_0);
                 return b_10007_1_0 ? false : true;
               }, _cctx_empty());
               return append(s1_2_1, ys_10006_1_0);
-            }, x_159_14162, x_158_14159.fst);
-            var _x_x1_32_11739_0 = _open_none1(function(node_12_0) {
+            }, x_159_14243, x_158_14240.fst);
+            var _x_x1_32_11779_0 = _open_none1(function(node_12_0) {
               return node_12_0.span;
             }, n_151);
             return Tuple2(s2_1_0_0, _open_none3(function(span_7_0, expr_7_0, typ_7_0) {
               var _x165 = typ_7_0 !== void 0 ? typ_7_0 : Nothing;
               return Node(span_7_0, expr_7_0, _x165);
-            }, _x_x1_32_11739_0, Assign(_x144.name, x_158_14159.snd), Just(TUnit)));
+            }, _x_x1_32_11779_0, Assign(_x144.name, x_158_14240.snd), Just(TUnit)));
           }
         }
       }
     } else if (_x144._tag === 11) {
-      var x_160_14171 = infer_stmts(env_49, s_152, _x144.stmts);
+      var x_160_14252 = infer_stmts(env_49, s_152, _x144.stmts);
       if (_yielding()) {
-        return yield_extend(function(_y_x10341_0) {
-          return _mlift_infer_12734(n_151, _y_x10341_0);
+        return yield_extend(function(_y_x10344_0) {
+          return _mlift_infer_12803(n_151, _y_x10344_0);
         });
       } else {
-        var _x_x1_34_11743_0 = _open_none1(function(node_13_0) {
+        var _x_x1_34_11783_0 = _open_none1(function(node_13_0) {
           return node_13_0.span;
         }, n_151);
-        return Tuple2(x_160_14171.fst, _open_none3(function(span_8_0, expr_8_0, typ_8_0) {
+        return Tuple2(x_160_14252.fst, _open_none3(function(span_8_0, expr_8_0, typ_8_0) {
           var _x166 = typ_8_0 !== void 0 ? typ_8_0 : Nothing;
           return Node(span_8_0, expr_8_0, _x166);
-        }, _x_x1_34_11743_0, Block(x_160_14171.snd), Just(x_160_14171.thd)));
+        }, _x_x1_34_11783_0, Block(x_160_14252.snd), Just(x_160_14252.thd)));
       }
     } else if (_x144._tag === 6) {
-      var x_161_14174 = map(_x144.params, function(___wildcard_x370__39) {
+      var x_161_14255 = map(_x144.params, function(___wildcard_x386__39) {
         return _open_at0(1, function() {
-          var ev_22_14177 = _evv_at(0);
-          return ev_22_14177.hnd._fun_fresh_tvar(ev_22_14177.marker, ev_22_14177);
+          var ev_22_14258 = _evv_at(0);
+          return ev_22_14258.hnd._fun_fresh_tvar(ev_22_14258.marker, ev_22_14258);
         });
       });
       if (_yielding()) {
         return yield_extend(function(param_types_2) {
-          return _mlift_infer_12738(_x144.body, env_49, n_151, _x144.params, s_152, param_types_2);
+          return _mlift_infer_12807(_x144.body, env_49, n_151, _x144.params, s_152, param_types_2);
         });
       } else {
-        var x_162_14179 = foldl(zip(_x144.params, x_161_14174), env_49, function(e_3, entry_1) {
+        var x_162_14260 = foldl(zip(_x144.params, x_161_14255), env_49, function(e_3, entry_1) {
           return Cons(Tuple2(entry_1.fst, entry_1.snd), e_3);
         });
         if (_yielding()) {
           return yield_extend(function(fun_env_1) {
-            return _mlift_infer_12737(_x144.body, n_151, x_161_14174, _x144.params, s_152, fun_env_1);
+            return _mlift_infer_12806(_x144.body, n_151, x_161_14255, _x144.params, s_152, fun_env_1);
           });
         } else {
-          var x_163_14182 = infer(x_162_14179, s_152, _x144.body);
+          var x_163_14263 = infer(x_162_14260, s_152, _x144.body);
           if (_yielding()) {
-            return yield_extend(function(_y_x10348_1) {
-              return _mlift_infer_12736(n_151, x_161_14174, _x144.params, _y_x10348_1);
+            return yield_extend(function(_y_x10351_1) {
+              return _mlift_infer_12805(n_151, x_161_14255, _x144.params, _y_x10351_1);
             });
           } else {
-            var x_164_14185 = map(x_161_14174, function(t_1_0_0) {
-              return _open_none2(apply_subst, x_163_14182.fst, t_1_0_0);
+            var x_164_14266 = map(x_161_14255, function(t_1_0_0) {
+              return _open_none2(apply_subst, x_163_14263.fst, t_1_0_0);
             });
             if (_yielding()) {
               return yield_extend(function(resolved_params_1) {
-                return _mlift_infer_12735(x_163_14182.snd, n_151, _x144.params, x_163_14182.fst, resolved_params_1);
+                return _mlift_infer_12804(x_163_14263.snd, n_151, _x144.params, x_163_14263.fst, resolved_params_1);
               });
             } else {
-              var _x_x2_22_11750_0 = _open_none1(function(n_5_1) {
+              var _x_x2_22_11790_0 = _open_none1(function(n_5_1) {
                 return n_5_1.typ !== null ? n_5_1.typ.value : TUnit;
-              }, x_163_14182.snd);
-              var ret_type_0 = _open_none2(apply_subst, x_163_14182.fst, _x_x2_22_11750_0);
-              var _x_x1_39_11752_0 = _open_none1(function(node_15_0) {
+              }, x_163_14263.snd);
+              var ret_type_0 = _open_none2(apply_subst, x_163_14263.fst, _x_x2_22_11790_0);
+              var _x_x1_39_11792_0 = _open_none1(function(node_15_0) {
                 return node_15_0.span;
               }, n_151);
-              return Tuple2(x_163_14182.fst, _open_none3(function(span_9_0, expr_9_0, typ_9_0) {
+              return Tuple2(x_163_14263.fst, _open_none3(function(span_9_0, expr_9_0, typ_9_0) {
                 var _x167 = typ_9_0 !== void 0 ? typ_9_0 : Nothing;
                 return Node(span_9_0, expr_9_0, _x167);
-              }, _x_x1_39_11752_0, Fun(_x144.params, x_163_14182.snd), Just(TFun(x_164_14185, ret_type_0))));
+              }, _x_x1_39_11792_0, Fun(_x144.params, x_163_14263.snd), Just(TFun(x_164_14266, ret_type_0))));
             }
           }
         }
       }
     } else if (_x144._tag === 7) {
-      var x_165_14188 = infer(env_49, s_152, _x144.callee);
+      var x_165_14269 = infer(env_49, s_152, _x144.callee);
       if (_yielding()) {
-        return yield_extend(function(_y_x10351_0) {
-          return _mlift_infer_12743(_x144.args, env_49, n_151, _y_x10351_0);
+        return yield_extend(function(_y_x10354_0) {
+          return _mlift_infer_12812(_x144.args, env_49, n_151, _y_x10354_0);
         });
       } else {
-        var x_166_14191 = infer_args(env_49, x_165_14188.fst, _x144.args);
+        var x_166_14272 = infer_args(env_49, x_165_14269.fst, _x144.args);
         if (_yielding()) {
-          return yield_extend(function(_y_x10352_1) {
-            return _mlift_infer_12742(x_165_14188.snd, n_151, _y_x10352_1);
+          return yield_extend(function(_y_x10355_1) {
+            return _mlift_infer_12811(x_165_14269.snd, n_151, _y_x10355_1);
           });
         } else {
-          var _x_x2_24_11757_0 = _open_none1(function(n_6_1) {
+          var _x_x2_24_11797_0 = _open_none1(function(n_6_1) {
             return n_6_1.typ !== null ? n_6_1.typ.value : TUnit;
-          }, x_165_14188.snd);
-          var callee_type_2 = _open_none2(apply_subst, x_166_14191.fst, _x_x2_24_11757_0);
-          var x_167_14194 = map(x_166_14191.snd, function(a_0) {
-            var _x_x2_25_11760_0 = _open_none1(function(n_7_1) {
+          }, x_165_14269.snd);
+          var callee_type_2 = _open_none2(apply_subst, x_166_14272.fst, _x_x2_24_11797_0);
+          var x_167_14275 = map(x_166_14272.snd, function(a_0) {
+            var _x_x2_25_11800_0 = _open_none1(function(n_7_1) {
               return n_7_1.typ !== null ? n_7_1.typ.value : TUnit;
             }, a_0);
-            return _open_none2(apply_subst, x_166_14191.fst, _x_x2_25_11760_0);
+            return _open_none2(apply_subst, x_166_14272.fst, _x_x2_25_11800_0);
           });
           if (_yielding()) {
             return yield_extend(function(arg_types_2) {
-              return _mlift_infer_12741(x_166_14191.snd, x_165_14188.snd, callee_type_2, n_151, x_166_14191.fst, arg_types_2);
+              return _mlift_infer_12810(x_166_14272.snd, x_165_14269.snd, callee_type_2, n_151, x_166_14272.fst, arg_types_2);
             });
           } else {
-            var x_168_14197 = _open_at0(1, function() {
-              var ev_23_14200 = _evv_at(0);
-              return ev_23_14200.hnd._fun_fresh_tvar(ev_23_14200.marker, ev_23_14200);
+            var x_168_14278 = _open_at0(1, function() {
+              var ev_23_14281 = _evv_at(0);
+              return ev_23_14281.hnd._fun_fresh_tvar(ev_23_14281.marker, ev_23_14281);
             });
             if (_yielding()) {
               return yield_extend(function(ret_var_2) {
-                return _mlift_infer_12740(x_167_14194, x_166_14191.snd, x_165_14188.snd, callee_type_2, n_151, x_166_14191.fst, ret_var_2);
+                return _mlift_infer_12809(x_167_14275, x_166_14272.snd, x_165_14269.snd, callee_type_2, n_151, x_166_14272.fst, ret_var_2);
               });
             } else {
-              var _x_x3_15_11764_0 = _open_none1(function(node_18_0) {
+              var _x_x3_15_11804_0 = _open_none1(function(node_18_0) {
                 return node_18_0.span;
               }, n_151);
-              var x_169_14202 = _open_at3(0, unify, callee_type_2, TFun(x_167_14194, x_168_14197), _x_x3_15_11764_0);
+              var x_169_14283 = _open_at3(0, unify, callee_type_2, TFun(x_167_14275, x_168_14278), _x_x3_15_11804_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10356_1) {
-                  return _mlift_infer_12739(x_166_14191.snd, x_165_14188.snd, n_151, x_168_14197, x_166_14191.fst, _y_x10356_1);
+                return yield_extend(function(_y_x10359_1) {
+                  return _mlift_infer_12808(x_166_14272.snd, x_165_14269.snd, n_151, x_168_14278, x_166_14272.fst, _y_x10359_1);
                 });
               } else {
                 var s3_1_0 = _open_none2(function(s1_4_1, s2_3_1) {
                   var updated_s2_2_0 = _trmc_map_subst(s2_3_1, function(k_3_0, v_2_0) {
                     return Tuple2(k_3_0, _trmc_apply_subst(s1_4_1, v_2_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_2_0 = _trmc_filter_subst(updated_s2_2_0, function(k_0_2_0, ___wildcard_x120__39_2_0) {
+                  var ys_10006_2_0 = _trmc_filter_subst(updated_s2_2_0, function(k_0_2_0, ___wildcard_x136__39_2_0) {
                     var b_10007_2_0 = subst_has(s1_4_1, k_0_2_0);
                     return b_10007_2_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_4_1, ys_10006_2_0);
-                }, x_169_14202, x_166_14191.fst);
-                var result_type_1 = _open_none2(apply_subst, s3_1_0, x_168_14197);
-                var _x_x1_49_11770_0 = _open_none1(function(node_19_0) {
+                }, x_169_14283, x_166_14272.fst);
+                var result_type_1 = _open_none2(apply_subst, s3_1_0, x_168_14278);
+                var _x_x1_49_11810_0 = _open_none1(function(node_19_0) {
                   return node_19_0.span;
                 }, n_151);
                 return Tuple2(s3_1_0, _open_none3(function(span_10_0, expr_10_0, typ_10_0) {
                   var _x168 = typ_10_0 !== void 0 ? typ_10_0 : Nothing;
                   return Node(span_10_0, expr_10_0, _x168);
-                }, _x_x1_49_11770_0, Call(x_165_14188.snd, x_166_14191.snd), Just(result_type_1)));
+                }, _x_x1_49_11810_0, Call(x_165_14269.snd, x_166_14272.snd), Just(result_type_1)));
               }
             }
           }
         }
       }
     } else if (_x144._tag === 8) {
-      var x_170_14211 = infer(env_49, s_152, _x144.lhs);
+      var x_170_14292 = infer(env_49, s_152, _x144.lhs);
       if (_yielding()) {
-        return yield_extend(function(_y_x10359_0) {
-          return _mlift_infer_12758(env_49, _x144.lhs, n_151, _x144.op, _x144.rhs, _y_x10359_0);
+        return yield_extend(function(_y_x10362_0) {
+          return _mlift_infer_12827(env_49, _x144.lhs, n_151, _x144.op, _x144.rhs, _y_x10362_0);
         });
       } else {
-        var x_171_14214 = infer(env_49, x_170_14211.fst, _x144.rhs);
+        var x_171_14295 = infer(env_49, x_170_14292.fst, _x144.rhs);
         if (_yielding()) {
-          return yield_extend(function(_y_x10360_1) {
-            return _mlift_infer_12757(_x144.lhs, x_170_14211.snd, n_151, _x144.op, _x144.rhs, _y_x10360_1);
+          return yield_extend(function(_y_x10363_1) {
+            return _mlift_infer_12826(_x144.lhs, x_170_14292.snd, n_151, _x144.op, _x144.rhs, _y_x10363_1);
           });
         } else {
-          var _x_x2_30_11775_0 = _open_none1(function(n_8_1) {
+          var _x_x2_30_11815_0 = _open_none1(function(n_8_1) {
             return n_8_1.typ !== null ? n_8_1.typ.value : TUnit;
-          }, x_170_14211.snd);
-          var lt_5 = _open_none2(apply_subst, x_171_14214.fst, _x_x2_30_11775_0);
-          var _x_x2_31_11778_0 = _open_none1(function(n_9_1) {
+          }, x_170_14292.snd);
+          var lt_5 = _open_none2(apply_subst, x_171_14295.fst, _x_x2_30_11815_0);
+          var _x_x2_31_11818_0 = _open_none1(function(n_9_1) {
             return n_9_1.typ !== null ? n_9_1.typ.value : TUnit;
-          }, x_171_14214.snd);
-          var rt_1 = _open_none2(apply_subst, x_171_14214.fst, _x_x2_31_11778_0);
+          }, x_171_14295.snd);
+          var rt_1 = _open_none2(apply_subst, x_171_14295.fst, _x_x2_31_11818_0);
           if (_x144.op === 1) {
-            var _x_x3_17_11782_0 = _open_none1(function(node_22_0) {
+            var _x_x3_17_11822_0 = _open_none1(function(node_22_0) {
               return node_22_0.span;
             }, n_151);
-            var x_173_14220 = _open_at3(0, unify, lt_5, rt_1, _x_x3_17_11782_0);
+            var x_173_14301 = _open_at3(0, unify, lt_5, rt_1, _x_x3_17_11822_0);
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(_y_x10361_1) {
-                return _mlift_infer_12746(lt_5, n_151, x_171_14214.fst, _y_x10361_1);
+              var x_172_14298 = yield_extend(function(_y_x10364_1) {
+                return _mlift_infer_12815(lt_5, n_151, x_171_14295.fst, _y_x10364_1);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12746(lt_5, n_151, x_171_14214.fst, x_173_14220);
+              var x_172_14298 = _mlift_infer_12815(lt_5, n_151, x_171_14295.fst, x_173_14301);
             }
           } else if (_x144.op === 2) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 3) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 4) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 5) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_numeric_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 6) {
-            var _x_x3_23_11824_0 = _open_none1(function(node_25_0) {
+            var _x_x3_23_11864_0 = _open_none1(function(node_25_0) {
               return node_25_0.span;
             }, n_151);
-            var x_174_14222 = _open_at3(0, unify, lt_5, rt_1, _x_x3_23_11824_0);
+            var x_174_14303 = _open_at3(0, unify, lt_5, rt_1, _x_x3_23_11864_0);
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(_y_x10369_1) {
-                return _mlift_infer_12747(x_171_14214.fst, _y_x10369_1);
+              var x_172_14298 = yield_extend(function(_y_x10372_1) {
+                return _mlift_infer_12816(x_171_14295.fst, _y_x10372_1);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12747(x_171_14214.fst, x_174_14222);
+              var x_172_14298 = _mlift_infer_12816(x_171_14295.fst, x_174_14303);
             }
           } else if (_x144.op === 7) {
-            var _x_x3_24_11830_0 = _open_none1(function(node_26_0) {
+            var _x_x3_24_11870_0 = _open_none1(function(node_26_0) {
               return node_26_0.span;
             }, n_151);
-            var x_175_14224 = _open_at3(0, unify, lt_5, rt_1, _x_x3_24_11830_0);
+            var x_175_14305 = _open_at3(0, unify, lt_5, rt_1, _x_x3_24_11870_0);
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(_y_x10370_1) {
-                return _mlift_infer_12748(x_171_14214.fst, _y_x10370_1);
+              var x_172_14298 = yield_extend(function(_y_x10373_1) {
+                return _mlift_infer_12817(x_171_14295.fst, _y_x10373_1);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12748(x_171_14214.fst, x_175_14224);
+              var x_172_14298 = _mlift_infer_12817(x_171_14295.fst, x_175_14305);
             }
           } else if (_x144.op === 8) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 9) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 10) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 11) {
-            var x_172_14217 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
-              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14214.fst);
+            var x_172_14298 = _open0(unvlist(Cons(0, Cons(1, Nil))), function() {
+              return infer_comparison_op(lt_5, rt_1, _x144.lhs, _x144.rhs, n_151, x_171_14295.fst);
             });
           } else if (_x144.op === 12) {
-            var _x_x3_29_11860_0 = _open_none1(function(node_27_0) {
+            var _x_x3_29_11900_0 = _open_none1(function(node_27_0) {
               return node_27_0.span;
             }, _x144.rhs);
-            var x_176_14226 = _open_at3(0, unify, rt_1, TBool, _x_x3_29_11860_0);
+            var x_176_14307 = _open_at3(0, unify, rt_1, TBool, _x_x3_29_11900_0);
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(_y_x10375_2) {
-                return _mlift_infer_12750(_x144.lhs, lt_5, x_171_14214.fst, _y_x10375_2);
+              var x_172_14298 = yield_extend(function(_y_x10378_2) {
+                return _mlift_infer_12819(_x144.lhs, lt_5, x_171_14295.fst, _y_x10378_2);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12750(_x144.lhs, lt_5, x_171_14214.fst, x_176_14226);
+              var x_172_14298 = _mlift_infer_12819(_x144.lhs, lt_5, x_171_14295.fst, x_176_14307);
             }
           } else if (_x144.op === 13) {
-            var _x_x3_31_11872_0 = _open_none1(function(node_29_0) {
+            var _x_x3_31_11912_0 = _open_none1(function(node_29_0) {
               return node_29_0.span;
             }, _x144.rhs);
-            var x_177_14228 = _open_at3(0, unify, rt_1, TBool, _x_x3_31_11872_0);
+            var x_177_14309 = _open_at3(0, unify, rt_1, TBool, _x_x3_31_11912_0);
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(_y_x10377_2) {
-                return _mlift_infer_12752(_x144.lhs, lt_5, x_171_14214.fst, _y_x10377_2);
+              var x_172_14298 = yield_extend(function(_y_x10380_2) {
+                return _mlift_infer_12821(_x144.lhs, lt_5, x_171_14295.fst, _y_x10380_2);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12752(_x144.lhs, lt_5, x_171_14214.fst, x_177_14228);
+              var x_172_14298 = _mlift_infer_12821(_x144.lhs, lt_5, x_171_14295.fst, x_177_14309);
             }
           } else {
-            var x_178_14230 = _open_at0(1, function() {
-              var ev_24_14232 = _evv_at(0);
-              return ev_24_14232.hnd._fun_fresh_tvar(ev_24_14232.marker, ev_24_14232);
+            var x_178_14311 = _open_at0(1, function() {
+              var ev_24_14313 = _evv_at(0);
+              return ev_24_14313.hnd._fun_fresh_tvar(ev_24_14313.marker, ev_24_14313);
             });
             if (_yielding()) {
-              var x_172_14217 = yield_extend(function(elem_var_4) {
-                return _mlift_infer_12755(_x144.lhs, lt_5, _x144.rhs, rt_1, x_171_14214.fst, elem_var_4);
+              var x_172_14298 = yield_extend(function(elem_var_4) {
+                return _mlift_infer_12824(_x144.lhs, lt_5, _x144.rhs, rt_1, x_171_14295.fst, elem_var_4);
               });
             } else {
-              var x_172_14217 = _mlift_infer_12755(_x144.lhs, lt_5, _x144.rhs, rt_1, x_171_14214.fst, x_178_14230);
+              var x_172_14298 = _mlift_infer_12824(_x144.lhs, lt_5, _x144.rhs, rt_1, x_171_14295.fst, x_178_14311);
             }
           }
           if (_yielding()) {
-            return yield_extend(function(_c_x10383_1) {
-              return _mlift_infer_12756(x_170_14211.snd, n_151, _x144.op, x_171_14214.snd, _c_x10383_1);
+            return yield_extend(function(_c_x10386_1) {
+              return _mlift_infer_12825(x_170_14292.snd, n_151, _x144.op, x_171_14295.snd, _c_x10386_1);
             });
           } else {
-            var _x_x1_98_11896_0 = _open_none1(function(node_33_0) {
+            var _x_x1_98_11936_0 = _open_none1(function(node_33_0) {
               return node_33_0.span;
             }, n_151);
-            return Tuple2(x_172_14217.fst, _open_none3(function(span_11_0, expr_11_0, typ_11_0) {
+            return Tuple2(x_172_14298.fst, _open_none3(function(span_11_0, expr_11_0, typ_11_0) {
               var _x169 = typ_11_0 !== void 0 ? typ_11_0 : Nothing;
               return Node(span_11_0, expr_11_0, _x169);
-            }, _x_x1_98_11896_0, Binary(_x144.op, x_170_14211.snd, x_171_14214.snd), Just(x_172_14217.snd)));
+            }, _x_x1_98_11936_0, Binary(_x144.op, x_170_14292.snd, x_171_14295.snd), Just(x_172_14298.snd)));
           }
         }
       }
     } else if (_x144._tag === 9) {
-      var x_179_14234 = infer(env_49, s_152, _x144.operand);
+      var x_179_14315 = infer(env_49, s_152, _x144.operand);
       if (_yielding()) {
-        return yield_extend(function(_y_x10387_0) {
-          return _mlift_infer_12763(n_151, _x144.op, _x144.operand, _y_x10387_0);
+        return yield_extend(function(_y_x10390_0) {
+          return _mlift_infer_12832(n_151, _x144.op, _x144.operand, _y_x10390_0);
         });
       } else {
-        var _x_x2_64_11901_0 = _open_none1(function(n_10_1) {
+        var _x_x2_64_11941_0 = _open_none1(function(n_10_1) {
           return n_10_1.typ !== null ? n_10_1.typ.value : TUnit;
-        }, x_179_14234.snd);
-        var ot_1 = _open_none2(apply_subst, x_179_14234.fst, _x_x2_64_11901_0);
+        }, x_179_14315.snd);
+        var ot_1 = _open_none2(apply_subst, x_179_14315.fst, _x_x2_64_11941_0);
         if (_x144.op === 1) {
-          var _x_x3_36_11905_0 = _open_none1(function(node_35_0) {
+          var _x_x3_36_11945_0 = _open_none1(function(node_35_0) {
             return node_35_0.span;
           }, _x144.operand);
-          var x_180_14237 = _open_at3(0, unify, ot_1, ot_1, _x_x3_36_11905_0);
+          var x_180_14318 = _open_at3(0, unify, ot_1, ot_1, _x_x3_36_11945_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10388_1) {
-              return _mlift_infer_12761(n_151, _x144.op, _x144.operand, x_179_14234.snd, ot_1, x_179_14234.fst, _y_x10388_1);
+            return yield_extend(function(_y_x10391_1) {
+              return _mlift_infer_12830(n_151, _x144.op, _x144.operand, x_179_14315.snd, ot_1, x_179_14315.fst, _y_x10391_1);
             });
           } else {
             var s_u_2 = _open_none2(function(s1_15_1, s2_14_1) {
               var updated_s2_13_0 = _trmc_map_subst(s2_14_1, function(k_14_0, v_13_0) {
                 return Tuple2(k_14_0, _trmc_apply_subst(s1_15_1, v_13_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_13_0 = _trmc_filter_subst(updated_s2_13_0, function(k_0_13_0, ___wildcard_x120__39_13_0) {
+              var ys_10006_13_0 = _trmc_filter_subst(updated_s2_13_0, function(k_0_13_0, ___wildcard_x136__39_13_0) {
                 var b_10007_13_0 = subst_has(s1_15_1, k_0_13_0);
                 return b_10007_13_0 ? false : true;
               }, _cctx_empty());
               return append(s1_15_1, ys_10006_13_0);
-            }, x_180_14237, x_179_14234.fst);
+            }, x_180_14318, x_179_14315.fst);
             var resolved_1_0 = _open_none2(apply_subst, s_u_2, ot_1);
             if (resolved_1_0._tag === 1) {
-              var _x_x1_106_11911_0 = _open_none1(function(node_36_0) {
+              var _x_x1_106_11951_0 = _open_none1(function(node_36_0) {
                 return node_36_0.span;
               }, n_151);
               return Tuple2(s_u_2, _open_none3(function(span_12_0, expr_12_0, typ_12_0) {
                 var _x170 = typ_12_0 !== void 0 ? typ_12_0 : Nothing;
                 return Node(span_12_0, expr_12_0, _x170);
-              }, _x_x1_106_11911_0, Unary(_x144.op, x_179_14234.snd), Just(TInt)));
+              }, _x_x1_106_11951_0, Unary(_x144.op, x_179_14315.snd), Just(TInt)));
             } else if (resolved_1_0._tag === 2) {
-              var _x_x1_108_11915_0 = _open_none1(function(node_37_0) {
+              var _x_x1_108_11955_0 = _open_none1(function(node_37_0) {
                 return node_37_0.span;
               }, n_151);
               return Tuple2(s_u_2, _open_none3(function(span_13_0, expr_13_0, typ_13_0) {
                 var _x171 = typ_13_0 !== void 0 ? typ_13_0 : Nothing;
                 return Node(span_13_0, expr_13_0, _x171);
-              }, _x_x1_108_11915_0, Unary(_x144.op, x_179_14234.snd), Just(TFloat)));
+              }, _x_x1_108_11955_0, Unary(_x144.op, x_179_14315.snd), Just(TFloat)));
             } else if (resolved_1_0._tag === 14) {
-              var _x_x3_39_11921_0 = _open_none1(function(node_38_0) {
+              var _x_x3_39_11961_0 = _open_none1(function(node_38_0) {
                 return node_38_0.span;
               }, _x144.operand);
-              var x_181_14246 = _open_at3(0, unify, resolved_1_0, TInt, _x_x3_39_11921_0);
+              var x_181_14327 = _open_at3(0, unify, resolved_1_0, TInt, _x_x3_39_11961_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10389_1) {
-                  return _mlift_infer_12759(n_151, _x144.op, x_179_14234.snd, s_u_2, _y_x10389_1);
+                return yield_extend(function(_y_x10392_1) {
+                  return _mlift_infer_12828(n_151, _x144.op, x_179_14315.snd, s_u_2, _y_x10392_1);
                 });
               } else {
                 var s2_4_0_1 = _open_none2(function(s1_16_1, s2_15_1) {
                   var updated_s2_14_0 = _trmc_map_subst(s2_15_1, function(k_15_0, v_14_0) {
                     return Tuple2(k_15_0, _trmc_apply_subst(s1_16_1, v_14_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_14_0 = _trmc_filter_subst(updated_s2_14_0, function(k_0_14_0, ___wildcard_x120__39_14_0) {
+                  var ys_10006_14_0 = _trmc_filter_subst(updated_s2_14_0, function(k_0_14_0, ___wildcard_x136__39_14_0) {
                     var b_10007_14_0 = subst_has(s1_16_1, k_0_14_0);
                     return b_10007_14_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_16_1, ys_10006_14_0);
-                }, x_181_14246, s_u_2);
-                var _x_x1_113_11925_0 = _open_none1(function(node_39_0) {
+                }, x_181_14327, s_u_2);
+                var _x_x1_113_11965_0 = _open_none1(function(node_39_0) {
                   return node_39_0.span;
                 }, n_151);
                 return Tuple2(s2_4_0_1, _open_none3(function(span_14_0, expr_14_0, typ_14_0) {
                   var _x172 = typ_14_0 !== void 0 ? typ_14_0 : Nothing;
                   return Node(span_14_0, expr_14_0, _x172);
-                }, _x_x1_113_11925_0, Unary(_x144.op, x_179_14234.snd), Just(TInt)));
+                }, _x_x1_113_11965_0, Unary(_x144.op, x_179_14315.snd), Just(TInt)));
               }
             } else {
-              var _x_x1_115_11929_0 = _open_none1(function(node_40_0) {
+              var _x_x1_115_11969_0 = _open_none1(function(node_40_0) {
                 return node_40_0.span;
               }, _x144.operand);
-              var _x_x2_73_11930_0 = _lp__plus__plus__rp_("operator - requires int or float operand, got ", _open_none1(hica_type_fs_show, resolved_1_0));
-              var x_182_14255 = _open_at2(0, emit_error, _x_x1_115_11929_0, _x_x2_73_11930_0);
+              var _x_x2_73_11970_0 = _lp__plus__plus__rp_("operator - requires int or float operand, got ", _open_none1(hica_type_fs_show, resolved_1_0));
+              var x_182_14336 = _open_at2(0, emit_error, _x_x1_115_11969_0, _x_x2_73_11970_0);
               if (_yielding()) {
                 return yield_extend(function(wild___0_2) {
-                  return _mlift_infer_12760(n_151, _x144.op, x_179_14234.snd, s_u_2, wild___0_2);
+                  return _mlift_infer_12829(n_151, _x144.op, x_179_14315.snd, s_u_2, wild___0_2);
                 });
               } else {
-                var _x_x1_118_11933_0 = _open_none1(function(node_41_0) {
+                var _x_x1_118_11973_0 = _open_none1(function(node_41_0) {
                   return node_41_0.span;
                 }, n_151);
                 return Tuple2(s_u_2, _open_none3(function(span_15_0, expr_15_0, typ_15_0) {
                   var _x173 = typ_15_0 !== void 0 ? typ_15_0 : Nothing;
                   return Node(span_15_0, expr_15_0, _x173);
-                }, _x_x1_118_11933_0, Unary(_x144.op, x_179_14234.snd), Just(TInt)));
+                }, _x_x1_118_11973_0, Unary(_x144.op, x_179_14315.snd), Just(TInt)));
               }
             }
           }
         } else {
-          var _x_x3_42_11939_0 = _open_none1(function(node_42_0) {
+          var _x_x3_42_11979_0 = _open_none1(function(node_42_0) {
             return node_42_0.span;
           }, _x144.operand);
-          var x_183_14258 = _open_at3(0, unify, ot_1, TBool, _x_x3_42_11939_0);
+          var x_183_14339 = _open_at3(0, unify, ot_1, TBool, _x_x3_42_11979_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10392_1) {
-              return _mlift_infer_12762(n_151, _x144.op, x_179_14234.snd, x_179_14234.fst, _y_x10392_1);
+            return yield_extend(function(_y_x10395_1) {
+              return _mlift_infer_12831(n_151, _x144.op, x_179_14315.snd, x_179_14315.fst, _y_x10395_1);
             });
           } else {
             var s2_4_0_0_0 = _open_none2(function(s1_17_1, s2_16_1) {
               var updated_s2_15_0 = _trmc_map_subst(s2_16_1, function(k_16_0, v_15_0) {
                 return Tuple2(k_16_0, _trmc_apply_subst(s1_17_1, v_15_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_15_0 = _trmc_filter_subst(updated_s2_15_0, function(k_0_15_0, ___wildcard_x120__39_15_0) {
+              var ys_10006_15_0 = _trmc_filter_subst(updated_s2_15_0, function(k_0_15_0, ___wildcard_x136__39_15_0) {
                 var b_10007_15_0 = subst_has(s1_17_1, k_0_15_0);
                 return b_10007_15_0 ? false : true;
               }, _cctx_empty());
               return append(s1_17_1, ys_10006_15_0);
-            }, x_183_14258, x_179_14234.fst);
-            var _x_x1_123_11943_0 = _open_none1(function(node_43_0) {
+            }, x_183_14339, x_179_14315.fst);
+            var _x_x1_123_11983_0 = _open_none1(function(node_43_0) {
               return node_43_0.span;
             }, n_151);
             return Tuple2(s2_4_0_0_0, _open_none3(function(span_16_0, expr_16_0, typ_16_0) {
               var _x174 = typ_16_0 !== void 0 ? typ_16_0 : Nothing;
               return Node(span_16_0, expr_16_0, _x174);
-            }, _x_x1_123_11943_0, Unary(_x144.op, x_179_14234.snd), Just(TBool)));
+            }, _x_x1_123_11983_0, Unary(_x144.op, x_179_14315.snd), Just(TBool)));
           }
         }
       }
     } else if (_x144._tag === 10) {
-      var x_184_14267 = infer(env_49, s_152, _x144.cond);
+      var x_184_14348 = infer(env_49, s_152, _x144.cond);
       if (_yielding()) {
-        return yield_extend(function(_y_x10395_0) {
-          return _mlift_infer_12768(_x144.cond, _x144.else_expr, env_49, n_151, _x144.then_expr, _y_x10395_0);
+        return yield_extend(function(_y_x10398_0) {
+          return _mlift_infer_12837(_x144.cond, _x144.else_expr, env_49, n_151, _x144.then_expr, _y_x10398_0);
         });
       } else {
-        var _x_x2_78_11948_0 = _open_none1(function(n_11_1) {
+        var _x_x2_78_11988_0 = _open_none1(function(n_11_1) {
           return n_11_1.typ !== null ? n_11_1.typ.value : TUnit;
-        }, x_184_14267.snd);
-        var cond_type_1 = _open_none2(apply_subst, x_184_14267.fst, _x_x2_78_11948_0);
-        var _x_x3_44_11952_0 = _open_none1(function(node_45_0) {
+        }, x_184_14348.snd);
+        var cond_type_1 = _open_none2(apply_subst, x_184_14348.fst, _x_x2_78_11988_0);
+        var _x_x3_44_11992_0 = _open_none1(function(node_45_0) {
           return node_45_0.span;
         }, _x144.cond);
-        var x_185_14270 = _open_at3(0, unify, cond_type_1, TBool, _x_x3_44_11952_0);
+        var x_185_14351 = _open_at3(0, unify, cond_type_1, TBool, _x_x3_44_11992_0);
         if (_yielding()) {
-          return yield_extend(function(_y_x10396_1) {
-            return _mlift_infer_12767(x_184_14267.snd, _x144.else_expr, env_49, n_151, x_184_14267.fst, _x144.then_expr, _y_x10396_1);
+          return yield_extend(function(_y_x10399_1) {
+            return _mlift_infer_12836(x_184_14348.snd, _x144.else_expr, env_49, n_151, x_184_14348.fst, _x144.then_expr, _y_x10399_1);
           });
         } else {
           var s2_5_0_0 = _open_none2(function(s1_18_1, s2_17_1) {
             var updated_s2_16_0 = _trmc_map_subst(s2_17_1, function(k_17_0, v_16_0) {
               return Tuple2(k_17_0, _trmc_apply_subst(s1_18_1, v_16_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_16_0 = _trmc_filter_subst(updated_s2_16_0, function(k_0_16_0, ___wildcard_x120__39_16_0) {
+            var ys_10006_16_0 = _trmc_filter_subst(updated_s2_16_0, function(k_0_16_0, ___wildcard_x136__39_16_0) {
               var b_10007_16_0 = subst_has(s1_18_1, k_0_16_0);
               return b_10007_16_0 ? false : true;
             }, _cctx_empty());
             return append(s1_18_1, ys_10006_16_0);
-          }, x_185_14270, x_184_14267.fst);
-          var x_186_14279 = infer(env_49, s2_5_0_0, _x144.then_expr);
+          }, x_185_14351, x_184_14348.fst);
+          var x_186_14360 = infer(env_49, s2_5_0_0, _x144.then_expr);
           if (_yielding()) {
-            return yield_extend(function(_y_x10397_1) {
-              return _mlift_infer_12766(x_184_14267.snd, _x144.else_expr, env_49, n_151, _y_x10397_1);
+            return yield_extend(function(_y_x10400_1) {
+              return _mlift_infer_12835(x_184_14348.snd, _x144.else_expr, env_49, n_151, _y_x10400_1);
             });
           } else {
-            var x_187_14282 = infer(env_49, x_186_14279.fst, _x144.else_expr);
+            var x_187_14363 = infer(env_49, x_186_14360.fst, _x144.else_expr);
             if (_yielding()) {
-              return yield_extend(function(_y_x10398_1) {
-                return _mlift_infer_12765(x_184_14267.snd, n_151, x_186_14279.snd, _y_x10398_1);
+              return yield_extend(function(_y_x10401_1) {
+                return _mlift_infer_12834(x_184_14348.snd, n_151, x_186_14360.snd, _y_x10401_1);
               });
             } else {
-              var _x_x2_81_11957_0 = _open_none1(function(n_12_1) {
+              var _x_x2_81_11997_0 = _open_none1(function(n_12_1) {
                 return n_12_1.typ !== null ? n_12_1.typ.value : TUnit;
-              }, x_186_14279.snd);
-              var then_type_1 = _open_none2(apply_subst, x_187_14282.fst, _x_x2_81_11957_0);
-              var _x_x2_82_11960_0 = _open_none1(function(n_13_1) {
+              }, x_186_14360.snd);
+              var then_type_1 = _open_none2(apply_subst, x_187_14363.fst, _x_x2_81_11997_0);
+              var _x_x2_82_12000_0 = _open_none1(function(n_13_1) {
                 return n_13_1.typ !== null ? n_13_1.typ.value : TUnit;
-              }, x_187_14282.snd);
-              var else_type_0 = _open_none2(apply_subst, x_187_14282.fst, _x_x2_82_11960_0);
-              var _x_x3_45_11964_0 = _open_none1(function(node_48_0) {
+              }, x_187_14363.snd);
+              var else_type_0 = _open_none2(apply_subst, x_187_14363.fst, _x_x2_82_12000_0);
+              var _x_x3_45_12004_0 = _open_none1(function(node_48_0) {
                 return node_48_0.span;
               }, n_151);
-              var x_188_14285 = _open_at3(0, unify, then_type_1, else_type_0, _x_x3_45_11964_0);
+              var x_188_14366 = _open_at3(0, unify, then_type_1, else_type_0, _x_x3_45_12004_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10399_1) {
-                  return _mlift_infer_12764(x_184_14267.snd, x_187_14282.snd, n_151, x_187_14282.fst, x_186_14279.snd, then_type_1, _y_x10399_1);
+                return yield_extend(function(_y_x10402_1) {
+                  return _mlift_infer_12833(x_184_14348.snd, x_187_14363.snd, n_151, x_187_14363.fst, x_186_14360.snd, then_type_1, _y_x10402_1);
                 });
               } else {
                 var s5_3 = _open_none2(function(s1_19_1, s2_18_1) {
                   var updated_s2_17_0 = _trmc_map_subst(s2_18_1, function(k_18_0, v_17_0) {
                     return Tuple2(k_18_0, _trmc_apply_subst(s1_19_1, v_17_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_17_0 = _trmc_filter_subst(updated_s2_17_0, function(k_0_17_0, ___wildcard_x120__39_17_0) {
+                  var ys_10006_17_0 = _trmc_filter_subst(updated_s2_17_0, function(k_0_17_0, ___wildcard_x136__39_17_0) {
                     var b_10007_17_0 = subst_has(s1_19_1, k_0_17_0);
                     return b_10007_17_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_19_1, ys_10006_17_0);
-                }, x_188_14285, x_187_14282.fst);
+                }, x_188_14366, x_187_14363.fst);
                 var result_type_2_0 = _open_none2(apply_subst, s5_3, then_type_1);
-                var _x_x1_138_11970_0 = _open_none1(function(node_49_0) {
+                var _x_x1_138_12010_0 = _open_none1(function(node_49_0) {
                   return node_49_0.span;
                 }, n_151);
                 return Tuple2(s5_3, _open_none3(function(span_17_0, expr_17_0, typ_17_0) {
                   var _x175 = typ_17_0 !== void 0 ? typ_17_0 : Nothing;
                   return Node(span_17_0, expr_17_0, _x175);
-                }, _x_x1_138_11970_0, If(x_184_14267.snd, x_186_14279.snd, x_187_14282.snd), Just(result_type_2_0)));
+                }, _x_x1_138_12010_0, If(x_184_14348.snd, x_186_14360.snd, x_187_14363.snd), Just(result_type_2_0)));
               }
             }
           }
         }
       }
     } else if (_x144._tag === 12) {
-      var x_189_14294 = infer(env_49, s_152, _x144.scrutinee);
+      var x_189_14375 = infer(env_49, s_152, _x144.scrutinee);
       if (_yielding()) {
-        return yield_extend(function(_y_x10403_0) {
-          return _mlift_infer_12772(_x144.arms, env_49, n_151, _y_x10403_0);
+        return yield_extend(function(_y_x10406_0) {
+          return _mlift_infer_12841(_x144.arms, env_49, n_151, _y_x10406_0);
         });
       } else {
-        var _x_x2_87_11975_0 = _open_none1(function(n_14_1) {
+        var _x_x2_87_12015_0 = _open_none1(function(n_14_1) {
           return n_14_1.typ !== null ? n_14_1.typ.value : TUnit;
-        }, x_189_14294.snd);
-        var scrut_type_2 = _open_none2(apply_subst, x_189_14294.fst, _x_x2_87_11975_0);
-        var x_190_14297 = _open_at0(1, function() {
-          var ev_25_14300 = _evv_at(0);
-          return ev_25_14300.hnd._fun_fresh_tvar(ev_25_14300.marker, ev_25_14300);
+        }, x_189_14375.snd);
+        var scrut_type_2 = _open_none2(apply_subst, x_189_14375.fst, _x_x2_87_12015_0);
+        var x_190_14378 = _open_at0(1, function() {
+          var ev_25_14381 = _evv_at(0);
+          return ev_25_14381.hnd._fun_fresh_tvar(ev_25_14381.marker, ev_25_14381);
         });
         if (_yielding()) {
           return yield_extend(function(result_var_3) {
-            return _mlift_infer_12771(_x144.arms, env_49, n_151, x_189_14294.fst, x_189_14294.snd, scrut_type_2, result_var_3);
+            return _mlift_infer_12840(_x144.arms, env_49, n_151, x_189_14375.fst, x_189_14375.snd, scrut_type_2, result_var_3);
           });
         } else {
-          var x_191_14302 = infer_arms(env_49, x_189_14294.fst, scrut_type_2, x_190_14297, _x144.arms);
+          var x_191_14383 = infer_arms(env_49, x_189_14375.fst, scrut_type_2, x_190_14378, _x144.arms);
           if (_yielding()) {
-            return yield_extend(function(_y_x10406_1) {
-              return _mlift_infer_12770(n_151, x_190_14297, x_189_14294.snd, scrut_type_2, _y_x10406_1);
+            return yield_extend(function(_y_x10409_1) {
+              return _mlift_infer_12839(n_151, x_190_14378, x_189_14375.snd, scrut_type_2, _y_x10409_1);
             });
           } else {
-            var resolved_scrut_0 = _open_none2(apply_subst, x_191_14302.fst, scrut_type_2);
-            var _x_x3_47_11981_0 = _open_none1(function(node_51_0) {
+            var resolved_scrut_0 = _open_none2(apply_subst, x_191_14383.fst, scrut_type_2);
+            var _x_x3_47_12021_0 = _open_none1(function(node_51_0) {
               return node_51_0.span;
             }, n_151);
-            var x_192_14305 = _open3(unvlist(Cons(0, Cons(4, Nil))), check_exhaustive, resolved_scrut_0, x_191_14302.snd, _x_x3_47_11981_0);
+            var x_192_14386 = _open3(unvlist(Cons(0, Cons(4, Nil))), check_exhaustive, resolved_scrut_0, x_191_14383.snd, _x_x3_47_12021_0);
             if (_yielding()) {
               return yield_extend(function(wild___1_1) {
-                return _mlift_infer_12769(x_191_14302.snd, n_151, x_190_14297, x_191_14302.fst, x_189_14294.snd, wild___1_1);
+                return _mlift_infer_12838(x_191_14383.snd, n_151, x_190_14378, x_191_14383.fst, x_189_14375.snd, wild___1_1);
               });
             } else {
-              var result_type_3_0 = _open_none2(apply_subst, x_191_14302.fst, x_190_14297);
-              var _x_x1_146_11985_0 = _open_none1(function(node_52_0) {
+              var result_type_3_0 = _open_none2(apply_subst, x_191_14383.fst, x_190_14378);
+              var _x_x1_146_12025_0 = _open_none1(function(node_52_0) {
                 return node_52_0.span;
               }, n_151);
-              return Tuple2(x_191_14302.fst, _open_none3(function(span_18_0, expr_18_0, typ_18_0) {
+              return Tuple2(x_191_14383.fst, _open_none3(function(span_18_0, expr_18_0, typ_18_0) {
                 var _x176 = typ_18_0 !== void 0 ? typ_18_0 : Nothing;
                 return Node(span_18_0, expr_18_0, _x176);
-              }, _x_x1_146_11985_0, Match(x_189_14294.snd, x_191_14302.snd), Just(result_type_3_0)));
+              }, _x_x1_146_12025_0, Match(x_189_14375.snd, x_191_14383.snd), Just(result_type_3_0)));
             }
           }
         }
       }
     } else if (_x144._tag === 13) {
-      var x_193_14308 = infer(env_49, s_152, _x144.count);
+      var x_193_14389 = infer(env_49, s_152, _x144.count);
       if (_yielding()) {
-        return yield_extend(function(_y_x10410_0) {
-          return _mlift_infer_12775(_x144.body, _x144.count, env_49, n_151, _y_x10410_0);
+        return yield_extend(function(_y_x10413_0) {
+          return _mlift_infer_12844(_x144.body, _x144.count, env_49, n_151, _y_x10413_0);
         });
       } else {
-        var _x_x2_92_11990_0 = _open_none1(function(n_15_1) {
+        var _x_x2_92_12030_0 = _open_none1(function(n_15_1) {
           return n_15_1.typ !== null ? n_15_1.typ.value : TUnit;
-        }, x_193_14308.snd);
-        var count_type_0 = _open_none2(apply_subst, x_193_14308.fst, _x_x2_92_11990_0);
-        var _x_x3_49_11994_0 = _open_none1(function(node_54_0) {
+        }, x_193_14389.snd);
+        var count_type_0 = _open_none2(apply_subst, x_193_14389.fst, _x_x2_92_12030_0);
+        var _x_x3_49_12034_0 = _open_none1(function(node_54_0) {
           return node_54_0.span;
         }, _x144.count);
-        var x_194_14311 = _open_at3(0, unify, count_type_0, TInt, _x_x3_49_11994_0);
+        var x_194_14392 = _open_at3(0, unify, count_type_0, TInt, _x_x3_49_12034_0);
         if (_yielding()) {
-          return yield_extend(function(_y_x10411_1) {
-            return _mlift_infer_12774(_x144.body, x_193_14308.snd, env_49, n_151, x_193_14308.fst, _y_x10411_1);
+          return yield_extend(function(_y_x10414_1) {
+            return _mlift_infer_12843(_x144.body, x_193_14389.snd, env_49, n_151, x_193_14389.fst, _y_x10414_1);
           });
         } else {
           var s2_7_0_0 = _open_none2(function(s1_20_1, s2_19_1) {
             var updated_s2_18_0 = _trmc_map_subst(s2_19_1, function(k_19_0, v_18_0) {
               return Tuple2(k_19_0, _trmc_apply_subst(s1_20_1, v_18_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_18_0 = _trmc_filter_subst(updated_s2_18_0, function(k_0_18_0, ___wildcard_x120__39_18_0) {
+            var ys_10006_18_0 = _trmc_filter_subst(updated_s2_18_0, function(k_0_18_0, ___wildcard_x136__39_18_0) {
               var b_10007_18_0 = subst_has(s1_20_1, k_0_18_0);
               return b_10007_18_0 ? false : true;
             }, _cctx_empty());
             return append(s1_20_1, ys_10006_18_0);
-          }, x_194_14311, x_193_14308.fst);
-          var x_195_14320 = infer_loop_body(env_49, s2_7_0_0, _x144.body);
+          }, x_194_14392, x_193_14389.fst);
+          var x_195_14401 = infer_loop_body(env_49, s2_7_0_0, _x144.body);
           if (_yielding()) {
-            return yield_extend(function(_y_x10412_1) {
-              return _mlift_infer_12773(x_193_14308.snd, n_151, _y_x10412_1);
+            return yield_extend(function(_y_x10415_1) {
+              return _mlift_infer_12842(x_193_14389.snd, n_151, _y_x10415_1);
             });
           } else {
-            var _x_x1_153_11998_0 = _open_none1(function(node_55_0) {
+            var _x_x1_153_12038_0 = _open_none1(function(node_55_0) {
               return node_55_0.span;
             }, n_151);
-            return Tuple2(x_195_14320.fst, _open_none3(function(span_19_0, expr_19_0, typ_19_0) {
+            return Tuple2(x_195_14401.fst, _open_none3(function(span_19_0, expr_19_0, typ_19_0) {
               var _x177 = typ_19_0 !== void 0 ? typ_19_0 : Nothing;
               return Node(span_19_0, expr_19_0, _x177);
-            }, _x_x1_153_11998_0, Repeat(x_193_14308.snd, x_195_14320.snd), Just(TUnit)));
+            }, _x_x1_153_12038_0, Repeat(x_193_14389.snd, x_195_14401.snd), Just(TUnit)));
           }
         }
       }
     } else if (_x144._tag === 14) {
-      var x_196_14323 = infer(env_49, s_152, _x144.start);
+      var x_196_14404 = infer(env_49, s_152, _x144.start);
       if (_yielding()) {
-        return yield_extend(function(_y_x10415_0) {
-          return _mlift_infer_12780(_x144.body, _x144.end, env_49, n_151, _x144.name, _x144.start, _y_x10415_0);
+        return yield_extend(function(_y_x10418_0) {
+          return _mlift_infer_12849(_x144.body, _x144.end, env_49, n_151, _x144.name, _x144.start, _y_x10418_0);
         });
       } else {
-        var _x_x2_96_12003_0 = _open_none1(function(n_16_1) {
+        var _x_x2_96_12043_0 = _open_none1(function(n_16_1) {
           return n_16_1.typ !== null ? n_16_1.typ.value : TUnit;
-        }, x_196_14323.snd);
-        var start_type_0 = _open_none2(apply_subst, x_196_14323.fst, _x_x2_96_12003_0);
-        var _x_x3_51_12007_0 = _open_none1(function(node_57_0) {
+        }, x_196_14404.snd);
+        var start_type_0 = _open_none2(apply_subst, x_196_14404.fst, _x_x2_96_12043_0);
+        var _x_x3_51_12047_0 = _open_none1(function(node_57_0) {
           return node_57_0.span;
         }, _x144.start);
-        var x_197_14326 = _open_at3(0, unify, start_type_0, TInt, _x_x3_51_12007_0);
+        var x_197_14407 = _open_at3(0, unify, start_type_0, TInt, _x_x3_51_12047_0);
         if (_yielding()) {
-          return yield_extend(function(_y_x10416_1) {
-            return _mlift_infer_12779(_x144.body, _x144.end, env_49, n_151, _x144.name, x_196_14323.fst, x_196_14323.snd, _y_x10416_1);
+          return yield_extend(function(_y_x10419_1) {
+            return _mlift_infer_12848(_x144.body, _x144.end, env_49, n_151, _x144.name, x_196_14404.fst, x_196_14404.snd, _y_x10419_1);
           });
         } else {
           var s2_8_0_0 = _open_none2(function(s1_21_1, s2_20_1) {
             var updated_s2_19_0 = _trmc_map_subst(s2_20_1, function(k_20_0, v_19_0) {
               return Tuple2(k_20_0, _trmc_apply_subst(s1_21_1, v_19_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_19_0 = _trmc_filter_subst(updated_s2_19_0, function(k_0_19_0, ___wildcard_x120__39_19_0) {
+            var ys_10006_19_0 = _trmc_filter_subst(updated_s2_19_0, function(k_0_19_0, ___wildcard_x136__39_19_0) {
               var b_10007_19_0 = subst_has(s1_21_1, k_0_19_0);
               return b_10007_19_0 ? false : true;
             }, _cctx_empty());
             return append(s1_21_1, ys_10006_19_0);
-          }, x_197_14326, x_196_14323.fst);
-          var x_198_14335 = infer(env_49, s2_8_0_0, _x144.end);
+          }, x_197_14407, x_196_14404.fst);
+          var x_198_14416 = infer(env_49, s2_8_0_0, _x144.end);
           if (_yielding()) {
-            return yield_extend(function(_y_x10417_1) {
-              return _mlift_infer_12778(_x144.body, _x144.end, env_49, n_151, _x144.name, x_196_14323.snd, _y_x10417_1);
+            return yield_extend(function(_y_x10420_1) {
+              return _mlift_infer_12847(_x144.body, _x144.end, env_49, n_151, _x144.name, x_196_14404.snd, _y_x10420_1);
             });
           } else {
-            var _x_x2_99_12012_0 = _open_none1(function(n_17_1) {
+            var _x_x2_99_12052_0 = _open_none1(function(n_17_1) {
               return n_17_1.typ !== null ? n_17_1.typ.value : TUnit;
-            }, x_198_14335.snd);
-            var end_type_0 = _open_none2(apply_subst, x_198_14335.fst, _x_x2_99_12012_0);
-            var _x_x3_52_12016_0 = _open_none1(function(node_59_0) {
+            }, x_198_14416.snd);
+            var end_type_0 = _open_none2(apply_subst, x_198_14416.fst, _x_x2_99_12052_0);
+            var _x_x3_52_12056_0 = _open_none1(function(node_59_0) {
               return node_59_0.span;
             }, _x144.end);
-            var x_199_14338 = _open_at3(0, unify, end_type_0, TInt, _x_x3_52_12016_0);
+            var x_199_14419 = _open_at3(0, unify, end_type_0, TInt, _x_x3_52_12056_0);
             if (_yielding()) {
-              return yield_extend(function(_y_x10418_1) {
-                return _mlift_infer_12777(_x144.body, x_198_14335.snd, env_49, n_151, _x144.name, x_198_14335.fst, x_196_14323.snd, _y_x10418_1);
+              return yield_extend(function(_y_x10421_1) {
+                return _mlift_infer_12846(_x144.body, x_198_14416.snd, env_49, n_151, _x144.name, x_198_14416.fst, x_196_14404.snd, _y_x10421_1);
               });
             } else {
               var s4_0_1 = _open_none2(function(s1_22_1, s2_21_0) {
                 var updated_s2_20_0 = _trmc_map_subst(s2_21_0, function(k_21_0, v_20_0) {
                   return Tuple2(k_21_0, _trmc_apply_subst(s1_22_1, v_20_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_20_0 = _trmc_filter_subst(updated_s2_20_0, function(k_0_20_0, ___wildcard_x120__39_20_0) {
+                var ys_10006_20_0 = _trmc_filter_subst(updated_s2_20_0, function(k_0_20_0, ___wildcard_x136__39_20_0) {
                   var b_10007_20_0 = subst_has(s1_22_1, k_0_20_0);
                   return b_10007_20_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_22_1, ys_10006_20_0);
-              }, x_199_14338, x_198_14335.fst);
-              var x_200_14347 = infer_loop_body(Cons(Tuple2(_x144.name, TInt), env_49), s4_0_1, _x144.body);
+              }, x_199_14419, x_198_14416.fst);
+              var x_200_14428 = infer_loop_body(Cons(Tuple2(_x144.name, TInt), env_49), s4_0_1, _x144.body);
               if (_yielding()) {
-                return yield_extend(function(_y_x10419_1) {
-                  return _mlift_infer_12776(x_198_14335.snd, n_151, _x144.name, x_196_14323.snd, _y_x10419_1);
+                return yield_extend(function(_y_x10422_1) {
+                  return _mlift_infer_12845(x_198_14416.snd, n_151, _x144.name, x_196_14404.snd, _y_x10422_1);
                 });
               } else {
-                var _x_x1_165_12020_0 = _open_none1(function(node_60_0) {
+                var _x_x1_165_12060_0 = _open_none1(function(node_60_0) {
                   return node_60_0.span;
                 }, n_151);
-                return Tuple2(x_200_14347.fst, _open_none3(function(span_20_0, expr_20_0, typ_20_0) {
+                return Tuple2(x_200_14428.fst, _open_none3(function(span_20_0, expr_20_0, typ_20_0) {
                   var _x178 = typ_20_0 !== void 0 ? typ_20_0 : Nothing;
                   return Node(span_20_0, expr_20_0, _x178);
-                }, _x_x1_165_12020_0, ForIn(_x144.name, x_196_14323.snd, x_198_14335.snd, x_200_14347.snd), Just(TUnit)));
+                }, _x_x1_165_12060_0, ForIn(_x144.name, x_196_14404.snd, x_198_14416.snd, x_200_14428.snd), Just(TUnit)));
               }
             }
           }
         }
       }
     } else if (_x144._tag === 15) {
-      var x_201_14350 = infer(env_49, s_152, _x144.collection);
+      var x_201_14431 = infer(env_49, s_152, _x144.collection);
       if (_yielding()) {
-        return yield_extend(function(_y_x10423_0) {
-          return _mlift_infer_12784(_x144.body, _x144.collection, env_49, n_151, _x144.name, _y_x10423_0);
+        return yield_extend(function(_y_x10426_0) {
+          return _mlift_infer_12853(_x144.body, _x144.collection, env_49, n_151, _x144.name, _y_x10426_0);
         });
       } else {
-        var _x_x2_103_12025_0 = _open_none1(function(n_18_1) {
+        var _x_x2_103_12065_0 = _open_none1(function(n_18_1) {
           return n_18_1.typ !== null ? n_18_1.typ.value : TUnit;
-        }, x_201_14350.snd);
-        var coll_type_1 = _open_none2(apply_subst, x_201_14350.fst, _x_x2_103_12025_0);
-        var x_202_14353 = _open_at0(1, function() {
-          var ev_26_14356 = _evv_at(0);
-          return ev_26_14356.hnd._fun_fresh_tvar(ev_26_14356.marker, ev_26_14356);
+        }, x_201_14431.snd);
+        var coll_type_1 = _open_none2(apply_subst, x_201_14431.fst, _x_x2_103_12065_0);
+        var x_202_14434 = _open_at0(1, function() {
+          var ev_26_14437 = _evv_at(0);
+          return ev_26_14437.hnd._fun_fresh_tvar(ev_26_14437.marker, ev_26_14437);
         });
         if (_yielding()) {
           return yield_extend(function(elem_type_2) {
-            return _mlift_infer_12783(_x144.body, _x144.collection, x_201_14350.snd, coll_type_1, env_49, n_151, _x144.name, x_201_14350.fst, elem_type_2);
+            return _mlift_infer_12852(_x144.body, _x144.collection, x_201_14431.snd, coll_type_1, env_49, n_151, _x144.name, x_201_14431.fst, elem_type_2);
           });
         } else {
-          var _x_x3_54_12029_0 = _open_none1(function(node_62_0) {
+          var _x_x3_54_12069_0 = _open_none1(function(node_62_0) {
             return node_62_0.span;
           }, _x144.collection);
-          var x_203_14358 = _open_at3(0, unify, coll_type_1, TList(x_202_14353), _x_x3_54_12029_0);
+          var x_203_14439 = _open_at3(0, unify, coll_type_1, TList(x_202_14434), _x_x3_54_12069_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10426_1) {
-              return _mlift_infer_12782(_x144.body, x_201_14350.snd, x_202_14353, env_49, n_151, _x144.name, x_201_14350.fst, _y_x10426_1);
+            return yield_extend(function(_y_x10429_1) {
+              return _mlift_infer_12851(_x144.body, x_201_14431.snd, x_202_14434, env_49, n_151, _x144.name, x_201_14431.fst, _y_x10429_1);
             });
           } else {
             var s2_9_0_0 = _open_none2(function(s1_23_1, s2_22_0) {
               var updated_s2_21_0 = _trmc_map_subst(s2_22_0, function(k_22_0, v_21_0) {
                 return Tuple2(k_22_0, _trmc_apply_subst(s1_23_1, v_21_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_21_0 = _trmc_filter_subst(updated_s2_21_0, function(k_0_21_0, ___wildcard_x120__39_21_0) {
+              var ys_10006_21_0 = _trmc_filter_subst(updated_s2_21_0, function(k_0_21_0, ___wildcard_x136__39_21_0) {
                 var b_10007_21_0 = subst_has(s1_23_1, k_0_21_0);
                 return b_10007_21_0 ? false : true;
               }, _cctx_empty());
               return append(s1_23_1, ys_10006_21_0);
-            }, x_203_14358, x_201_14350.fst);
-            var resolved_elem_0_0 = _open_none2(apply_subst, s2_9_0_0, x_202_14353);
-            var x_204_14367 = infer_loop_body(Cons(Tuple2(_x144.name, resolved_elem_0_0), env_49), s2_9_0_0, _x144.body);
+            }, x_203_14439, x_201_14431.fst);
+            var resolved_elem_0_0 = _open_none2(apply_subst, s2_9_0_0, x_202_14434);
+            var x_204_14448 = infer_loop_body(Cons(Tuple2(_x144.name, resolved_elem_0_0), env_49), s2_9_0_0, _x144.body);
             if (_yielding()) {
-              return yield_extend(function(_y_x10427_1) {
-                return _mlift_infer_12781(x_201_14350.snd, n_151, _x144.name, _y_x10427_1);
+              return yield_extend(function(_y_x10430_1) {
+                return _mlift_infer_12850(x_201_14431.snd, n_151, _x144.name, _y_x10430_1);
               });
             } else {
-              var _x_x1_173_12035_0 = _open_none1(function(node_63_0) {
+              var _x_x1_173_12075_0 = _open_none1(function(node_63_0) {
                 return node_63_0.span;
               }, n_151);
-              return Tuple2(x_204_14367.fst, _open_none3(function(span_21_0, expr_21_0, typ_21_0) {
+              return Tuple2(x_204_14448.fst, _open_none3(function(span_21_0, expr_21_0, typ_21_0) {
                 var _x179 = typ_21_0 !== void 0 ? typ_21_0 : Nothing;
                 return Node(span_21_0, expr_21_0, _x179);
-              }, _x_x1_173_12035_0, ForEach(_x144.name, x_201_14350.snd, x_204_14367.snd), Just(TUnit)));
+              }, _x_x1_173_12075_0, ForEach(_x144.name, x_201_14431.snd, x_204_14448.snd), Just(TUnit)));
             }
           }
         }
       }
     } else if (_x144._tag === 16) {
-      var x_205_14370 = infer(env_49, s_152, _x144.condition);
+      var x_205_14451 = infer(env_49, s_152, _x144.condition);
       if (_yielding()) {
-        return yield_extend(function(_y_x10430_0) {
-          return _mlift_infer_12787(_x144.body, _x144.condition, env_49, n_151, _y_x10430_0);
+        return yield_extend(function(_y_x10433_0) {
+          return _mlift_infer_12856(_x144.body, _x144.condition, env_49, n_151, _y_x10433_0);
         });
       } else {
-        var _x_x2_108_12040_0 = _open_none1(function(n_19_1) {
+        var _x_x2_108_12080_0 = _open_none1(function(n_19_1) {
           return n_19_1.typ !== null ? n_19_1.typ.value : TUnit;
-        }, x_205_14370.snd);
-        var cond_type_0_0 = _open_none2(apply_subst, x_205_14370.fst, _x_x2_108_12040_0);
-        var _x_x3_56_12044_0 = _open_none1(function(node_65_0) {
+        }, x_205_14451.snd);
+        var cond_type_0_0 = _open_none2(apply_subst, x_205_14451.fst, _x_x2_108_12080_0);
+        var _x_x3_56_12084_0 = _open_none1(function(node_65_0) {
           return node_65_0.span;
         }, _x144.condition);
-        var x_206_14373 = _open_at3(0, unify, cond_type_0_0, TBool, _x_x3_56_12044_0);
+        var x_206_14454 = _open_at3(0, unify, cond_type_0_0, TBool, _x_x3_56_12084_0);
         if (_yielding()) {
-          return yield_extend(function(_y_x10431_1) {
-            return _mlift_infer_12786(_x144.body, x_205_14370.snd, env_49, n_151, x_205_14370.fst, _y_x10431_1);
+          return yield_extend(function(_y_x10434_1) {
+            return _mlift_infer_12855(_x144.body, x_205_14451.snd, env_49, n_151, x_205_14451.fst, _y_x10434_1);
           });
         } else {
           var s2_10_0_0 = _open_none2(function(s1_24_1, s2_23_0) {
             var updated_s2_22_0 = _trmc_map_subst(s2_23_0, function(k_23_0, v_22_0) {
               return Tuple2(k_23_0, _trmc_apply_subst(s1_24_1, v_22_0, _cctx_empty()));
             }, _cctx_empty());
-            var ys_10006_22_0 = _trmc_filter_subst(updated_s2_22_0, function(k_0_22_0, ___wildcard_x120__39_22_0) {
+            var ys_10006_22_0 = _trmc_filter_subst(updated_s2_22_0, function(k_0_22_0, ___wildcard_x136__39_22_0) {
               var b_10007_22_0 = subst_has(s1_24_1, k_0_22_0);
               return b_10007_22_0 ? false : true;
             }, _cctx_empty());
             return append(s1_24_1, ys_10006_22_0);
-          }, x_206_14373, x_205_14370.fst);
-          var x_207_14382 = infer_loop_body(env_49, s2_10_0_0, _x144.body);
+          }, x_206_14454, x_205_14451.fst);
+          var x_207_14463 = infer_loop_body(env_49, s2_10_0_0, _x144.body);
           if (_yielding()) {
-            return yield_extend(function(_y_x10432_1) {
-              return _mlift_infer_12785(x_205_14370.snd, n_151, _y_x10432_1);
+            return yield_extend(function(_y_x10435_1) {
+              return _mlift_infer_12854(x_205_14451.snd, n_151, _y_x10435_1);
             });
           } else {
-            var _x_x1_180_12048_0 = _open_none1(function(node_66_0) {
+            var _x_x1_180_12088_0 = _open_none1(function(node_66_0) {
               return node_66_0.span;
             }, n_151);
-            return Tuple2(x_207_14382.fst, _open_none3(function(span_22_0, expr_22_0, typ_22_0) {
+            return Tuple2(x_207_14463.fst, _open_none3(function(span_22_0, expr_22_0, typ_22_0) {
               var _x180 = typ_22_0 !== void 0 ? typ_22_0 : Nothing;
               return Node(span_22_0, expr_22_0, _x180);
-            }, _x_x1_180_12048_0, While(x_205_14370.snd, x_207_14382.snd), Just(TUnit)));
+            }, _x_x1_180_12088_0, While(x_205_14451.snd, x_207_14463.snd), Just(TUnit)));
           }
         }
       }
     } else if (_x144._tag === 17) {
-      var x_208_14385 = infer_loop_body(env_49, s_152, _x144.body);
-      if (_yielding()) {
-        return yield_extend(function(_y_x10435_0) {
-          return _mlift_infer_12788(n_151, _y_x10435_0);
-        });
-      } else {
-        var _x_x1_182_12052_0 = _open_none1(function(node_67_0) {
-          return node_67_0.span;
-        }, n_151);
-        return Tuple2(x_208_14385.fst, _open_none3(function(span_23_0, expr_23_0, typ_23_0) {
-          var _x181 = typ_23_0 !== void 0 ? typ_23_0 : Nothing;
-          return Node(span_23_0, expr_23_0, _x181);
-        }, _x_x1_182_12052_0, Loop(x_208_14385.snd), Just(TUnit)));
-      }
-    } else if (_x144._tag === 18) {
-      var x_209_14388 = _open_at0(2, function() {
-        var ev_27_14391 = _evv_at(0);
-        return ev_27_14391.hnd._fun_in_loop(ev_27_14391.marker, ev_27_14391);
-      });
+      var x_208_14466 = infer_loop_body(env_49, s_152, _x144.body);
       if (_yielding()) {
         return yield_extend(function(_y_x10438_0) {
-          return _mlift_infer_12790(n_151, s_152, _y_x10438_0);
+          return _mlift_infer_12857(n_151, _y_x10438_0);
+        });
+      } else {
+        var _x_x1_182_12092_0 = _open_none1(function(node_67_0) {
+          return node_67_0.span;
+        }, n_151);
+        return Tuple2(x_208_14466.fst, _open_none3(function(span_23_0, expr_23_0, typ_23_0) {
+          var _x181 = typ_23_0 !== void 0 ? typ_23_0 : Nothing;
+          return Node(span_23_0, expr_23_0, _x181);
+        }, _x_x1_182_12092_0, Loop(x_208_14466.snd), Just(TUnit)));
+      }
+    } else if (_x144._tag === 18) {
+      var x_209_14469 = _open_at0(2, function() {
+        var ev_27_14472 = _evv_at(0);
+        return ev_27_14472.hnd._fun_in_loop(ev_27_14472.marker, ev_27_14472);
+      });
+      if (_yielding()) {
+        return yield_extend(function(_y_x10441_0) {
+          return _mlift_infer_12859(n_151, s_152, _y_x10441_0);
         });
       } else {
         var _x182 = _open_none1(function(b_4) {
           return b_4 ? false : true;
-        }, x_209_14388);
+        }, x_209_14469);
         if (_x182) {
-          var _x_x1_185_12057_0 = _open_none1(function(node_68_0) {
+          var _x_x1_185_12097_0 = _open_none1(function(node_68_0) {
             return node_68_0.span;
           }, n_151);
-          var x_210_14393 = _open_at2(0, emit_error, _x_x1_185_12057_0, "'break' can only be used inside a loop");
+          var x_210_14474 = _open_at2(0, emit_error, _x_x1_185_12097_0, "'break' can only be used inside a loop");
         } else {
-          var x_210_14393 = Unit;
+          var x_210_14474 = Unit;
         }
         if (_yielding()) {
-          return yield_extend(function(_c_x10440_1) {
-            return _mlift_infer_12789(n_151, s_152, _c_x10440_1);
+          return yield_extend(function(_c_x10443_1) {
+            return _mlift_infer_12858(n_151, s_152, _c_x10443_1);
           });
         } else {
-          var _x_x1_187_12060_0 = _open_none1(function(node_69_0) {
+          var _x_x1_187_12100_0 = _open_none1(function(node_69_0) {
             return node_69_0.span;
           }, n_151);
           return Tuple2(s_152, _open_none3(function(span_24_0, expr_24_0, typ_24_0) {
             var _x1822 = typ_24_0 !== void 0 ? typ_24_0 : Nothing;
             return Node(span_24_0, expr_24_0, _x1822);
-          }, _x_x1_187_12060_0, Break, Just(TUnit)));
+          }, _x_x1_187_12100_0, Break, Just(TUnit)));
         }
       }
     } else if (_x144._tag === 19) {
-      var x_211_14396 = _open_at0(2, function() {
-        var ev_28_14399 = _evv_at(0);
-        return ev_28_14399.hnd._fun_in_loop(ev_28_14399.marker, ev_28_14399);
+      var x_211_14477 = _open_at0(2, function() {
+        var ev_28_14480 = _evv_at(0);
+        return ev_28_14480.hnd._fun_in_loop(ev_28_14480.marker, ev_28_14480);
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10442_0) {
-          return _mlift_infer_12792(n_151, s_152, _y_x10442_0);
+        return yield_extend(function(_y_x10445_0) {
+          return _mlift_infer_12861(n_151, s_152, _y_x10445_0);
         });
       } else {
         var _x183 = _open_none1(function(b_0_0) {
           return b_0_0 ? false : true;
-        }, x_211_14396);
+        }, x_211_14477);
         if (_x183) {
-          var _x_x1_190_12065_0 = _open_none1(function(node_70_0) {
+          var _x_x1_190_12105_0 = _open_none1(function(node_70_0) {
             return node_70_0.span;
           }, n_151);
-          var x_212_14401 = _open_at2(0, emit_error, _x_x1_190_12065_0, "'continue' can only be used inside a loop");
+          var x_212_14482 = _open_at2(0, emit_error, _x_x1_190_12105_0, "'continue' can only be used inside a loop");
         } else {
-          var x_212_14401 = Unit;
+          var x_212_14482 = Unit;
         }
         if (_yielding()) {
-          return yield_extend(function(_c_x10444_1) {
-            return _mlift_infer_12791(n_151, s_152, _c_x10444_1);
+          return yield_extend(function(_c_x10447_1) {
+            return _mlift_infer_12860(n_151, s_152, _c_x10447_1);
           });
         } else {
-          var _x_x1_192_12068_0 = _open_none1(function(node_71_0) {
+          var _x_x1_192_12108_0 = _open_none1(function(node_71_0) {
             return node_71_0.span;
           }, n_151);
           return Tuple2(s_152, _open_none3(function(span_25_0, expr_25_0, typ_25_0) {
             var _x1832 = typ_25_0 !== void 0 ? typ_25_0 : Nothing;
             return Node(span_25_0, expr_25_0, _x1832);
-          }, _x_x1_192_12068_0, Continue, Just(TUnit)));
+          }, _x_x1_192_12108_0, Continue, Just(TUnit)));
         }
       }
     } else if (_x144._tag === 20) {
-      var x_213_14404 = infer_interp_parts(env_49, s_152, _x144.parts);
+      var x_213_14485 = infer_interp_parts(env_49, s_152, _x144.parts);
       if (_yielding()) {
-        return yield_extend(function(_y_x10445_0) {
-          return _mlift_infer_12793(n_151, _y_x10445_0);
+        return yield_extend(function(_y_x10448_0) {
+          return _mlift_infer_12862(n_151, _y_x10448_0);
         });
       } else {
-        var _x_x1_194_12072_0 = _open_none1(function(node_72_0) {
+        var _x_x1_194_12112_0 = _open_none1(function(node_72_0) {
           return node_72_0.span;
         }, n_151);
-        return Tuple2(x_213_14404.fst, _open_none3(function(span_26_0, expr_26_0, typ_26_0) {
+        return Tuple2(x_213_14485.fst, _open_none3(function(span_26_0, expr_26_0, typ_26_0) {
           var _x184 = typ_26_0 !== void 0 ? typ_26_0 : Nothing;
           return Node(span_26_0, expr_26_0, _x184);
-        }, _x_x1_194_12072_0, StringInterp(x_213_14404.snd), Just(TString)));
+        }, _x_x1_194_12112_0, StringInterp(x_213_14485.snd), Just(TString)));
       }
     } else if (_x144._tag === 21) {
       var _x185 = _int_gt(_lift_length_6003(_x144.elems, 0), 5);
       if (_x185) {
-        var _x_x1_196_12076 = _open_none1(function(node_73) {
+        var _x_x1_196_12116 = _open_none1(function(node_73) {
           return node_73.span;
         }, n_151);
-        var _x_x2_118_12077 = _lp__plus__plus__rp_("tuples can have at most 5 elements, got ", show(_lift_length_6003(_x144.elems, 0)));
-        var x_214_14407 = _open_at2(0, emit_error, _x_x1_196_12076, _x_x2_118_12077);
+        var _x_x2_118_12117 = _lp__plus__plus__rp_("tuples can have at most 5 elements, got ", show(_lift_length_6003(_x144.elems, 0)));
+        var x_214_14488 = _open_at2(0, emit_error, _x_x1_196_12116, _x_x2_118_12117);
       } else {
-        var x_214_14407 = Unit;
+        var x_214_14488 = Unit;
       }
       if (_yielding()) {
-        return yield_extend(function(_c_x10448_0) {
-          return _mlift_infer_12796(_x144.elems, env_49, n_151, s_152, _c_x10448_0);
+        return yield_extend(function(_c_x10451_0) {
+          return _mlift_infer_12865(_x144.elems, env_49, n_151, s_152, _c_x10451_0);
         });
       } else {
-        var x_215_14410 = infer_args(env_49, s_152, _x144.elems);
+        var x_215_14491 = infer_args(env_49, s_152, _x144.elems);
         if (_yielding()) {
-          return yield_extend(function(_y_x10449_1) {
-            return _mlift_infer_12795(n_151, _y_x10449_1);
+          return yield_extend(function(_y_x10452_1) {
+            return _mlift_infer_12864(n_151, _y_x10452_1);
           });
         } else {
-          var x_216_14413 = map(x_215_14410.snd, function(e_0_0) {
-            var _x_x2_119_12080_0 = _open_none1(function(n_20_1) {
+          var x_216_14494 = map(x_215_14491.snd, function(e_0_0) {
+            var _x_x2_119_12120_0 = _open_none1(function(n_20_1) {
               return n_20_1.typ !== null ? n_20_1.typ.value : TUnit;
             }, e_0_0);
-            return _open_none2(apply_subst, x_215_14410.fst, _x_x2_119_12080_0);
+            return _open_none2(apply_subst, x_215_14491.fst, _x_x2_119_12120_0);
           });
           if (_yielding()) {
             return yield_extend(function(elem_types_1) {
-              return _mlift_infer_12794(x_215_14410.snd, n_151, x_215_14410.fst, elem_types_1);
+              return _mlift_infer_12863(x_215_14491.snd, n_151, x_215_14491.fst, elem_types_1);
             });
           } else {
-            var _x_x1_200_12082_0 = _open_none1(function(node_75_0) {
+            var _x_x1_200_12122_0 = _open_none1(function(node_75_0) {
               return node_75_0.span;
             }, n_151);
-            return Tuple2(x_215_14410.fst, _open_none3(function(span_27_0, expr_27_0, typ_27_0) {
+            return Tuple2(x_215_14491.fst, _open_none3(function(span_27_0, expr_27_0, typ_27_0) {
               var _x1852 = typ_27_0 !== void 0 ? typ_27_0 : Nothing;
               return Node(span_27_0, expr_27_0, _x1852);
-            }, _x_x1_200_12082_0, Tuple(x_215_14410.snd), Just(TTuple(x_216_14413))));
+            }, _x_x1_200_12122_0, Tuple(x_215_14491.snd), Just(TTuple(x_216_14494))));
           }
         }
       }
     } else if (_x144._tag === 23) {
       if (_x144.elems === null) {
-        var x_217_14416 = _open_at0(1, function() {
-          var ev_29_14419 = _evv_at(0);
-          return ev_29_14419.hnd._fun_fresh_tvar(ev_29_14419.marker, ev_29_14419);
+        var x_217_14497 = _open_at0(1, function() {
+          var ev_29_14500 = _evv_at(0);
+          return ev_29_14500.hnd._fun_fresh_tvar(ev_29_14500.marker, ev_29_14500);
         });
         if (_yielding()) {
           return yield_extend(function(elem_var_0_1) {
-            return _mlift_infer_12797(n_151, s_152, elem_var_0_1);
+            return _mlift_infer_12866(n_151, s_152, elem_var_0_1);
           });
         } else {
-          var _x_x1_202_12086_0 = _open_none1(function(node_76_0) {
+          var _x_x1_202_12126_0 = _open_none1(function(node_76_0) {
             return node_76_0.span;
           }, n_151);
           return Tuple2(s_152, _open_none3(function(span_28_0, expr_28_0, typ_28_0) {
             var _x186 = typ_28_0 !== void 0 ? typ_28_0 : Nothing;
             return Node(span_28_0, expr_28_0, _x186);
-          }, _x_x1_202_12086_0, EList(Nil), Just(TList(x_217_14416))));
+          }, _x_x1_202_12126_0, EList(Nil), Just(TList(x_217_14497))));
         }
       } else {
-        var x_218_14421 = infer_args(env_49, s_152, _x144.elems);
+        var x_218_14502 = infer_args(env_49, s_152, _x144.elems);
         if (_yielding()) {
-          return yield_extend(function(_y_x10454_0) {
-            return _mlift_infer_12801(n_151, _y_x10454_0);
+          return yield_extend(function(_y_x10457_0) {
+            return _mlift_infer_12870(n_151, _y_x10457_0);
           });
         } else {
-          var x_219_14424 = map(x_218_14421.snd, function(e_1_0) {
-            var _x_x2_122_12091_0 = _open_none1(function(n_21_1) {
+          var x_219_14505 = map(x_218_14502.snd, function(e_1_0) {
+            var _x_x2_122_12131_0 = _open_none1(function(n_21_1) {
               return n_21_1.typ !== null ? n_21_1.typ.value : TUnit;
             }, e_1_0);
-            return _open_none2(apply_subst, x_218_14421.fst, _x_x2_122_12091_0);
+            return _open_none2(apply_subst, x_218_14502.fst, _x_x2_122_12131_0);
           });
           if (_yielding()) {
             return yield_extend(function(elem_types_0_2) {
-              return _mlift_infer_12800(x_218_14421.snd, n_151, x_218_14421.fst, elem_types_0_2);
+              return _mlift_infer_12869(x_218_14502.snd, n_151, x_218_14502.fst, elem_types_0_2);
             });
           } else {
-            var _x_x1_206_12093_0 = _open_none1(function(xs_1_0) {
+            var _x_x1_206_12133_0 = _open_none1(function(xs_1_0) {
               if (xs_1_0 !== null) {
                 return Just(xs_1_0.head);
               } else {
                 return Nothing;
               }
-            }, x_219_14424);
+            }, x_219_14505);
             var first_type_1 = _open_none2(function(m_31, nothing_3) {
               return m_31 === null ? nothing_3 : m_31.value;
-            }, _x_x1_206_12093_0, TUnit);
-            var x_221_14427 = foldl(_open_none1(function(xs_2_0) {
+            }, _x_x1_206_12133_0, TUnit);
+            var x_221_14508 = foldl(_open_none1(function(xs_2_0) {
               return xs_2_0 !== null ? xs_2_0.tail : Nil;
-            }, x_219_14424), x_218_14421.fst, function(acc_2, et_0) {
-              var _x_x1_209_12097_0 = _open_none2(apply_subst, acc_2, first_type_1);
-              var _x_x2_124_12098_0 = _open_none2(apply_subst, acc_2, et_0);
-              var _x_x3_64_12099_0 = _open_none1(function(node_78_0) {
+            }, x_219_14505), x_218_14502.fst, function(acc_2, et_0) {
+              var _x_x1_209_12137_0 = _open_none2(apply_subst, acc_2, first_type_1);
+              var _x_x2_124_12138_0 = _open_none2(apply_subst, acc_2, et_0);
+              var _x_x3_64_12139_0 = _open_none1(function(node_78_0) {
                 return node_78_0.span;
               }, n_151);
-              var x_222_14430 = _open_at3(0, unify, _x_x1_209_12097_0, _x_x2_124_12098_0, _x_x3_64_12099_0);
+              var x_222_14511 = _open_at3(0, unify, _x_x1_209_12137_0, _x_x2_124_12138_0, _x_x3_64_12139_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10456_1) {
-                  return _mlift_infer_12798(acc_2, _y_x10456_1);
+                return yield_extend(function(_y_x10459_1) {
+                  return _mlift_infer_12867(acc_2, _y_x10459_1);
                 });
               } else {
-                return _mlift_infer_12798(acc_2, x_222_14430);
+                return _mlift_infer_12867(acc_2, x_222_14511);
               }
             });
             if (_yielding()) {
               return yield_extend(function(s2_11_0_1) {
-                return _mlift_infer_12799(x_218_14421.snd, first_type_1, n_151, s2_11_0_1);
+                return _mlift_infer_12868(x_218_14502.snd, first_type_1, n_151, s2_11_0_1);
               });
             } else {
-              var _x_x1_214_12107_0 = _open_none1(function(node_79_0) {
+              var _x_x1_214_12147_0 = _open_none1(function(node_79_0) {
                 return node_79_0.span;
               }, n_151);
-              var _x_x3_65_12109_0 = Just(TList(_open_none2(apply_subst, x_221_14427, first_type_1)));
-              return Tuple2(x_221_14427, _open_none3(function(span_29_0, expr_29_0, typ_29_0) {
+              var _x_x3_65_12149_0 = Just(TList(_open_none2(apply_subst, x_221_14508, first_type_1)));
+              return Tuple2(x_221_14508, _open_none3(function(span_29_0, expr_29_0, typ_29_0) {
                 var _x187 = typ_29_0 !== void 0 ? typ_29_0 : Nothing;
                 return Node(span_29_0, expr_29_0, _x187);
-              }, _x_x1_214_12107_0, EList(x_218_14421.snd), _x_x3_65_12109_0));
+              }, _x_x1_214_12147_0, EList(x_218_14502.snd), _x_x3_65_12149_0));
             }
           }
         }
       }
     } else if (_x144._tag === 24) {
       if (_x144.entries === null) {
-        var x_223_14432 = _open_at0(1, function() {
-          var ev_30_14435 = _evv_at(0);
-          return ev_30_14435.hnd._fun_fresh_tvar(ev_30_14435.marker, ev_30_14435);
+        var x_223_14513 = _open_at0(1, function() {
+          var ev_30_14516 = _evv_at(0);
+          return ev_30_14516.hnd._fun_fresh_tvar(ev_30_14516.marker, ev_30_14516);
         });
         if (_yielding()) {
           return yield_extend(function(key_var_1) {
-            return _mlift_infer_12803(n_151, s_152, key_var_1);
+            return _mlift_infer_12872(n_151, s_152, key_var_1);
           });
         } else {
-          var x_224_14437 = _open_at0(1, function() {
-            var ev_31_14440 = _evv_at(0);
-            return ev_31_14440.hnd._fun_fresh_tvar(ev_31_14440.marker, ev_31_14440);
+          var x_224_14518 = _open_at0(1, function() {
+            var ev_31_14521 = _evv_at(0);
+            return ev_31_14521.hnd._fun_fresh_tvar(ev_31_14521.marker, ev_31_14521);
           });
           if (_yielding()) {
             return yield_extend(function(val_var_1) {
-              return _mlift_infer_12802(x_223_14432, n_151, s_152, val_var_1);
+              return _mlift_infer_12871(x_223_14513, n_151, s_152, val_var_1);
             });
           } else {
-            var _x_x1_217_12113_0 = _open_none1(function(node_80_0) {
+            var _x_x1_217_12153_0 = _open_none1(function(node_80_0) {
               return node_80_0.span;
             }, n_151);
             return Tuple2(s_152, _open_none3(function(span_30_0, expr_30_0, typ_30_0) {
               var _x188 = typ_30_0 !== void 0 ? typ_30_0 : Nothing;
               return Node(span_30_0, expr_30_0, _x188);
-            }, _x_x1_217_12113_0, MapLit(Nil), Just(TList(TTuple(Cons(x_223_14432, Cons(x_224_14437, Nil)))))));
+            }, _x_x1_217_12153_0, MapLit(Nil), Just(TList(TTuple(Cons(x_223_14513, Cons(x_224_14518, Nil)))))));
           }
         }
       } else {
-        var x_225_14442 = infer_map_entries(env_49, s_152, _x144.entries);
+        var x_225_14523 = infer_map_entries(env_49, s_152, _x144.entries);
         if (_yielding()) {
-          return yield_extend(function(_y_x10464_0) {
-            return _mlift_infer_12810(n_151, _y_x10464_0);
+          return yield_extend(function(_y_x10467_0) {
+            return _mlift_infer_12879(n_151, _y_x10467_0);
           });
         } else {
-          var x_226_14445 = map(x_225_14442.snd, function(_pat_x577__43_0) {
-            var _x_x2_131_12118_0 = _open_none1(function(n_22_1) {
+          var x_226_14526 = map(x_225_14523.snd, function(_pat_x593__43_0) {
+            var _x_x2_131_12158_0 = _open_none1(function(n_22_1) {
               return n_22_1.typ !== null ? n_22_1.typ.value : TUnit;
-            }, _pat_x577__43_0.fst);
-            return _open_none2(apply_subst, x_225_14442.fst, _x_x2_131_12118_0);
+            }, _pat_x593__43_0.fst);
+            return _open_none2(apply_subst, x_225_14523.fst, _x_x2_131_12158_0);
           });
           if (_yielding()) {
             return yield_extend(function(key_types_2) {
-              return _mlift_infer_12809(x_225_14442.snd, n_151, x_225_14442.fst, key_types_2);
+              return _mlift_infer_12878(x_225_14523.snd, n_151, x_225_14523.fst, key_types_2);
             });
           } else {
-            var x_227_14448 = map(x_225_14442.snd, function(_pat_x578__43_0) {
-              var _x_x2_132_12121_0 = _open_none1(function(n_23_1) {
+            var x_227_14529 = map(x_225_14523.snd, function(_pat_x594__43_0) {
+              var _x_x2_132_12161_0 = _open_none1(function(n_23_1) {
                 return n_23_1.typ !== null ? n_23_1.typ.value : TUnit;
-              }, _pat_x578__43_0.snd);
-              return _open_none2(apply_subst, x_225_14442.fst, _x_x2_132_12121_0);
+              }, _pat_x594__43_0.snd);
+              return _open_none2(apply_subst, x_225_14523.fst, _x_x2_132_12161_0);
             });
             if (_yielding()) {
               return yield_extend(function(val_types_2) {
-                return _mlift_infer_12808(x_225_14442.snd, x_226_14445, n_151, x_225_14442.fst, val_types_2);
+                return _mlift_infer_12877(x_225_14523.snd, x_226_14526, n_151, x_225_14523.fst, val_types_2);
               });
             } else {
-              var _x_x1_223_12123_0 = _open_none1(function(xs_3_0) {
+              var _x_x1_223_12163_0 = _open_none1(function(xs_3_0) {
                 if (xs_3_0 !== null) {
                   return Just(xs_3_0.head);
                 } else {
                   return Nothing;
                 }
-              }, x_226_14445);
+              }, x_226_14526);
               var first_key_2 = _open_none2(function(m_0_1, nothing_0_0) {
                 return m_0_1 === null ? nothing_0_0 : m_0_1.value;
-              }, _x_x1_223_12123_0, TUnit);
-              var _x_x1_225_12126_0 = _open_none1(function(xs_4_0) {
+              }, _x_x1_223_12163_0, TUnit);
+              var _x_x1_225_12166_0 = _open_none1(function(xs_4_0) {
                 if (xs_4_0 !== null) {
                   return Just(xs_4_0.head);
                 } else {
                   return Nothing;
                 }
-              }, x_227_14448);
+              }, x_227_14529);
               var first_val_2 = _open_none2(function(m_1_1, nothing_1_0) {
                 return m_1_1 === null ? nothing_1_0 : m_1_1.value;
-              }, _x_x1_225_12126_0, TUnit);
-              var x_228_14451 = foldl(_open_none1(function(xs_5_0) {
+              }, _x_x1_225_12166_0, TUnit);
+              var x_228_14532 = foldl(_open_none1(function(xs_5_0) {
                 return xs_5_0 !== null ? xs_5_0.tail : Nil;
-              }, x_226_14445), x_225_14442.fst, function(acc_0_2, kt_0) {
-                var _x_x1_228_12130_0 = _open_none2(apply_subst, acc_0_2, first_key_2);
-                var _x_x2_135_12131_0 = _open_none2(apply_subst, acc_0_2, kt_0);
-                var _x_x3_67_12132_0 = _open_none1(function(node_83_0) {
+              }, x_226_14526), x_225_14523.fst, function(acc_0_2, kt_0) {
+                var _x_x1_228_12170_0 = _open_none2(apply_subst, acc_0_2, first_key_2);
+                var _x_x2_135_12171_0 = _open_none2(apply_subst, acc_0_2, kt_0);
+                var _x_x3_67_12172_0 = _open_none1(function(node_83_0) {
                   return node_83_0.span;
                 }, n_151);
-                var x_229_14454 = _open_at3(0, unify, _x_x1_228_12130_0, _x_x2_135_12131_0, _x_x3_67_12132_0);
+                var x_229_14535 = _open_at3(0, unify, _x_x1_228_12170_0, _x_x2_135_12171_0, _x_x3_67_12172_0);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10469_1) {
-                    return _mlift_infer_12806(acc_0_2, _y_x10469_1);
+                  return yield_extend(function(_y_x10472_1) {
+                    return _mlift_infer_12875(acc_0_2, _y_x10472_1);
                   });
                 } else {
-                  return _mlift_infer_12806(acc_0_2, x_229_14454);
+                  return _mlift_infer_12875(acc_0_2, x_229_14535);
                 }
               });
               if (_yielding()) {
                 return yield_extend(function(s2_12_0_1) {
-                  return _mlift_infer_12807(x_225_14442.snd, first_key_2, first_val_2, n_151, x_227_14448, s2_12_0_1);
+                  return _mlift_infer_12876(x_225_14523.snd, first_key_2, first_val_2, n_151, x_227_14529, s2_12_0_1);
                 });
               } else {
-                var x_230_14456 = foldl(_open_none1(function(xs_6_0) {
+                var x_230_14537 = foldl(_open_none1(function(xs_6_0) {
                   return xs_6_0 !== null ? xs_6_0.tail : Nil;
-                }, x_227_14448), x_228_14451, function(acc_1_1, vt_0) {
-                  var _x_x1_234_12141_0 = _open_none2(apply_subst, acc_1_1, first_val_2);
-                  var _x_x2_139_12142_0 = _open_none2(apply_subst, acc_1_1, vt_0);
-                  var _x_x3_68_12143_0 = _open_none1(function(node_84_0) {
+                }, x_227_14529), x_228_14532, function(acc_1_1, vt_0) {
+                  var _x_x1_234_12181_0 = _open_none2(apply_subst, acc_1_1, first_val_2);
+                  var _x_x2_139_12182_0 = _open_none2(apply_subst, acc_1_1, vt_0);
+                  var _x_x3_68_12183_0 = _open_none1(function(node_84_0) {
                     return node_84_0.span;
                   }, n_151);
-                  var x_231_14459 = _open_at3(0, unify, _x_x1_234_12141_0, _x_x2_139_12142_0, _x_x3_68_12143_0);
+                  var x_231_14540 = _open_at3(0, unify, _x_x1_234_12181_0, _x_x2_139_12182_0, _x_x3_68_12183_0);
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10471_1) {
-                      return _mlift_infer_12804(acc_1_1, _y_x10471_1);
+                    return yield_extend(function(_y_x10474_1) {
+                      return _mlift_infer_12873(acc_1_1, _y_x10474_1);
                     });
                   } else {
-                    return _mlift_infer_12804(acc_1_1, x_231_14459);
+                    return _mlift_infer_12873(acc_1_1, x_231_14540);
                   }
                 });
                 if (_yielding()) {
                   return yield_extend(function(s3_8_1) {
-                    return _mlift_infer_12805(x_225_14442.snd, first_key_2, first_val_2, n_151, s3_8_1);
+                    return _mlift_infer_12874(x_225_14523.snd, first_key_2, first_val_2, n_151, s3_8_1);
                   });
                 } else {
-                  var _x_x1_239_12151_0 = _open_none1(function(node_85_0) {
+                  var _x_x1_239_12191_0 = _open_none1(function(node_85_0) {
                     return node_85_0.span;
                   }, n_151);
-                  var _x_x3_69_12153_0 = Just(TList(TTuple(Cons(_open_none2(apply_subst, x_230_14456, first_key_2), Cons(_open_none2(apply_subst, x_230_14456, first_val_2), Nil)))));
-                  return Tuple2(x_230_14456, _open_none3(function(span_31_0, expr_31_0, typ_31_0) {
+                  var _x_x3_69_12193_0 = Just(TList(TTuple(Cons(_open_none2(apply_subst, x_230_14537, first_key_2), Cons(_open_none2(apply_subst, x_230_14537, first_val_2), Nil)))));
+                  return Tuple2(x_230_14537, _open_none3(function(span_31_0, expr_31_0, typ_31_0) {
                     var _x189 = typ_31_0 !== void 0 ? typ_31_0 : Nothing;
                     return Node(span_31_0, expr_31_0, _x189);
-                  }, _x_x1_239_12151_0, MapLit(x_225_14442.snd), _x_x3_69_12153_0));
+                  }, _x_x1_239_12191_0, MapLit(x_225_14523.snd), _x_x3_69_12193_0));
                 }
               }
             }
@@ -24515,213 +24548,213 @@ var __hica = (() => {
         }
       }
     } else if (_x144._tag === 22) {
-      var x_232_14461 = infer(env_49, s_152, _x144.tuple);
+      var x_232_14542 = infer(env_49, s_152, _x144.tuple);
       if (_yielding()) {
-        return yield_extend(function(_y_x10475_0) {
-          return _mlift_infer_12818(_x144.index, n_151, _y_x10475_0);
+        return yield_extend(function(_y_x10478_0) {
+          return _mlift_infer_12887(_x144.index, n_151, _y_x10478_0);
         });
       } else {
-        var _x_x2_146_12160_0 = _open_none1(function(n_24_1) {
+        var _x_x2_146_12200_0 = _open_none1(function(n_24_1) {
           return n_24_1.typ !== null ? n_24_1.typ.value : TUnit;
-        }, x_232_14461.snd);
-        var tup_type_0 = _open_none2(apply_subst, x_232_14461.fst, _x_x2_146_12160_0);
+        }, x_232_14542.snd);
+        var tup_type_0 = _open_none2(apply_subst, x_232_14542.fst, _x_x2_146_12200_0);
         if (tup_type_0._tag === 7) {
           if (_int_ge(_x144.index, 0)) {
             var _x190 = _int_lt(_x144.index, _lift_length_6003(tup_type_0.elems, 0));
             if (_x190) {
-              var _x_x1_245_12162_0 = _index(tup_type_0.elems, _x144.index);
+              var _x_x1_245_12202_0 = _index(tup_type_0.elems, _x144.index);
               var elem_type_0_1 = _open_none2(function(m_2_1, nothing_2_0) {
                 return m_2_1 === null ? nothing_2_0 : m_2_1.value;
-              }, _x_x1_245_12162_0, TUnit);
-              var _x_x1_246_12164_0 = _open_none1(function(node_87_0) {
+              }, _x_x1_245_12202_0, TUnit);
+              var _x_x1_246_12204_0 = _open_none1(function(node_87_0) {
                 return node_87_0.span;
               }, n_151);
-              return Tuple2(x_232_14461.fst, _open_none3(function(span_32_0, expr_32_0, typ_32_0) {
+              return Tuple2(x_232_14542.fst, _open_none3(function(span_32_0, expr_32_0, typ_32_0) {
                 var _x191 = typ_32_0 !== void 0 ? typ_32_0 : Nothing;
                 return Node(span_32_0, expr_32_0, _x191);
-              }, _x_x1_246_12164_0, TupleIndex(x_232_14461.snd, _x144.index), Just(elem_type_0_1)));
+              }, _x_x1_246_12204_0, TupleIndex(x_232_14542.snd, _x144.index), Just(elem_type_0_1)));
             } else {
-              var _x_x1_248_12168_0 = _open_none1(function(node_88_0) {
+              var _x_x1_248_12208_0 = _open_none1(function(node_88_0) {
                 return node_88_0.span;
               }, n_151);
-              var _x_x2_149_12169_0 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(_x144.index), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type_0))));
-              var x_233_14464 = _open_at2(0, emit_error, _x_x1_248_12168_0, _x_x2_149_12169_0);
+              var _x_x2_149_12209_0 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(_x144.index), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type_0))));
+              var x_233_14545 = _open_at2(0, emit_error, _x_x1_248_12208_0, _x_x2_149_12209_0);
               if (_yielding()) {
                 return yield_extend(function(wild___5_2) {
-                  return _mlift_infer_12812(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, wild___5_2);
+                  return _mlift_infer_12881(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, wild___5_2);
                 });
               } else {
-                var x_234_14467 = _open_at0(1, function() {
-                  var ev_32_14470 = _evv_at(0);
-                  return ev_32_14470.hnd._fun_fresh_tvar(ev_32_14470.marker, ev_32_14470);
+                var x_234_14548 = _open_at0(1, function() {
+                  var ev_32_14551 = _evv_at(0);
+                  return ev_32_14551.hnd._fun_fresh_tvar(ev_32_14551.marker, ev_32_14551);
                 });
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10478_1) {
-                    return _mlift_infer_12811(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, _y_x10478_1);
+                  return yield_extend(function(_y_x10481_1) {
+                    return _mlift_infer_12880(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, _y_x10481_1);
                   });
                 } else {
-                  var _x_x1_251_12172_0 = _open_none1(function(node_89_0) {
+                  var _x_x1_251_12212_0 = _open_none1(function(node_89_0) {
                     return node_89_0.span;
                   }, n_151);
-                  return Tuple2(x_232_14461.fst, _open_none3(function(span_33_0, expr_33_0, typ_33_0) {
+                  return Tuple2(x_232_14542.fst, _open_none3(function(span_33_0, expr_33_0, typ_33_0) {
                     var _x192 = typ_33_0 !== void 0 ? typ_33_0 : Nothing;
                     return Node(span_33_0, expr_33_0, _x192);
-                  }, _x_x1_251_12172_0, TupleIndex(x_232_14461.snd, _x144.index), Just(x_234_14467)));
+                  }, _x_x1_251_12212_0, TupleIndex(x_232_14542.snd, _x144.index), Just(x_234_14548)));
                 }
               }
             }
           } else {
-            var _x_x1_253_12176_0 = _open_none1(function(node_90_0) {
+            var _x_x1_253_12216_0 = _open_none1(function(node_90_0) {
               return node_90_0.span;
             }, n_151);
-            var _x_x2_151_12177_0 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(_x144.index), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type_0))));
-            var x_235_14472 = _open_at2(0, emit_error, _x_x1_253_12176_0, _x_x2_151_12177_0);
+            var _x_x2_151_12217_0 = _lp__plus__plus__rp_("tuple index ", _lp__plus__plus__rp_(show(_x144.index), _lp__plus__plus__rp_(" out of range for ", _open_none1(hica_type_fs_show, tup_type_0))));
+            var x_235_14553 = _open_at2(0, emit_error, _x_x1_253_12216_0, _x_x2_151_12217_0);
             if (_yielding()) {
               return yield_extend(function(wild___5_0_1) {
-                return _mlift_infer_12814(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, wild___5_0_1);
+                return _mlift_infer_12883(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, wild___5_0_1);
               });
             } else {
-              var x_236_14475 = _open_at0(1, function() {
-                var ev_33_14478 = _evv_at(0);
-                return ev_33_14478.hnd._fun_fresh_tvar(ev_33_14478.marker, ev_33_14478);
+              var x_236_14556 = _open_at0(1, function() {
+                var ev_33_14559 = _evv_at(0);
+                return ev_33_14559.hnd._fun_fresh_tvar(ev_33_14559.marker, ev_33_14559);
               });
               if (_yielding()) {
-                return yield_extend(function(_y_x10482_1) {
-                  return _mlift_infer_12813(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, _y_x10482_1);
+                return yield_extend(function(_y_x10485_1) {
+                  return _mlift_infer_12882(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, _y_x10485_1);
                 });
               } else {
-                var _x_x1_256_12180_0 = _open_none1(function(node_91_0) {
+                var _x_x1_256_12220_0 = _open_none1(function(node_91_0) {
                   return node_91_0.span;
                 }, n_151);
-                return Tuple2(x_232_14461.fst, _open_none3(function(span_34_0, expr_34_0, typ_34_0) {
+                return Tuple2(x_232_14542.fst, _open_none3(function(span_34_0, expr_34_0, typ_34_0) {
                   var _x193 = typ_34_0 !== void 0 ? typ_34_0 : Nothing;
                   return Node(span_34_0, expr_34_0, _x193);
-                }, _x_x1_256_12180_0, TupleIndex(x_232_14461.snd, _x144.index), Just(x_236_14475)));
+                }, _x_x1_256_12220_0, TupleIndex(x_232_14542.snd, _x144.index), Just(x_236_14556)));
               }
             }
           }
         } else if (tup_type_0._tag === 14) {
-          var x_237_14480 = _open_at0(1, function() {
-            var ev_34_14483 = _evv_at(0);
-            return ev_34_14483.hnd._fun_fresh_tvar(ev_34_14483.marker, ev_34_14483);
+          var x_237_14561 = _open_at0(1, function() {
+            var ev_34_14564 = _evv_at(0);
+            return ev_34_14564.hnd._fun_fresh_tvar(ev_34_14564.marker, ev_34_14564);
           });
           if (_yielding()) {
             return yield_extend(function(result_var_0_2) {
-              return _mlift_infer_12815(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, result_var_0_2);
+              return _mlift_infer_12884(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, result_var_0_2);
             });
           } else {
-            var _x_x1_258_12184_0 = _open_none1(function(node_92_0) {
+            var _x_x1_258_12224_0 = _open_none1(function(node_92_0) {
               return node_92_0.span;
             }, n_151);
-            return Tuple2(x_232_14461.fst, _open_none3(function(span_35_0, expr_35_0, typ_35_0) {
+            return Tuple2(x_232_14542.fst, _open_none3(function(span_35_0, expr_35_0, typ_35_0) {
               var _x194 = typ_35_0 !== void 0 ? typ_35_0 : Nothing;
               return Node(span_35_0, expr_35_0, _x194);
-            }, _x_x1_258_12184_0, TupleIndex(x_232_14461.snd, _x144.index), Just(x_237_14480)));
+            }, _x_x1_258_12224_0, TupleIndex(x_232_14542.snd, _x144.index), Just(x_237_14561)));
           }
         } else {
-          var _x_x1_260_12188_0 = _open_none1(function(node_93_0) {
+          var _x_x1_260_12228_0 = _open_none1(function(node_93_0) {
             return node_93_0.span;
           }, n_151);
-          var _x_x2_154_12189_0 = _lp__plus__plus__rp_("cannot index non-tuple type ", _open_none1(hica_type_fs_show, tup_type_0));
-          var x_238_14485 = _open_at2(0, emit_error, _x_x1_260_12188_0, _x_x2_154_12189_0);
+          var _x_x2_154_12229_0 = _lp__plus__plus__rp_("cannot index non-tuple type ", _open_none1(hica_type_fs_show, tup_type_0));
+          var x_238_14566 = _open_at2(0, emit_error, _x_x1_260_12228_0, _x_x2_154_12229_0);
           if (_yielding()) {
             return yield_extend(function(wild___6_1) {
-              return _mlift_infer_12817(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, wild___6_1);
+              return _mlift_infer_12886(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, wild___6_1);
             });
           } else {
-            var x_239_14488 = _open_at0(1, function() {
-              var ev_35_14491 = _evv_at(0);
-              return ev_35_14491.hnd._fun_fresh_tvar(ev_35_14491.marker, ev_35_14491);
+            var x_239_14569 = _open_at0(1, function() {
+              var ev_35_14572 = _evv_at(0);
+              return ev_35_14572.hnd._fun_fresh_tvar(ev_35_14572.marker, ev_35_14572);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10488_1) {
-                return _mlift_infer_12816(_x144.index, n_151, x_232_14461.fst, x_232_14461.snd, _y_x10488_1);
+              return yield_extend(function(_y_x10491_1) {
+                return _mlift_infer_12885(_x144.index, n_151, x_232_14542.fst, x_232_14542.snd, _y_x10491_1);
               });
             } else {
-              var _x_x1_263_12192_0 = _open_none1(function(node_94_0) {
+              var _x_x1_263_12232_0 = _open_none1(function(node_94_0) {
                 return node_94_0.span;
               }, n_151);
-              return Tuple2(x_232_14461.fst, _open_none3(function(span_36_0, expr_36_0, typ_36_0) {
+              return Tuple2(x_232_14542.fst, _open_none3(function(span_36_0, expr_36_0, typ_36_0) {
                 var _x195 = typ_36_0 !== void 0 ? typ_36_0 : Nothing;
                 return Node(span_36_0, expr_36_0, _x195);
-              }, _x_x1_263_12192_0, TupleIndex(x_232_14461.snd, _x144.index), Just(x_239_14488)));
+              }, _x_x1_263_12232_0, TupleIndex(x_232_14542.snd, _x144.index), Just(x_239_14569)));
             }
           }
         }
       }
     } else if (_x144._tag === 27) {
-      var x_240_14493 = infer(env_49, s_152, _x144.init);
+      var x_240_14574 = infer(env_49, s_152, _x144.init);
       if (_yielding()) {
-        return yield_extend(function(_y_x10491_0) {
-          return _mlift_infer_12824(_x144.body, env_49, _x144.init, n_151, _x144.names, _y_x10491_0);
+        return yield_extend(function(_y_x10494_0) {
+          return _mlift_infer_12893(_x144.body, env_49, _x144.init, n_151, _x144.names, _y_x10494_0);
         });
       } else {
-        var _x_x2_156_12197_0 = _open_none1(function(n_25_1) {
+        var _x_x2_156_12237_0 = _open_none1(function(n_25_1) {
           return n_25_1.typ !== null ? n_25_1.typ.value : TUnit;
-        }, x_240_14493.snd);
-        var init_type_1_1 = _open_none2(apply_subst, x_240_14493.fst, _x_x2_156_12197_0);
-        var x_241_14496 = map(_x144.names, function(___wildcard_x608__36_0) {
+        }, x_240_14574.snd);
+        var init_type_1_1 = _open_none2(apply_subst, x_240_14574.fst, _x_x2_156_12237_0);
+        var x_241_14577 = map(_x144.names, function(___wildcard_x624__36_0) {
           return _open_at0(1, function() {
-            var ev_36_14499 = _evv_at(0);
-            return ev_36_14499.hnd._fun_fresh_tvar(ev_36_14499.marker, ev_36_14499);
+            var ev_36_14580 = _evv_at(0);
+            return ev_36_14580.hnd._fun_fresh_tvar(ev_36_14580.marker, ev_36_14580);
           });
         });
         if (_yielding()) {
           return yield_extend(function(name_vars_2) {
-            return _mlift_infer_12823(_x144.body, env_49, init_type_1_1, _x144.init, x_240_14493.snd, n_151, _x144.names, x_240_14493.fst, name_vars_2);
+            return _mlift_infer_12892(_x144.body, env_49, init_type_1_1, _x144.init, x_240_14574.snd, n_151, _x144.names, x_240_14574.fst, name_vars_2);
           });
         } else {
-          var _x_x3_75_12201_0 = _open_none1(function(node_96_0) {
+          var _x_x3_75_12241_0 = _open_none1(function(node_96_0) {
             return node_96_0.span;
           }, _x144.init);
-          var x_242_14501 = _open_at3(0, unify, init_type_1_1, TTuple(x_241_14496), _x_x3_75_12201_0);
+          var x_242_14582 = _open_at3(0, unify, init_type_1_1, TTuple(x_241_14577), _x_x3_75_12241_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10495_1) {
-              return _mlift_infer_12822(_x144.body, env_49, x_240_14493.snd, n_151, x_241_14496, _x144.names, x_240_14493.fst, _y_x10495_1);
+            return yield_extend(function(_y_x10498_1) {
+              return _mlift_infer_12891(_x144.body, env_49, x_240_14574.snd, n_151, x_241_14577, _x144.names, x_240_14574.fst, _y_x10498_1);
             });
           } else {
             var s2_13_0_2 = _open_none2(function(s1_28_1, s2_27_0) {
               var updated_s2_26_0 = _trmc_map_subst(s2_27_0, function(k_28_0, v_27_0) {
                 return Tuple2(k_28_0, _trmc_apply_subst(s1_28_1, v_27_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_26_0 = _trmc_filter_subst(updated_s2_26_0, function(k_0_26_0, ___wildcard_x120__39_26_0) {
+              var ys_10006_26_0 = _trmc_filter_subst(updated_s2_26_0, function(k_0_26_0, ___wildcard_x136__39_26_0) {
                 var b_10007_26_0 = subst_has(s1_28_1, k_0_26_0);
                 return b_10007_26_0 ? false : true;
               }, _cctx_empty());
               return append(s1_28_1, ys_10006_26_0);
-            }, x_242_14501, x_240_14493.fst);
-            var x_243_14510 = map(x_241_14496, function(v_0_0_0) {
+            }, x_242_14582, x_240_14574.fst);
+            var x_243_14591 = map(x_241_14577, function(v_0_0_0) {
               return _open_none2(apply_subst, s2_13_0_2, v_0_0_0);
             });
             if (_yielding()) {
               return yield_extend(function(bound_types_1) {
-                return _mlift_infer_12821(_x144.body, env_49, x_240_14493.snd, n_151, _x144.names, s2_13_0_2, bound_types_1);
+                return _mlift_infer_12890(_x144.body, env_49, x_240_14574.snd, n_151, _x144.names, s2_13_0_2, bound_types_1);
               });
             } else {
-              var x_244_14513 = foldl(zip(_x144.names, x_243_14510), env_49, function(e_2_0, entry_0_0) {
+              var x_244_14594 = foldl(zip(_x144.names, x_243_14591), env_49, function(e_2_0, entry_0_0) {
                 return Cons(Tuple2(entry_0_0.fst, entry_0_0.snd), e_2_0);
               });
               if (_yielding()) {
                 return yield_extend(function(env_3_1_sq_) {
-                  return _mlift_infer_12820(_x144.body, x_240_14493.snd, n_151, _x144.names, s2_13_0_2, env_3_1_sq_);
+                  return _mlift_infer_12889(_x144.body, x_240_14574.snd, n_151, _x144.names, s2_13_0_2, env_3_1_sq_);
                 });
               } else {
-                var x_245_14516 = infer(x_244_14513, s2_13_0_2, _x144.body);
+                var x_245_14597 = infer(x_244_14594, s2_13_0_2, _x144.body);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10499_1) {
-                    return _mlift_infer_12819(x_240_14493.snd, n_151, _x144.names, _y_x10499_1);
+                  return yield_extend(function(_y_x10502_1) {
+                    return _mlift_infer_12888(x_240_14574.snd, n_151, _x144.names, _y_x10502_1);
                   });
                 } else {
                   var body_type_1_0 = _open_none1(function(n_26_1) {
                     return n_26_1.typ !== null ? n_26_1.typ.value : TUnit;
-                  }, x_245_14516.snd);
-                  var _x_x1_272_12208_0 = _open_none1(function(node_98_0) {
+                  }, x_245_14597.snd);
+                  var _x_x1_272_12248_0 = _open_none1(function(node_98_0) {
                     return node_98_0.span;
                   }, n_151);
-                  return Tuple2(x_245_14516.fst, _open_none3(function(span_37_0, expr_37_0, typ_37_0) {
+                  return Tuple2(x_245_14597.fst, _open_none3(function(span_37_0, expr_37_0, typ_37_0) {
                     var _x196 = typ_37_0 !== void 0 ? typ_37_0 : Nothing;
                     return Node(span_37_0, expr_37_0, _x196);
-                  }, _x_x1_272_12208_0, LetTuple(_x144.names, x_240_14493.snd, x_245_14516.snd), Just(body_type_1_0)));
+                  }, _x_x1_272_12248_0, LetTuple(_x144.names, x_240_14574.snd, x_245_14597.snd), Just(body_type_1_0)));
                 }
               }
             }
@@ -24729,90 +24762,90 @@ var __hica = (() => {
         }
       }
     } else if (_x144._tag === 25) {
-      var x_246_14519 = infer(env_49, s_152, _x144.list);
+      var x_246_14600 = infer(env_49, s_152, _x144.list);
       if (_yielding()) {
-        return yield_extend(function(_y_x10502_0) {
-          return _mlift_infer_12829(env_49, _x144.index, n_151, _y_x10502_0);
+        return yield_extend(function(_y_x10505_0) {
+          return _mlift_infer_12898(env_49, _x144.index, n_151, _y_x10505_0);
         });
       } else {
-        var x_247_14522 = infer(env_49, x_246_14519.fst, _x144.index);
+        var x_247_14603 = infer(env_49, x_246_14600.fst, _x144.index);
         if (_yielding()) {
-          return yield_extend(function(_y_x10503_1) {
-            return _mlift_infer_12828(x_246_14519.snd, n_151, _y_x10503_1);
+          return yield_extend(function(_y_x10506_1) {
+            return _mlift_infer_12897(x_246_14600.snd, n_151, _y_x10506_1);
           });
         } else {
-          var _x_x2_162_12216_0 = _open_none1(function(n_27_1) {
+          var _x_x2_162_12256_0 = _open_none1(function(n_27_1) {
             return n_27_1.typ !== null ? n_27_1.typ.value : TUnit;
-          }, x_247_14522.snd);
-          var _x_x1_274_12212_0 = _open_none2(apply_subst, x_247_14522.fst, _x_x2_162_12216_0);
-          var _x_x3_77_12214_0 = _open_none1(function(node_100_0) {
+          }, x_247_14603.snd);
+          var _x_x1_274_12252_0 = _open_none2(apply_subst, x_247_14603.fst, _x_x2_162_12256_0);
+          var _x_x3_77_12254_0 = _open_none1(function(node_100_0) {
             return node_100_0.span;
           }, n_151);
-          var x_248_14525 = _open_at3(0, unify, _x_x1_274_12212_0, TInt, _x_x3_77_12214_0);
+          var x_248_14606 = _open_at3(0, unify, _x_x1_274_12252_0, TInt, _x_x3_77_12254_0);
           if (_yielding()) {
-            return yield_extend(function(_y_x10504_1) {
-              return _mlift_infer_12827(x_247_14522.snd, x_246_14519.snd, n_151, x_247_14522.fst, _y_x10504_1);
+            return yield_extend(function(_y_x10507_1) {
+              return _mlift_infer_12896(x_247_14603.snd, x_246_14600.snd, n_151, x_247_14603.fst, _y_x10507_1);
             });
           } else {
             var s3_10_2 = _open_none2(function(s1_29_1, s2_28_0) {
               var updated_s2_27_0 = _trmc_map_subst(s2_28_0, function(k_29_0, v_28_0) {
                 return Tuple2(k_29_0, _trmc_apply_subst(s1_29_1, v_28_0, _cctx_empty()));
               }, _cctx_empty());
-              var ys_10006_27_0 = _trmc_filter_subst(updated_s2_27_0, function(k_0_27_0, ___wildcard_x120__39_27_0) {
+              var ys_10006_27_0 = _trmc_filter_subst(updated_s2_27_0, function(k_0_27_0, ___wildcard_x136__39_27_0) {
                 var b_10007_27_0 = subst_has(s1_29_1, k_0_27_0);
                 return b_10007_27_0 ? false : true;
               }, _cctx_empty());
               return append(s1_29_1, ys_10006_27_0);
-            }, x_248_14525, x_247_14522.fst);
-            var _x_x2_164_12222_0 = _open_none1(function(n_28_1) {
+            }, x_248_14606, x_247_14603.fst);
+            var _x_x2_164_12262_0 = _open_none1(function(n_28_1) {
               return n_28_1.typ !== null ? n_28_1.typ.value : TUnit;
-            }, x_246_14519.snd);
-            var lst_type_1 = _open_none2(apply_subst, s3_10_2, _x_x2_164_12222_0);
+            }, x_246_14600.snd);
+            var lst_type_1 = _open_none2(apply_subst, s3_10_2, _x_x2_164_12262_0);
             if (lst_type_1._tag === 4) {
-              var _x_x1_281_12224_0 = _open_none1(function(node_102_0) {
+              var _x_x1_281_12264_0 = _open_none1(function(node_102_0) {
                 return node_102_0.span;
               }, n_151);
               return Tuple2(s3_10_2, _open_none3(function(span_38_0, expr_38_0, typ_38_0) {
                 var _x197 = typ_38_0 !== void 0 ? typ_38_0 : Nothing;
                 return Node(span_38_0, expr_38_0, _x197);
-              }, _x_x1_281_12224_0, ListIndex(x_246_14519.snd, x_247_14522.snd), Just(TChar)));
+              }, _x_x1_281_12264_0, ListIndex(x_246_14600.snd, x_247_14603.snd), Just(TChar)));
             } else {
-              var x_249_14534 = _open_at0(1, function() {
-                var ev_37_14537 = _evv_at(0);
-                return ev_37_14537.hnd._fun_fresh_tvar(ev_37_14537.marker, ev_37_14537);
+              var x_249_14615 = _open_at0(1, function() {
+                var ev_37_14618 = _evv_at(0);
+                return ev_37_14618.hnd._fun_fresh_tvar(ev_37_14618.marker, ev_37_14618);
               });
               if (_yielding()) {
                 return yield_extend(function(elem_var_1_3) {
-                  return _mlift_infer_12826(x_247_14522.snd, x_246_14519.snd, lst_type_1, n_151, s3_10_2, elem_var_1_3);
+                  return _mlift_infer_12895(x_247_14603.snd, x_246_14600.snd, lst_type_1, n_151, s3_10_2, elem_var_1_3);
                 });
               } else {
-                var _x_x3_79_12230_0 = _open_none1(function(node_103_0) {
+                var _x_x3_79_12270_0 = _open_none1(function(node_103_0) {
                   return node_103_0.span;
                 }, n_151);
-                var x_250_14539 = _open_at3(0, unify, lst_type_1, TList(x_249_14534), _x_x3_79_12230_0);
+                var x_250_14620 = _open_at3(0, unify, lst_type_1, TList(x_249_14615), _x_x3_79_12270_0);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10507_1) {
-                    return _mlift_infer_12825(x_249_14534, x_247_14522.snd, x_246_14519.snd, n_151, s3_10_2, _y_x10507_1);
+                  return yield_extend(function(_y_x10510_1) {
+                    return _mlift_infer_12894(x_249_14615, x_247_14603.snd, x_246_14600.snd, n_151, s3_10_2, _y_x10510_1);
                   });
                 } else {
                   var s4_1_0 = _open_none2(function(s1_30_1, s2_29_0) {
                     var updated_s2_28_0 = _trmc_map_subst(s2_29_0, function(k_30_0, v_29_0) {
                       return Tuple2(k_30_0, _trmc_apply_subst(s1_30_1, v_29_0, _cctx_empty()));
                     }, _cctx_empty());
-                    var ys_10006_28_0 = _trmc_filter_subst(updated_s2_28_0, function(k_0_28_0, ___wildcard_x120__39_28_0) {
+                    var ys_10006_28_0 = _trmc_filter_subst(updated_s2_28_0, function(k_0_28_0, ___wildcard_x136__39_28_0) {
                       var b_10007_28_0 = subst_has(s1_30_1, k_0_28_0);
                       return b_10007_28_0 ? false : true;
                     }, _cctx_empty());
                     return append(s1_30_1, ys_10006_28_0);
-                  }, x_250_14539, s3_10_2);
-                  var _x_x1_286_12234_0 = _open_none1(function(node_104_0) {
+                  }, x_250_14620, s3_10_2);
+                  var _x_x1_286_12274_0 = _open_none1(function(node_104_0) {
                     return node_104_0.span;
                   }, n_151);
-                  var _x_x3_80_12236_0 = Just(_open_none2(apply_subst, s4_1_0, x_249_14534));
+                  var _x_x3_80_12276_0 = Just(_open_none2(apply_subst, s4_1_0, x_249_14615));
                   return Tuple2(s4_1_0, _open_none3(function(span_39_0, expr_39_0, typ_39_0) {
                     var _x198 = typ_39_0 !== void 0 ? typ_39_0 : Nothing;
                     return Node(span_39_0, expr_39_0, _x198);
-                  }, _x_x1_286_12234_0, ListIndex(x_246_14519.snd, x_247_14522.snd), _x_x3_80_12236_0));
+                  }, _x_x1_286_12274_0, ListIndex(x_246_14600.snd, x_247_14603.snd), _x_x3_80_12276_0));
                 }
               }
             }
@@ -24820,315 +24853,315 @@ var __hica = (() => {
         }
       }
     } else if (_x144._tag === 26) {
-      var x_251_14548 = infer(env_49, s_152, _x144.list);
+      var x_251_14629 = infer(env_49, s_152, _x144.list);
       if (_yielding()) {
-        return yield_extend(function(_y_x10511_0) {
-          return _mlift_infer_12844(_x144.slice_end, env_49, n_151, _x144.slice_start, _y_x10511_0);
+        return yield_extend(function(_y_x10514_0) {
+          return _mlift_infer_12913(_x144.slice_end, env_49, n_151, _x144.slice_start, _y_x10514_0);
         });
       } else {
-        var _x_x2_170_12241_0 = _open_none1(function(n_29_1) {
+        var _x_x2_170_12281_0 = _open_none1(function(n_29_1) {
           return n_29_1.typ !== null ? n_29_1.typ.value : TUnit;
-        }, x_251_14548.snd);
-        var lst_type_0_2 = _open_none2(apply_subst, x_251_14548.fst, _x_x2_170_12241_0);
+        }, x_251_14629.snd);
+        var lst_type_0_2 = _open_none2(apply_subst, x_251_14629.fst, _x_x2_170_12281_0);
         if (lst_type_0_2._tag === 4) {
           if (_x144.slice_start !== null) {
-            var x_252_14551 = infer(env_49, x_251_14548.fst, _x144.slice_start.value);
+            var x_252_14632 = infer(env_49, x_251_14629.fst, _x144.slice_start.value);
             if (_yielding()) {
-              return yield_extend(function(_y_x10512_1) {
-                return _mlift_infer_12833(_x144.slice_end, env_49, x_251_14548.snd, n_151, _y_x10512_1);
+              return yield_extend(function(_y_x10515_1) {
+                return _mlift_infer_12902(_x144.slice_end, env_49, x_251_14629.snd, n_151, _y_x10515_1);
               });
             } else {
-              var _x_x2_172_12247_0 = _open_none1(function(n_30_1) {
+              var _x_x2_172_12287_0 = _open_none1(function(n_30_1) {
                 return n_30_1.typ !== null ? n_30_1.typ.value : TUnit;
-              }, x_252_14551.snd);
-              var _x_x1_291_12243_0 = _open_none2(apply_subst, x_252_14551.fst, _x_x2_172_12247_0);
-              var _x_x3_81_12245_0 = _open_none1(function(node_107_0) {
+              }, x_252_14632.snd);
+              var _x_x1_291_12283_0 = _open_none2(apply_subst, x_252_14632.fst, _x_x2_172_12287_0);
+              var _x_x3_81_12285_0 = _open_none1(function(node_107_0) {
                 return node_107_0.span;
               }, n_151);
-              var x_253_14554 = _open_at3(0, unify, _x_x1_291_12243_0, TInt, _x_x3_81_12245_0);
+              var x_253_14635 = _open_at3(0, unify, _x_x1_291_12283_0, TInt, _x_x3_81_12285_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10513_1) {
-                  return _mlift_infer_12832(_x144.slice_end, env_49, x_251_14548.snd, n_151, x_252_14551.snd, x_252_14551.fst, _y_x10513_1);
+                return yield_extend(function(_y_x10516_1) {
+                  return _mlift_infer_12901(_x144.slice_end, env_49, x_251_14629.snd, n_151, x_252_14632.snd, x_252_14632.fst, _y_x10516_1);
                 });
               } else {
                 var si2_2 = _open_none2(function(s1_31_1, s2_30_0) {
                   var updated_s2_29_0 = _trmc_map_subst(s2_30_0, function(k_31_0, v_30_0) {
                     return Tuple2(k_31_0, _trmc_apply_subst(s1_31_1, v_30_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_29_0 = _trmc_filter_subst(updated_s2_29_0, function(k_0_29_0, ___wildcard_x120__39_29_0) {
+                  var ys_10006_29_0 = _trmc_filter_subst(updated_s2_29_0, function(k_0_29_0, ___wildcard_x136__39_29_0) {
                     var b_10007_29_0 = subst_has(s1_31_1, k_0_29_0);
                     return b_10007_29_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_31_1, ys_10006_29_0);
-                }, x_253_14554, x_252_14551.fst);
-                var start_m_2_sq_ = Just(x_252_14551.snd);
+                }, x_253_14635, x_252_14632.fst);
+                var start_m_2_sq_ = Just(x_252_14632.snd);
                 if (_x144.slice_end !== null) {
-                  var x_254_14563 = infer(env_49, si2_2, _x144.slice_end.value);
+                  var x_254_14644 = infer(env_49, si2_2, _x144.slice_end.value);
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10514_1) {
-                      return _mlift_infer_12831(x_251_14548.snd, n_151, start_m_2_sq_, _y_x10514_1);
+                    return yield_extend(function(_y_x10517_1) {
+                      return _mlift_infer_12900(x_251_14629.snd, n_151, start_m_2_sq_, _y_x10517_1);
                     });
                   } else {
-                    var _x_x2_175_12256_0 = _open_none1(function(n_31_1) {
+                    var _x_x2_175_12296_0 = _open_none1(function(n_31_1) {
                       return n_31_1.typ !== null ? n_31_1.typ.value : TUnit;
-                    }, x_254_14563.snd);
-                    var _x_x1_296_12252_0 = _open_none2(apply_subst, x_254_14563.fst, _x_x2_175_12256_0);
-                    var _x_x3_82_12254_0 = _open_none1(function(node_109_0) {
+                    }, x_254_14644.snd);
+                    var _x_x1_296_12292_0 = _open_none2(apply_subst, x_254_14644.fst, _x_x2_175_12296_0);
+                    var _x_x3_82_12294_0 = _open_none1(function(node_109_0) {
                       return node_109_0.span;
                     }, n_151);
-                    var x_255_14566 = _open_at3(0, unify, _x_x1_296_12252_0, TInt, _x_x3_82_12254_0);
+                    var x_255_14647 = _open_at3(0, unify, _x_x1_296_12292_0, TInt, _x_x3_82_12294_0);
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10515_1) {
-                        return _mlift_infer_12830(x_254_14563.snd, x_251_14548.snd, n_151, x_254_14563.fst, start_m_2_sq_, _y_x10515_1);
+                      return yield_extend(function(_y_x10518_1) {
+                        return _mlift_infer_12899(x_254_14644.snd, x_251_14629.snd, n_151, x_254_14644.fst, start_m_2_sq_, _y_x10518_1);
                       });
                     } else {
                       var si2_0_2 = _open_none2(function(s1_32_1, s2_31_0) {
                         var updated_s2_30_0 = _trmc_map_subst(s2_31_0, function(k_32_0, v_31_0) {
                           return Tuple2(k_32_0, _trmc_apply_subst(s1_32_1, v_31_0, _cctx_empty()));
                         }, _cctx_empty());
-                        var ys_10006_30_0 = _trmc_filter_subst(updated_s2_30_0, function(k_0_30_0, ___wildcard_x120__39_30_0) {
+                        var ys_10006_30_0 = _trmc_filter_subst(updated_s2_30_0, function(k_0_30_0, ___wildcard_x136__39_30_0) {
                           var b_10007_30_0 = subst_has(s1_32_1, k_0_30_0);
                           return b_10007_30_0 ? false : true;
                         }, _cctx_empty());
                         return append(s1_32_1, ys_10006_30_0);
-                      }, x_255_14566, x_254_14563.fst);
-                      var _x_x1_301_12261_0 = _open_none1(function(node_110_0) {
+                      }, x_255_14647, x_254_14644.fst);
+                      var _x_x1_301_12301_0 = _open_none1(function(node_110_0) {
                         return node_110_0.span;
                       }, n_151);
-                      var _x_x3_83_12263_0 = Just(_open_none2(apply_subst, si2_0_2, TString));
+                      var _x_x3_83_12303_0 = Just(_open_none2(apply_subst, si2_0_2, TString));
                       return Tuple2(si2_0_2, _open_none3(function(span_40_0, expr_40_0, typ_40_0) {
                         var _x199 = typ_40_0 !== void 0 ? typ_40_0 : Nothing;
                         return Node(span_40_0, expr_40_0, _x199);
-                      }, _x_x1_301_12261_0, ListSlice(x_251_14548.snd, start_m_2_sq_, Just(x_254_14563.snd)), _x_x3_83_12263_0));
+                      }, _x_x1_301_12301_0, ListSlice(x_251_14629.snd, start_m_2_sq_, Just(x_254_14644.snd)), _x_x3_83_12303_0));
                     }
                   }
                 } else {
-                  var _x_x1_304_12267_0 = _open_none1(function(node_111_0) {
+                  var _x_x1_304_12307_0 = _open_none1(function(node_111_0) {
                     return node_111_0.span;
                   }, n_151);
-                  var _x_x3_84_12269_0 = Just(_open_none2(apply_subst, si2_2, TString));
+                  var _x_x3_84_12309_0 = Just(_open_none2(apply_subst, si2_2, TString));
                   return Tuple2(si2_2, _open_none3(function(span_41_0, expr_41_0, typ_41_0) {
                     var _x200 = typ_41_0 !== void 0 ? typ_41_0 : Nothing;
                     return Node(span_41_0, expr_41_0, _x200);
-                  }, _x_x1_304_12267_0, ListSlice(x_251_14548.snd, start_m_2_sq_, Nothing), _x_x3_84_12269_0));
+                  }, _x_x1_304_12307_0, ListSlice(x_251_14629.snd, start_m_2_sq_, Nothing), _x_x3_84_12309_0));
                 }
               }
             }
           } else {
             if (_x144.slice_end !== null) {
-              var x_256_14575 = infer(env_49, x_251_14548.fst, _x144.slice_end.value);
+              var x_256_14656 = infer(env_49, x_251_14629.fst, _x144.slice_end.value);
               if (_yielding()) {
-                return yield_extend(function(_y_x10519_1) {
-                  return _mlift_infer_12835(x_251_14548.snd, n_151, _y_x10519_1);
+                return yield_extend(function(_y_x10522_1) {
+                  return _mlift_infer_12904(x_251_14629.snd, n_151, _y_x10522_1);
                 });
               } else {
-                var _x_x2_182_12277_0 = _open_none1(function(n_32_1) {
+                var _x_x2_182_12317_0 = _open_none1(function(n_32_1) {
                   return n_32_1.typ !== null ? n_32_1.typ.value : TUnit;
-                }, x_256_14575.snd);
-                var _x_x1_307_12273_0 = _open_none2(apply_subst, x_256_14575.fst, _x_x2_182_12277_0);
-                var _x_x3_85_12275_0 = _open_none1(function(node_113_0) {
+                }, x_256_14656.snd);
+                var _x_x1_307_12313_0 = _open_none2(apply_subst, x_256_14656.fst, _x_x2_182_12317_0);
+                var _x_x3_85_12315_0 = _open_none1(function(node_113_0) {
                   return node_113_0.span;
                 }, n_151);
-                var x_257_14578 = _open_at3(0, unify, _x_x1_307_12273_0, TInt, _x_x3_85_12275_0);
+                var x_257_14659 = _open_at3(0, unify, _x_x1_307_12313_0, TInt, _x_x3_85_12315_0);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10520_1) {
-                    return _mlift_infer_12834(x_256_14575.snd, x_251_14548.snd, n_151, x_256_14575.fst, _y_x10520_1);
+                  return yield_extend(function(_y_x10523_1) {
+                    return _mlift_infer_12903(x_256_14656.snd, x_251_14629.snd, n_151, x_256_14656.fst, _y_x10523_1);
                   });
                 } else {
                   var si2_0_0_1 = _open_none2(function(s1_33_1, s2_32_0) {
                     var updated_s2_31_0 = _trmc_map_subst(s2_32_0, function(k_33_0, v_32_0) {
                       return Tuple2(k_33_0, _trmc_apply_subst(s1_33_1, v_32_0, _cctx_empty()));
                     }, _cctx_empty());
-                    var ys_10006_31_0 = _trmc_filter_subst(updated_s2_31_0, function(k_0_31_0, ___wildcard_x120__39_31_0) {
+                    var ys_10006_31_0 = _trmc_filter_subst(updated_s2_31_0, function(k_0_31_0, ___wildcard_x136__39_31_0) {
                       var b_10007_31_0 = subst_has(s1_33_1, k_0_31_0);
                       return b_10007_31_0 ? false : true;
                     }, _cctx_empty());
                     return append(s1_33_1, ys_10006_31_0);
-                  }, x_257_14578, x_256_14575.fst);
-                  var _x_x1_312_12282_0 = _open_none1(function(node_114_0) {
+                  }, x_257_14659, x_256_14656.fst);
+                  var _x_x1_312_12322_0 = _open_none1(function(node_114_0) {
                     return node_114_0.span;
                   }, n_151);
-                  var _x_x3_86_12284_0 = Just(_open_none2(apply_subst, si2_0_0_1, TString));
+                  var _x_x3_86_12324_0 = Just(_open_none2(apply_subst, si2_0_0_1, TString));
                   return Tuple2(si2_0_0_1, _open_none3(function(span_42_0, expr_42_0, typ_42_0) {
                     var _x201 = typ_42_0 !== void 0 ? typ_42_0 : Nothing;
                     return Node(span_42_0, expr_42_0, _x201);
-                  }, _x_x1_312_12282_0, ListSlice(x_251_14548.snd, Nothing, Just(x_256_14575.snd)), _x_x3_86_12284_0));
+                  }, _x_x1_312_12322_0, ListSlice(x_251_14629.snd, Nothing, Just(x_256_14656.snd)), _x_x3_86_12324_0));
                 }
               }
             } else {
-              var _x_x1_315_12288_0 = _open_none1(function(node_115_0) {
+              var _x_x1_315_12328_0 = _open_none1(function(node_115_0) {
                 return node_115_0.span;
               }, n_151);
-              var _x_x3_87_12290_0 = Just(_open_none2(apply_subst, x_251_14548.fst, TString));
-              return Tuple2(x_251_14548.fst, _open_none3(function(span_43_0, expr_43_0, typ_43_0) {
+              var _x_x3_87_12330_0 = Just(_open_none2(apply_subst, x_251_14629.fst, TString));
+              return Tuple2(x_251_14629.fst, _open_none3(function(span_43_0, expr_43_0, typ_43_0) {
                 var _x202 = typ_43_0 !== void 0 ? typ_43_0 : Nothing;
                 return Node(span_43_0, expr_43_0, _x202);
-              }, _x_x1_315_12288_0, ListSlice(x_251_14548.snd, Nothing, Nothing), _x_x3_87_12290_0));
+              }, _x_x1_315_12328_0, ListSlice(x_251_14629.snd, Nothing, Nothing), _x_x3_87_12330_0));
             }
           }
         } else {
-          var x_258_14587 = _open_at0(1, function() {
-            var ev_38_14590 = _evv_at(0);
-            return ev_38_14590.hnd._fun_fresh_tvar(ev_38_14590.marker, ev_38_14590);
+          var x_258_14668 = _open_at0(1, function() {
+            var ev_38_14671 = _evv_at(0);
+            return ev_38_14671.hnd._fun_fresh_tvar(ev_38_14671.marker, ev_38_14671);
           });
           if (_yielding()) {
             return yield_extend(function(elem_var_2_2) {
-              return _mlift_infer_12843(_x144.slice_end, env_49, lst_type_0_2, x_251_14548.snd, n_151, x_251_14548.fst, _x144.slice_start, elem_var_2_2);
+              return _mlift_infer_12912(_x144.slice_end, env_49, lst_type_0_2, x_251_14629.snd, n_151, x_251_14629.fst, _x144.slice_start, elem_var_2_2);
             });
           } else {
-            var _x_x3_88_12296_0 = _open_none1(function(node_116_0) {
+            var _x_x3_88_12336_0 = _open_none1(function(node_116_0) {
               return node_116_0.span;
             }, n_151);
-            var x_259_14592 = _open_at3(0, unify, lst_type_0_2, TList(x_258_14587), _x_x3_88_12296_0);
+            var x_259_14673 = _open_at3(0, unify, lst_type_0_2, TList(x_258_14668), _x_x3_88_12336_0);
             if (_yielding()) {
-              return yield_extend(function(_y_x10526_1) {
-                return _mlift_infer_12842(x_258_14587, _x144.slice_end, env_49, x_251_14548.snd, n_151, x_251_14548.fst, _x144.slice_start, _y_x10526_1);
+              return yield_extend(function(_y_x10529_1) {
+                return _mlift_infer_12911(x_258_14668, _x144.slice_end, env_49, x_251_14629.snd, n_151, x_251_14629.fst, _x144.slice_start, _y_x10529_1);
               });
             } else {
               var s_0_0_sq_ = _open_none2(function(s1_34_1, s2_33_0) {
                 var updated_s2_32_0 = _trmc_map_subst(s2_33_0, function(k_34_0, v_33_0) {
                   return Tuple2(k_34_0, _trmc_apply_subst(s1_34_1, v_33_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_32_0 = _trmc_filter_subst(updated_s2_32_0, function(k_0_32_0, ___wildcard_x120__39_32_0) {
+                var ys_10006_32_0 = _trmc_filter_subst(updated_s2_32_0, function(k_0_32_0, ___wildcard_x136__39_32_0) {
                   var b_10007_32_0 = subst_has(s1_34_1, k_0_32_0);
                   return b_10007_32_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_34_1, ys_10006_32_0);
-              }, x_259_14592, x_251_14548.fst);
-              var result_type_4_6 = TList(_open_none2(apply_subst, s_0_0_sq_, x_258_14587));
+              }, x_259_14673, x_251_14629.fst);
+              var result_type_4_6 = TList(_open_none2(apply_subst, s_0_0_sq_, x_258_14668));
               if (_x144.slice_start !== null) {
-                var x_260_14601 = infer(env_49, s_0_0_sq_, _x144.slice_start.value);
+                var x_260_14682 = infer(env_49, s_0_0_sq_, _x144.slice_start.value);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10527_1) {
-                    return _mlift_infer_12839(_x144.slice_end, env_49, x_251_14548.snd, n_151, result_type_4_6, _y_x10527_1);
+                  return yield_extend(function(_y_x10530_1) {
+                    return _mlift_infer_12908(_x144.slice_end, env_49, x_251_14629.snd, n_151, result_type_4_6, _y_x10530_1);
                   });
                 } else {
-                  var _x_x2_192_12306_0 = _open_none1(function(n_33_1) {
+                  var _x_x2_192_12346_0 = _open_none1(function(n_33_1) {
                     return n_33_1.typ !== null ? n_33_1.typ.value : TUnit;
-                  }, x_260_14601.snd);
-                  var _x_x1_322_12302_0 = _open_none2(apply_subst, x_260_14601.fst, _x_x2_192_12306_0);
-                  var _x_x3_89_12304_0 = _open_none1(function(node_118_0) {
+                  }, x_260_14682.snd);
+                  var _x_x1_322_12342_0 = _open_none2(apply_subst, x_260_14682.fst, _x_x2_192_12346_0);
+                  var _x_x3_89_12344_0 = _open_none1(function(node_118_0) {
                     return node_118_0.span;
                   }, n_151);
-                  var x_261_14604 = _open_at3(0, unify, _x_x1_322_12302_0, TInt, _x_x3_89_12304_0);
+                  var x_261_14685 = _open_at3(0, unify, _x_x1_322_12342_0, TInt, _x_x3_89_12344_0);
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10528_1) {
-                      return _mlift_infer_12838(_x144.slice_end, env_49, x_251_14548.snd, n_151, result_type_4_6, x_260_14601.snd, x_260_14601.fst, _y_x10528_1);
+                    return yield_extend(function(_y_x10531_1) {
+                      return _mlift_infer_12907(_x144.slice_end, env_49, x_251_14629.snd, n_151, result_type_4_6, x_260_14682.snd, x_260_14682.fst, _y_x10531_1);
                     });
                   } else {
                     var si2_1_0 = _open_none2(function(s1_35_0, s2_34_0) {
                       var updated_s2_33_0 = _trmc_map_subst(s2_34_0, function(k_35_0, v_34_0) {
                         return Tuple2(k_35_0, _trmc_apply_subst(s1_35_0, v_34_0, _cctx_empty()));
                       }, _cctx_empty());
-                      var ys_10006_33_0 = _trmc_filter_subst(updated_s2_33_0, function(k_0_33_0, ___wildcard_x120__39_33_0) {
+                      var ys_10006_33_0 = _trmc_filter_subst(updated_s2_33_0, function(k_0_33_0, ___wildcard_x136__39_33_0) {
                         var b_10007_33_0 = subst_has(s1_35_0, k_0_33_0);
                         return b_10007_33_0 ? false : true;
                       }, _cctx_empty());
                       return append(s1_35_0, ys_10006_33_0);
-                    }, x_261_14604, x_260_14601.fst);
-                    var start_m_0_3_sq_ = Just(x_260_14601.snd);
+                    }, x_261_14685, x_260_14682.fst);
+                    var start_m_0_3_sq_ = Just(x_260_14682.snd);
                     if (_x144.slice_end !== null) {
-                      var x_262_14613 = infer(env_49, si2_1_0, _x144.slice_end.value);
+                      var x_262_14694 = infer(env_49, si2_1_0, _x144.slice_end.value);
                       if (_yielding()) {
-                        return yield_extend(function(_y_x10529_1) {
-                          return _mlift_infer_12837(x_251_14548.snd, n_151, result_type_4_6, start_m_0_3_sq_, _y_x10529_1);
+                        return yield_extend(function(_y_x10532_1) {
+                          return _mlift_infer_12906(x_251_14629.snd, n_151, result_type_4_6, start_m_0_3_sq_, _y_x10532_1);
                         });
                       } else {
-                        var _x_x2_195_12315_0 = _open_none1(function(n_34_1) {
+                        var _x_x2_195_12355_0 = _open_none1(function(n_34_1) {
                           return n_34_1.typ !== null ? n_34_1.typ.value : TUnit;
-                        }, x_262_14613.snd);
-                        var _x_x1_327_12311_0 = _open_none2(apply_subst, x_262_14613.fst, _x_x2_195_12315_0);
-                        var _x_x3_90_12313_0 = _open_none1(function(node_120_0) {
+                        }, x_262_14694.snd);
+                        var _x_x1_327_12351_0 = _open_none2(apply_subst, x_262_14694.fst, _x_x2_195_12355_0);
+                        var _x_x3_90_12353_0 = _open_none1(function(node_120_0) {
                           return node_120_0.span;
                         }, n_151);
-                        var x_263_14616 = _open_at3(0, unify, _x_x1_327_12311_0, TInt, _x_x3_90_12313_0);
+                        var x_263_14697 = _open_at3(0, unify, _x_x1_327_12351_0, TInt, _x_x3_90_12353_0);
                         if (_yielding()) {
-                          return yield_extend(function(_y_x10530_1) {
-                            return _mlift_infer_12836(x_262_14613.snd, x_251_14548.snd, n_151, result_type_4_6, x_262_14613.fst, start_m_0_3_sq_, _y_x10530_1);
+                          return yield_extend(function(_y_x10533_1) {
+                            return _mlift_infer_12905(x_262_14694.snd, x_251_14629.snd, n_151, result_type_4_6, x_262_14694.fst, start_m_0_3_sq_, _y_x10533_1);
                           });
                         } else {
                           var si2_0_1_0 = _open_none2(function(s1_36_0, s2_35_0) {
                             var updated_s2_34_0 = _trmc_map_subst(s2_35_0, function(k_36_0, v_35_0) {
                               return Tuple2(k_36_0, _trmc_apply_subst(s1_36_0, v_35_0, _cctx_empty()));
                             }, _cctx_empty());
-                            var ys_10006_34_0 = _trmc_filter_subst(updated_s2_34_0, function(k_0_34_0, ___wildcard_x120__39_34_0) {
+                            var ys_10006_34_0 = _trmc_filter_subst(updated_s2_34_0, function(k_0_34_0, ___wildcard_x136__39_34_0) {
                               var b_10007_34_0 = subst_has(s1_36_0, k_0_34_0);
                               return b_10007_34_0 ? false : true;
                             }, _cctx_empty());
                             return append(s1_36_0, ys_10006_34_0);
-                          }, x_263_14616, x_262_14613.fst);
-                          var _x_x1_332_12320_0 = _open_none1(function(node_121_0) {
+                          }, x_263_14697, x_262_14694.fst);
+                          var _x_x1_332_12360_0 = _open_none1(function(node_121_0) {
                             return node_121_0.span;
                           }, n_151);
-                          var _x_x3_91_12322_0 = Just(_open_none2(apply_subst, si2_0_1_0, result_type_4_6));
+                          var _x_x3_91_12362_0 = Just(_open_none2(apply_subst, si2_0_1_0, result_type_4_6));
                           return Tuple2(si2_0_1_0, _open_none3(function(span_44_0, expr_44_0, typ_44_0) {
                             var _x203 = typ_44_0 !== void 0 ? typ_44_0 : Nothing;
                             return Node(span_44_0, expr_44_0, _x203);
-                          }, _x_x1_332_12320_0, ListSlice(x_251_14548.snd, start_m_0_3_sq_, Just(x_262_14613.snd)), _x_x3_91_12322_0));
+                          }, _x_x1_332_12360_0, ListSlice(x_251_14629.snd, start_m_0_3_sq_, Just(x_262_14694.snd)), _x_x3_91_12362_0));
                         }
                       }
                     } else {
-                      var _x_x1_335_12326_0 = _open_none1(function(node_122_0) {
+                      var _x_x1_335_12366_0 = _open_none1(function(node_122_0) {
                         return node_122_0.span;
                       }, n_151);
-                      var _x_x3_92_12328_0 = Just(_open_none2(apply_subst, si2_1_0, result_type_4_6));
+                      var _x_x3_92_12368_0 = Just(_open_none2(apply_subst, si2_1_0, result_type_4_6));
                       return Tuple2(si2_1_0, _open_none3(function(span_45_0, expr_45_0, typ_45_0) {
                         var _x204 = typ_45_0 !== void 0 ? typ_45_0 : Nothing;
                         return Node(span_45_0, expr_45_0, _x204);
-                      }, _x_x1_335_12326_0, ListSlice(x_251_14548.snd, start_m_0_3_sq_, Nothing), _x_x3_92_12328_0));
+                      }, _x_x1_335_12366_0, ListSlice(x_251_14629.snd, start_m_0_3_sq_, Nothing), _x_x3_92_12368_0));
                     }
                   }
                 }
               } else {
                 if (_x144.slice_end !== null) {
-                  var x_264_14625 = infer(env_49, s_0_0_sq_, _x144.slice_end.value);
+                  var x_264_14706 = infer(env_49, s_0_0_sq_, _x144.slice_end.value);
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10534_1) {
-                      return _mlift_infer_12841(x_251_14548.snd, n_151, result_type_4_6, _y_x10534_1);
+                    return yield_extend(function(_y_x10537_1) {
+                      return _mlift_infer_12910(x_251_14629.snd, n_151, result_type_4_6, _y_x10537_1);
                     });
                   } else {
-                    var _x_x2_202_12336_0 = _open_none1(function(n_35_1) {
+                    var _x_x2_202_12376_0 = _open_none1(function(n_35_1) {
                       return n_35_1.typ !== null ? n_35_1.typ.value : TUnit;
-                    }, x_264_14625.snd);
-                    var _x_x1_338_12332_0 = _open_none2(apply_subst, x_264_14625.fst, _x_x2_202_12336_0);
-                    var _x_x3_93_12334_0 = _open_none1(function(node_124_0) {
+                    }, x_264_14706.snd);
+                    var _x_x1_338_12372_0 = _open_none2(apply_subst, x_264_14706.fst, _x_x2_202_12376_0);
+                    var _x_x3_93_12374_0 = _open_none1(function(node_124_0) {
                       return node_124_0.span;
                     }, n_151);
-                    var x_265_14628 = _open_at3(0, unify, _x_x1_338_12332_0, TInt, _x_x3_93_12334_0);
+                    var x_265_14709 = _open_at3(0, unify, _x_x1_338_12372_0, TInt, _x_x3_93_12374_0);
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10535_1) {
-                        return _mlift_infer_12840(x_264_14625.snd, x_251_14548.snd, n_151, result_type_4_6, x_264_14625.fst, _y_x10535_1);
+                      return yield_extend(function(_y_x10538_1) {
+                        return _mlift_infer_12909(x_264_14706.snd, x_251_14629.snd, n_151, result_type_4_6, x_264_14706.fst, _y_x10538_1);
                       });
                     } else {
                       var si2_0_0_0_0 = _open_none2(function(s1_37_0, s2_36_0) {
                         var updated_s2_35_0 = _trmc_map_subst(s2_36_0, function(k_37_0, v_36_0) {
                           return Tuple2(k_37_0, _trmc_apply_subst(s1_37_0, v_36_0, _cctx_empty()));
                         }, _cctx_empty());
-                        var ys_10006_35_0 = _trmc_filter_subst(updated_s2_35_0, function(k_0_35_0, ___wildcard_x120__39_35_0) {
+                        var ys_10006_35_0 = _trmc_filter_subst(updated_s2_35_0, function(k_0_35_0, ___wildcard_x136__39_35_0) {
                           var b_10007_35_0 = subst_has(s1_37_0, k_0_35_0);
                           return b_10007_35_0 ? false : true;
                         }, _cctx_empty());
                         return append(s1_37_0, ys_10006_35_0);
-                      }, x_265_14628, x_264_14625.fst);
-                      var _x_x1_343_12341_0 = _open_none1(function(node_125_0) {
+                      }, x_265_14709, x_264_14706.fst);
+                      var _x_x1_343_12381_0 = _open_none1(function(node_125_0) {
                         return node_125_0.span;
                       }, n_151);
-                      var _x_x3_94_12343_0 = Just(_open_none2(apply_subst, si2_0_0_0_0, result_type_4_6));
+                      var _x_x3_94_12383_0 = Just(_open_none2(apply_subst, si2_0_0_0_0, result_type_4_6));
                       return Tuple2(si2_0_0_0_0, _open_none3(function(span_46_0, expr_46_0, typ_46_0) {
                         var _x205 = typ_46_0 !== void 0 ? typ_46_0 : Nothing;
                         return Node(span_46_0, expr_46_0, _x205);
-                      }, _x_x1_343_12341_0, ListSlice(x_251_14548.snd, Nothing, Just(x_264_14625.snd)), _x_x3_94_12343_0));
+                      }, _x_x1_343_12381_0, ListSlice(x_251_14629.snd, Nothing, Just(x_264_14706.snd)), _x_x3_94_12383_0));
                     }
                   }
                 } else {
-                  var _x_x1_346_12347_0 = _open_none1(function(node_126_0) {
+                  var _x_x1_346_12387_0 = _open_none1(function(node_126_0) {
                     return node_126_0.span;
                   }, n_151);
-                  var _x_x3_95_12349_0 = Just(_open_none2(apply_subst, s_0_0_sq_, result_type_4_6));
+                  var _x_x3_95_12389_0 = Just(_open_none2(apply_subst, s_0_0_sq_, result_type_4_6));
                   return Tuple2(s_0_0_sq_, _open_none3(function(span_47_0, expr_47_0, typ_47_0) {
                     var _x206 = typ_47_0 !== void 0 ? typ_47_0 : Nothing;
                     return Node(span_47_0, expr_47_0, _x206);
-                  }, _x_x1_346_12347_0, ListSlice(x_251_14548.snd, Nothing, Nothing), _x_x3_95_12349_0));
+                  }, _x_x1_346_12387_0, ListSlice(x_251_14629.snd, Nothing, Nothing), _x_x3_95_12389_0));
                 }
               }
             }
@@ -25136,129 +25169,129 @@ var __hica = (() => {
         }
       }
     } else if (_x144._tag === 31) {
-      var x_266_14637 = infer(env_49, s_152, _x144.value);
+      var x_266_14718 = infer(env_49, s_152, _x144.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10541_0) {
-          return _mlift_infer_12845(n_151, _y_x10541_0);
+        return yield_extend(function(_y_x10544_0) {
+          return _mlift_infer_12914(n_151, _y_x10544_0);
         });
       } else {
-        var _x_x2_208_12354_0 = _open_none1(function(n_36_1) {
+        var _x_x2_208_12394_0 = _open_none1(function(n_36_1) {
           return n_36_1.typ !== null ? n_36_1.typ.value : TUnit;
-        }, x_266_14637.snd);
-        var val_type_2 = _open_none2(apply_subst, x_266_14637.fst, _x_x2_208_12354_0);
-        var _x_x1_351_12356_0 = _open_none1(function(node_128_0) {
+        }, x_266_14718.snd);
+        var val_type_2 = _open_none2(apply_subst, x_266_14718.fst, _x_x2_208_12394_0);
+        var _x_x1_351_12396_0 = _open_none1(function(node_128_0) {
           return node_128_0.span;
         }, n_151);
-        return Tuple2(x_266_14637.fst, _open_none3(function(span_48_0, expr_48_0, typ_48_0) {
+        return Tuple2(x_266_14718.fst, _open_none3(function(span_48_0, expr_48_0, typ_48_0) {
           var _x207 = typ_48_0 !== void 0 ? typ_48_0 : Nothing;
           return Node(span_48_0, expr_48_0, _x207);
-        }, _x_x1_351_12356_0, ESome(x_266_14637.snd), Just(TMaybe(val_type_2))));
+        }, _x_x1_351_12396_0, ESome(x_266_14718.snd), Just(TMaybe(val_type_2))));
       }
     } else if (_x144._tag === 32) {
-      var x_267_14640 = _open_at0(1, function() {
-        var ev_39_14643 = _evv_at(0);
-        return ev_39_14643.hnd._fun_fresh_tvar(ev_39_14643.marker, ev_39_14643);
+      var x_267_14721 = _open_at0(1, function() {
+        var ev_39_14724 = _evv_at(0);
+        return ev_39_14724.hnd._fun_fresh_tvar(ev_39_14724.marker, ev_39_14724);
       });
       if (_yielding()) {
         return yield_extend(function(elem_var_3_0) {
-          return _mlift_infer_12846(n_151, s_152, elem_var_3_0);
+          return _mlift_infer_12915(n_151, s_152, elem_var_3_0);
         });
       } else {
-        var _x_x1_353_12360_0 = _open_none1(function(node_129_0) {
+        var _x_x1_353_12400_0 = _open_none1(function(node_129_0) {
           return node_129_0.span;
         }, n_151);
         return Tuple2(s_152, _open_none3(function(span_49_0, expr_49_0, typ_49_0) {
           var _x208 = typ_49_0 !== void 0 ? typ_49_0 : Nothing;
           return Node(span_49_0, expr_49_0, _x208);
-        }, _x_x1_353_12360_0, ENone, Just(TMaybe(x_267_14640))));
+        }, _x_x1_353_12400_0, ENone, Just(TMaybe(x_267_14721))));
       }
     } else if (_x144._tag === 33) {
-      var x_268_14645 = infer(env_49, s_152, _x144.value);
+      var x_268_14726 = infer(env_49, s_152, _x144.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10545_0) {
-          return _mlift_infer_12848(n_151, _y_x10545_0);
+        return yield_extend(function(_y_x10548_0) {
+          return _mlift_infer_12917(n_151, _y_x10548_0);
         });
       } else {
-        var _x_x2_211_12365_0 = _open_none1(function(n_37_1) {
+        var _x_x2_211_12405_0 = _open_none1(function(n_37_1) {
           return n_37_1.typ !== null ? n_37_1.typ.value : TUnit;
-        }, x_268_14645.snd);
-        var val_type_0_1 = _open_none2(apply_subst, x_268_14645.fst, _x_x2_211_12365_0);
-        var x_269_14648 = _open_at0(1, function() {
-          var ev_40_14651 = _evv_at(0);
-          return ev_40_14651.hnd._fun_fresh_tvar(ev_40_14651.marker, ev_40_14651);
+        }, x_268_14726.snd);
+        var val_type_0_1 = _open_none2(apply_subst, x_268_14726.fst, _x_x2_211_12405_0);
+        var x_269_14729 = _open_at0(1, function() {
+          var ev_40_14732 = _evv_at(0);
+          return ev_40_14732.hnd._fun_fresh_tvar(ev_40_14732.marker, ev_40_14732);
         });
         if (_yielding()) {
           return yield_extend(function(err_var_1) {
-            return _mlift_infer_12847(n_151, x_268_14645.fst, val_type_0_1, x_268_14645.snd, err_var_1);
+            return _mlift_infer_12916(n_151, x_268_14726.fst, val_type_0_1, x_268_14726.snd, err_var_1);
           });
         } else {
-          var _x_x1_357_12367_0 = _open_none1(function(node_131_0) {
+          var _x_x1_357_12407_0 = _open_none1(function(node_131_0) {
             return node_131_0.span;
           }, n_151);
-          return Tuple2(x_268_14645.fst, _open_none3(function(span_50_0, expr_50_0, typ_50_0) {
+          return Tuple2(x_268_14726.fst, _open_none3(function(span_50_0, expr_50_0, typ_50_0) {
             var _x209 = typ_50_0 !== void 0 ? typ_50_0 : Nothing;
             return Node(span_50_0, expr_50_0, _x209);
-          }, _x_x1_357_12367_0, EOk(x_268_14645.snd), Just(TResult(val_type_0_1, x_269_14648))));
+          }, _x_x1_357_12407_0, EOk(x_268_14726.snd), Just(TResult(val_type_0_1, x_269_14729))));
         }
       }
     } else if (_x144._tag === 34) {
-      var x_270_14653 = infer(env_49, s_152, _x144.value);
+      var x_270_14734 = infer(env_49, s_152, _x144.value);
       if (_yielding()) {
-        return yield_extend(function(_y_x10549_0) {
-          return _mlift_infer_12850(n_151, _y_x10549_0);
+        return yield_extend(function(_y_x10552_0) {
+          return _mlift_infer_12919(n_151, _y_x10552_0);
         });
       } else {
-        var _x_x2_213_12372_0 = _open_none1(function(n_38_1) {
+        var _x_x2_213_12412_0 = _open_none1(function(n_38_1) {
           return n_38_1.typ !== null ? n_38_1.typ.value : TUnit;
-        }, x_270_14653.snd);
-        var val_type_1_1 = _open_none2(apply_subst, x_270_14653.fst, _x_x2_213_12372_0);
-        var x_271_14656 = _open_at0(1, function() {
-          var ev_41_14659 = _evv_at(0);
-          return ev_41_14659.hnd._fun_fresh_tvar(ev_41_14659.marker, ev_41_14659);
+        }, x_270_14734.snd);
+        var val_type_1_1 = _open_none2(apply_subst, x_270_14734.fst, _x_x2_213_12412_0);
+        var x_271_14737 = _open_at0(1, function() {
+          var ev_41_14740 = _evv_at(0);
+          return ev_41_14740.hnd._fun_fresh_tvar(ev_41_14740.marker, ev_41_14740);
         });
         if (_yielding()) {
           return yield_extend(function(ok_var_1) {
-            return _mlift_infer_12849(n_151, x_270_14653.fst, val_type_1_1, x_270_14653.snd, ok_var_1);
+            return _mlift_infer_12918(n_151, x_270_14734.fst, val_type_1_1, x_270_14734.snd, ok_var_1);
           });
         } else {
-          var _x_x1_361_12374_0 = _open_none1(function(node_133_0) {
+          var _x_x1_361_12414_0 = _open_none1(function(node_133_0) {
             return node_133_0.span;
           }, n_151);
-          return Tuple2(x_270_14653.fst, _open_none3(function(span_51_0, expr_51_0, typ_51_0) {
+          return Tuple2(x_270_14734.fst, _open_none3(function(span_51_0, expr_51_0, typ_51_0) {
             var _x210 = typ_51_0 !== void 0 ? typ_51_0 : Nothing;
             return Node(span_51_0, expr_51_0, _x210);
-          }, _x_x1_361_12374_0, EErr(x_270_14653.snd), Just(TResult(x_271_14656, val_type_1_1))));
+          }, _x_x1_361_12414_0, EErr(x_270_14734.snd), Just(TResult(x_271_14737, val_type_1_1))));
         }
       }
     } else if (_x144._tag === 35) {
-      var x_272_14661 = _open_at0(4, function() {
-        var ev_42_14664 = _evv_at(0);
-        return ev_42_14664.hnd._fun_get_types(ev_42_14664.marker, ev_42_14664);
+      var x_272_14742 = _open_at0(4, function() {
+        var ev_42_14745 = _evv_at(0);
+        return ev_42_14745.hnd._fun_get_types(ev_42_14745.marker, ev_42_14745);
       });
       if (_yielding()) {
         return yield_extend(function(reg_3) {
-          return _mlift_infer_12856(_x144.ctor_args, _x144.ctor_name, env_49, n_151, s_152, reg_3);
+          return _mlift_infer_12925(_x144.ctor_args, _x144.ctor_name, env_49, n_151, s_152, reg_3);
         });
       } else {
-        var _x211 = _open_none2(type_find_by_ctor, x_272_14661, _x144.ctor_name);
+        var _x211 = _open_none2(type_find_by_ctor, x_272_14742, _x144.ctor_name);
         if (_x211 === null) {
-          var _x_x1_364_12380_0 = _open_none1(function(node_134_0) {
+          var _x_x1_364_12420_0 = _open_none1(function(node_134_0) {
             return node_134_0.span;
           }, n_151);
-          var _x_x2_216_12381_0 = _lp__plus__plus__rp_("unknown constructor: ", _x144.ctor_name);
-          var x_273_14666 = _open_at2(0, emit_error, _x_x1_364_12380_0, _x_x2_216_12381_0);
+          var _x_x2_216_12421_0 = _lp__plus__plus__rp_("unknown constructor: ", _x144.ctor_name);
+          var x_273_14747 = _open_at2(0, emit_error, _x_x1_364_12420_0, _x_x2_216_12421_0);
           if (_yielding()) {
             return yield_extend(function(wild___7_1) {
-              return _mlift_infer_12852(n_151, s_152, wild___7_1);
+              return _mlift_infer_12921(n_151, s_152, wild___7_1);
             });
           } else {
-            var x_274_14669 = _open_at0(1, function() {
-              var ev_43_14672 = _evv_at(0);
-              return ev_43_14672.hnd._fun_fresh_tvar(ev_43_14672.marker, ev_43_14672);
+            var x_274_14750 = _open_at0(1, function() {
+              var ev_43_14753 = _evv_at(0);
+              return ev_43_14753.hnd._fun_fresh_tvar(ev_43_14753.marker, ev_43_14753);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10557_1) {
-                return _mlift_infer_12851(n_151, s_152, _y_x10557_1);
+              return yield_extend(function(_y_x10560_1) {
+                return _mlift_infer_12920(n_151, s_152, _y_x10560_1);
               });
             } else {
               return Tuple2(s_152, _open_none4(function(_this_5_0, span_52_0, expr_52_0, typ_52_0) {
@@ -25278,149 +25311,149 @@ var __hica = (() => {
                   var _x214 = _this_5_0.typ;
                 }
                 return Node(_x212, _x213, _x214);
-              }, n_151, void 0, void 0, Just(x_274_14669)));
+              }, n_151, void 0, void 0, Just(x_274_14750)));
             }
           }
         } else {
-          var xs_9_11274_0 = _open_none1(function(_this_6_0) {
+          var xs_9_11292_0 = _open_none1(function(_this_6_0) {
             return _this_6_0.fields;
           }, _x211.value.snd);
-          var _x215 = _int_ne(_lift_length_6003(_x144.ctor_args, 0), _lift_length_6003(xs_9_11274_0, 0));
+          var _x215 = _int_ne(_lift_length_6003(_x144.ctor_args, 0), _lift_length_6003(xs_9_11292_0, 0));
           if (_x215) {
-            var _x_x1_368_12388_0 = _open_none1(function(node_135_0) {
+            var _x_x1_368_12428_0 = _open_none1(function(node_135_0) {
               return node_135_0.span;
             }, n_151);
-            var xs_10_11278_0 = _open_none1(function(_this_7_0) {
+            var xs_10_11296_0 = _open_none1(function(_this_7_0) {
               return _this_7_0.fields;
             }, _x211.value.snd);
-            var _x_x2_218_12389_0 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(_x144.ctor_name, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_10_11278_0, 0)), _lp__plus__plus__rp_(" argument(s), got ", show(_lift_length_6003(_x144.ctor_args, 0)))))));
-            var x_275_14674 = _open_at2(0, emit_error, _x_x1_368_12388_0, _x_x2_218_12389_0);
+            var _x_x2_218_12429_0 = _lp__plus__plus__rp_("constructor ", _lp__plus__plus__rp_(_x144.ctor_name, _lp__plus__plus__rp_(" expects ", _lp__plus__plus__rp_(show(_lift_length_6003(xs_10_11296_0, 0)), _lp__plus__plus__rp_(" argument(s), got ", show(_lift_length_6003(_x144.ctor_args, 0)))))));
+            var x_275_14755 = _open_at2(0, emit_error, _x_x1_368_12428_0, _x_x2_218_12429_0);
           } else {
-            var x_275_14674 = Unit;
+            var x_275_14755 = Unit;
           }
           if (_yielding()) {
-            return yield_extend(function(_c_x10559_1) {
-              return _mlift_infer_12855(_x144.ctor_args, _x144.ctor_name, env_49, n_151, s_152, _x211.value.fst, _x211.value.snd, _c_x10559_1);
+            return yield_extend(function(_c_x10562_1) {
+              return _mlift_infer_12924(_x144.ctor_args, _x144.ctor_name, env_49, n_151, s_152, _x211.value.fst, _x211.value.snd, _c_x10562_1);
             });
           } else {
-            var x_276_14677 = infer_args(env_49, s_152, _x144.ctor_args);
+            var x_276_14758 = infer_args(env_49, s_152, _x144.ctor_args);
             if (_yielding()) {
-              return yield_extend(function(_y_x10560_1) {
-                return _mlift_infer_12854(_x144.ctor_name, n_151, _x211.value.fst, _x211.value.snd, _y_x10560_1);
+              return yield_extend(function(_y_x10563_1) {
+                return _mlift_infer_12923(_x144.ctor_name, n_151, _x211.value.fst, _x211.value.snd, _y_x10563_1);
               });
             } else {
-              var x_277_14680 = unify_ctor_args(x_276_14677.fst, _open_none1(function(_this_8_0) {
+              var x_277_14761 = unify_ctor_args(x_276_14758.fst, _open_none1(function(_this_8_0) {
                 return _this_8_0.fields;
-              }, _x211.value.snd), x_276_14677.snd, _open_none1(function(node_136_0) {
+              }, _x211.value.snd), x_276_14758.snd, _open_none1(function(node_136_0) {
                 return node_136_0.span;
               }, n_151));
               if (_yielding()) {
                 return yield_extend(function(s2_16_0_1) {
-                  return _mlift_infer_12853(x_276_14677.snd, _x144.ctor_name, n_151, _x211.value.fst, s2_16_0_1);
+                  return _mlift_infer_12922(x_276_14758.snd, _x144.ctor_name, n_151, _x211.value.fst, s2_16_0_1);
                 });
               } else {
-                var _x_x1_373_12394_0 = _open_none1(function(node_137_0) {
+                var _x_x1_373_12434_0 = _open_none1(function(node_137_0) {
                   return node_137_0.span;
                 }, n_151);
-                var _x_x3_101_12396_0 = Just(TEnum(_open_none1(function(_this_9_0) {
+                var _x_x3_101_12436_0 = Just(TEnum(_open_none1(function(_this_9_0) {
                   return _this_9_0.name;
                 }, _x211.value.fst)));
-                return Tuple2(x_277_14680, _open_none3(function(span_53_0, expr_53_0, typ_53_0) {
+                return Tuple2(x_277_14761, _open_none3(function(span_53_0, expr_53_0, typ_53_0) {
                   var _x2152 = typ_53_0 !== void 0 ? typ_53_0 : Nothing;
                   return Node(span_53_0, expr_53_0, _x2152);
-                }, _x_x1_373_12394_0, EConstructor(_x144.ctor_name, x_276_14677.snd), _x_x3_101_12396_0));
+                }, _x_x1_373_12434_0, EConstructor(_x144.ctor_name, x_276_14758.snd), _x_x3_101_12436_0));
               }
             }
           }
         }
       }
     } else if (_x144._tag === 36) {
-      var x_278_14683 = infer(env_49, s_152, _x144.inner);
+      var x_278_14764 = infer(env_49, s_152, _x144.inner);
       if (_yielding()) {
-        return yield_extend(function(_y_x10564_0) {
-          return _mlift_infer_12859(n_151, _y_x10564_0);
+        return yield_extend(function(_y_x10567_0) {
+          return _mlift_infer_12928(n_151, _y_x10567_0);
         });
       } else {
-        var _x_x2_220_12400_0 = _open_none1(function(n_39_1) {
+        var _x_x2_220_12440_0 = _open_none1(function(n_39_1) {
           return n_39_1.typ !== null ? n_39_1.typ.value : TUnit;
-        }, x_278_14683.snd);
-        var inner_type_0 = _open_none2(apply_subst, x_278_14683.fst, _x_x2_220_12400_0);
+        }, x_278_14764.snd);
+        var inner_type_0 = _open_none2(apply_subst, x_278_14764.fst, _x_x2_220_12440_0);
         if (inner_type_0._tag === 9) {
-          var _x_x1_378_12402_0 = _open_none1(function(node_139_0) {
+          var _x_x1_378_12442_0 = _open_none1(function(node_139_0) {
             return node_139_0.span;
           }, n_151);
-          return Tuple2(x_278_14683.fst, _open_none3(function(span_54_0, expr_54_0, typ_54_0) {
+          return Tuple2(x_278_14764.fst, _open_none3(function(span_54_0, expr_54_0, typ_54_0) {
             var _x216 = typ_54_0 !== void 0 ? typ_54_0 : Nothing;
             return Node(span_54_0, expr_54_0, _x216);
-          }, _x_x1_378_12402_0, ETry(x_278_14683.snd), Just(inner_type_0.elem)));
+          }, _x_x1_378_12442_0, ETry(x_278_14764.snd), Just(inner_type_0.elem)));
         } else if (inner_type_0._tag === 10) {
-          var _x_x1_380_12406_0 = _open_none1(function(node_140_0) {
+          var _x_x1_380_12446_0 = _open_none1(function(node_140_0) {
             return node_140_0.span;
           }, n_151);
-          return Tuple2(x_278_14683.fst, _open_none3(function(span_55_0, expr_55_0, typ_55_0) {
+          return Tuple2(x_278_14764.fst, _open_none3(function(span_55_0, expr_55_0, typ_55_0) {
             var _x217 = typ_55_0 !== void 0 ? typ_55_0 : Nothing;
             return Node(span_55_0, expr_55_0, _x217);
-          }, _x_x1_380_12406_0, ETry(x_278_14683.snd), Just(inner_type_0.ok_type)));
+          }, _x_x1_380_12446_0, ETry(x_278_14764.snd), Just(inner_type_0.ok_type)));
         } else {
-          var _x_x1_382_12410_0 = _open_none1(function(node_141_0) {
+          var _x_x1_382_12450_0 = _open_none1(function(node_141_0) {
             return node_141_0.span;
           }, n_151);
-          var _x_x2_223_12411_0 = _lp__plus__plus__rp_("? operator requires maybe or result type, got ", _open_none1(hica_type_fs_show, inner_type_0));
-          var x_279_14686 = _open_at2(0, emit_error, _x_x1_382_12410_0, _x_x2_223_12411_0);
+          var _x_x2_223_12451_0 = _lp__plus__plus__rp_("? operator requires maybe or result type, got ", _open_none1(hica_type_fs_show, inner_type_0));
+          var x_279_14767 = _open_at2(0, emit_error, _x_x1_382_12450_0, _x_x2_223_12451_0);
           if (_yielding()) {
             return yield_extend(function(wild___9_1) {
-              return _mlift_infer_12858(x_278_14683.snd, n_151, x_278_14683.fst, wild___9_1);
+              return _mlift_infer_12927(x_278_14764.snd, n_151, x_278_14764.fst, wild___9_1);
             });
           } else {
-            var x_280_14689 = _open_at0(1, function() {
-              var ev_44_14692 = _evv_at(0);
-              return ev_44_14692.hnd._fun_fresh_tvar(ev_44_14692.marker, ev_44_14692);
+            var x_280_14770 = _open_at0(1, function() {
+              var ev_44_14773 = _evv_at(0);
+              return ev_44_14773.hnd._fun_fresh_tvar(ev_44_14773.marker, ev_44_14773);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10567_1) {
-                return _mlift_infer_12857(x_278_14683.snd, n_151, x_278_14683.fst, _y_x10567_1);
+              return yield_extend(function(_y_x10570_1) {
+                return _mlift_infer_12926(x_278_14764.snd, n_151, x_278_14764.fst, _y_x10570_1);
               });
             } else {
-              var _x_x1_385_12414_0 = _open_none1(function(node_142_0) {
+              var _x_x1_385_12454_0 = _open_none1(function(node_142_0) {
                 return node_142_0.span;
               }, n_151);
-              return Tuple2(x_278_14683.fst, _open_none3(function(span_56_0, expr_56_0, typ_56_0) {
+              return Tuple2(x_278_14764.fst, _open_none3(function(span_56_0, expr_56_0, typ_56_0) {
                 var _x218 = typ_56_0 !== void 0 ? typ_56_0 : Nothing;
                 return Node(span_56_0, expr_56_0, _x218);
-              }, _x_x1_385_12414_0, ETry(x_278_14683.snd), Just(x_280_14689)));
+              }, _x_x1_385_12454_0, ETry(x_278_14764.snd), Just(x_280_14770)));
             }
           }
         }
       }
     } else if (_x144._tag === 28) {
-      var x_281_14694 = _open_at0(3, function() {
-        var ev_45_14697 = _evv_at(0);
-        return ev_45_14697.hnd._fun_get_structs(ev_45_14697.marker, ev_45_14697);
+      var x_281_14775 = _open_at0(3, function() {
+        var ev_45_14778 = _evv_at(0);
+        return ev_45_14778.hnd._fun_get_structs(ev_45_14778.marker, ev_45_14778);
       });
       if (_yielding()) {
         return yield_extend(function(reg_0_0) {
-          return _mlift_infer_12869(env_49, _x144.fields, n_151, s_152, _x144.struct_name, reg_0_0);
+          return _mlift_infer_12938(env_49, _x144.fields, n_151, s_152, _x144.struct_name, reg_0_0);
         });
       } else {
-        var _x219 = _open_none2(struct_find, x_281_14694, _x144.struct_name);
+        var _x219 = _open_none2(struct_find, x_281_14775, _x144.struct_name);
         if (_x219 === null) {
-          var _x_x1_388_12420_0 = _open_none1(function(node_143_0) {
+          var _x_x1_388_12460_0 = _open_none1(function(node_143_0) {
             return node_143_0.span;
           }, n_151);
-          var _x_x2_226_12421_0 = _lp__plus__plus__rp_("unknown struct: ", _x144.struct_name);
-          var x_282_14699 = _open_at2(0, emit_error, _x_x1_388_12420_0, _x_x2_226_12421_0);
+          var _x_x2_226_12461_0 = _lp__plus__plus__rp_("unknown struct: ", _x144.struct_name);
+          var x_282_14780 = _open_at2(0, emit_error, _x_x1_388_12460_0, _x_x2_226_12461_0);
           if (_yielding()) {
             return yield_extend(function(wild___10_1) {
-              return _mlift_infer_12861(n_151, s_152, wild___10_1);
+              return _mlift_infer_12930(n_151, s_152, wild___10_1);
             });
           } else {
-            var x_283_14702 = _open_at0(1, function() {
-              var ev_46_14705 = _evv_at(0);
-              return ev_46_14705.hnd._fun_fresh_tvar(ev_46_14705.marker, ev_46_14705);
+            var x_283_14783 = _open_at0(1, function() {
+              var ev_46_14786 = _evv_at(0);
+              return ev_46_14786.hnd._fun_fresh_tvar(ev_46_14786.marker, ev_46_14786);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10574_1) {
-                return _mlift_infer_12860(n_151, s_152, _y_x10574_1);
+              return yield_extend(function(_y_x10577_1) {
+                return _mlift_infer_12929(n_151, s_152, _y_x10577_1);
               });
             } else {
               return Tuple2(s_152, _open_none4(function(_this_10_0, span_57_0, expr_57_0, typ_57_0) {
@@ -25440,79 +25473,79 @@ var __hica = (() => {
                   var _x222 = _this_10_0.typ;
                 }
                 return Node(_x220, _x221, _x222);
-              }, n_151, void 0, void 0, Just(x_283_14702)));
+              }, n_151, void 0, void 0, Just(x_283_14783)));
             }
           }
         } else {
-          var x_284_14707 = map(_open_none1(function(_this_11_0) {
+          var x_284_14788 = map(_open_none1(function(_this_11_0) {
             return _this_11_0.fields;
-          }, _x219.value), function(_pat_x716__44_0) {
-            return _pat_x716__44_0.fst;
+          }, _x219.value), function(_pat_x732__44_0) {
+            return _pat_x732__44_0.fst;
           });
           if (_yielding()) {
             return yield_extend(function(def_names_3) {
-              return _mlift_infer_12868(env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, def_names_3);
+              return _mlift_infer_12937(env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, def_names_3);
             });
           } else {
-            var x_285_14710 = map(_x144.fields, function(_pat_x717__45_0) {
-              return _pat_x717__45_0.fst;
+            var x_285_14791 = map(_x144.fields, function(_pat_x733__45_0) {
+              return _pat_x733__45_0.fst;
             });
             if (_yielding()) {
               return yield_extend(function(lit_names_2) {
-                return _mlift_infer_12867(x_284_14707, env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, lit_names_2);
+                return _mlift_infer_12936(x_284_14788, env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, lit_names_2);
               });
             } else {
-              var x_286_14713 = foreach(x_284_14707, function(dn_2) {
-                var x_287_14716 = any(x_285_14710, function(ln_2) {
+              var x_286_14794 = foreach(x_284_14788, function(dn_2) {
+                var x_287_14797 = any(x_285_14791, function(ln_2) {
                   return ln_2 === dn_2;
                 });
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10577_1) {
-                    return _mlift_infer_12865(dn_2, n_151, _x144.struct_name, _y_x10577_1);
+                  return yield_extend(function(_y_x10580_1) {
+                    return _mlift_infer_12934(dn_2, n_151, _x144.struct_name, _y_x10580_1);
                   });
                 } else {
-                  return _mlift_infer_12865(dn_2, n_151, _x144.struct_name, x_287_14716);
+                  return _mlift_infer_12934(dn_2, n_151, _x144.struct_name, x_287_14797);
                 }
               });
               if (_yielding()) {
                 return yield_extend(function(wild___11_1) {
-                  return _mlift_infer_12866(x_284_14707, env_49, _x144.fields, x_285_14710, n_151, s_152, _x219.value, _x144.struct_name, wild___11_1);
+                  return _mlift_infer_12935(x_284_14788, env_49, _x144.fields, x_285_14791, n_151, s_152, _x219.value, _x144.struct_name, wild___11_1);
                 });
               } else {
-                var x_288_14718 = foreach(x_285_14710, function(ln_0_1) {
-                  var x_289_14721 = any(x_284_14707, function(dn_0_0) {
+                var x_288_14799 = foreach(x_285_14791, function(ln_0_1) {
+                  var x_289_14802 = any(x_284_14788, function(dn_0_0) {
                     return dn_0_0 === ln_0_1;
                   });
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10581_1) {
-                      return _mlift_infer_12863(ln_0_1, n_151, _x144.struct_name, _y_x10581_1);
+                    return yield_extend(function(_y_x10584_1) {
+                      return _mlift_infer_12932(ln_0_1, n_151, _x144.struct_name, _y_x10584_1);
                     });
                   } else {
-                    return _mlift_infer_12863(ln_0_1, n_151, _x144.struct_name, x_289_14721);
+                    return _mlift_infer_12932(ln_0_1, n_151, _x144.struct_name, x_289_14802);
                   }
                 });
                 if (_yielding()) {
                   return yield_extend(function(wild___12_1) {
-                    return _mlift_infer_12864(env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, wild___12_1);
+                    return _mlift_infer_12933(env_49, _x144.fields, n_151, s_152, _x219.value, _x144.struct_name, wild___12_1);
                   });
                 } else {
-                  var x_290_14723 = infer_struct_fields(env_49, s_152, _open_none1(function(_this_12_0) {
+                  var x_290_14804 = infer_struct_fields(env_49, s_152, _open_none1(function(_this_12_0) {
                     return _this_12_0.fields;
                   }, _x219.value), _x144.fields, _open_none1(function(node_146_0) {
                     return node_146_0.span;
                   }, n_151));
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10585_1) {
-                      return _mlift_infer_12862(n_151, _x144.struct_name, _y_x10585_1);
+                    return yield_extend(function(_y_x10588_1) {
+                      return _mlift_infer_12931(n_151, _x144.struct_name, _y_x10588_1);
                     });
                   } else {
-                    var _x_x1_400_12438_0 = _open_none1(function(node_147_0) {
+                    var _x_x1_400_12478_0 = _open_none1(function(node_147_0) {
                       return node_147_0.span;
                     }, n_151);
-                    return Tuple2(x_290_14723.fst, _open_none3(function(span_58_0, expr_58_0, typ_58_0) {
+                    return Tuple2(x_290_14804.fst, _open_none3(function(span_58_0, expr_58_0, typ_58_0) {
                       var _x223 = typ_58_0 !== void 0 ? typ_58_0 : Nothing;
                       return Node(span_58_0, expr_58_0, _x223);
-                    }, _x_x1_400_12438_0, StructLit(_x144.struct_name, x_290_14723.snd), Just(TStruct(_x144.struct_name))));
+                    }, _x_x1_400_12478_0, StructLit(_x144.struct_name, x_290_14804.snd), Just(TStruct(_x144.struct_name))));
                   }
                 }
               }
@@ -25521,34 +25554,34 @@ var __hica = (() => {
         }
       }
     } else if (_x144._tag === 29) {
-      var x_291_14726 = _open_at0(3, function() {
-        var ev_47_14729 = _evv_at(0);
-        return ev_47_14729.hnd._fun_get_structs(ev_47_14729.marker, ev_47_14729);
+      var x_291_14807 = _open_at0(3, function() {
+        var ev_47_14810 = _evv_at(0);
+        return ev_47_14810.hnd._fun_get_structs(ev_47_14810.marker, ev_47_14810);
       });
       if (_yielding()) {
         return yield_extend(function(reg_1_0) {
-          return _mlift_infer_12879(_x144.base, env_49, _x144.fields, n_151, s_152, _x144.struct_name, reg_1_0);
+          return _mlift_infer_12948(_x144.base, env_49, _x144.fields, n_151, s_152, _x144.struct_name, reg_1_0);
         });
       } else {
-        var _x224 = _open_none2(struct_find, x_291_14726, _x144.struct_name);
+        var _x224 = _open_none2(struct_find, x_291_14807, _x144.struct_name);
         if (_x224 === null) {
-          var _x_x1_403_12444_0 = _open_none1(function(node_148_0) {
+          var _x_x1_403_12484_0 = _open_none1(function(node_148_0) {
             return node_148_0.span;
           }, n_151);
-          var _x_x2_232_12445_0 = _lp__plus__plus__rp_("unknown struct: ", _x144.struct_name);
-          var x_292_14731 = _open_at2(0, emit_error, _x_x1_403_12444_0, _x_x2_232_12445_0);
+          var _x_x2_232_12485_0 = _lp__plus__plus__rp_("unknown struct: ", _x144.struct_name);
+          var x_292_14812 = _open_at2(0, emit_error, _x_x1_403_12484_0, _x_x2_232_12485_0);
           if (_yielding()) {
             return yield_extend(function(wild___13_1) {
-              return _mlift_infer_12871(n_151, s_152, wild___13_1);
+              return _mlift_infer_12940(n_151, s_152, wild___13_1);
             });
           } else {
-            var x_293_14734 = _open_at0(1, function() {
-              var ev_48_14737 = _evv_at(0);
-              return ev_48_14737.hnd._fun_fresh_tvar(ev_48_14737.marker, ev_48_14737);
+            var x_293_14815 = _open_at0(1, function() {
+              var ev_48_14818 = _evv_at(0);
+              return ev_48_14818.hnd._fun_fresh_tvar(ev_48_14818.marker, ev_48_14818);
             });
             if (_yielding()) {
-              return yield_extend(function(_y_x10592_1) {
-                return _mlift_infer_12870(n_151, s_152, _y_x10592_1);
+              return yield_extend(function(_y_x10595_1) {
+                return _mlift_infer_12939(n_151, s_152, _y_x10595_1);
               });
             } else {
               return Tuple2(s_152, _open_none4(function(_this_13_0, span_59_0, expr_59_0, typ_59_0) {
@@ -25568,91 +25601,91 @@ var __hica = (() => {
                   var _x227 = _this_13_0.typ;
                 }
                 return Node(_x225, _x226, _x227);
-              }, n_151, void 0, void 0, Just(x_293_14734)));
+              }, n_151, void 0, void 0, Just(x_293_14815)));
             }
           }
         } else {
-          var x_294_14739 = infer(env_49, s_152, _x144.base);
+          var x_294_14820 = infer(env_49, s_152, _x144.base);
           if (_yielding()) {
-            return yield_extend(function(_y_x10593_1) {
-              return _mlift_infer_12878(env_49, _x144.fields, n_151, _x224.value, _x144.struct_name, _y_x10593_1);
+            return yield_extend(function(_y_x10596_1) {
+              return _mlift_infer_12947(env_49, _x144.fields, n_151, _x224.value, _x144.struct_name, _y_x10596_1);
             });
           } else {
-            var _x_x2_234_12452_0 = _open_none1(function(n_40_1) {
+            var _x_x2_234_12492_0 = _open_none1(function(n_40_1) {
               return n_40_1.typ !== null ? n_40_1.typ.value : TUnit;
-            }, x_294_14739.snd);
-            var base_type_0 = _open_none2(apply_subst, x_294_14739.fst, _x_x2_234_12452_0);
-            var _x_x3_108_12456_0 = _open_none1(function(node_150_0) {
+            }, x_294_14820.snd);
+            var base_type_0 = _open_none2(apply_subst, x_294_14820.fst, _x_x2_234_12492_0);
+            var _x_x3_108_12496_0 = _open_none1(function(node_150_0) {
               return node_150_0.span;
             }, n_151);
-            var x_295_14742 = _open_at3(0, unify, base_type_0, TStruct(_x144.struct_name), _x_x3_108_12456_0);
+            var x_295_14823 = _open_at3(0, unify, base_type_0, TStruct(_x144.struct_name), _x_x3_108_12496_0);
             if (_yielding()) {
-              return yield_extend(function(_y_x10594_1) {
-                return _mlift_infer_12877(x_294_14739.snd, env_49, _x144.fields, n_151, x_294_14739.fst, _x224.value, _x144.struct_name, _y_x10594_1);
+              return yield_extend(function(_y_x10597_1) {
+                return _mlift_infer_12946(x_294_14820.snd, env_49, _x144.fields, n_151, x_294_14820.fst, _x224.value, _x144.struct_name, _y_x10597_1);
               });
             } else {
               var s2_17_0_3 = _open_none2(function(s1_38_0, s2_37_0) {
                 var updated_s2_36_0 = _trmc_map_subst(s2_37_0, function(k_38_0, v_37_0) {
                   return Tuple2(k_38_0, _trmc_apply_subst(s1_38_0, v_37_0, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006_36_0 = _trmc_filter_subst(updated_s2_36_0, function(k_0_36_0, ___wildcard_x120__39_36_0) {
+                var ys_10006_36_0 = _trmc_filter_subst(updated_s2_36_0, function(k_0_36_0, ___wildcard_x136__39_36_0) {
                   var b_10007_36_0 = subst_has(s1_38_0, k_0_36_0);
                   return b_10007_36_0 ? false : true;
                 }, _cctx_empty());
                 return append(s1_38_0, ys_10006_36_0);
-              }, x_295_14742, x_294_14739.fst);
-              var x_296_14751 = map(_open_none1(function(_this_14_0) {
+              }, x_295_14823, x_294_14820.fst);
+              var x_296_14832 = map(_open_none1(function(_this_14_0) {
                 return _this_14_0.fields;
-              }, _x224.value), function(_pat_x744__44_0) {
-                return _pat_x744__44_0.fst;
+              }, _x224.value), function(_pat_x760__44_0) {
+                return _pat_x760__44_0.fst;
               });
               if (_yielding()) {
                 return yield_extend(function(def_names_0_5) {
-                  return _mlift_infer_12876(x_294_14739.snd, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, def_names_0_5);
+                  return _mlift_infer_12945(x_294_14820.snd, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, def_names_0_5);
                 });
               } else {
-                var x_297_14754 = map(_x144.fields, function(_pat_x745__45_0) {
-                  return _pat_x745__45_0.fst;
+                var x_297_14835 = map(_x144.fields, function(_pat_x761__45_0) {
+                  return _pat_x761__45_0.fst;
                 });
                 if (_yielding()) {
                   return yield_extend(function(lit_names_0_2) {
-                    return _mlift_infer_12875(x_294_14739.snd, x_296_14751, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, lit_names_0_2);
+                    return _mlift_infer_12944(x_294_14820.snd, x_296_14832, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, lit_names_0_2);
                   });
                 } else {
-                  var x_298_14757 = foreach(x_297_14754, function(ln_1_1) {
-                    var x_299_14760 = any(x_296_14751, function(dn_1_1) {
+                  var x_298_14838 = foreach(x_297_14835, function(ln_1_1) {
+                    var x_299_14841 = any(x_296_14832, function(dn_1_1) {
                       return dn_1_1 === ln_1_1;
                     });
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10597_1) {
-                        return _mlift_infer_12873(ln_1_1, n_151, _x144.struct_name, _y_x10597_1);
+                      return yield_extend(function(_y_x10600_1) {
+                        return _mlift_infer_12942(ln_1_1, n_151, _x144.struct_name, _y_x10600_1);
                       });
                     } else {
-                      return _mlift_infer_12873(ln_1_1, n_151, _x144.struct_name, x_299_14760);
+                      return _mlift_infer_12942(ln_1_1, n_151, _x144.struct_name, x_299_14841);
                     }
                   });
                   if (_yielding()) {
                     return yield_extend(function(wild___14_1) {
-                      return _mlift_infer_12874(x_294_14739.snd, x_296_14751, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, wild___14_1);
+                      return _mlift_infer_12943(x_294_14820.snd, x_296_14832, env_49, _x144.fields, n_151, s2_17_0_3, _x224.value, _x144.struct_name, wild___14_1);
                     });
                   } else {
-                    var x_300_14762 = infer_struct_fields(env_49, s2_17_0_3, _open_none1(function(_this_15_0) {
+                    var x_300_14843 = infer_struct_fields(env_49, s2_17_0_3, _open_none1(function(_this_15_0) {
                       return _this_15_0.fields;
                     }, _x224.value), _x144.fields, _open_none1(function(node_152_0) {
                       return node_152_0.span;
                     }, n_151));
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10601_1) {
-                        return _mlift_infer_12872(x_294_14739.snd, x_296_14751, n_151, _x144.struct_name, _y_x10601_1);
+                      return yield_extend(function(_y_x10604_1) {
+                        return _mlift_infer_12941(x_294_14820.snd, x_296_14832, n_151, _x144.struct_name, _y_x10604_1);
                       });
                     } else {
-                      var _x_x1_417_12467_0 = _open_none1(function(node_153_0) {
+                      var _x_x1_417_12507_0 = _open_none1(function(node_153_0) {
                         return node_153_0.span;
                       }, n_151);
-                      return Tuple2(x_300_14762.fst, _open_none3(function(span_60_0, expr_60_0, typ_60_0) {
+                      return Tuple2(x_300_14843.fst, _open_none3(function(span_60_0, expr_60_0, typ_60_0) {
                         var _x228 = typ_60_0 !== void 0 ? typ_60_0 : Nothing;
                         return Node(span_60_0, expr_60_0, _x228);
-                      }, _x_x1_417_12467_0, StructUpdate(_x144.struct_name, x_294_14739.snd, x_300_14762.snd, x_296_14751), Just(TStruct(_x144.struct_name))));
+                      }, _x_x1_417_12507_0, StructUpdate(_x144.struct_name, x_294_14820.snd, x_300_14843.snd, x_296_14832), Just(TStruct(_x144.struct_name))));
                     }
                   }
                 }
@@ -25662,143 +25695,143 @@ var __hica = (() => {
         }
       }
     } else {
-      var x_301_14765 = infer(env_49, s_152, _x144.obj);
+      var x_301_14846 = infer(env_49, s_152, _x144.obj);
       if (_yielding()) {
-        return yield_extend(function(_y_x10605_0) {
-          return _mlift_infer_12888(_x144.field_name, n_151, _y_x10605_0);
+        return yield_extend(function(_y_x10608_0) {
+          return _mlift_infer_12957(_x144.field_name, n_151, _y_x10608_0);
         });
       } else {
-        var _x_x2_239_12472_0 = _open_none1(function(n_41_1) {
+        var _x_x2_239_12512_0 = _open_none1(function(n_41_1) {
           return n_41_1.typ !== null ? n_41_1.typ.value : TUnit;
-        }, x_301_14765.snd);
-        var obj_type_0 = _open_none2(apply_subst, x_301_14765.fst, _x_x2_239_12472_0);
+        }, x_301_14846.snd);
+        var obj_type_0 = _open_none2(apply_subst, x_301_14846.fst, _x_x2_239_12512_0);
         if (obj_type_0._tag === 12) {
-          var x_302_14768 = _open_at0(3, function() {
-            var ev_49_14771 = _evv_at(0);
-            return ev_49_14771.hnd._fun_get_structs(ev_49_14771.marker, ev_49_14771);
+          var x_302_14849 = _open_at0(3, function() {
+            var ev_49_14852 = _evv_at(0);
+            return ev_49_14852.hnd._fun_get_structs(ev_49_14852.marker, ev_49_14852);
           });
           if (_yielding()) {
             return yield_extend(function(reg_2_1) {
-              return _mlift_infer_12885(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, obj_type_0.name, reg_2_1);
+              return _mlift_infer_12954(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, obj_type_0.name, reg_2_1);
             });
           } else {
-            var _x229 = _open_none2(struct_find, x_302_14768, obj_type_0.name);
+            var _x229 = _open_none2(struct_find, x_302_14849, obj_type_0.name);
             if (_x229 !== null) {
-              var x_303_14773 = find(_open_none1(function(_this_16_0) {
+              var x_303_14854 = find(_open_none1(function(_this_16_0) {
                 return _this_16_0.fields;
-              }, _x229.value), function(_pat_x762__39_0) {
-                return _pat_x762__39_0.fst === _x144.field_name;
+              }, _x229.value), function(_pat_x778__39_0) {
+                return _pat_x778__39_0.fst === _x144.field_name;
               });
               if (_yielding()) {
-                return yield_extend(function(_y_x10609_1) {
-                  return _mlift_infer_12882(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, obj_type_0.name, _y_x10609_1);
+                return yield_extend(function(_y_x10612_1) {
+                  return _mlift_infer_12951(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, obj_type_0.name, _y_x10612_1);
                 });
               } else {
-                if (x_303_14773 !== null) {
-                  var _x_x1_423_12477_0 = _open_none1(function(node_155_0) {
+                if (x_303_14854 !== null) {
+                  var _x_x1_423_12517_0 = _open_none1(function(node_155_0) {
                     return node_155_0.span;
                   }, n_151);
-                  return Tuple2(x_301_14765.fst, _open_none3(function(span_61_0, expr_61_0, typ_61_0) {
+                  return Tuple2(x_301_14846.fst, _open_none3(function(span_61_0, expr_61_0, typ_61_0) {
                     var _x230 = typ_61_0 !== void 0 ? typ_61_0 : Nothing;
                     return Node(span_61_0, expr_61_0, _x230);
-                  }, _x_x1_423_12477_0, FieldAccess(x_301_14765.snd, _x144.field_name), Just(x_303_14773.value.snd)));
+                  }, _x_x1_423_12517_0, FieldAccess(x_301_14846.snd, _x144.field_name), Just(x_303_14854.value.snd)));
                 } else {
-                  var _x_x1_425_12481_0 = _open_none1(function(node_156_0) {
+                  var _x_x1_425_12521_0 = _open_none1(function(node_156_0) {
                     return node_156_0.span;
                   }, n_151);
-                  var _x_x2_242_12482_0 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(obj_type_0.name, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(_x144.field_name, "'"))));
-                  var x_304_14776 = _open_at2(0, emit_error, _x_x1_425_12481_0, _x_x2_242_12482_0);
+                  var _x_x2_242_12522_0 = _lp__plus__plus__rp_("struct ", _lp__plus__plus__rp_(obj_type_0.name, _lp__plus__plus__rp_(" has no field '", _lp__plus__plus__rp_(_x144.field_name, "'"))));
+                  var x_304_14857 = _open_at2(0, emit_error, _x_x1_425_12521_0, _x_x2_242_12522_0);
                   if (_yielding()) {
                     return yield_extend(function(wild___15_1) {
-                      return _mlift_infer_12881(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, wild___15_1);
+                      return _mlift_infer_12950(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, wild___15_1);
                     });
                   } else {
-                    var x_305_14779 = _open_at0(1, function() {
-                      var ev_50_14782 = _evv_at(0);
-                      return ev_50_14782.hnd._fun_fresh_tvar(ev_50_14782.marker, ev_50_14782);
+                    var x_305_14860 = _open_at0(1, function() {
+                      var ev_50_14863 = _evv_at(0);
+                      return ev_50_14863.hnd._fun_fresh_tvar(ev_50_14863.marker, ev_50_14863);
                     });
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10612_1) {
-                        return _mlift_infer_12880(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, _y_x10612_1);
+                      return yield_extend(function(_y_x10615_1) {
+                        return _mlift_infer_12949(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, _y_x10615_1);
                       });
                     } else {
-                      var _x_x1_427_12484_0 = _open_none1(function(node_157_0) {
+                      var _x_x1_427_12524_0 = _open_none1(function(node_157_0) {
                         return node_157_0.span;
                       }, n_151);
-                      return Tuple2(x_301_14765.fst, _open_none3(function(span_62_0, expr_62_0, typ_62_0) {
+                      return Tuple2(x_301_14846.fst, _open_none3(function(span_62_0, expr_62_0, typ_62_0) {
                         var _x231 = typ_62_0 !== void 0 ? typ_62_0 : Nothing;
                         return Node(span_62_0, expr_62_0, _x231);
-                      }, _x_x1_427_12484_0, FieldAccess(x_301_14765.snd, _x144.field_name), Just(x_305_14779)));
+                      }, _x_x1_427_12524_0, FieldAccess(x_301_14846.snd, _x144.field_name), Just(x_305_14860)));
                     }
                   }
                 }
               }
             } else {
-              var _x_x1_429_12488_0 = _open_none1(function(node_158_0) {
+              var _x_x1_429_12528_0 = _open_none1(function(node_158_0) {
                 return node_158_0.span;
               }, n_151);
-              var _x_x2_244_12489_0 = _lp__plus__plus__rp_("unknown struct: ", obj_type_0.name);
-              var x_306_14784 = _open_at2(0, emit_error, _x_x1_429_12488_0, _x_x2_244_12489_0);
+              var _x_x2_244_12529_0 = _lp__plus__plus__rp_("unknown struct: ", obj_type_0.name);
+              var x_306_14865 = _open_at2(0, emit_error, _x_x1_429_12528_0, _x_x2_244_12529_0);
               if (_yielding()) {
                 return yield_extend(function(wild___16_1) {
-                  return _mlift_infer_12884(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, wild___16_1);
+                  return _mlift_infer_12953(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, wild___16_1);
                 });
               } else {
-                var x_307_14787 = _open_at0(1, function() {
-                  var ev_51_14790 = _evv_at(0);
-                  return ev_51_14790.hnd._fun_fresh_tvar(ev_51_14790.marker, ev_51_14790);
+                var x_307_14868 = _open_at0(1, function() {
+                  var ev_51_14871 = _evv_at(0);
+                  return ev_51_14871.hnd._fun_fresh_tvar(ev_51_14871.marker, ev_51_14871);
                 });
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10616_1) {
-                    return _mlift_infer_12883(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, _y_x10616_1);
+                  return yield_extend(function(_y_x10619_1) {
+                    return _mlift_infer_12952(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, _y_x10619_1);
                   });
                 } else {
-                  var _x_x1_431_12491_0 = _open_none1(function(node_159_0) {
+                  var _x_x1_431_12531_0 = _open_none1(function(node_159_0) {
                     return node_159_0.span;
                   }, n_151);
-                  return Tuple2(x_301_14765.fst, _open_none3(function(span_63_0, expr_63_0, typ_63_0) {
+                  return Tuple2(x_301_14846.fst, _open_none3(function(span_63_0, expr_63_0, typ_63_0) {
                     var _x232 = typ_63_0 !== void 0 ? typ_63_0 : Nothing;
                     return Node(span_63_0, expr_63_0, _x232);
-                  }, _x_x1_431_12491_0, FieldAccess(x_301_14765.snd, _x144.field_name), Just(x_307_14787)));
+                  }, _x_x1_431_12531_0, FieldAccess(x_301_14846.snd, _x144.field_name), Just(x_307_14868)));
                 }
               }
             }
           }
         } else if (obj_type_0._tag === 14) {
-          var x_308_14792 = _open_at0(1, function() {
-            var ev_52_14795 = _evv_at(0);
-            return ev_52_14795.hnd._fun_fresh_tvar(ev_52_14795.marker, ev_52_14795);
+          var x_308_14873 = _open_at0(1, function() {
+            var ev_52_14876 = _evv_at(0);
+            return ev_52_14876.hnd._fun_fresh_tvar(ev_52_14876.marker, ev_52_14876);
           });
           if (_yielding()) {
-            return yield_extend(function(_y_x10619_1) {
-              return _mlift_infer_12886(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, _y_x10619_1);
+            return yield_extend(function(_y_x10622_1) {
+              return _mlift_infer_12955(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, _y_x10622_1);
             });
           } else {
-            var _x_x1_433_12495_0 = _open_none1(function(node_160_0) {
+            var _x_x1_433_12535_0 = _open_none1(function(node_160_0) {
               return node_160_0.span;
             }, n_151);
-            return Tuple2(x_301_14765.fst, _open_none3(function(span_64_0, expr_64_0, typ_64_0) {
+            return Tuple2(x_301_14846.fst, _open_none3(function(span_64_0, expr_64_0, typ_64_0) {
               var _x233 = typ_64_0 !== void 0 ? typ_64_0 : Nothing;
               return Node(span_64_0, expr_64_0, _x233);
-            }, _x_x1_433_12495_0, FieldAccess(x_301_14765.snd, _x144.field_name), Just(x_308_14792)));
+            }, _x_x1_433_12535_0, FieldAccess(x_301_14846.snd, _x144.field_name), Just(x_308_14873)));
           }
         } else {
-          var x_309_14797 = _open_at0(1, function() {
-            var ev_53_14800 = _evv_at(0);
-            return ev_53_14800.hnd._fun_fresh_tvar(ev_53_14800.marker, ev_53_14800);
+          var x_309_14878 = _open_at0(1, function() {
+            var ev_53_14881 = _evv_at(0);
+            return ev_53_14881.hnd._fun_fresh_tvar(ev_53_14881.marker, ev_53_14881);
           });
           if (_yielding()) {
-            return yield_extend(function(_y_x10621_1) {
-              return _mlift_infer_12887(_x144.field_name, n_151, x_301_14765.snd, x_301_14765.fst, _y_x10621_1);
+            return yield_extend(function(_y_x10624_1) {
+              return _mlift_infer_12956(_x144.field_name, n_151, x_301_14846.snd, x_301_14846.fst, _y_x10624_1);
             });
           } else {
-            var _x_x1_435_12499_0 = _open_none1(function(node_161_0) {
+            var _x_x1_435_12539_0 = _open_none1(function(node_161_0) {
               return node_161_0.span;
             }, n_151);
-            return Tuple2(x_301_14765.fst, _open_none3(function(span_65_0, expr_65_0, typ_65_0) {
+            return Tuple2(x_301_14846.fst, _open_none3(function(span_65_0, expr_65_0, typ_65_0) {
               var _x234 = typ_65_0 !== void 0 ? typ_65_0 : Nothing;
               return Node(span_65_0, expr_65_0, _x234);
-            }, _x_x1_435_12499_0, FieldAccess(x_301_14765.snd, _x144.field_name), Just(x_309_14797)));
+            }, _x_x1_435_12539_0, FieldAccess(x_301_14846.snd, _x144.field_name), Just(x_309_14878)));
           }
         }
       }
@@ -25808,19 +25841,19 @@ var __hica = (() => {
     if (args_1_0 === null) {
       return Tuple2(s_0_0, Nil);
     } else {
-      var x_310_14802 = infer(env_0_0_0, s_0_0, args_1_0.head);
+      var x_310_14883 = infer(env_0_0_0, s_0_0, args_1_0.head);
       if (_yielding()) {
-        return yield_extend(function(_y_x10625_0) {
-          return _mlift_infer_args_12890(env_0_0_0, args_1_0.tail, _y_x10625_0);
+        return yield_extend(function(_y_x10628_0) {
+          return _mlift_infer_args_12959(env_0_0_0, args_1_0.tail, _y_x10628_0);
         });
       } else {
-        var x_311_14805 = infer_args(env_0_0_0, x_310_14802.fst, args_1_0.tail);
+        var x_311_14886 = infer_args(env_0_0_0, x_310_14883.fst, args_1_0.tail);
         if (_yielding()) {
-          return yield_extend(function(_y_x10626_1) {
-            return _mlift_infer_args_12889(x_310_14802.snd, _y_x10626_1);
+          return yield_extend(function(_y_x10629_1) {
+            return _mlift_infer_args_12958(x_310_14883.snd, _y_x10629_1);
           });
         } else {
-          return Tuple2(x_311_14805.fst, Cons(x_310_14802.snd, x_311_14805.snd));
+          return Tuple2(x_311_14886.fst, Cons(x_310_14883.snd, x_311_14886.snd));
         }
       }
     }
@@ -25830,149 +25863,149 @@ var __hica = (() => {
       return Tuple2(s_1_0, Nil);
     } else {
       var resolved_scrut_0_0 = _open_none2(apply_subst, s_1_0, scrut_type_0_8);
-      var _x_x4_12508 = _open_none1(function(_this_17) {
+      var _x_x4_12548 = _open_none1(function(_this_17) {
         return _this_17.pattern;
       }, arms_0_0.head);
-      var x_312_14808 = _open0(unvlist(Cons(0, Cons(1, Cons(3, Cons(4, Nil))))), function() {
-        return infer_pattern(env_1_0_7, s_1_0, resolved_scrut_0_0, _x_x4_12508);
+      var x_312_14889 = _open0(unvlist(Cons(0, Cons(1, Cons(3, Cons(4, Nil))))), function() {
+        return infer_pattern(env_1_0_7, s_1_0, resolved_scrut_0_0, _x_x4_12548);
       });
       if (_yielding()) {
-        return yield_extend(function(_y_x10629_0) {
-          return _mlift_infer_arms_12900(arms_0_0.head, env_1_0_7, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10629_0);
+        return yield_extend(function(_y_x10632_0) {
+          return _mlift_infer_arms_12969(arms_0_0.head, env_1_0_7, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10632_0);
         });
       } else {
-        var _x_x1_2_12510_0 = _open_none1(function(_this_18_0) {
+        var _x_x1_2_12550_0 = _open_none1(function(_this_18_0) {
           return _this_18_0.pattern;
         }, arms_0_0.head);
-        var x_313_14811 = _open_at1(3, enrich_struct_pattern, _x_x1_2_12510_0);
+        var x_313_14892 = _open_at1(3, enrich_struct_pattern, _x_x1_2_12550_0);
         if (_yielding()) {
           return yield_extend(function(pat_9_sq_) {
-            return _mlift_infer_arms_12899(arms_0_0.head, env_1_0_7, x_312_14808.snd, arms_0_0.tail, result_var_1_8, x_312_14808.fst, scrut_type_0_8, pat_9_sq_);
+            return _mlift_infer_arms_12968(arms_0_0.head, env_1_0_7, x_312_14889.snd, arms_0_0.tail, result_var_1_8, x_312_14889.fst, scrut_type_0_8, pat_9_sq_);
           });
         } else {
           var _x235 = _open_none1(function(_this_19_0) {
             return _this_19_0.guard;
           }, arms_0_0.head);
           if (_x235 !== null) {
-            var x_314_14814 = infer(x_312_14808.snd, x_312_14808.fst, _x235.value);
+            var x_314_14895 = infer(x_312_14889.snd, x_312_14889.fst, _x235.value);
             if (_yielding()) {
-              return yield_extend(function(_y_x10631_1) {
-                return _mlift_infer_arms_12895(arms_0_0.head, env_1_0_7, _x235.value, x_313_14811, x_312_14808.snd, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10631_1);
+              return yield_extend(function(_y_x10634_1) {
+                return _mlift_infer_arms_12964(arms_0_0.head, env_1_0_7, _x235.value, x_313_14892, x_312_14889.snd, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10634_1);
               });
             } else {
-              var _x_x2_1_12514_0 = _open_none1(function(n_42_1) {
+              var _x_x2_1_12554_0 = _open_none1(function(n_42_1) {
                 return n_42_1.typ !== null ? n_42_1.typ.value : TUnit;
-              }, x_314_14814.snd);
-              var guard_type_0 = _open_none2(apply_subst, x_314_14814.fst, _x_x2_1_12514_0);
-              var _x_x3_0_12518_0 = _open_none1(function(node_163_0) {
+              }, x_314_14895.snd);
+              var guard_type_0 = _open_none2(apply_subst, x_314_14895.fst, _x_x2_1_12554_0);
+              var _x_x3_0_12558_0 = _open_none1(function(node_163_0) {
                 return node_163_0.span;
               }, _x235.value);
-              var x_315_14817 = _open_at3(0, unify, guard_type_0, TBool, _x_x3_0_12518_0);
+              var x_315_14898 = _open_at3(0, unify, guard_type_0, TBool, _x_x3_0_12558_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10632_1) {
-                  return _mlift_infer_arms_12894(arms_0_0.head, env_1_0_7, x_314_14814.snd, x_313_14811, x_312_14808.snd, arms_0_0.tail, result_var_1_8, scrut_type_0_8, x_314_14814.fst, _y_x10632_1);
+                return yield_extend(function(_y_x10635_1) {
+                  return _mlift_infer_arms_12963(arms_0_0.head, env_1_0_7, x_314_14895.snd, x_313_14892, x_312_14889.snd, arms_0_0.tail, result_var_1_8, scrut_type_0_8, x_314_14895.fst, _y_x10635_1);
                 });
               } else {
                 var sg2_0 = _open_none2(function(s1_39_0, s2_38_0) {
                   var updated_s2_37_0 = _trmc_map_subst(s2_38_0, function(k_39_0, v_38_0) {
                     return Tuple2(k_39_0, _trmc_apply_subst(s1_39_0, v_38_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_37_0 = _trmc_filter_subst(updated_s2_37_0, function(k_0_37_0, ___wildcard_x120__39_37_0) {
+                  var ys_10006_37_0 = _trmc_filter_subst(updated_s2_37_0, function(k_0_37_0, ___wildcard_x136__39_37_0) {
                     var b_10007_37_0 = subst_has(s1_39_0, k_0_37_0);
                     return b_10007_37_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_39_0, ys_10006_37_0);
-                }, x_315_14817, x_314_14814.fst);
-                var x_316_14826 = infer(x_312_14808.snd, sg2_0, _open_none1(function(_this_20_0) {
+                }, x_315_14898, x_314_14895.fst);
+                var x_316_14907 = infer(x_312_14889.snd, sg2_0, _open_none1(function(_this_20_0) {
                   return _this_20_0.body;
                 }, arms_0_0.head));
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10633_1) {
-                    return _mlift_infer_arms_12893(arms_0_0.head, env_1_0_7, x_314_14814.snd, x_313_14811, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10633_1);
+                  return yield_extend(function(_y_x10636_1) {
+                    return _mlift_infer_arms_12962(arms_0_0.head, env_1_0_7, x_314_14895.snd, x_313_14892, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10636_1);
                   });
                 } else {
-                  var _x_x2_4_12524_0 = _open_none1(function(n_43_1) {
+                  var _x_x2_4_12564_0 = _open_none1(function(n_43_1) {
                     return n_43_1.typ !== null ? n_43_1.typ.value : TUnit;
-                  }, x_316_14826.snd);
-                  var body_type_2_0 = _open_none2(apply_subst, x_316_14826.fst, _x_x2_4_12524_0);
-                  var _x_x2_5_12527_0 = _open_none2(apply_subst, x_316_14826.fst, result_var_1_8);
-                  var _x_x1_15_12531_0 = _open_none1(function(_this_21_0) {
+                  }, x_316_14907.snd);
+                  var body_type_2_0 = _open_none2(apply_subst, x_316_14907.fst, _x_x2_4_12564_0);
+                  var _x_x2_5_12567_0 = _open_none2(apply_subst, x_316_14907.fst, result_var_1_8);
+                  var _x_x1_15_12571_0 = _open_none1(function(_this_21_0) {
                     return _this_21_0.body;
                   }, arms_0_0.head);
-                  var _x_x3_1_12528_0 = _open_none1(function(node_165_0) {
+                  var _x_x3_1_12568_0 = _open_none1(function(node_165_0) {
                     return node_165_0.span;
-                  }, _x_x1_15_12531_0);
-                  var x_317_14829 = _open_at3(0, unify, body_type_2_0, _x_x2_5_12527_0, _x_x3_1_12528_0);
+                  }, _x_x1_15_12571_0);
+                  var x_317_14910 = _open_at3(0, unify, body_type_2_0, _x_x2_5_12567_0, _x_x3_1_12568_0);
                   if (_yielding()) {
-                    return yield_extend(function(_y_x10634_1) {
-                      return _mlift_infer_arms_12892(x_316_14826.snd, env_1_0_7, x_314_14814.snd, x_313_14811, arms_0_0.tail, result_var_1_8, x_316_14826.fst, scrut_type_0_8, _y_x10634_1);
+                    return yield_extend(function(_y_x10637_1) {
+                      return _mlift_infer_arms_12961(x_316_14907.snd, env_1_0_7, x_314_14895.snd, x_313_14892, arms_0_0.tail, result_var_1_8, x_316_14907.fst, scrut_type_0_8, _y_x10637_1);
                     });
                   } else {
                     var s4_2_0 = _open_none2(function(s1_40_0, s2_39_0) {
                       var updated_s2_38_0 = _trmc_map_subst(s2_39_0, function(k_40_0, v_39_0) {
                         return Tuple2(k_40_0, _trmc_apply_subst(s1_40_0, v_39_0, _cctx_empty()));
                       }, _cctx_empty());
-                      var ys_10006_38_0 = _trmc_filter_subst(updated_s2_38_0, function(k_0_38_0, ___wildcard_x120__39_38_0) {
+                      var ys_10006_38_0 = _trmc_filter_subst(updated_s2_38_0, function(k_0_38_0, ___wildcard_x136__39_38_0) {
                         var b_10007_38_0 = subst_has(s1_40_0, k_0_38_0);
                         return b_10007_38_0 ? false : true;
                       }, _cctx_empty());
                       return append(s1_40_0, ys_10006_38_0);
-                    }, x_317_14829, x_316_14826.fst);
-                    var x_318_14838 = infer_arms(env_1_0_7, s4_2_0, scrut_type_0_8, result_var_1_8, arms_0_0.tail);
+                    }, x_317_14910, x_316_14907.fst);
+                    var x_318_14919 = infer_arms(env_1_0_7, s4_2_0, scrut_type_0_8, result_var_1_8, arms_0_0.tail);
                     if (_yielding()) {
-                      return yield_extend(function(_y_x10635_1) {
-                        return _mlift_infer_arms_12891(x_316_14826.snd, x_314_14814.snd, x_313_14811, _y_x10635_1);
+                      return yield_extend(function(_y_x10638_1) {
+                        return _mlift_infer_arms_12960(x_316_14907.snd, x_314_14895.snd, x_313_14892, _y_x10638_1);
                       });
                     } else {
-                      return Tuple2(x_318_14838.fst, Cons(Match_arm(x_313_14811, Just(x_314_14814.snd), x_316_14826.snd), x_318_14838.snd));
+                      return Tuple2(x_318_14919.fst, Cons(Match_arm(x_313_14892, Just(x_314_14895.snd), x_316_14907.snd), x_318_14919.snd));
                     }
                   }
                 }
               }
             }
           } else {
-            var x_319_14841 = infer(x_312_14808.snd, x_312_14808.fst, _open_none1(function(_this_22_0) {
+            var x_319_14922 = infer(x_312_14889.snd, x_312_14889.fst, _open_none1(function(_this_22_0) {
               return _this_22_0.body;
             }, arms_0_0.head));
             if (_yielding()) {
-              return yield_extend(function(_y_x10638_1) {
-                return _mlift_infer_arms_12898(arms_0_0.head, env_1_0_7, x_313_14811, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10638_1);
+              return yield_extend(function(_y_x10641_1) {
+                return _mlift_infer_arms_12967(arms_0_0.head, env_1_0_7, x_313_14892, arms_0_0.tail, result_var_1_8, scrut_type_0_8, _y_x10641_1);
               });
             } else {
-              var _x_x2_8_12537_0 = _open_none1(function(n_44_1) {
+              var _x_x2_8_12577_0 = _open_none1(function(n_44_1) {
                 return n_44_1.typ !== null ? n_44_1.typ.value : TUnit;
-              }, x_319_14841.snd);
-              var body_type_3_0 = _open_none2(apply_subst, x_319_14841.fst, _x_x2_8_12537_0);
-              var _x_x2_9_12540_0 = _open_none2(apply_subst, x_319_14841.fst, result_var_1_8);
-              var _x_x1_23_12544_0 = _open_none1(function(_this_23_0) {
+              }, x_319_14922.snd);
+              var body_type_3_0 = _open_none2(apply_subst, x_319_14922.fst, _x_x2_8_12577_0);
+              var _x_x2_9_12580_0 = _open_none2(apply_subst, x_319_14922.fst, result_var_1_8);
+              var _x_x1_23_12584_0 = _open_none1(function(_this_23_0) {
                 return _this_23_0.body;
               }, arms_0_0.head);
-              var _x_x3_2_12541_0 = _open_none1(function(node_167_0) {
+              var _x_x3_2_12581_0 = _open_none1(function(node_167_0) {
                 return node_167_0.span;
-              }, _x_x1_23_12544_0);
-              var x_320_14844 = _open_at3(0, unify, body_type_3_0, _x_x2_9_12540_0, _x_x3_2_12541_0);
+              }, _x_x1_23_12584_0);
+              var x_320_14925 = _open_at3(0, unify, body_type_3_0, _x_x2_9_12580_0, _x_x3_2_12581_0);
               if (_yielding()) {
-                return yield_extend(function(_y_x10639_1) {
-                  return _mlift_infer_arms_12897(x_319_14841.snd, env_1_0_7, x_313_14811, arms_0_0.tail, result_var_1_8, x_319_14841.fst, scrut_type_0_8, _y_x10639_1);
+                return yield_extend(function(_y_x10642_1) {
+                  return _mlift_infer_arms_12966(x_319_14922.snd, env_1_0_7, x_313_14892, arms_0_0.tail, result_var_1_8, x_319_14922.fst, scrut_type_0_8, _y_x10642_1);
                 });
               } else {
                 var s4_3_0 = _open_none2(function(s1_41_0, s2_40_0) {
                   var updated_s2_39_0 = _trmc_map_subst(s2_40_0, function(k_41_0, v_40_0) {
                     return Tuple2(k_41_0, _trmc_apply_subst(s1_41_0, v_40_0, _cctx_empty()));
                   }, _cctx_empty());
-                  var ys_10006_39_0 = _trmc_filter_subst(updated_s2_39_0, function(k_0_39_0, ___wildcard_x120__39_39_0) {
+                  var ys_10006_39_0 = _trmc_filter_subst(updated_s2_39_0, function(k_0_39_0, ___wildcard_x136__39_39_0) {
                     var b_10007_39_0 = subst_has(s1_41_0, k_0_39_0);
                     return b_10007_39_0 ? false : true;
                   }, _cctx_empty());
                   return append(s1_41_0, ys_10006_39_0);
-                }, x_320_14844, x_319_14841.fst);
-                var x_321_14853 = infer_arms(env_1_0_7, s4_3_0, scrut_type_0_8, result_var_1_8, arms_0_0.tail);
+                }, x_320_14925, x_319_14922.fst);
+                var x_321_14934 = infer_arms(env_1_0_7, s4_3_0, scrut_type_0_8, result_var_1_8, arms_0_0.tail);
                 if (_yielding()) {
-                  return yield_extend(function(_y_x10640_1) {
-                    return _mlift_infer_arms_12896(x_319_14841.snd, x_313_14811, _y_x10640_1);
+                  return yield_extend(function(_y_x10643_1) {
+                    return _mlift_infer_arms_12965(x_319_14922.snd, x_313_14892, _y_x10643_1);
                   });
                 } else {
-                  return Tuple2(x_321_14853.fst, Cons(Match_arm(x_313_14811, Nothing, x_319_14841.snd), x_321_14853.snd));
+                  return Tuple2(x_321_14934.fst, Cons(Match_arm(x_313_14892, Nothing, x_319_14922.snd), x_321_14934.snd));
                 }
               }
             }
@@ -25985,19 +26018,19 @@ var __hica = (() => {
     if (parts_0 === null) {
       return Tuple2(s_2_0, Nil);
     } else {
-      var x_322_14856 = infer(env_2_0_0, s_2_0, parts_0.head);
+      var x_322_14937 = infer(env_2_0_0, s_2_0, parts_0.head);
       if (_yielding()) {
-        return yield_extend(function(_y_x10645_0) {
-          return _mlift_infer_interp_parts_12902(env_2_0_0, parts_0.tail, _y_x10645_0);
+        return yield_extend(function(_y_x10648_0) {
+          return _mlift_infer_interp_parts_12971(env_2_0_0, parts_0.tail, _y_x10648_0);
         });
       } else {
-        var x_323_14859 = infer_interp_parts(env_2_0_0, x_322_14856.fst, parts_0.tail);
+        var x_323_14940 = infer_interp_parts(env_2_0_0, x_322_14937.fst, parts_0.tail);
         if (_yielding()) {
-          return yield_extend(function(_y_x10646_1) {
-            return _mlift_infer_interp_parts_12901(x_322_14856.snd, _y_x10646_1);
+          return yield_extend(function(_y_x10649_1) {
+            return _mlift_infer_interp_parts_12970(x_322_14937.snd, _y_x10649_1);
           });
         } else {
-          return Tuple2(x_323_14859.fst, Cons(x_322_14856.snd, x_323_14859.snd));
+          return Tuple2(x_323_14940.fst, Cons(x_322_14937.snd, x_323_14940.snd));
         }
       }
     }
@@ -26008,13 +26041,13 @@ var __hica = (() => {
     })), function(_res) {
       return _res;
     }, function() {
-      var x_324_14862 = _evv_index(loop_ctx_fs__tag);
+      var x_324_14943 = _evv_index(loop_ctx_fs__tag);
       if (_yielding()) {
-        return yield_extend(function(_y_x10649_0) {
-          return _mlift_infer_loop_body_12903(env_3_0_0, n_0_0_1, s_3_1, _y_x10649_0);
+        return yield_extend(function(_y_x10652_0) {
+          return _mlift_infer_loop_body_12972(env_3_0_0, n_0_0_1, s_3_1, _y_x10652_0);
         });
       } else {
-        return _mlift_infer_loop_body_12903(env_3_0_0, n_0_0_1, s_3_1, x_324_14862);
+        return _mlift_infer_loop_body_12972(env_3_0_0, n_0_0_1, s_3_1, x_324_14943);
       }
     });
   }
@@ -26022,25 +26055,25 @@ var __hica = (() => {
     if (entries_0 === null) {
       return Tuple2(s_4_0, Nil);
     } else {
-      var x_325_14864 = infer(env_4_0_1, s_4_0, entries_0.head.fst);
+      var x_325_14945 = infer(env_4_0_1, s_4_0, entries_0.head.fst);
       if (_yielding()) {
-        return yield_extend(function(_y_x10653_0) {
-          return _mlift_infer_map_entries_12906(env_4_0_1, entries_0.tail, entries_0.head.snd, _y_x10653_0);
+        return yield_extend(function(_y_x10656_0) {
+          return _mlift_infer_map_entries_12975(env_4_0_1, entries_0.tail, entries_0.head.snd, _y_x10656_0);
         });
       } else {
-        var x_326_14867 = infer(env_4_0_1, x_325_14864.fst, entries_0.head.snd);
+        var x_326_14948 = infer(env_4_0_1, x_325_14945.fst, entries_0.head.snd);
         if (_yielding()) {
-          return yield_extend(function(_y_x10654_1) {
-            return _mlift_infer_map_entries_12905(env_4_0_1, x_325_14864.snd, entries_0.tail, _y_x10654_1);
+          return yield_extend(function(_y_x10657_1) {
+            return _mlift_infer_map_entries_12974(env_4_0_1, x_325_14945.snd, entries_0.tail, _y_x10657_1);
           });
         } else {
-          var x_327_14870 = infer_map_entries(env_4_0_1, x_326_14867.fst, entries_0.tail);
+          var x_327_14951 = infer_map_entries(env_4_0_1, x_326_14948.fst, entries_0.tail);
           if (_yielding()) {
-            return yield_extend(function(_y_x10655_1) {
-              return _mlift_infer_map_entries_12904(x_325_14864.snd, x_326_14867.snd, _y_x10655_1);
+            return yield_extend(function(_y_x10658_1) {
+              return _mlift_infer_map_entries_12973(x_325_14945.snd, x_326_14948.snd, _y_x10658_1);
             });
           } else {
-            return Tuple2(x_327_14870.fst, Cons(Tuple2(x_325_14864.snd, x_326_14867.snd), x_327_14870.snd));
+            return Tuple2(x_327_14951.fst, Cons(Tuple2(x_325_14945.snd, x_326_14948.snd), x_327_14951.snd));
           }
         }
       }
@@ -26050,29 +26083,29 @@ var __hica = (() => {
     if (stmts_0 === null) {
       return Tuple3(s_5_0, Nil, TUnit);
     } else if (stmts_0 !== null && stmts_0.tail === null) {
-      var x_328_14873 = infer(env_5_0_0, s_5_0, stmts_0.head);
+      var x_328_14954 = infer(env_5_0_0, s_5_0, stmts_0.head);
       if (_yielding()) {
-        return yield_extend(_mlift_infer_stmts_12907);
+        return yield_extend(_mlift_infer_stmts_12976);
       } else {
-        return Tuple3(x_328_14873.fst, Cons(x_328_14873.snd, Nil), _open_none1(function(n_45_1) {
+        return Tuple3(x_328_14954.fst, Cons(x_328_14954.snd, Nil), _open_none1(function(n_45_1) {
           return n_45_1.typ !== null ? n_45_1.typ.value : TUnit;
-        }, x_328_14873.snd));
+        }, x_328_14954.snd));
       }
     } else {
-      var x_329_14876 = infer(env_5_0_0, s_5_0, stmts_0.head);
+      var x_329_14957 = infer(env_5_0_0, s_5_0, stmts_0.head);
       if (_yielding()) {
-        return yield_extend(function(_y_x10661_0) {
-          return _mlift_infer_stmts_12909(env_5_0_0, stmts_0.tail, _y_x10661_0);
+        return yield_extend(function(_y_x10664_0) {
+          return _mlift_infer_stmts_12978(env_5_0_0, stmts_0.tail, _y_x10664_0);
         });
       } else {
-        var env_4_0_sq_ = _open_none3(extend_let_chain, env_5_0_0, x_329_14876.fst, x_329_14876.snd);
-        var x_330_14879 = infer_stmts(env_4_0_sq_, x_329_14876.fst, stmts_0.tail);
+        var env_4_0_sq_ = _open_none3(extend_let_chain, env_5_0_0, x_329_14957.fst, x_329_14957.snd);
+        var x_330_14960 = infer_stmts(env_4_0_sq_, x_329_14957.fst, stmts_0.tail);
         if (_yielding()) {
-          return yield_extend(function(_y_x10662_1) {
-            return _mlift_infer_stmts_12908(x_329_14876.snd, _y_x10662_1);
+          return yield_extend(function(_y_x10665_1) {
+            return _mlift_infer_stmts_12977(x_329_14957.snd, _y_x10665_1);
           });
         } else {
-          return Tuple3(x_330_14879.fst, Cons(x_329_14876.snd, x_330_14879.snd), x_330_14879.thd);
+          return Tuple3(x_330_14960.fst, Cons(x_329_14957.snd, x_330_14960.snd), x_330_14960.thd);
         }
       }
     }
@@ -26081,48 +26114,48 @@ var __hica = (() => {
     if (lit_fields_1_0 === null) {
       return Tuple2(s_6_0, Nil);
     } else {
-      var x_331_14882 = infer(env_6_3, s_6_0, lit_fields_1_0.head.snd);
+      var x_331_14963 = infer(env_6_3, s_6_0, lit_fields_1_0.head.snd);
       if (_yielding()) {
-        return yield_extend(function(_y_x10665_0) {
-          return _mlift_infer_struct_fields_12914(def_fields_2, env_6_3, lit_fields_1_0.head.fst, lit_fields_1_0.tail, sp_2, _y_x10665_0);
+        return yield_extend(function(_y_x10668_0) {
+          return _mlift_infer_struct_fields_12983(def_fields_2, env_6_3, lit_fields_1_0.head.fst, lit_fields_1_0.tail, sp_2, _y_x10668_0);
         });
       } else {
-        var _x_x2_12553_0 = _open_none1(function(n_46_1) {
+        var _x_x2_12593_0 = _open_none1(function(n_46_1) {
           return n_46_1.typ !== null ? n_46_1.typ.value : TUnit;
-        }, x_331_14882.snd);
-        var fval_type_1 = _open_none2(apply_subst, x_331_14882.fst, _x_x2_12553_0);
-        var x_332_14885 = find(def_fields_2, function(_pat_x785__41_0) {
-          return _pat_x785__41_0.fst === lit_fields_1_0.head.fst;
+        }, x_331_14963.snd);
+        var fval_type_1 = _open_none2(apply_subst, x_331_14963.fst, _x_x2_12593_0);
+        var x_332_14966 = find(def_fields_2, function(_pat_x801__41_0) {
+          return _pat_x801__41_0.fst === lit_fields_1_0.head.fst;
         });
         if (_yielding()) {
-          return yield_extend(function(_y_x10667_1) {
-            return _mlift_infer_struct_fields_12913(def_fields_2, env_6_3, lit_fields_1_0.head.fst, x_331_14882.snd, fval_type_1, lit_fields_1_0.tail, x_331_14882.fst, sp_2, _y_x10667_1);
+          return yield_extend(function(_y_x10670_1) {
+            return _mlift_infer_struct_fields_12982(def_fields_2, env_6_3, lit_fields_1_0.head.fst, x_331_14963.snd, fval_type_1, lit_fields_1_0.tail, x_331_14963.fst, sp_2, _y_x10670_1);
           });
         } else {
-          if (x_332_14885 !== null) {
-            var x_334_14891 = _open_at3(0, unify, fval_type_1, x_332_14885.value.snd, sp_2);
+          if (x_332_14966 !== null) {
+            var x_334_14972 = _open_at3(0, unify, fval_type_1, x_332_14966.value.snd, sp_2);
             if (_yielding()) {
-              var x_333_14888 = yield_extend(function(_y_x10668_1) {
-                return _mlift_infer_struct_fields_12911(x_331_14882.fst, _y_x10668_1);
+              var x_333_14969 = yield_extend(function(_y_x10671_1) {
+                return _mlift_infer_struct_fields_12980(x_331_14963.fst, _y_x10671_1);
               });
             } else {
-              var x_333_14888 = _mlift_infer_struct_fields_12911(x_331_14882.fst, x_334_14891);
+              var x_333_14969 = _mlift_infer_struct_fields_12980(x_331_14963.fst, x_334_14972);
             }
           } else {
-            var x_333_14888 = x_331_14882.fst;
+            var x_333_14969 = x_331_14963.fst;
           }
           if (_yielding()) {
-            return yield_extend(function(_c_x10669_1) {
-              return _mlift_infer_struct_fields_12912(def_fields_2, env_6_3, lit_fields_1_0.head.fst, x_331_14882.snd, lit_fields_1_0.tail, sp_2, _c_x10669_1);
+            return yield_extend(function(_c_x10672_1) {
+              return _mlift_infer_struct_fields_12981(def_fields_2, env_6_3, lit_fields_1_0.head.fst, x_331_14963.snd, lit_fields_1_0.tail, sp_2, _c_x10672_1);
             });
           } else {
-            var x_335_14893 = infer_struct_fields(env_6_3, x_333_14888, def_fields_2, lit_fields_1_0.tail, sp_2);
+            var x_335_14974 = infer_struct_fields(env_6_3, x_333_14969, def_fields_2, lit_fields_1_0.tail, sp_2);
             if (_yielding()) {
-              return yield_extend(function(_y_x10670_1) {
-                return _mlift_infer_struct_fields_12910(lit_fields_1_0.head.fst, x_331_14882.snd, _y_x10670_1);
+              return yield_extend(function(_y_x10673_1) {
+                return _mlift_infer_struct_fields_12979(lit_fields_1_0.head.fst, x_331_14963.snd, _y_x10673_1);
               });
             } else {
-              return Tuple2(x_335_14893.fst, Cons(Tuple2(lit_fields_1_0.head.fst, x_331_14882.snd), x_335_14893.snd));
+              return Tuple2(x_335_14974.fst, Cons(Tuple2(lit_fields_1_0.head.fst, x_331_14963.snd), x_335_14974.snd));
             }
           }
         }
@@ -26349,8 +26382,8 @@ var __hica = (() => {
           continue tailcall;
         }
       } else if (n.expr._tag === 28) {
-        return any(n.expr.fields, function(_pat_x1219__42) {
-          return body_calls_name(_pat_x1219__42.snd, name);
+        return any(n.expr.fields, function(_pat_x1250__42) {
+          return body_calls_name(_pat_x1250__42.snd, name);
         });
       } else if (n.expr._tag === 30) {
         {
@@ -26367,12 +26400,12 @@ var __hica = (() => {
           continue tailcall;
         }
       } else if (n.expr._tag === 24) {
-        return any(n.expr.entries, function(_pat_x1223__47) {
-          var _x252 = body_calls_name(_pat_x1223__47.fst, name);
+        return any(n.expr.entries, function(_pat_x1254__47) {
+          var _x252 = body_calls_name(_pat_x1254__47.fst, name);
           if (_x252) {
             return true;
           } else {
-            return body_calls_name(_pat_x1223__47.snd, name);
+            return body_calls_name(_pat_x1254__47.snd, name);
           }
         });
       } else if (n.expr._tag === 29) {
@@ -26380,8 +26413,8 @@ var __hica = (() => {
         if (_x253) {
           return true;
         } else {
-          return any(n.expr.fields, function(_pat_x1224__92) {
-            return body_calls_name(_pat_x1224__92.snd, name);
+          return any(n.expr.fields, function(_pat_x1255__92) {
+            return body_calls_name(_pat_x1255__92.snd, name);
           });
         }
       } else {
@@ -26389,217 +26422,217 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_infer_decl_12915(body_sq_, body_type, d, env, s2_0, resolved_params) {
+  function _mlift_infer_decl_12984(body_sq_, body_type, d, env, s2_0, resolved_params) {
     var fun_type = TFun(resolved_params, _open_none2(apply_subst, s2_0, body_type));
-    var _x_x1_15_12584 = _open_none1(function(_this_6) {
+    var _x_x1_15_12624 = _open_none1(function(_this_6) {
       return _this_6.body;
     }, d);
-    var _x_x2_6_12585 = _open_none1(function(_this_7) {
+    var _x_x2_6_12625 = _open_none1(function(_this_7) {
       return _this_7.name;
     }, d);
-    var recursive = _open_none2(body_calls_name, _x_x1_15_12584, _x_x2_6_12585);
-    var name_1_11417 = _open_none1(function(_this_8) {
+    var recursive = _open_none2(body_calls_name, _x_x1_15_12624, _x_x2_6_12625);
+    var name_1_11435 = _open_none1(function(_this_8) {
       return _this_8.name;
     }, d);
-    var _arg_x20720 = Just(_open_none2(apply_subst, s2_0, body_type));
+    var _arg_x21221 = Just(_open_none2(apply_subst, s2_0, body_type));
     var d_sq_ = _open_none0(function() {
-      return fun_decl_fs__copy(d, void 0, void 0, void 0, body_sq_, void 0, void 0, resolved_params, _arg_x20720, recursive);
+      return fun_decl_fs__copy(d, void 0, void 0, void 0, body_sq_, void 0, void 0, resolved_params, _arg_x21221, recursive);
     });
-    return Tuple3(s2_0, Cons(Tuple2(name_1_11417, fun_type), env), d_sq_);
+    return Tuple3(s2_0, Cons(Tuple2(name_1_11435, fun_type), env), d_sq_);
   }
-  function _mlift_infer_decl_12916(body_sq_, body_type, d, env, param_types, s1, _y_x10680) {
+  function _mlift_infer_decl_12985(body_sq_, body_type, d, env, param_types, s1, _y_x10683) {
     var s2_0 = _open_none2(function(s1_0, s2) {
       var updated_s2 = _trmc_map_subst(s2, function(k, v) {
         return Tuple2(k, _trmc_apply_subst(s1_0, v, _cctx_empty()));
       }, _cctx_empty());
-      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+      var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
         var b_10007 = subst_has(s1_0, k_0);
         return b_10007 ? false : true;
       }, _cctx_empty());
       return append(s1_0, ys_10006);
-    }, _y_x10680, s1);
-    var x_14902 = map(param_types, function(t_1_0) {
+    }, _y_x10683, s1);
+    var x_14983 = map(param_types, function(t_1_0) {
       return _open_none2(apply_subst, s2_0, t_1_0);
     });
     if (_yielding()) {
       return yield_extend(function(resolved_params) {
-        return _mlift_infer_decl_12915(body_sq_, body_type, d, env, s2_0, resolved_params);
+        return _mlift_infer_decl_12984(body_sq_, body_type, d, env, s2_0, resolved_params);
       });
     } else {
-      return _mlift_infer_decl_12915(body_sq_, body_type, d, env, s2_0, x_14902);
+      return _mlift_infer_decl_12984(body_sq_, body_type, d, env, s2_0, x_14983);
     }
   }
-  function _mlift_infer_decl_12917(_c_x10676, d, env, param_types, _y_x10679) {
+  function _mlift_infer_decl_12986(_c_x10679, d, env, param_types, _y_x10682) {
     var body_type = _open_none1(function(n_0) {
       return n_0.typ !== null ? n_0.typ.value : TUnit;
-    }, _y_x10679.snd);
-    var _x_x1_7_12569 = _open_none2(apply_subst, _y_x10679.fst, _c_x10676);
-    var _x_x2_0_12570 = _open_none2(apply_subst, _y_x10679.fst, body_type);
-    var _x_x1_10_12576 = _open_none1(function(_this_5) {
+    }, _y_x10682.snd);
+    var _x_x1_7_12609 = _open_none2(apply_subst, _y_x10682.fst, _c_x10679);
+    var _x_x2_0_12610 = _open_none2(apply_subst, _y_x10682.fst, body_type);
+    var _x_x1_10_12616 = _open_none1(function(_this_5) {
       return _this_5.body;
     }, d);
-    var _x_x3_12571 = _open_none1(function(node_0) {
+    var _x_x3_12611 = _open_none1(function(node_0) {
       return node_0.span;
-    }, _x_x1_10_12576);
-    var x_14904 = _open_at3(0, unify, _x_x1_7_12569, _x_x2_0_12570, _x_x3_12571);
+    }, _x_x1_10_12616);
+    var x_14985 = _open_at3(0, unify, _x_x1_7_12609, _x_x2_0_12610, _x_x3_12611);
     if (_yielding()) {
-      return yield_extend(function(_y_x10680) {
-        return _mlift_infer_decl_12916(_y_x10679.snd, body_type, d, env, param_types, _y_x10679.fst, _y_x10680);
+      return yield_extend(function(_y_x10683) {
+        return _mlift_infer_decl_12985(_y_x10682.snd, body_type, d, env, param_types, _y_x10682.fst, _y_x10683);
       });
     } else {
-      return _mlift_infer_decl_12916(_y_x10679.snd, body_type, d, env, param_types, _y_x10679.fst, x_14904);
+      return _mlift_infer_decl_12985(_y_x10682.snd, body_type, d, env, param_types, _y_x10682.fst, x_14985);
     }
   }
-  function _mlift_infer_decl_12918(_c_x10676, d, env, param_types, s, param_env) {
-    var x_14906 = infer(param_env, s, _open_none1(function(_this_4) {
+  function _mlift_infer_decl_12987(_c_x10679, d, env, param_types, s, param_env) {
+    var x_14987 = infer(param_env, s, _open_none1(function(_this_4) {
       return _this_4.body;
     }, d));
     if (_yielding()) {
-      return yield_extend(function(_y_x10679) {
-        return _mlift_infer_decl_12917(_c_x10676, d, env, param_types, _y_x10679);
+      return yield_extend(function(_y_x10682) {
+        return _mlift_infer_decl_12986(_c_x10679, d, env, param_types, _y_x10682);
       });
     } else {
-      return _mlift_infer_decl_12917(_c_x10676, d, env, param_types, x_14906);
+      return _mlift_infer_decl_12986(_c_x10679, d, env, param_types, x_14987);
     }
   }
-  function _mlift_infer_decl_12919(d, env, param_types, s, _c_x10676) {
-    var name_11396 = _open_none1(function(_this_2) {
+  function _mlift_infer_decl_12988(d, env, param_types, s, _c_x10679) {
+    var name_11414 = _open_none1(function(_this_2) {
       return _this_2.name;
     }, d);
-    var x_14908 = foldl(zip(_open_none1(function(_this_3) {
+    var x_14989 = foldl(zip(_open_none1(function(_this_3) {
       return _this_3.params;
-    }, d), param_types), Cons(Tuple2(name_11396, TFun(param_types, _c_x10676)), env), function(e, entry) {
+    }, d), param_types), Cons(Tuple2(name_11414, TFun(param_types, _c_x10679)), env), function(e, entry) {
       return Cons(Tuple2(entry.fst, entry.snd), e);
     });
     if (_yielding()) {
       return yield_extend(function(param_env) {
-        return _mlift_infer_decl_12918(_c_x10676, d, env, param_types, s, param_env);
+        return _mlift_infer_decl_12987(_c_x10679, d, env, param_types, s, param_env);
       });
     } else {
-      return _mlift_infer_decl_12918(_c_x10676, d, env, param_types, s, x_14908);
+      return _mlift_infer_decl_12987(_c_x10679, d, env, param_types, s, x_14989);
     }
   }
-  function _mlift_infer_decl_12920(d, env, s, param_types) {
+  function _mlift_infer_decl_12989(d, env, s, param_types) {
     var _x254 = _open_none1(function(_this_1) {
       return _this_1.ret_ann;
     }, d);
     if (_x254 !== null) {
-      var x_14910 = _x254.value;
+      var x_14991 = _x254.value;
     } else {
-      var x_14910 = _open_at0(1, function() {
-        var ev_14912 = _evv_at(0);
-        return ev_14912.hnd._fun_fresh_tvar(ev_14912.marker, ev_14912);
+      var x_14991 = _open_at0(1, function() {
+        var ev_14993 = _evv_at(0);
+        return ev_14993.hnd._fun_fresh_tvar(ev_14993.marker, ev_14993);
       });
     }
     if (_yielding()) {
-      return yield_extend(function(_c_x10676) {
-        return _mlift_infer_decl_12919(d, env, param_types, s, _c_x10676);
+      return yield_extend(function(_c_x10679) {
+        return _mlift_infer_decl_12988(d, env, param_types, s, _c_x10679);
       });
     } else {
-      return _mlift_infer_decl_12919(d, env, param_types, s, x_14910);
+      return _mlift_infer_decl_12988(d, env, param_types, s, x_14991);
     }
   }
   function infer_decl(env, s, d) {
-    var _x_x1_12560 = _open_none1(function(_this) {
+    var _x_x1_12600 = _open_none1(function(_this) {
       return _this.params;
     }, d);
-    var _x_x2_12561 = _open_none1(function(_this_0) {
+    var _x_x2_12601 = _open_none1(function(_this_0) {
       return _this_0.param_anns;
     }, d);
-    var x_14914 = _open_at2(1, zip_with_anns, _x_x1_12560, _x_x2_12561);
+    var x_14995 = _open_at2(1, zip_with_anns, _x_x1_12600, _x_x2_12601);
     if (_yielding()) {
       return yield_extend(function(param_types) {
-        return _mlift_infer_decl_12920(d, env, s, param_types);
+        return _mlift_infer_decl_12989(d, env, s, param_types);
       });
     } else {
       var _x254 = _open_none1(function(_this_1) {
         return _this_1.ret_ann;
       }, d);
       if (_x254 !== null) {
-        var x_0_14917 = _x254.value;
+        var x_0_14998 = _x254.value;
       } else {
-        var x_0_14917 = _open_at0(1, function() {
-          var ev_14920 = _evv_at(0);
-          return ev_14920.hnd._fun_fresh_tvar(ev_14920.marker, ev_14920);
+        var x_0_14998 = _open_at0(1, function() {
+          var ev_15001 = _evv_at(0);
+          return ev_15001.hnd._fun_fresh_tvar(ev_15001.marker, ev_15001);
         });
       }
       if (_yielding()) {
-        return yield_extend(function(_c_x10676) {
-          return _mlift_infer_decl_12919(d, env, x_14914, s, _c_x10676);
+        return yield_extend(function(_c_x10679) {
+          return _mlift_infer_decl_12988(d, env, x_14995, s, _c_x10679);
         });
       } else {
-        var name_11396 = _open_none1(function(_this_2) {
+        var name_11414 = _open_none1(function(_this_2) {
           return _this_2.name;
         }, d);
-        var x_1_14922 = foldl(zip(_open_none1(function(_this_3) {
+        var x_1_15003 = foldl(zip(_open_none1(function(_this_3) {
           return _this_3.params;
-        }, d), x_14914), Cons(Tuple2(name_11396, TFun(x_14914, x_0_14917)), env), function(e, entry) {
+        }, d), x_14995), Cons(Tuple2(name_11414, TFun(x_14995, x_0_14998)), env), function(e, entry) {
           return Cons(Tuple2(entry.fst, entry.snd), e);
         });
         if (_yielding()) {
           return yield_extend(function(param_env) {
-            return _mlift_infer_decl_12918(x_0_14917, d, env, x_14914, s, param_env);
+            return _mlift_infer_decl_12987(x_0_14998, d, env, x_14995, s, param_env);
           });
         } else {
-          var x_2_14925 = infer(x_1_14922, s, _open_none1(function(_this_4) {
+          var x_2_15006 = infer(x_1_15003, s, _open_none1(function(_this_4) {
             return _this_4.body;
           }, d));
           if (_yielding()) {
-            return yield_extend(function(_y_x10679) {
-              return _mlift_infer_decl_12917(x_0_14917, d, env, x_14914, _y_x10679);
+            return yield_extend(function(_y_x10682) {
+              return _mlift_infer_decl_12986(x_0_14998, d, env, x_14995, _y_x10682);
             });
           } else {
             var body_type = _open_none1(function(n_0) {
               return n_0.typ !== null ? n_0.typ.value : TUnit;
-            }, x_2_14925.snd);
-            var _x_x1_7_12569 = _open_none2(apply_subst, x_2_14925.fst, x_0_14917);
-            var _x_x2_0_12570 = _open_none2(apply_subst, x_2_14925.fst, body_type);
-            var _x_x1_10_12576 = _open_none1(function(_this_5) {
+            }, x_2_15006.snd);
+            var _x_x1_7_12609 = _open_none2(apply_subst, x_2_15006.fst, x_0_14998);
+            var _x_x2_0_12610 = _open_none2(apply_subst, x_2_15006.fst, body_type);
+            var _x_x1_10_12616 = _open_none1(function(_this_5) {
               return _this_5.body;
             }, d);
-            var _x_x3_12571 = _open_none1(function(node_0) {
+            var _x_x3_12611 = _open_none1(function(node_0) {
               return node_0.span;
-            }, _x_x1_10_12576);
-            var x_3_14928 = _open_at3(0, unify, _x_x1_7_12569, _x_x2_0_12570, _x_x3_12571);
+            }, _x_x1_10_12616);
+            var x_3_15009 = _open_at3(0, unify, _x_x1_7_12609, _x_x2_0_12610, _x_x3_12611);
             if (_yielding()) {
-              return yield_extend(function(_y_x10680) {
-                return _mlift_infer_decl_12916(x_2_14925.snd, body_type, d, env, x_14914, x_2_14925.fst, _y_x10680);
+              return yield_extend(function(_y_x10683) {
+                return _mlift_infer_decl_12985(x_2_15006.snd, body_type, d, env, x_14995, x_2_15006.fst, _y_x10683);
               });
             } else {
               var s2_0 = _open_none2(function(s1_0, s2) {
                 var updated_s2 = _trmc_map_subst(s2, function(k, v) {
                   return Tuple2(k, _trmc_apply_subst(s1_0, v, _cctx_empty()));
                 }, _cctx_empty());
-                var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x120__39) {
+                var ys_10006 = _trmc_filter_subst(updated_s2, function(k_0, ___wildcard_x136__39) {
                   var b_10007 = subst_has(s1_0, k_0);
                   return b_10007 ? false : true;
                 }, _cctx_empty());
                 return append(s1_0, ys_10006);
-              }, x_3_14928, x_2_14925.fst);
-              var x_4_14937 = map(x_14914, function(t_1_0) {
+              }, x_3_15009, x_2_15006.fst);
+              var x_4_15018 = map(x_14995, function(t_1_0) {
                 return _open_none2(apply_subst, s2_0, t_1_0);
               });
               if (_yielding()) {
                 return yield_extend(function(resolved_params) {
-                  return _mlift_infer_decl_12915(x_2_14925.snd, body_type, d, env, s2_0, resolved_params);
+                  return _mlift_infer_decl_12984(x_2_15006.snd, body_type, d, env, s2_0, resolved_params);
                 });
               } else {
-                var fun_type = TFun(x_4_14937, _open_none2(apply_subst, s2_0, body_type));
-                var _x_x1_15_12584 = _open_none1(function(_this_6) {
+                var fun_type = TFun(x_4_15018, _open_none2(apply_subst, s2_0, body_type));
+                var _x_x1_15_12624 = _open_none1(function(_this_6) {
                   return _this_6.body;
                 }, d);
-                var _x_x2_6_12585 = _open_none1(function(_this_7) {
+                var _x_x2_6_12625 = _open_none1(function(_this_7) {
                   return _this_7.name;
                 }, d);
-                var recursive = _open_none2(body_calls_name, _x_x1_15_12584, _x_x2_6_12585);
-                var name_1_11417 = _open_none1(function(_this_8) {
+                var recursive = _open_none2(body_calls_name, _x_x1_15_12624, _x_x2_6_12625);
+                var name_1_11435 = _open_none1(function(_this_8) {
                   return _this_8.name;
                 }, d);
-                var _arg_x20720 = Just(_open_none2(apply_subst, s2_0, body_type));
+                var _arg_x21221 = Just(_open_none2(apply_subst, s2_0, body_type));
                 var d_sq_ = _open_none0(function() {
-                  return fun_decl_fs__copy(d, void 0, void 0, void 0, x_2_14925.snd, void 0, void 0, x_4_14937, _arg_x20720, recursive);
+                  return fun_decl_fs__copy(d, void 0, void 0, void 0, x_2_15006.snd, void 0, void 0, x_4_15018, _arg_x21221, recursive);
                 });
-                return Tuple3(s2_0, Cons(Tuple2(name_1_11417, fun_type), env), d_sq_);
+                return Tuple3(s2_0, Cons(Tuple2(name_1_11435, fun_type), env), d_sq_);
               }
             }
           }
@@ -26663,19 +26696,19 @@ var __hica = (() => {
       });
     }
   }
-  function _mlift_infer_decls_12922(decls_sq_, env_final, s_final, all_names) {
+  function _mlift_infer_decls_12991(decls_sq_, env_final, s_final, all_names) {
     var decls_ordered = reverse_acc(Nil, decls_sq_);
-    var x_14940 = map(decls_ordered, function(d_2) {
+    var x_15021 = map(decls_ordered, function(d_2) {
       var _x260 = _open_none1(function(_this_4) {
         return _this_4.is_recursive;
       }, d_2);
       if (_x260) {
         return d_2;
       } else {
-        var _x_x1_6_12610 = _open_none1(function(_this_5) {
+        var _x_x1_6_12650 = _open_none1(function(_this_5) {
           return _this_5.name;
         }, d_2);
-        var is_mutual = _open_none3(is_mutually_recursive, _x_x1_6_12610, decls_ordered, all_names);
+        var is_mutual = _open_none3(is_mutually_recursive, _x_x1_6_12650, decls_ordered, all_names);
         return _open_none0(function() {
           return fun_decl_fs__copy(d_2, void 0, void 0, void 0, void 0, void 0, void 0, void 0, void 0, is_mutual);
         });
@@ -26686,146 +26719,146 @@ var __hica = (() => {
         return Tuple3(s_final, env_final, decls_final);
       });
     } else {
-      return Tuple3(s_final, env_final, x_14940);
+      return Tuple3(s_final, env_final, x_15021);
     }
   }
-  function _mlift_infer_decls_12924(ds, _y_x10692) {
-    var x_14945 = map(ds, function(d_1) {
+  function _mlift_infer_decls_12993(ds, _y_x10695) {
+    var x_15026 = map(ds, function(d_1) {
       return _open_none1(function(_this_3) {
         return _this_3.name;
       }, d_1);
     });
     if (_yielding()) {
       return yield_extend(function(all_names) {
-        return _mlift_infer_decls_12922(_y_x10692.thd, _y_x10692.snd, _y_x10692.fst, all_names);
+        return _mlift_infer_decls_12991(_y_x10695.thd, _y_x10695.snd, _y_x10695.fst, all_names);
       });
     } else {
-      return _mlift_infer_decls_12922(_y_x10692.thd, _y_x10692.snd, _y_x10692.fst, x_14945);
+      return _mlift_infer_decls_12991(_y_x10695.thd, _y_x10695.snd, _y_x10695.fst, x_15026);
     }
   }
-  function _mlift_infer_decls_12925(ds, s, env_all) {
-    var x_14947 = foldl(ds, Tuple3(s, env_all, Nil), function(acc, d_0) {
-      var x_0_14949 = infer_decl(acc.snd, acc.fst, d_0);
-      function next_0_14950(_y_x10690) {
-        return Tuple3(_y_x10690.fst, _y_x10690.snd, Cons(_y_x10690.thd, acc.thd));
+  function _mlift_infer_decls_12994(ds, s, env_all) {
+    var x_15028 = foldl(ds, Tuple3(s, env_all, Nil), function(acc, d_0) {
+      var x_0_15030 = infer_decl(acc.snd, acc.fst, d_0);
+      function next_0_15031(_y_x10693) {
+        return Tuple3(_y_x10693.fst, _y_x10693.snd, Cons(_y_x10693.thd, acc.thd));
       }
       if (_yielding()) {
-        return yield_extend(next_0_14950);
+        return yield_extend(next_0_15031);
       } else {
-        return next_0_14950(x_0_14949);
+        return next_0_15031(x_0_15030);
       }
     });
     if (_yielding()) {
-      return yield_extend(function(_y_x10692) {
-        return _mlift_infer_decls_12924(ds, _y_x10692);
+      return yield_extend(function(_y_x10695) {
+        return _mlift_infer_decls_12993(ds, _y_x10695);
       });
     } else {
-      return _mlift_infer_decls_12924(ds, x_14947);
+      return _mlift_infer_decls_12993(ds, x_15028);
     }
   }
-  function _mlift_infer_decls_12927(d, param_types) {
+  function _mlift_infer_decls_12996(d, param_types) {
     var _x260 = _open_none1(function(_this_1) {
       return _this_1.ret_ann;
     }, d);
     if (_x260 !== null) {
-      var x_14953 = _x260.value;
+      var x_15034 = _x260.value;
     } else {
-      var x_14953 = _open_at0(1, function() {
-        var ev_14955 = _evv_at(0);
-        return ev_14955.hnd._fun_fresh_tvar(ev_14955.marker, ev_14955);
+      var x_15034 = _open_at0(1, function() {
+        var ev_15036 = _evv_at(0);
+        return ev_15036.hnd._fun_fresh_tvar(ev_15036.marker, ev_15036);
       });
     }
-    function next_14954(_c_x10686) {
+    function next_15035(_c_x10689) {
       return Tuple2(_open_none1(function(_this_2) {
         return _this_2.name;
-      }, d), TFun(param_types, _c_x10686));
+      }, d), TFun(param_types, _c_x10689));
     }
     if (_yielding()) {
-      return yield_extend(next_14954);
+      return yield_extend(next_15035);
     } else {
-      return next_14954(x_14953);
+      return next_15035(x_15034);
     }
   }
-  function _mlift_infer_decls_12928(ds, env, s, pre_types) {
-    var x_14960 = foldl(pre_types, env, function(e, entry) {
+  function _mlift_infer_decls_12997(ds, env, s, pre_types) {
+    var x_15041 = foldl(pre_types, env, function(e, entry) {
       return Cons(Tuple2(entry.fst, entry.snd), e);
     });
     if (_yielding()) {
       return yield_extend(function(env_all) {
-        return _mlift_infer_decls_12925(ds, s, env_all);
+        return _mlift_infer_decls_12994(ds, s, env_all);
       });
     } else {
-      return _mlift_infer_decls_12925(ds, s, x_14960);
+      return _mlift_infer_decls_12994(ds, s, x_15041);
     }
   }
   function infer_decls(env, s, ds) {
-    var x_14962 = map(ds, function(d) {
-      var _x_x1_12602 = _open_none1(function(_this) {
+    var x_15043 = map(ds, function(d) {
+      var _x_x1_12642 = _open_none1(function(_this) {
         return _this.params;
       }, d);
-      var _x_x2_12603 = _open_none1(function(_this_0) {
+      var _x_x2_12643 = _open_none1(function(_this_0) {
         return _this_0.param_anns;
       }, d);
-      var x_0_14965 = _open_at2(1, zip_with_anns, _x_x1_12602, _x_x2_12603);
+      var x_0_15046 = _open_at2(1, zip_with_anns, _x_x1_12642, _x_x2_12643);
       if (_yielding()) {
         return yield_extend(function(param_types) {
-          return _mlift_infer_decls_12927(d, param_types);
+          return _mlift_infer_decls_12996(d, param_types);
         });
       } else {
-        return _mlift_infer_decls_12927(d, x_0_14965);
+        return _mlift_infer_decls_12996(d, x_0_15046);
       }
     });
     if (_yielding()) {
       return yield_extend(function(pre_types) {
-        return _mlift_infer_decls_12928(ds, env, s, pre_types);
+        return _mlift_infer_decls_12997(ds, env, s, pre_types);
       });
     } else {
-      var x_1_14967 = foldl(x_14962, env, function(e, entry) {
+      var x_1_15048 = foldl(x_15043, env, function(e, entry) {
         return Cons(Tuple2(entry.fst, entry.snd), e);
       });
       if (_yielding()) {
         return yield_extend(function(env_all) {
-          return _mlift_infer_decls_12925(ds, s, env_all);
+          return _mlift_infer_decls_12994(ds, s, env_all);
         });
       } else {
-        var x_2_14970 = foldl(ds, Tuple3(s, x_1_14967, Nil), function(acc, d_0) {
-          var x_3_14973 = infer_decl(acc.snd, acc.fst, d_0);
-          var next_3_14974 = function(_y_x10690) {
-            return Tuple3(_y_x10690.fst, _y_x10690.snd, Cons(_y_x10690.thd, acc.thd));
+        var x_2_15051 = foldl(ds, Tuple3(s, x_1_15048, Nil), function(acc, d_0) {
+          var x_3_15054 = infer_decl(acc.snd, acc.fst, d_0);
+          var next_3_15055 = function(_y_x10693) {
+            return Tuple3(_y_x10693.fst, _y_x10693.snd, Cons(_y_x10693.thd, acc.thd));
           };
           if (_yielding()) {
-            return yield_extend(next_3_14974);
+            return yield_extend(next_3_15055);
           } else {
-            return next_3_14974(x_3_14973);
+            return next_3_15055(x_3_15054);
           }
         });
         if (_yielding()) {
-          return yield_extend(function(_y_x10692) {
-            return _mlift_infer_decls_12924(ds, _y_x10692);
+          return yield_extend(function(_y_x10695) {
+            return _mlift_infer_decls_12993(ds, _y_x10695);
           });
         } else {
-          var x_4_14977 = map(ds, function(d_1) {
+          var x_4_15058 = map(ds, function(d_1) {
             return _open_none1(function(_this_3) {
               return _this_3.name;
             }, d_1);
           });
           if (_yielding()) {
             return yield_extend(function(all_names) {
-              return _mlift_infer_decls_12922(x_2_14970.thd, x_2_14970.snd, x_2_14970.fst, all_names);
+              return _mlift_infer_decls_12991(x_2_15051.thd, x_2_15051.snd, x_2_15051.fst, all_names);
             });
           } else {
-            var decls_ordered = reverse_acc(Nil, x_2_14970.thd);
-            var x_5_14980 = map(decls_ordered, function(d_2) {
+            var decls_ordered = reverse_acc(Nil, x_2_15051.thd);
+            var x_5_15061 = map(decls_ordered, function(d_2) {
               var _x260 = _open_none1(function(_this_4) {
                 return _this_4.is_recursive;
               }, d_2);
               if (_x260) {
                 return d_2;
               } else {
-                var _x_x1_6_12610 = _open_none1(function(_this_5) {
+                var _x_x1_6_12650 = _open_none1(function(_this_5) {
                   return _this_5.name;
                 }, d_2);
-                var is_mutual = _open_none3(is_mutually_recursive, _x_x1_6_12610, decls_ordered, x_4_14977);
+                var is_mutual = _open_none3(is_mutually_recursive, _x_x1_6_12650, decls_ordered, x_4_15058);
                 return _open_none0(function() {
                   return fun_decl_fs__copy(d_2, void 0, void 0, void 0, void 0, void 0, void 0, void 0, void 0, is_mutual);
                 });
@@ -26833,17 +26866,17 @@ var __hica = (() => {
             });
             if (_yielding()) {
               return yield_extend(function(decls_final) {
-                return Tuple3(x_2_14970.fst, x_2_14970.snd, decls_final);
+                return Tuple3(x_2_15051.fst, x_2_15051.snd, decls_final);
               });
             } else {
-              return Tuple3(x_2_14970.fst, x_2_14970.snd, x_5_14980);
+              return Tuple3(x_2_15051.fst, x_2_15051.snd, x_5_15061);
             }
           }
         }
       }
     }
   }
-  function _mlift_trmc_infer_tests_12929(_acc, env, rest, s, t, _y_x10697) {
+  function _mlift_trmc_infer_tests_12998(_acc, env, rest, s, t, _y_x10700) {
     var _trmc_x10154 = _open_none4(function(_this_0, span2, name, body) {
       if (span2 !== void 0) {
         var _x260 = span2;
@@ -26861,12 +26894,12 @@ var __hica = (() => {
         var _x262 = _this_0.body;
       }
       return Test_decl(_x260, _x261, _x262);
-    }, t, void 0, void 0, _y_x10697.snd);
+    }, t, void 0, void 0, _y_x10700.snd);
     var _trmc_x10155 = void 0;
     var _trmc_x10156 = Cons(_trmc_x10154, _trmc_x10155);
     return _trmc_infer_tests(env, s, rest, _cctx_extend(_acc, _trmc_x10156, { obj: _trmc_x10156, field_name: "tail" }));
   }
-  function _mlift_trmcm_infer_tests_12930(_accm, env_0, rest_0, s_0, t_0, _y_x10701) {
+  function _mlift_trmcm_infer_tests_12999(_accm, env_0, rest_0, s_0, t_0, _y_x10704) {
     var _trmc_x10159 = _open_none4(function(_this_0_0, span_0, name_0, body_0) {
       if (span_0 !== void 0) {
         var _x260 = span_0;
@@ -26884,7 +26917,7 @@ var __hica = (() => {
         var _x262 = _this_0_0.body;
       }
       return Test_decl(_x260, _x261, _x262);
-    }, t_0, void 0, void 0, _y_x10701.snd);
+    }, t_0, void 0, void 0, _y_x10704.snd);
     return _trmcm_infer_tests(env_0, s_0, rest_0, function(_trmc_x10158) {
       return _accm(Cons(_trmc_x10159, _trmc_x10158));
     });
@@ -26894,12 +26927,12 @@ var __hica = (() => {
       if (ts === null) {
         return _cctx_apply(_acc_0, Nil);
       } else {
-        var x_14986 = infer(env_1, s_1, _open_none1(function(_this) {
+        var x_15067 = infer(env_1, s_1, _open_none1(function(_this) {
           return _this.body;
         }, ts.head));
         if (_yielding()) {
-          return yield_extend(function(_y_x10697_0) {
-            return _mlift_trmc_infer_tests_12929(_acc_0, env_1, ts.tail, s_1, ts.head, _y_x10697_0);
+          return yield_extend(function(_y_x10700_0) {
+            return _mlift_trmc_infer_tests_12998(_acc_0, env_1, ts.tail, s_1, ts.head, _y_x10700_0);
           });
         } else {
           var _trmc_x10154_0 = _open_none4(function(_this_0_1, span_1, name_1, body_1) {
@@ -26919,7 +26952,7 @@ var __hica = (() => {
               var _x262 = _this_0_1.body;
             }
             return Test_decl(_x2602, _x261, _x262);
-          }, ts.head, void 0, void 0, x_14986.snd);
+          }, ts.head, void 0, void 0, x_15067.snd);
           var _trmc_x10155_0 = void 0;
           var _trmc_x10156_0 = Cons(_trmc_x10154_0, _trmc_x10155_0);
           {
@@ -26937,12 +26970,12 @@ var __hica = (() => {
       if (ts_0 === null) {
         return _accm_0(Nil);
       } else {
-        var x_0_14989 = infer(env_2, s_2, _open_none1(function(_this_1) {
+        var x_0_15070 = infer(env_2, s_2, _open_none1(function(_this_1) {
           return _this_1.body;
         }, ts_0.head));
         if (_yielding()) {
-          return yield_extend(function(_y_x10701_0) {
-            return _mlift_trmcm_infer_tests_12930(_accm_0, env_2, ts_0.tail, s_2, ts_0.head, _y_x10701_0);
+          return yield_extend(function(_y_x10704_0) {
+            return _mlift_trmcm_infer_tests_12999(_accm_0, env_2, ts_0.tail, s_2, ts_0.head, _y_x10704_0);
           });
         } else {
           var _trmc_x10159_0 = _open_none4(function(_this_0_2, span_2, name_2, body_2) {
@@ -26962,7 +26995,7 @@ var __hica = (() => {
               var _x2632 = _this_0_2.body;
             }
             return Test_decl(_x261, _x262, _x2632);
-          }, ts_0.head, void 0, void 0, x_0_14989.snd);
+          }, ts_0.head, void 0, void 0, x_0_15070.snd);
           {
             var _x263 = /* @__PURE__ */ (function(__at_accm_0261, __at_trmc_x10159_0262) {
               return function(_trmc_x10158_0) {
@@ -26977,41 +27010,143 @@ var __hica = (() => {
       }
     }
   }
-  function _mlift_check_program_12931(decls_sq_, p, tests_sq_) {
-    var _x_x1_3_12639 = _open_none1(function(program_3) {
-      return program_3.structs;
+  function _mlift_check_program_13000(decls_sq_, p, tests_sq_) {
+    var _x_x1_25_12707 = _open_none1(function(program_6) {
+      return program_6.structs;
     }, p);
-    var _x_x2_12640 = _open_none1(function(program_4) {
-      return program_4.types;
+    var _x_x2_5_12708 = _open_none1(function(program_7) {
+      return program_7.types;
     }, p);
     return _open_none0(function() {
-      var _x265 = _x_x2_12640 !== void 0 ? _x_x2_12640 : Nil;
+      var _x265 = _x_x2_5_12708 !== void 0 ? _x_x2_5_12708 : Nil;
       var _x267 = void 0;
       var _x266 = _x267 !== void 0 ? _x267 : Nil;
-      return Program(_x_x1_3_12639, _x265, decls_sq_, tests_sq_, _x266);
+      return Program(_x_x1_25_12707, _x265, decls_sq_, tests_sq_, _x266);
     });
   }
-  function _mlift_check_program_12932(p, _y_x10708) {
-    var ts_14996 = _open_none1(function(program_2) {
-      return program_2.tests;
+  function _mlift_check_program_13001(p, _y_x10726) {
+    var ts_15077 = _open_none1(function(program_5) {
+      return program_5.tests;
     }, p);
     var _x268 = _evv_is_affine();
     if (_x268) {
-      var x_14992 = _trmc_infer_tests(_y_x10708.snd, _y_x10708.fst, ts_14996, _cctx_empty());
+      var x_15073 = _trmc_infer_tests(_y_x10726.snd, _y_x10726.fst, ts_15077, _cctx_empty());
     } else {
-      var x_14992 = _trmcm_infer_tests(_y_x10708.snd, _y_x10708.fst, ts_14996, function(_trmc_x10157) {
+      var x_15073 = _trmcm_infer_tests(_y_x10726.snd, _y_x10726.fst, ts_15077, function(_trmc_x10157) {
         return _trmc_x10157;
       });
     }
     if (_yielding()) {
       return yield_extend(function(tests_sq_) {
-        return _mlift_check_program_12931(_y_x10708.thd, p, tests_sq_);
+        return _mlift_check_program_13000(_y_x10726.thd, p, tests_sq_);
       });
     } else {
-      return _mlift_check_program_12931(_y_x10708.thd, p, x_14992);
+      return _mlift_check_program_13000(_y_x10726.thd, p, x_15073);
     }
   }
-  function check_program(p) {
+  function _mlift_check_program_13002(d, wild___3) {
+    return foreach(_open_none1(function(_this_10) {
+      return _this_10.params;
+    }, d), function(param) {
+      var _x_x2_4_12703 = _open_none1(function(_this_11) {
+        return _this_11.span;
+      }, d);
+      return _open_at2(0, check_not_koka_keyword, param, _x_x2_4_12703);
+    });
+  }
+  function _mlift_check_program_13003(p, wild___4) {
+    var x_15078 = infer_decls(_open_none0(extern_env), Nil, _open_none1(function(program_4) {
+      return program_4.decls;
+    }, p));
+    if (_yielding()) {
+      return yield_extend(function(_y_x10726) {
+        return _mlift_check_program_13001(p, _y_x10726);
+      });
+    } else {
+      return _mlift_check_program_13001(p, x_15078);
+    }
+  }
+  function _mlift_check_program_13004(td, wild___1) {
+    return foreach(_open_none1(function(_this_5) {
+      return _this_5.variants;
+    }, td), function(vd) {
+      return foreach(_open_none1(function(_this_6) {
+        return _this_6.fields;
+      }, vd), function(_pat_x1161__28) {
+        var _x_x2_2_12694 = _open_none1(function(_this_7) {
+          return _this_7.span;
+        }, td);
+        return _open_at2(0, check_not_koka_keyword, _pat_x1161__28.fst, _x_x2_2_12694);
+      });
+    });
+  }
+  function _mlift_check_program_13005(p, skip_kw_check, wild___2) {
+    var _x268 = skip_kw_check !== void 0 ? skip_kw_check : 0;
+    var x = foreach(drop(_open_none1(function(program_3) {
+      return program_3.decls;
+    }, p), _x268), function(d) {
+      var _x_x1_17_12697 = _open_none1(function(_this_8) {
+        return _this_8.name;
+      }, d);
+      var _x_x2_3_12698 = _open_none1(function(_this_9) {
+        return _this_9.span;
+      }, d);
+      var x_0_15080 = _open_at2(0, check_not_koka_keyword, _x_x1_17_12697, _x_x2_3_12698);
+      if (_yielding()) {
+        return yield_extend(function(wild___3) {
+          return _mlift_check_program_13002(d, wild___3);
+        });
+      } else {
+        return _mlift_check_program_13002(d, x_0_15080);
+      }
+    });
+    if (_yielding()) {
+      return yield_extend(function(wild___4) {
+        return _mlift_check_program_13003(p, wild___4);
+      });
+    } else {
+      return _mlift_check_program_13003(p, x);
+    }
+  }
+  function _mlift_check_program_13006(sd, wild__) {
+    return foreach(_open_none1(function(_this_1) {
+      return _this_1.fields;
+    }, sd), function(_pat_x1156__26) {
+      var _x_x2_0_12684 = _open_none1(function(_this_2) {
+        return _this_2.span;
+      }, sd);
+      return _open_at2(0, check_not_koka_keyword, _pat_x1156__26.fst, _x_x2_0_12684);
+    });
+  }
+  function _mlift_check_program_13007(p, skip_kw_check, skip_kw_types, wild___0) {
+    var _x268 = skip_kw_types !== void 0 ? skip_kw_types : 0;
+    var x = foreach(drop(_open_none1(function(program_2) {
+      return program_2.types;
+    }, p), _x268), function(td) {
+      var _x_x1_9_12687 = to_lower(_open_none1(function(_this_3) {
+        return _this_3.name;
+      }, td));
+      var _x_x2_1_12688 = _open_none1(function(_this_4) {
+        return _this_4.span;
+      }, td);
+      var x_0_15082 = _open_at2(0, check_not_koka_keyword, _x_x1_9_12687, _x_x2_1_12688);
+      if (_yielding()) {
+        return yield_extend(function(wild___1) {
+          return _mlift_check_program_13004(td, wild___1);
+        });
+      } else {
+        return _mlift_check_program_13004(td, x_0_15082);
+      }
+    });
+    if (_yielding()) {
+      return yield_extend(function(wild___2) {
+        return _mlift_check_program_13005(p, skip_kw_check, wild___2);
+      });
+    } else {
+      return _mlift_check_program_13005(p, skip_kw_check, x);
+    }
+  }
+  function check_program(p, skip_kw_check, skip_kw_structs, skip_kw_types) {
     return struct_reg_fs__handle(_Hnd_struct_reg(1, clause_tail0(function() {
       return _open_none1(function(program) {
         return program.structs;
@@ -27031,22 +27166,38 @@ var __hica = (() => {
         })), function(_res_1) {
           return _res_1;
         }, function() {
-          var x_14997 = infer_decls(_open_none0(extern_env), Nil, _open_none1(function(program_1) {
-            return program_1.decls;
-          }, p));
+          var _x268 = skip_kw_structs !== void 0 ? skip_kw_structs : 0;
+          var x = foreach(drop(_open_none1(function(program_1) {
+            return program_1.structs;
+          }, p), _x268), function(sd) {
+            var _x_x1_2_12678 = to_lower(_open_none1(function(_this) {
+              return _this.name;
+            }, sd));
+            var _x_x2_12679 = _open_none1(function(_this_0) {
+              return _this_0.span;
+            }, sd);
+            var x_0_15084 = _open_at2(0, check_not_koka_keyword, _x_x1_2_12678, _x_x2_12679);
+            if (_yielding()) {
+              return yield_extend(function(wild__) {
+                return _mlift_check_program_13006(sd, wild__);
+              });
+            } else {
+              return _mlift_check_program_13006(sd, x_0_15084);
+            }
+          });
           if (_yielding()) {
-            return yield_extend(function(_y_x10708) {
-              return _mlift_check_program_12932(p, _y_x10708);
+            return yield_extend(function(wild___0) {
+              return _mlift_check_program_13007(p, skip_kw_check, skip_kw_types, wild___0);
             });
           } else {
-            return _mlift_check_program_12932(p, x_14997);
+            return _mlift_check_program_13007(p, skip_kw_check, skip_kw_types, x);
           }
         });
       });
     });
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/transform_desugar.mjs
+  // .koka/v3.2.3/js-debug-62b43e/transform_desugar.mjs
   function desugar_arm(a) {
     if (a.pattern._tag === 13) {
       var _x3 = void 0;
@@ -27252,16 +27403,16 @@ var __hica = (() => {
     return program_fs__copy(p, void 0, void 0, _arg_x1807, _arg_x1808);
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/emit_codegen_dash_js.mjs
+  // .koka/v3.2.3/js-debug-62b43e/emit_codegen_dash_js.mjs
   function js_runtime_preamble() {
     return _lp__plus__plus__rp_("// hica playground runtime\n", _lp__plus__plus__rp_("'use strict';\n\n", _lp__plus__plus__rp_("const __hc_output = [];\n", _lp__plus__plus__rp_("function println(s) { const line = String(s); __hc_output.push(line); if (typeof process !== 'undefined') process.stdout.write(line + '\\n'); }\n", _lp__plus__plus__rp_("function print(s) { const t = String(s); __hc_output.push(t); if (typeof process !== 'undefined') process.stdout.write(t); }\n", _lp__plus__plus__rp_("function __tuple(...args) { const t = [...args]; t.__tuple = true; return t; }\n", _lp__plus__plus__rp_("function show(v) {\n", _lp__plus__plus__rp_("  if (v === null || v === undefined) return 'Nothing';\n", _lp__plus__plus__rp_("  if (typeof v === 'boolean') return v ? 'True' : 'False';\n", _lp__plus__plus__rp_("  if (typeof v === 'string') return v;\n", _lp__plus__plus__rp_("  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toPrecision(17).replace(/0+$/, '').replace(/\\\\.$/, '.0');\n", _lp__plus__plus__rp_("  if (Array.isArray(v) && v.__tuple) return '(' + v.map(show_list_elem).join(',') + ')';\n", _lp__plus__plus__rp_("  if (Array.isArray(v)) return '[' + v.map(show_list_elem).join(',') + ']';\n", _lp__plus__plus__rp_("  if (typeof v === 'object' && v.__tag === 'Ok') return 'Right(' + show_list_elem(v.value) + ')';\n", _lp__plus__plus__rp_("  if (typeof v === 'object' && v.__tag === 'Err') return 'Left(' + show_list_elem(v.value) + ')';\n", _lp__plus__plus__rp_("  if (typeof v === 'object' && v.__tag) return v.__tag + (v.__args && v.__args.length > 0 ? '(' + v.__args.map(show).join(', ') + ')' : '');\n", _lp__plus__plus__rp_("  if (typeof v === 'object' && v.__show) return v.__show();\n", _lp__plus__plus__rp_("  if (typeof v === 'object') return JSON.stringify(v);\n", _lp__plus__plus__rp_("  return String(v);\n", _lp__plus__plus__rp_("}\n", _lp__plus__plus__rp_("function show_maybe(v) { return v === null ? 'Nothing' : 'Just(' + show(v) + ')'; }\n", _lp__plus__plus__rp_("function show_result(r) {\n", _lp__plus__plus__rp_("  if (r && r.__tag === 'Ok') return 'Right(' + show_list_elem(r.value) + ')';\n", _lp__plus__plus__rp_("  if (r && r.__tag === 'Err') return 'Left(' + show_list_elem(r.value) + ')';\n", _lp__plus__plus__rp_("  return show(r);\n", _lp__plus__plus__rp_("}\n", _lp__plus__plus__rp_("function show_list_elem(v) {\n", _lp__plus__plus__rp_(`  if (typeof v === 'string' && v.length === 1) return "'" + v + "'";
 `, _lp__plus__plus__rp_(`  if (typeof v === 'string') return '"' + v + '"';
-`, _lp__plus__plus__rp_("  return show(v);\n", _lp__plus__plus__rp_("}\n", _lp__plus__plus__rp_("function abs(n) { return Math.abs(n); }\n", _lp__plus__plus__rp_("function min(a, b) { return Math.min(a, b); }\n", _lp__plus__plus__rp_("function max(a, b) { return Math.max(a, b); }\n", _lp__plus__plus__rp_("function str_length(s) { return s.length; }\n", _lp__plus__plus__rp_("function contains(s, sub) { return s.includes(sub); }\n", _lp__plus__plus__rp_("function split(s, sep) { return sep === '' ? [...s] : s.split(sep); }\n", _lp__plus__plus__rp_("function join(xs, sep) { return xs.join(sep); }\n", _lp__plus__plus__rp_("function trim(s) { return s.trim(); }\n", _lp__plus__plus__rp_("function replace(s, old, nw) { return s.replaceAll(old, nw); }\n", _lp__plus__plus__rp_("function to_upper(s) { return s.toUpperCase(); }\n", _lp__plus__plus__rp_("function to_lower(s) { return s.toLowerCase(); }\n", _lp__plus__plus__rp_("function parse_int(s) { const n = parseInt(s, 10); return isNaN(n) ? null : n; }\n", _lp__plus__plus__rp_("function parse_float(s) { const n = parseFloat(s); return isNaN(n) ? null : n; }\n", _lp__plus__plus__rp_("function to_int(s) { const n = parseInt(s, 10); return isNaN(n) ? -1 : n; }\n", _lp__plus__plus__rp_("function enumerate(xs) { return xs.map((x, i) => __tuple(i, x)); }\n", _lp__plus__plus__rp_("function head(xs) { return xs.length > 0 ? xs[0] : null; }\n", _lp__plus__plus__rp_("function tail(xs) { return xs.slice(1); }\n", _lp__plus__plus__rp_("function length(xs) { return xs.length; }\n", _lp__plus__plus__rp_("function reverse(xs) { return [...xs].reverse(); }\n", _lp__plus__plus__rp_("function sort(xs) { return [...xs].sort((a,b) => a < b ? -1 : a > b ? 1 : 0); }\n", _lp__plus__plus__rp_("function map(xs, f) { return xs.map(f); }\n", _lp__plus__plus__rp_("function filter(xs, f) { return xs.filter(f); }\n", _lp__plus__plus__rp_("function fold(xs, init, f) { return xs.reduce((acc, x) => f(acc, x), init); }\n", _lp__plus__plus__rp_("function foreach(xs, f) { xs.forEach(f); }\n", _lp__plus__plus__rp_("function take(xs, n) { return xs.slice(0, n); }\n", _lp__plus__plus__rp_("function drop(xs, n) { return xs.slice(n); }\n", _lp__plus__plus__rp_("function zip(xs, ys) { return xs.map((x, i) => i < ys.length ? __tuple(x, ys[i]) : null).filter(p => p !== null); }\n", _lp__plus__plus__rp_("function concat(xss) { return [].concat(...xss); }\n", _lp__plus__plus__rp_("function cons(x, xs) { return [x, ...xs]; }\n", _lp__plus__plus__rp_("function find(xs, f) { const r = xs.find(f); return r === undefined ? null : r; }\n", _lp__plus__plus__rp_("function all(xs, f) { return xs.every(f); }\n", _lp__plus__plus__rp_("function any(xs, f) { return xs.some(f); }\n", _lp__plus__plus__rp_("function repeat(n, f) { for (let i = 0; i < n; i++) f(); }\n", _lp__plus__plus__rp_("function random(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }\n", _lp__plus__plus__rp_("function assert(cond, msg) { if (!cond) throw new Error('assertion failed: ' + (msg || '')); }\n", _lp__plus__plus__rp_("\n// Maybe/Result helpers\n", _lp__plus__plus__rp_("const None = null;\n", _lp__plus__plus__rp_("function Some(v) { return v; }\n", _lp__plus__plus__rp_("function is_some(v) { return v !== null; }\n", _lp__plus__plus__rp_("function is_none(v) { return v === null; }\n", _lp__plus__plus__rp_("function unwrap(v) { if (v === null) throw new Error('unwrap on None'); return v; }\n", _lp__plus__plus__rp_("function unwrap_or(v, d) { return v !== null ? v : d; }\n", _lp__plus__plus__rp_("function unwrap_maybe_or(v, d) { return v !== null ? v : d; }\n", _lp__plus__plus__rp_("function map_maybe(m, f) { return m !== null ? Some(f(m)) : null; }\n", _lp__plus__plus__rp_("function and_then(m, f) { return m !== null ? f(m) : null; }\n", _lp__plus__plus__rp_("function or_else(m, f) { return m !== null ? m : f(); }\n", _lp__plus__plus__rp_("function Ok(v) { return { __tag: 'Ok', value: v, __args: [v] }; }\n", _lp__plus__plus__rp_("function Err(v) { return { __tag: 'Err', value: v, __args: [v] }; }\n", _lp__plus__plus__rp_("function is_ok(r) { return r && r.__tag === 'Ok'; }\n", _lp__plus__plus__rp_("function is_err(r) { return r && r.__tag === 'Err'; }\n", _lp__plus__plus__rp_("function unwrap_result(r) { if (r.__tag === 'Ok') return r.value; throw new Error('unwrap on Err: ' + r.value); }\n", _lp__plus__plus__rp_("function unwrap_result_or(r, d) { return r.__tag === 'Ok' ? r.value : d; }\n", _lp__plus__plus__rp_("function map_result(r, f) { return r.__tag === 'Ok' ? Ok(f(r.value)) : r; }\n", _lp__plus__plus__rp_("function and_then_result(r, f) { return r.__tag === 'Ok' ? f(r.value) : r; }\n", _lp__plus__plus__rp_("function map_err(r, f) { return r.__tag === 'Err' ? Err(f(r.value)) : r; }\n", _lp__plus__plus__rp_("\n// Prelude: string helpers\n", _lp__plus__plus__rp_("function is_empty(s) { return s.length === 0; }\n", _lp__plus__plus__rp_("function is_blank(s) { return s.trim().length === 0; }\n", _lp__plus__plus__rp_("function words(s) { return s.split(' ').filter(w => w.length > 0); }\n", _lp__plus__plus__rp_("function lines(s) { return s.split('\\n'); }\n", _lp__plus__plus__rp_("function unwords(ws) { return ws.join(' '); }\n", _lp__plus__plus__rp_("function unlines(ls) { return ls.join('\\n'); }\n", _lp__plus__plus__rp_("function starts_with(s, pre) { return s.startsWith(pre); }\n", _lp__plus__plus__rp_("function ends_with(s, suf) { return s.endsWith(suf); }\n", _lp__plus__plus__rp_("function repeat_str(s, n) { return n <= 0 ? '' : s.repeat(n); }\n", _lp__plus__plus__rp_("function pad_left(s, w, ch) { return repeat_str(ch, Math.max(0, w - s.length)) + s; }\n", _lp__plus__plus__rp_("function pad_right(s, w, ch) { return s + repeat_str(ch, Math.max(0, w - s.length)); }\n", _lp__plus__plus__rp_("function index_of(s, sub) { const i = s.indexOf(sub); return i === -1 ? null : i; }\n", _lp__plus__plus__rp_("function count_substr(s, sub) { return s.split(sub).length - 1; }\n", _lp__plus__plus__rp_("function surround(s, w) { return w + s + w; }\n", _lp__plus__plus__rp_("\n// Prelude: operators\n", _lp__plus__plus__rp_("function is_positive(n) { return n > 0; }\n", _lp__plus__plus__rp_("function is_negative(n) { return n < 0; }\n", _lp__plus__plus__rp_("function is_zero(n) { return n === 0; }\n", _lp__plus__plus__rp_("function is_even(n) { return n % 2 === 0; }\n", _lp__plus__plus__rp_("function is_odd(n) { return n % 2 !== 0; }\n", _lp__plus__plus__rp_("function identity(x) { return x; }\n", _lp__plus__plus__rp_("function not_(b) { return !b; }\n", _lp__plus__plus__rp_("function to_float(n) { return n; }\n", _lp__plus__plus__rp_("function show_fixed(f, prec) { return f.toFixed(prec); }\n", _lp__plus__plus__rp_("\n// I/O (Node.js only \u2014 no-op in browser)\n", _lp__plus__plus__rp_("function get_args() { return typeof process !== 'undefined' ? process.argv.slice(2) : []; }\n", _lp__plus__plus__rp_("function read_file(path) { try { const fs = require('fs'); return fs.readFileSync(path, 'utf8'); } catch(e) { return null; } }\n", _lp__plus__plus__rp_("function read_lines(path) { const s = read_file(path); return s !== null ? s.split('\\n') : []; }\n", _lp__plus__plus__rp_("function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return true; } catch(e) { return false; } }\n", _lp__plus__plus__rp_("function removeprefix(s, pre) { return s.startsWith(pre) ? s.slice(pre.length) : s; }\n", _lp__plus__plus__rp_("function removesuffix(s, suf) { return s.endsWith(suf) ? s.slice(0, s.length - suf.length) : s; }\n", _lp__plus__plus__rp_("function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n", _lp__plus__plus__rp_("function substring(s, start, end) { return s.slice(start, end); }\n", _lp__plus__plus__rp_("function to_string(v) { return show(v); }\n", _lp__plus__plus__rp_("function chars(s) { return [...s]; }\n", _lp__plus__plus__rp_("function char_to_string(c) { return c; }\n", _lp__plus__plus__rp_("function ord(c) { return typeof c === 'string' ? c.charCodeAt(0) : c; }\n", _lp__plus__plus__rp_("function chr(n) { return String.fromCharCode(n); }\n", _lp__plus__plus__rp_("function is_digit(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 48 && n <= 57; }\n", _lp__plus__plus__rp_("function is_upper(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 65 && n <= 90; }\n", _lp__plus__plus__rp_("function is_lower(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 97 && n <= 122; }\n", _lp__plus__plus__rp_("function is_alpha(c) { return is_upper(c) || is_lower(c); }\n", _lp__plus__plus__rp_("function is_alnum(c) { return is_alpha(c) || is_digit(c); }\n", _lp__plus__plus__rp_("function is_space(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n === 32 || n === 9 || n === 10 || n === 13; }\n", _lp__plus__plus__rp_("function is_punct(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return (n >= 33 && n <= 47) || (n >= 58 && n <= 64) || (n >= 91 && n <= 96) || (n >= 123 && n <= 126); }\n", _lp__plus__plus__rp_("function all_digits(s) { return s.length > 0 && [...s].every(c => is_digit(c)); }\n", _lp__plus__plus__rp_("function all_alpha(s) { return s.length > 0 && [...s].every(c => is_alpha(c)); }\n", _lp__plus__plus__rp_("function all_upper(s) { return s.length > 0 && [...s].every(c => is_upper(c)); }\n", _lp__plus__plus__rp_("function all_lower(s) { return s.length > 0 && [...s].every(c => is_lower(c)); }\n", _lp__plus__plus__rp_("function all_alnum(s) { return s.length > 0 && [...s].every(c => is_alnum(c)); }\n", "\n")))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+`, _lp__plus__plus__rp_("  return show(v);\n", _lp__plus__plus__rp_("}\n", _lp__plus__plus__rp_("function abs(n) { return Math.abs(n); }\n", _lp__plus__plus__rp_("function min(a, b) { return Math.min(a, b); }\n", _lp__plus__plus__rp_("function max(a, b) { return Math.max(a, b); }\n", _lp__plus__plus__rp_("function str_length(s) { return s.length; }\n", _lp__plus__plus__rp_("function contains(s, sub) { return s.includes(sub); }\n", _lp__plus__plus__rp_("function split(s, sep) { return sep === '' ? [...s] : s.split(sep); }\n", _lp__plus__plus__rp_("function join(xs, sep) { return xs.join(sep); }\n", _lp__plus__plus__rp_("function trim(s) { return s.trim(); }\n", _lp__plus__plus__rp_("function replace(s, old, nw) { return s.replaceAll(old, nw); }\n", _lp__plus__plus__rp_("function to_upper(s) { return s.toUpperCase(); }\n", _lp__plus__plus__rp_("function to_lower(s) { return s.toLowerCase(); }\n", _lp__plus__plus__rp_("function parse_int(s) { const n = parseInt(s, 10); return isNaN(n) ? null : n; }\n", _lp__plus__plus__rp_("function parse_float(s) { const n = parseFloat(s); return isNaN(n) ? null : n; }\n", _lp__plus__plus__rp_("function to_int(s) { const n = parseInt(s, 10); return isNaN(n) ? -1 : n; }\n", _lp__plus__plus__rp_("function enumerate(xs) { return xs.map((x, i) => __tuple(i, x)); }\n", _lp__plus__plus__rp_("function head(xs) { return xs.length > 0 ? xs[0] : null; }\n", _lp__plus__plus__rp_("function tail(xs) { return xs.slice(1); }\n", _lp__plus__plus__rp_("function length(xs) { return xs.length; }\n", _lp__plus__plus__rp_("function reverse(xs) { return [...xs].reverse(); }\n", _lp__plus__plus__rp_("function sort(xs) { return [...xs].sort((a,b) => a < b ? -1 : a > b ? 1 : 0); }\n", _lp__plus__plus__rp_("function map(xs, f) { return xs.map(f); }\n", _lp__plus__plus__rp_("function filter(xs, f) { return xs.filter(f); }\n", _lp__plus__plus__rp_("function fold(xs, init, f) { return xs.reduce((acc, x) => f(acc, x), init); }\n", _lp__plus__plus__rp_("function foreach(xs, f) { xs.forEach(f); }\n", _lp__plus__plus__rp_("function take(xs, n) { return xs.slice(0, n); }\n", _lp__plus__plus__rp_("function drop(xs, n) { return xs.slice(n); }\n", _lp__plus__plus__rp_("function zip(xs, ys) { return xs.map((x, i) => i < ys.length ? __tuple(x, ys[i]) : null).filter(p => p !== null); }\n", _lp__plus__plus__rp_("function concat(xss) { return [].concat(...xss); }\n", _lp__plus__plus__rp_("function cons(x, xs) { return [x, ...xs]; }\n", _lp__plus__plus__rp_("function find(xs, f) { const r = xs.find(f); return r === undefined ? null : r; }\n", _lp__plus__plus__rp_("function all(xs, f) { return xs.every(f); }\n", _lp__plus__plus__rp_("function any(xs, f) { return xs.some(f); }\n", _lp__plus__plus__rp_("function repeat(n, f) { for (let i = 0; i < n; i++) f(); }\n", _lp__plus__plus__rp_("function random(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }\n", _lp__plus__plus__rp_("function assert(cond, msg) { if (!cond) throw new Error('assertion failed: ' + (msg || '')); }\n", _lp__plus__plus__rp_("\n// Maybe/Result helpers\n", _lp__plus__plus__rp_("const None = null;\n", _lp__plus__plus__rp_("function Some(v) { return v; }\n", _lp__plus__plus__rp_("function is_some(v) { return v !== null; }\n", _lp__plus__plus__rp_("function is_none(v) { return v === null; }\n", _lp__plus__plus__rp_("function unwrap(v) { if (v === null) throw new Error('unwrap on None'); return v; }\n", _lp__plus__plus__rp_("function unwrap_or(v, d) { return v !== null ? v : d; }\n", _lp__plus__plus__rp_("function unwrap_maybe_or(v, d) { return v !== null ? v : d; }\n", _lp__plus__plus__rp_("function map_maybe(m, f) { return m !== null ? Some(f(m)) : null; }\n", _lp__plus__plus__rp_("function and_then(m, f) { return m !== null ? f(m) : null; }\n", _lp__plus__plus__rp_("function or_else(m, f) { return m !== null ? m : f(); }\n", _lp__plus__plus__rp_("function Ok(v) { return { __tag: 'Ok', value: v, __args: [v] }; }\n", _lp__plus__plus__rp_("function Err(v) { return { __tag: 'Err', value: v, __args: [v] }; }\n", _lp__plus__plus__rp_("function is_ok(r) { return r && r.__tag === 'Ok'; }\n", _lp__plus__plus__rp_("function is_err(r) { return r && r.__tag === 'Err'; }\n", _lp__plus__plus__rp_("function unwrap_result(r) { if (r.__tag === 'Ok') return r.value; throw new Error('unwrap on Err: ' + r.value); }\n", _lp__plus__plus__rp_("function unwrap_result_or(r, d) { return r.__tag === 'Ok' ? r.value : d; }\n", _lp__plus__plus__rp_("function map_result(r, f) { return r.__tag === 'Ok' ? Ok(f(r.value)) : r; }\n", _lp__plus__plus__rp_("function and_then_result(r, f) { return r.__tag === 'Ok' ? f(r.value) : r; }\n", _lp__plus__plus__rp_("function map_err(r, f) { return r.__tag === 'Err' ? Err(f(r.value)) : r; }\n", _lp__plus__plus__rp_("\n// Prelude: string helpers\n", _lp__plus__plus__rp_("function is_empty(s) { return s.length === 0; }\n", _lp__plus__plus__rp_("function is_blank(s) { return s.trim().length === 0; }\n", _lp__plus__plus__rp_("function words(s) { return s.split(' ').filter(w => w.length > 0); }\n", _lp__plus__plus__rp_("function lines(s) { return s.split('\\n'); }\n", _lp__plus__plus__rp_("function unwords(ws) { return ws.join(' '); }\n", _lp__plus__plus__rp_("function unlines(ls) { return ls.join('\\n'); }\n", _lp__plus__plus__rp_("function starts_with(s, pre) { return s.startsWith(pre); }\n", _lp__plus__plus__rp_("function ends_with(s, suf) { return s.endsWith(suf); }\n", _lp__plus__plus__rp_("function repeat_str(s, n) { return n <= 0 ? '' : s.repeat(n); }\n", _lp__plus__plus__rp_("function pad_left(s, w, ch) { return repeat_str(ch, Math.max(0, w - s.length)) + s; }\n", _lp__plus__plus__rp_("function pad_right(s, w, ch) { return s + repeat_str(ch, Math.max(0, w - s.length)); }\n", _lp__plus__plus__rp_("function center(s, w, ch) { const t = Math.max(0, w - s.length); const l = Math.floor(t/2); return repeat_str(ch, l) + s + repeat_str(ch, t - l); }\n", _lp__plus__plus__rp_("function index_of(s, sub) { const i = s.indexOf(sub); return i === -1 ? null : i; }\n", _lp__plus__plus__rp_("\n// Prelude: operators\n", _lp__plus__plus__rp_("function is_positive(n) { return n > 0; }\n", _lp__plus__plus__rp_("function is_negative(n) { return n < 0; }\n", _lp__plus__plus__rp_("function is_zero(n) { return n === 0; }\n", _lp__plus__plus__rp_("function is_even(n) { return n % 2 === 0; }\n", _lp__plus__plus__rp_("function is_odd(n) { return n % 2 !== 0; }\n", _lp__plus__plus__rp_("function identity(x) { return x; }\n", _lp__plus__plus__rp_("function not_(b) { return !b; }\n", _lp__plus__plus__rp_("function to_float(n) { return n; }\n", _lp__plus__plus__rp_("function show_fixed(f, prec) { return f.toFixed(prec); }\n", _lp__plus__plus__rp_("\n// I/O (Node.js only \u2014 no-op in browser)\n", _lp__plus__plus__rp_("function get_args() { return typeof process !== 'undefined' ? process.argv.slice(2) : []; }\n", _lp__plus__plus__rp_("function read_file(path) { try { const fs = require('fs'); return fs.readFileSync(path, 'utf8'); } catch(e) { return null; } }\n", _lp__plus__plus__rp_("function read_lines(path) { const s = read_file(path); return s !== null ? s.split('\\n') : []; }\n", _lp__plus__plus__rp_("function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return true; } catch(e) { return false; } }\n", _lp__plus__plus__rp_("function removeprefix(s, pre) { return s.startsWith(pre) ? s.slice(pre.length) : s; }\n", _lp__plus__plus__rp_("function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n", _lp__plus__plus__rp_("function substring(s, start, end) { return s.slice(start, end); }\n", _lp__plus__plus__rp_("function to_string(v) { return show(v); }\n", _lp__plus__plus__rp_("function chars(s) { return [...s]; }\n", _lp__plus__plus__rp_("function char_to_string(c) { return c; }\n", _lp__plus__plus__rp_("function ord(c) { return typeof c === 'string' ? c.charCodeAt(0) : c; }\n", _lp__plus__plus__rp_("function chr(n) { return String.fromCharCode(n); }\n", _lp__plus__plus__rp_("function is_digit(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 48 && n <= 57; }\n", _lp__plus__plus__rp_("function is_upper(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 65 && n <= 90; }\n", _lp__plus__plus__rp_("function is_lower(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n >= 97 && n <= 122; }\n", _lp__plus__plus__rp_("function is_alpha(c) { return is_upper(c) || is_lower(c); }\n", _lp__plus__plus__rp_("function is_alnum(c) { return is_alpha(c) || is_digit(c); }\n", _lp__plus__plus__rp_("function is_space(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return n === 32 || n === 9 || n === 10 || n === 13; }\n", _lp__plus__plus__rp_("function is_punct(c) { const n = typeof c === 'string' ? c.charCodeAt(0) : c; return (n >= 33 && n <= 47) || (n >= 58 && n <= 64) || (n >= 91 && n <= 96) || (n >= 123 && n <= 126); }\n", _lp__plus__plus__rp_("function all_digits(s) { return s.length > 0 && [...s].every(c => is_digit(c)); }\n", _lp__plus__plus__rp_("function all_alpha(s) { return s.length > 0 && [...s].every(c => is_alpha(c)); }\n", _lp__plus__plus__rp_("function all_upper(s) { return s.length > 0 && [...s].every(c => is_upper(c)); }\n", _lp__plus__plus__rp_("function all_lower(s) { return s.length > 0 && [...s].every(c => is_lower(c)); }\n", _lp__plus__plus__rp_("function all_alnum(s) { return s.length > 0 && [...s].every(c => is_alnum(c)); }\n", "\n")))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
   }
   function emit_js_struct(sd) {
     var _x0 = sd.fields;
-    var fields = map(_x0, function(_pat_x182__33) {
-      return _pat_x182__33.fst;
+    var fields = map(_x0, function(_pat_x180__33) {
+      return _pat_x180__33.fst;
     });
     var xs_10002 = map(fields, function(f) {
       return _lp__plus__plus__rp_("'", _lp__plus__plus__rp_(f, _lp__plus__plus__rp_(": ' + show(this.", _lp__plus__plus__rp_(f, ")"))));
@@ -27289,8 +27440,8 @@ var __hica = (() => {
         return _lp__plus__plus__rp_("const ", _lp__plus__plus__rp_(_x5, _lp__plus__plus__rp_(" = Object.freeze({ __tag: '", _lp__plus__plus__rp_(_x6, "' });"))));
       } else {
         var _x7 = vd.fields;
-        var fnames = map(_x7, function(_pat_x200__37) {
-          return _pat_x200__37.fst;
+        var fnames = map(_x7, function(_pat_x198__37) {
+          return _pat_x198__37.fst;
         });
         var xs_2_10028 = map(fnames, function(f) {
           return _lp__plus__plus__rp_(f, _lp__plus__plus__rp_(": ", f));
@@ -27338,12 +27489,12 @@ var __hica = (() => {
           return emit_js_pattern_cond(field_v, ap);
         });
         var xs_10032 = Cons(_lp__plus__plus__rp_(v, _lp__plus__plus__rp_(" && ", _lp__plus__plus__rp_(v, _lp__plus__plus__rp_(".__tag === '", _lp__plus__plus__rp_(pat.ctor_name, "'"))))), Nil);
-        var ys_10033 = map(conds, function(_pat_x474__93) {
-          return _pat_x474__93.fst;
+        var ys_10033 = map(conds, function(_pat_x472__93) {
+          return _pat_x472__93.fst;
         });
         var all_conds = append(xs_10032, ys_10033);
-        var all_binds = filter(map(conds, function(_pat_x475__38) {
-          return _pat_x475__38.snd;
+        var all_binds = filter(map(conds, function(_pat_x473__38) {
+          return _pat_x473__38.snd;
         }), function(b_1) {
           var b_2_10034 = b_1 === "";
           return b_2_10034 ? false : true;
@@ -27354,13 +27505,13 @@ var __hica = (() => {
       var conds_0 = map_indexed(pat.elems, function(i_1, ep) {
         return emit_js_pattern_cond(_lp__plus__plus__rp_(v, _lp__plus__plus__rp_("[", _lp__plus__plus__rp_(show(i_1), "]"))), ep);
       });
-      var all_conds_0 = filter(map(conds_0, function(_pat_x481__36) {
-        return _pat_x481__36.fst;
+      var all_conds_0 = filter(map(conds_0, function(_pat_x479__36) {
+        return _pat_x479__36.fst;
       }), function(c_2) {
         return c_2 !== "true";
       });
-      var all_binds_0 = filter(map(conds_0, function(_pat_x482__36) {
-        return _pat_x482__36.snd;
+      var all_binds_0 = filter(map(conds_0, function(_pat_x480__36) {
+        return _pat_x480__36.snd;
       }), function(b_3) {
         var b_4_10040 = b_3 === "";
         return b_4_10040 ? false : true;
@@ -27381,13 +27532,13 @@ var __hica = (() => {
       var elem_results = map_indexed(pat.elems, function(i_2, ep_0) {
         return emit_js_pattern_cond(_lp__plus__plus__rp_(v, _lp__plus__plus__rp_("[", _lp__plus__plus__rp_(show(i_2), "]"))), ep_0);
       });
-      var elem_conds = filter(map(elem_results, function(_pat_x494__44) {
-        return _pat_x494__44.fst;
+      var elem_conds = filter(map(elem_results, function(_pat_x492__44) {
+        return _pat_x492__44.fst;
       }), function(c_4) {
         return c_4 !== "true";
       });
-      var elem_binds = filter(map(elem_results, function(_pat_x495__44) {
-        return _pat_x495__44.snd;
+      var elem_binds = filter(map(elem_results, function(_pat_x493__44) {
+        return _pat_x493__44.snd;
       }), function(b_5) {
         var b_6_10048 = b_5 === "";
         return b_6_10048 ? false : true;
@@ -27403,16 +27554,16 @@ var __hica = (() => {
       var all_binds_1 = append(elem_binds, rest_bind);
       return Tuple2(_lp__plus__plus__rp_("Array.isArray(", _lp__plus__plus__rp_(v, _lp__plus__plus__rp_(") && ", joinsep(all_conds_1, " && ")))), joinsep(all_binds_1, "\n"));
     } else if (pat._tag === 11) {
-      var field_results = map(pat.field_pats, function(_pat_x505__38) {
-        return emit_js_pattern_cond(_lp__plus__plus__rp_(v, _lp__plus__plus__rp_(".", _pat_x505__38.fst)), _pat_x505__38.snd);
+      var field_results = map(pat.field_pats, function(_pat_x503__38) {
+        return emit_js_pattern_cond(_lp__plus__plus__rp_(v, _lp__plus__plus__rp_(".", _pat_x503__38.fst)), _pat_x503__38.snd);
       });
-      var field_conds = filter(map(field_results, function(_pat_x508__46) {
-        return _pat_x508__46.fst;
+      var field_conds = filter(map(field_results, function(_pat_x506__46) {
+        return _pat_x506__46.fst;
       }), function(c_6) {
         return c_6 !== "true";
       });
-      var field_binds = filter(map(field_results, function(_pat_x509__46) {
-        return _pat_x509__46.snd;
+      var field_binds = filter(map(field_results, function(_pat_x507__46) {
+        return _pat_x507__46.snd;
       }), function(b_7) {
         var b_8_10058 = b_7 === "";
         return b_8_10058 ? false : true;
@@ -27643,13 +27794,13 @@ var __hica = (() => {
         }
         return _lp__plus__plus__rp_(emit_js_expr(n.expr.list), _lp__plus__plus__rp_(".slice(", _lp__plus__plus__rp_(start_str, _lp__plus__plus__rp_(", ", _lp__plus__plus__rp_(end_str, ")")))));
       } else if (n.expr._tag === 24) {
-        var xs_14_10129 = map(n.expr.entries, function(_pat_x376__29) {
-          return _lp__plus__plus__rp_("[", _lp__plus__plus__rp_(emit_js_expr(_pat_x376__29.fst), _lp__plus__plus__rp_(", ", _lp__plus__plus__rp_(emit_js_expr(_pat_x376__29.snd), "]"))));
+        var xs_14_10129 = map(n.expr.entries, function(_pat_x374__29) {
+          return _lp__plus__plus__rp_("[", _lp__plus__plus__rp_(emit_js_expr(_pat_x374__29.fst), _lp__plus__plus__rp_(", ", _lp__plus__plus__rp_(emit_js_expr(_pat_x374__29.snd), "]"))));
         });
         return _lp__plus__plus__rp_("[", _lp__plus__plus__rp_(joinsep(xs_14_10129, ", "), "]"));
       } else if (n.expr._tag === 28) {
-        var xs_15_10131 = map(n.expr.fields, function(_pat_x379__37) {
-          var _x122 = _pat_x379__37.snd;
+        var xs_15_10131 = map(n.expr.fields, function(_pat_x377__37) {
+          var _x122 = _pat_x377__37.snd;
           return emit_js_expr(_x122);
         });
         return _lp__plus__plus__rp_(n.expr.struct_name, _lp__plus__plus__rp_("(", _lp__plus__plus__rp_(joinsep(xs_15_10131, ", "), ")")));
@@ -27657,8 +27808,8 @@ var __hica = (() => {
         return _lp__plus__plus__rp_(emit_js_expr(n.expr.obj), _lp__plus__plus__rp_(".", n.expr.field_name));
       } else if (n.expr._tag === 29) {
         var all_fields = map(n.expr.def_fields, function(fname_0) {
-          var _x122 = find(n.expr.fields, function(_pat_x387__30) {
-            return _pat_x387__30.fst === fname_0;
+          var _x122 = find(n.expr.fields, function(_pat_x385__30) {
+            return _pat_x385__30.fst === fname_0;
           });
           if (_x122 !== null) {
             return emit_js_expr(_x122.value.snd);
@@ -27856,7 +28007,7 @@ var __hica = (() => {
     return _lp__plus__plus__rp_(preamble, _lp__plus__plus__rp_("\n", _lp__plus__plus__rp_(_x15, _lp__plus__plus__rp_(_x16, _lp__plus__plus__rp_(decls, _lp__plus__plus__rp_("\n\n", _lp__plus__plus__rp_("// Entry point\n", "if (typeof main === 'function') { const __r = main(); if (__r !== undefined && __r !== null) println(show(__r)); }\n")))))));
   }
 
-  // .koka/v3.2.3/js-debug-5eb101/playground.mjs
+  // .koka/v3.2.3/js-debug-62b43e/playground.mjs
   function parse_prelude_sources(sources) {
     return (function() {
       var loc = { value: Nil };
@@ -27888,29 +28039,106 @@ var __hica = (() => {
       return prompt_local_var(loc, res);
     })();
   }
-  function compile_to_js(source, prelude_sources) {
+  function find_stdlib_source(path, stdlib_sources) {
+    tailcall: while (1) {
+      if (stdlib_sources === null) {
+        return Nothing;
+      } else {
+        if (stdlib_sources.head.fst === path) {
+          return Just(stdlib_sources.head.snd);
+        } else {
+          {
+            stdlib_sources = stdlib_sources.tail;
+            continue tailcall;
+          }
+        }
+      }
+    }
+  }
+  function resolve_stdlib_imports(imports, stdlib_sources) {
+    return (function() {
+      var loc = { value: Nil };
+      var loc_0 = { value: Nil };
+      var loc_1 = { value: Nil };
+      foreach(imports, function(imp) {
+        var _x0 = imp.path;
+        var mb_10017 = starts_with(_x0, "std/");
+        if (mb_10017 !== null) {
+          var _x1 = imp.path;
+          var _x0 = find_stdlib_source(_x1, stdlib_sources);
+          if (_x0 === null) {
+            return Unit;
+          } else {
+            var tokens = lex_from(list(_x0.value), 0, false);
+            var prog = run_parser_program(tokens, _x0.value);
+            var xs_10021 = loc.value;
+            var _x2 = prog.decls;
+            loc.value = append(xs_10021, _x2);
+            var xs_0_10024 = loc_0.value;
+            var _x32 = prog.structs;
+            loc_0.value = append(xs_0_10024, _x32);
+            var xs_1_10027 = loc_1.value;
+            var _x2 = prog.types;
+            return loc_1.value = append(xs_1_10027, _x2);
+          }
+        } else {
+          return Unit;
+        }
+      });
+      var structs_10030 = loc_0.value;
+      var types_10031 = loc_1.value;
+      var decls_10032 = loc.value;
+      var _x3 = types_10031 !== void 0 ? types_10031 : Nil;
+      var _x5 = void 0;
+      var _x4 = _x5 !== void 0 ? _x5 : Nil;
+      var _x7 = void 0;
+      var _x6 = _x7 !== void 0 ? _x7 : Nil;
+      var res_0 = prompt_local_var(loc_1, Program(structs_10030, _x3, decls_10032, _x4, _x6));
+      var res = prompt_local_var(loc_0, res_0);
+      return prompt_local_var(loc, res);
+    })();
+  }
+  function compile_to_js(source, prelude_sources, stdlib_sources) {
     var tokens = lex_from(list(source), 0, false);
     var prog = run_parser_program(tokens, source);
     var _x0 = prelude_sources !== void 0 ? prelude_sources : Nil;
     var prelude = parse_prelude_sources(_x0);
-    var _x1 = prelude.structs;
-    var _x2 = prog.structs;
-    var structs_10017 = append(_x1, _x2);
-    var _x3 = prelude.types;
-    var _x4 = prog.types;
-    var types_10018 = append(_x3, _x4);
-    var _x5 = prelude.decls;
-    var _x6 = prog.decls;
-    var decls_10019 = append(_x5, _x6);
-    var _x7 = types_10018 !== void 0 ? types_10018 : Nil;
-    var _x9 = void 0;
-    var _x8 = _x9 !== void 0 ? _x9 : Nil;
-    var _x11 = void 0;
-    var _x10 = _x11 !== void 0 ? _x11 : Nil;
-    var desugared = desugar_program(Program(structs_10017, _x7, decls_10019, _x8, _x10));
+    var _x1 = prog.imports;
+    var _x2 = stdlib_sources !== void 0 ? stdlib_sources : Nil;
+    var stdlib = resolve_stdlib_imports(_x1, _x2);
+    var _x3 = stdlib.structs;
+    var _x4 = prog.structs;
+    var ys_10043 = append(_x3, _x4);
+    var _x5 = prelude.structs;
+    var structs_10037 = append(_x5, ys_10043);
+    var _x6 = stdlib.types;
+    var _x7 = prog.types;
+    var ys_1_10050 = append(_x6, _x7);
+    var _x8 = prelude.types;
+    var types_10038 = append(_x8, ys_1_10050);
+    var _x9 = stdlib.decls;
+    var _x10 = prog.decls;
+    var ys_3_10057 = append(_x9, _x10);
+    var _x11 = prelude.decls;
+    var decls_10039 = append(_x11, ys_3_10057);
+    var _x12 = types_10038 !== void 0 ? types_10038 : Nil;
+    var _x14 = void 0;
+    var _x13 = _x14 !== void 0 ? _x14 : Nil;
+    var _x16 = void 0;
+    var _x15 = _x16 !== void 0 ? _x16 : Nil;
+    var desugared = desugar_program(Program(structs_10037, _x12, decls_10039, _x13, _x15));
     var _x0 = collect_diagnostics(function() {
       return run_fresh(function() {
-        return check_program(desugared);
+        var xs_5_10080 = _open_none1(function(program_9) {
+          return program_9.decls;
+        }, prelude);
+        var xs_6_10082 = _open_none1(function(program_10) {
+          return program_10.structs;
+        }, prelude);
+        var xs_7_10084 = _open_none1(function(program_11) {
+          return program_11.types;
+        }, prelude);
+        return check_program(desugared, _lift_length_6003(xs_5_10080, 0), _lift_length_6003(xs_6_10082, 0), _lift_length_6003(xs_7_10084, 0));
       });
     });
     var errors = filter(_x0.snd, function(d) {
@@ -27941,11 +28169,11 @@ var __hica = (() => {
   function main() {
     var _x1 = compile_to_js('fun main() {\n  println("Hello from the hica playground!")\n}\n');
     if (_x1._tag === 2) {
-      var s_10048 = _x1.right;
+      var s_10077 = _x1.right;
     } else {
-      var s_10048 = _lp__plus__plus__rp_("ERROR:\n", _x1.left);
+      var s_10077 = _lp__plus__plus__rp_("ERROR:\n", _x1.left);
     }
-    return printsln(s_10048);
+    return printsln(s_10077);
   }
   return __toCommonJS(playground_exports);
 })();

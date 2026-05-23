@@ -46,7 +46,7 @@ fun resolve-stdlib-imports( imports : list<import-decl>, stdlib-sources : list<(
   var struct-result : list<struct-def> := []
   var type-result : list<type-def> := []
   imports.foreach fn(imp)
-    if imp.path.starts-with("std/") then
+    if imp.path.starts-with("std/").bool then
       match find-stdlib-source(imp.path, stdlib-sources)
         Nothing -> ()
         Just(src) ->
