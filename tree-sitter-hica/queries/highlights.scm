@@ -12,9 +12,12 @@
 
 [
   "if" "else" "match"
-  "for" "in" "while" "loop"
-  "break" "continue" "return"
+  "for" "in" "while" "loop" "repeat"
+  "return"
 ] @keyword.control
+
+(break_stmt)    @keyword.control
+(continue_stmt) @keyword.control
 
 [
   "fun" "let" "var" "struct" "type" "extern"
