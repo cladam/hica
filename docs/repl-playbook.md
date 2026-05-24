@@ -23,11 +23,6 @@ prelude names, keywords, and commands.
 
 Arithmetic, strings, lists. Anything that evaluates to a value.
 
-  let a = [1, 2, 3, 4, 5]
-    |> filter((x) => x % 2 == 0)
-    |> map((x) => x * 10)
-    |> fold(0, (acc, x) => acc + x)
-
 ```hica
 hica=> 2 + 3
 5
