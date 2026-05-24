@@ -14,7 +14,7 @@
 module.exports = grammar({
   name: "hica",
 
-  extras: ($) => [/\s/, $.comment, ";"],
+  extras: ($) => [/\s/, $.comment],
 
   // Avoid ambiguity: function calls vs parenthesised expressions,
   // TypeName { } vs expression followed by a block,
@@ -25,7 +25,6 @@ module.exports = grammar({
     [$.struct_literal, $._expression],
     [$.lambda_expr, $._expression],
     [$.lambda_expr, $.tuple_expr],
-    [$.lambda_expr, $.paren_expr],
     [$.lambda_expr, $.pipe_expr],
     [$.lambda_expr, $.binary_expr],
   ],
@@ -248,7 +247,6 @@ module.exports = grammar({
         $.list_literal,
         $.map_literal,
         $.tuple_expr,
-        $.paren_expr,
         $.string_literal,
         $.char_literal,
         $.float_literal,
@@ -376,7 +374,7 @@ module.exports = grammar({
 
     wildcard_pattern: (_) => "_",
 
-    rest_pattern: ($) => seq("..", optional($.identifier)),
+    rest_pattern: ($) => seq("..", $.identifier),
 
     constructor_pattern: ($) =>
       seq(field("name", $.type_identifier), "(", commaSep($._pattern), ")"),
@@ -411,12 +409,12 @@ module.exports = grammar({
 
     // ─── Lambda ──────────────────────────────────────────────────────────────
 
-    // () => body  (params accept expressions at grammar level; semantic checker validates identifiers)
+    // () => body
     lambda_expr: ($) =>
-      prec.right(1,
+      prec(1,
         seq(
           "(",
-          commaSep(field("param", $._expression)),
+          commaSep(field("param", $.identifier)),
           ")",
           "=>",
           field("body", choice($.block, $._expression))
@@ -457,10 +455,7 @@ module.exports = grammar({
 
     // (a, b)  — requires at least one comma to distinguish from (expr)
     tuple_expr: ($) =>
-      seq("(", $._expression, ",", commaSep($._expression), ")"),
-
-    // (expr)  — parenthesized grouping; disambiguated from lambda by absence of =>
-    paren_expr: ($) => seq("(", $._expression, ")"),
+      prec(1, seq("(", $._expression, ",", commaSep($._expression), ")")),
 
     // ─── Literals ─────────────────────────────────────────────────────────────
 
@@ -471,7 +466,7 @@ module.exports = grammar({
           choice(
             $.escape_sequence,
             $.string_interpolation,
-            token.immediate(prec(1, /[^"\\{]+/))
+            /[^"\\{]+/
           )
         ),
         '"'
