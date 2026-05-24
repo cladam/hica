@@ -32,7 +32,7 @@ import stdlib-bundle
 import mcp
 import deps
 
-val version = "0.29.0"
+val version = "0.29.1"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -422,9 +422,12 @@ fun cmd-clean( file : maybe<string>, cache : bool = False )
     else
       println("nothing to clean (stdlib cache not present)")
   else
-    match file
+    val resolved = match file
+      Just(_) -> file
+      Nothing -> resolve-entry()
+    match resolved
       Nothing ->
-        println("error: missing file argument")
+        println("error: missing file argument (no hica.hml found)")
         println("Usage: hica clean [--cache] <FILE>")
       Just(f) ->
         val stem = f.path.stemname
