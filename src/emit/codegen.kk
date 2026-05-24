@@ -223,6 +223,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
+  val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
@@ -254,6 +255,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   bitwise-import ++
   env-import ++
   file-import ++
+  exec-import ++
   readline-import ++
   hica-imports ++
   break-effect ++
@@ -511,7 +513,11 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("read_file"), [p]) ->
           "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
         (Var("write_file"), [p, content]) ->
-          "write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ")"
+          "(match try({ write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ") }) { Ok(_) -> Right(()); Error(hc__e) -> Left(hc__e.message) })"
+        (Var("exec"), [cmd]) ->
+          "(match run-system-read(" ++ emit-expr(cmd, declared) ++ ") { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
+        (Var("exec_args"), [cmd, args]) ->
+          "(match run-system-read(" ++ emit-expr(cmd, declared) ++ " ++ \" \" ++ " ++ emit-expr(args, declared) ++ ".join(\" \")) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
 
         // Random numbers — hica random(min, max) is inclusive on both ends
         (Var("random"), [lo, hi]) ->
@@ -1219,6 +1225,38 @@ fun node-uses-file-io( n : node ) : div bool
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-file-io(a))
     _                     -> False
 
+// Check whether the program uses exec/exec_args
+// that require `import std/os/process`.
+fun program-uses-exec( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-exec(d.body))
+
+fun node-uses-exec( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-exec-fn = match callee.expr
+        Var("exec")      -> True
+        Var("exec_args") -> True
+        _                -> False
+      is-exec-fn || node-uses-exec(callee) || args.any(fn(a) node-uses-exec(a))
+    Let(_, _, init, body) -> node-uses-exec(init) || node-uses-exec(body)
+    VarDecl(_, _, init, body) -> node-uses-exec(init) || node-uses-exec(body)
+    Assign(_, value)      -> node-uses-exec(value)
+    Fun(_, body)          -> node-uses-exec(body)
+    Binary(_, lhs, rhs)   -> node-uses-exec(lhs) || node-uses-exec(rhs)
+    Unary(_, operand)     -> node-uses-exec(operand)
+    If(c, t, e)           -> node-uses-exec(c) || node-uses-exec(t) || node-uses-exec(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-exec(s))
+    Match(scrut, arms)    -> node-uses-exec(scrut) || arms.any(fn(a) node-uses-exec(a.body) || a.guard.map(node-uses-exec).default(False))
+    Repeat(count, body)   -> node-uses-exec(count) || node-uses-exec(body)
+    ForIn(_, s, e, body)  -> node-uses-exec(s) || node-uses-exec(e) || node-uses-exec(body)
+    ForEach(_, coll, body) -> node-uses-exec(coll) || node-uses-exec(body)
+    While(cond, body)      -> node-uses-exec(cond) || node-uses-exec(body)
+    Loop(body)             -> node-uses-exec(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-exec(p))
+    LetTuple(_, init, body) -> node-uses-exec(init) || node-uses-exec(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-exec(a))
+    _                     -> False
+
 // Check whether the program uses the input() function
 // that requires `import std/os/readline`.
 fun program-uses-random( p : program ) : div bool
@@ -1583,6 +1621,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
+  val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
@@ -1621,6 +1660,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   bitwise-import ++
   env-import ++
   file-import ++
+  exec-import ++
   readline-import ++
   hica-imports ++
   exit-extern ++

@@ -68,7 +68,9 @@ pub fun extern-env() : type-env
 
     // File I/O
     ("read_file",   TFun([TString], TResult(TString, TString))),
-    ("write_file",  TFun([TString, TString], TUnit)),
+    ("write_file",  TFun([TString, TString], TResult(TUnit, TString))),
+    ("exec",        TFun([TString], TResult(TString, TString))),
+    ("exec_args",   TFun([TString, TList(TString)], TResult(TString, TString))),
 
     // Random numbers
     ("random",       TFun([TInt, TInt], TInt)),
