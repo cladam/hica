@@ -3175,32 +3175,8 @@
   ],
   "conflicts": [
     [
-      "call_expr",
-      "_expression"
-    ],
-    [
-      "struct_literal",
-      "_expression"
-    ],
-    [
-      "lambda_expr",
-      "_expression"
-    ],
-    [
       "lambda_expr",
       "tuple_expr"
-    ],
-    [
-      "lambda_expr",
-      "paren_expr"
-    ],
-    [
-      "lambda_expr",
-      "pipe_expr"
-    ],
-    [
-      "lambda_expr",
-      "binary_expr"
     ]
   ],
   "precedences": [],

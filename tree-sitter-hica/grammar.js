@@ -21,13 +21,7 @@ module.exports = grammar({
   // (x, y) => … lambda vs parenthesised expression,
   // and () => expr |> f (lambda body vs pipe after lambda).
   conflicts: ($) => [
-    [$.call_expr, $._expression],
-    [$.struct_literal, $._expression],
-    [$.lambda_expr, $._expression],
     [$.lambda_expr, $.tuple_expr],
-    [$.lambda_expr, $.paren_expr],
-    [$.lambda_expr, $.pipe_expr],
-    [$.lambda_expr, $.binary_expr],
   ],
 
   word: ($) => $.identifier,

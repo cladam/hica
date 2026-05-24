@@ -7,26 +7,32 @@ Neovim support for the [Hica programming language](https://github.com/cladam/hic
 | Feature | Status | How |
 |---|---|---|
 | Filetype detection (`.hc`) | ✅ Ready | `ftdetect/hica.lua` |
-| Syntax highlighting | ✅ Ready | `syntax/hica.vim` (Vim regex) |
+| Syntax highlighting (regex) | ✅ Ready | `syntax/hica.vim` |
+| Tree-sitter highlighting | ✅ Ready | `tree-sitter-hica/` + `queries/highlights.scm` |
 | Indentation | ✅ Ready | `indent/hica.vim` |
-| Comment toggling | ✅ Ready | `commentstring = "// %s"` |
-| Tree-sitter highlighting | 🔜 Pending | Needs `tree-sitter generate` |
+| Comment toggling (`gcc`) | ✅ Ready | `commentstring = "// %s"` |
+| Text objects (functions, blocks) | ✅ Ready | `queries/textobjects.scm` |
+| Indent-based folding | ✅ Ready | `foldmethod = indent` |
 | LSP (diagnostics, hover, go-to-def) | 🔜 Planned | Needs `hica lsp` |
+
+**Editor settings applied automatically for `.hc` files:**
+- 2-space indentation (spaces, not tabs)
+- Line width 100
+- Comment string `// %s`
+- Matchpairs extended with `<:>` for generics
 
 ## Installation
 
-### lazy.nvim
+### lazy.nvim (from local checkout)
 
 ```lua
 {
-  "cladam/hica",
-  -- Point to the hica-nvim subdirectory
   dir = vim.fn.expand("~/path/to/hica/hica-nvim"),
   ft = "hica",
 }
 ```
 
-Or, once published as a standalone plugin:
+Once published as a standalone plugin:
 
 ```lua
 { "cladam/hica-nvim", ft = "hica" }
@@ -40,24 +46,47 @@ Add `hica-nvim/` to your `runtimepath`:
 vim.opt.runtimepath:append("/path/to/hica/hica-nvim")
 ```
 
-## Tree-sitter (optional, better highlighting)
+## Tree-sitter (recommended)
 
-Once `tree-sitter generate` has been run to produce `src/parser.c`:
+The `tree-sitter-hica/` directory contains a complete Tree-sitter grammar with
+`src/parser.c` already generated. No build step required for the parser itself.
+
+Add this to your nvim-treesitter config:
 
 ```lua
--- In your nvim-treesitter config:
 local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
 parser_config.hica = {
   install_info = {
     url = "/path/to/hica/tree-sitter-hica",
     files = { "src/parser.c" },
     branch = "main",
+    generate_requires_npm = false,
+    requires_generate_from_grammar = false,
   },
   filetype = "hica",
 }
 ```
 
-Then run `:TSInstall hica`.
+Then run `:TSInstall hica`. The highlights, indents, and textobjects queries
+are in `tree-sitter-hica/queries/`.
+
+For nvim-treesitter-textobjects you also need:
+
+```lua
+require("nvim-treesitter.configs").setup({
+  textobjects = {
+    select = {
+      enable = true,
+      keymaps = {
+        ["af"] = "@function.outer",
+        ["if"] = "@function.inner",
+        ["ab"] = "@block.outer",
+        ["ib"] = "@block.inner",
+      },
+    },
+  },
+})
+```
 
 ## LSP (future)
 
@@ -72,8 +101,3 @@ vim.lsp.start({
 })
 ```
 
-Or with `nvim-lspconfig` (once the server is registered):
-
-```lua
-require("lspconfig").hica.setup({})
-```
