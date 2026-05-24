@@ -3,7 +3,7 @@
 
 ; @function.outer / @function.inner
 (function_decl) @function.outer
-(function_decl body: (block) . "{" . (_)* . "}") @function.inner
+(function_decl body: (block) @function.inner)
 
 ; @class.outer / @class.inner  (structs and types)
 (struct_decl) @class.outer
@@ -15,13 +15,17 @@
 
 ; @conditional.outer / @conditional.inner
 (if_expr) @conditional.outer
-(if_expr then: (block) . "{" . (_)* . "}") @conditional.inner
+(if_expr then: (block) @conditional.inner)
 
 ; @loop.outer / @loop.inner
-(for_expr)   @loop.outer
-(while_expr) @loop.outer
-(for_expr   body: (block) . "{" . (_)* . "}") @loop.inner
-(while_expr body: (block) . "{" . (_)* . "}") @loop.inner
+(for_expr)    @loop.outer
+(while_expr)  @loop.outer
+(loop_expr)   @loop.outer
+(repeat_expr) @loop.outer
+(for_expr    body: (block) @loop.inner)
+(while_expr  body: (block) @loop.inner)
+(loop_expr   body: (block) @loop.inner)
+(repeat_expr body: (block) @loop.inner)
 
 ; @call.outer / @call.inner
 (call_expr) @call.outer
@@ -29,7 +33,7 @@
 
 ; @block.outer / @block.inner
 (block) @block.outer
-(block . "{" . (_)* . "}") @block.inner
+(block) @block.inner
 
 ; @comment.outer
 (comment) @comment.outer
