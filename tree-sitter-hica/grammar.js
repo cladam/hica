@@ -235,6 +235,7 @@ module.exports = grammar({
         $.for_expr,
         $.while_expr,
         $.loop_expr,
+        $.repeat_expr,
         $.lambda_expr,
         $.block,
         $.struct_literal,
@@ -402,6 +403,10 @@ module.exports = grammar({
     // loop { ... break ... }  — infinite loop
     loop_expr: ($) =>
       seq("loop", field("body", $.block)),
+
+    // repeat(n) { body }  — fixed-count loop
+    repeat_expr: ($) =>
+      seq("repeat", "(", field("count", $._expression), ")", field("body", $.block)),
 
     // ─── Lambda ──────────────────────────────────────────────────────────────
 

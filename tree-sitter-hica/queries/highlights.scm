@@ -12,7 +12,7 @@
 
 [
   "if" "else" "match"
-  "for" "in" "while" "loop" "repeat"
+  "for" "in" "while" "loop"
   "break" "continue" "return"
 ] @keyword.control
 

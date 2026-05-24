@@ -1296,6 +1296,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "repeat_expr"
+        },
+        {
+          "type": "SYMBOL",
           "name": "lambda_expr"
         },
         {
@@ -2509,6 +2513,39 @@
         {
           "type": "STRING",
           "value": "loop"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "block"
+          }
+        }
+      ]
+    },
+    "repeat_expr": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "repeat"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "FIELD",
+          "name": "count",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_expression"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ")"
         },
         {
           "type": "FIELD",
