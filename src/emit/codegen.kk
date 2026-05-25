@@ -275,13 +275,14 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
-  val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names))
+  val effectful-prims = ["write_file", "exec", "exec_args"]
+  val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
       val ts = emit-type(t)
       if ts == "" then ""
-      elif needs-div then ""  // let Koka infer effects (div + fsys, etc.)
+      elif needs-div then ""  // let Koka infer effects (div + fsys, io, etc.)
       else " : " ++ ts
     Nothing -> ""
   val pub-prefix = if d.is-pub then "pub " else ""
@@ -774,7 +775,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
               Just(g) -> " | " ++ emit-expr(g, declared)
               Nothing -> ""
             (emit-pattern(a.pattern, declared), gs)
-        "  " ++ pat-str ++ guard-str ++ " ->\n    " ++ emit-expr(a.body, declared).replace-all("\n", "\n    ")
+        val arm-body = emit-expr(a.body, declared)
+        val arm-body-str = if arm-body.is-empty then "()" else arm-body
+        "  " ++ pat-str ++ guard-str ++ " ->\n    " ++ arm-body-str.replace-all("\n", "\n    ")
       ).join("\n")
     Repeat(count, body) ->
       val loop-code = "repeat(" ++ emit-expr(count, declared) ++ ")\n" ++
