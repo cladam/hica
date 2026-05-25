@@ -1,0 +1,46 @@
+; hica-tests.hl — run all hica test suites with formatted output
+;
+; Run from the hica repo root:
+;   scripts/hl scripts/hica-tests.hl
+;
+; Requires a built hica binary (make build).
+; Output from each suite is printed in full; exec returns "error: ..."
+; if make exits non-zero, so failures are visible inline.
+
+(defn bar ()
+  "────────────────────────────────────────────────────────")
+
+(defn suite-header (name cmd)
+  (do
+    (println "")
+    (println (bar))
+    (println (str "  " name))
+    (println (str "  $ " cmd))
+    (println (bar))
+    (println "")))
+
+(defn run-suite (name cmd)
+  (do
+    (suite-header name cmd)
+    (println (exec (str cmd " 2>&1")))
+    name))
+
+; ── suites ──────────────────────────────────────────────────────────────────
+
+(println "")
+(println "  ╔══════════════════════════════════════════════════╗")
+(println "  ║           H I C A   T E S T   S U I T E S       ║")
+(println "  ╚══════════════════════════════════════════════════╝")
+
+(run-suite "Lexer"         "make test-lexer")
+(run-suite "Parser"        "make test-parser")
+(run-suite "Codegen"       "make test-codegen")
+(run-suite "CLI e2e"       "make test-cli")
+(run-suite "JS backend"    "make test-js")
+(run-suite "REPL choreo"   "make choreo-repl")
+
+(println "")
+(println (bar))
+(println "  All suites done. Scroll up for any failures.")
+(println (bar))
+(println "")

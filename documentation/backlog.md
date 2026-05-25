@@ -402,6 +402,22 @@ Issues that exist today but are not yet fixed:
   `load-prelude()` now collects `prog.types` alongside `structs` and `decls`.
   Prelude enums are merged into the type registry and visible for construction
   and pattern matching in user code.
+- **`split(s, sub)` Perceus use-after-free when `sub` is from a nested match arm** —
+  Codegen for `split(s, sep)` emits:
+  ```koka
+  if sep.is-empty then s.list.map(fn(c) c.string) else s.split(sep)
+  ```
+  When `sep` is captured from a nested Cons destructure (e.g.
+  `Cons(LStr(s), Cons(LStr(sep), Nil)) ->`), Koka 3.2.3's Perceus drops `sep`
+  after `sep.is-empty`, then the else branch crashes on the freed reference.
+  Discovered in hica-lisp's `builtin_contains`. **Fix:** codegen should bind
+  `sep` to a `val` before the `if`:
+  ```koka
+  val hc__sep = sep
+  if hc__sep.is-empty then s.list.map(fn(c) c.string) else s.split(hc__sep)
+  ```
+  **Workaround:** avoid `split(s, sub)` in match arms with nested Cons patterns;
+  use a recursive helper function where `s` and `sub` are explicit parameters.
 - **Struct update syntax broken with `var` reassignment** — `{ ...s, field: val }`
   works in `let` bindings but not in `var` reassignment (`s = S { ...s, f: v }`).
   Codegen emits `s := { val hc__base = s; S(...) }` — Koka rejects the block

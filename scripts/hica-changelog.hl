@@ -1,0 +1,82 @@
+; hica-changelog.hl — parse git log into a grouped CHANGELOG draft
+;
+; Run from the hica repo root:
+;   scripts/hl scripts/hica-changelog.hl
+;
+; Fetches the last 40 commit subjects, splits them with (lines), filters
+; by conventional-commit type with (starts-with), and writes both a
+; console summary and CHANGELOG-draft.md.
+
+(defn bar ()
+  "────────────────────────────────────────────────────────")
+
+; ── commit data ─────────────────────────────────────────────────────────────
+
+; One subject per line — no hash prefix so (starts-with) works directly.
+(def commits (lines (exec "git log --format=%s -40")))
+
+; ── per-type filtering ──────────────────────────────────────────────────────
+
+(defn of-type (typ)
+  (filter (fn (line) (starts-with line (str typ ":"))) commits))
+
+(def feat-commits   (of-type "feat"))
+(def fix-commits    (of-type "fix"))
+(def docs-commits   (of-type "docs"))
+(def refact-commits (of-type "refactor"))
+(def test-commits   (of-type "test"))
+(def ci-commits     (of-type "ci"))
+(def chore-commits  (of-type "chore"))
+
+; Commits that don't start with any known type prefix
+(defn typed (line)
+  (any (fn (typ) (starts-with line (str typ ":")))
+       (list "feat" "fix" "docs" "refactor" "test" "ci" "chore")))
+
+(def other-commits (filter (fn (line) (not (typed line))) commits))
+
+; ── rendering ───────────────────────────────────────────────────────────────
+
+(defn bullet (line) (str "- " line))
+
+(defn render-section (title commit-list)
+  (if (= (length commit-list) 0)
+    ""
+    (str "### " title "\n\n"
+         (join "\n" (map bullet commit-list))
+         "\n\n")))
+
+; ── assemble draft ──────────────────────────────────────────────────────────
+
+(def version
+  (exec "git describe --tags --abbrev=0 2>/dev/null || echo dev"))
+
+(def sections
+  (list
+    (render-section "Features"     feat-commits)
+    (render-section "Bug fixes"    fix-commits)
+    (render-section "Docs"         docs-commits)
+    (render-section "Refactors"    refact-commits)
+    (render-section "Tests & CI"   (concat test-commits ci-commits))
+    (render-section "Chores"       chore-commits)
+    (render-section "Other"        other-commits)))
+
+(def body
+  (join "" (filter (fn (s) (not (= s ""))) sections)))
+
+(def draft
+  (str "# Changelog draft — " version "\n\n" body))
+
+; ── output ──────────────────────────────────────────────────────────────────
+
+(println "")
+(println (bar))
+(println "  HICA CHANGELOG DRAFT")
+(println (bar))
+(println "")
+(println draft)
+(println "")
+(write-file "CHANGELOG-draft.md" draft)
+(println (str "  Written to CHANGELOG-draft.md (" (str (length commits)) " commits)"))
+(println (bar))
+(println "")
