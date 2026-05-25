@@ -4,3 +4,6 @@
 [submodule "lib/klap"]
 	path = lib/klap
 	url = https://github.com/cladam/klap.git
+[submodule "lib/hica-lisp"]
+	path = lib/hica-lisp
+	url = https://github.com/cladam/hica-lisp.git

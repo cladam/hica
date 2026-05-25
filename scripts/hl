@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# hl — run a HiLisp script with the hica-lisp prelude auto-loaded
+#
+# Usage:
+#   ./scripts/hl                       # open REPL with prelude
+#   ./scripts/hl scripts/foo.hl        # run a script with prelude
+#   ./scripts/hl scripts/a.hl b.hl     # load multiple files in order
+#
+# hica-lisp is bundled as a submodule at lib/hica-lisp.
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+HILISP="$SCRIPT_DIR/hilisp"
+PRELUDE="$SCRIPT_DIR/../lib/hica-lisp/lib/prelude.hl"
+
+if [ ! -f "$HILISP" ]; then
+  echo "error: hilisp binary not found at $HILISP" >&2
+  exit 1
+fi
+
+if [ ! -f "$PRELUDE" ]; then
+  echo "error: prelude not found at $PRELUDE" >&2
+  echo "       run: git submodule update --init lib/hica-lisp" >&2
+  exit 1
+fi
+
+exec "$HILISP" "$PRELUDE" "$@"

@@ -101,3 +101,13 @@ vim.lsp.start({
 })
 ```
 
+Hack to manually register the hica.so file:
+
+cc -shared -fPIC -o /tmp/hica.so ~/cladam/code/hica-ecosystem/hica/tree-sitter-hica/src/parser.c -I ~/cladam/code/hica-ecosystem/hica/tree-sitter-hica/src && echo "compiled ok"
+
+mkdir -p ~/.local/share/nvim/site/parser && cp /tmp/hica.so ~/.local/share/nvim/site/parser/hica.so && echo "installed to $(ls -lh ~/.local/share/nvim/site/parser/hica.so)"
+
+cc -shared -fPIC \
+  -o ~/.local/share/nvim/site/parser/hica.so \
+  ~/cladam/code/hica-ecosystem/hica/tree-sitter-hica/src/parser.c \
+  -I ~/cladam/code/hica-ecosystem/hica/tree-sitter-hica/src

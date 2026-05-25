@@ -25,7 +25,6 @@
 
 // --- YAML line classification ---
 // TODO: import "../src/hml" — re-enable when hml module is published
-
 import "std/cli"
 
 type YamlLine {

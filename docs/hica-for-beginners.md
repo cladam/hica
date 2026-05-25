@@ -86,7 +86,6 @@ hica=> _ + 12
 ```
 
 The `_` variable always holds the last result. Type `:help` for commands, `:quit` to exit.
-For arrow-key history, use `rlwrap hica repl`.
 
 ### Try it in the browser
 
