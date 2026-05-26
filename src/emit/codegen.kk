@@ -526,9 +526,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("now_unix"), []) ->
           "@default-utc { now().unix-timestamp.truncate.int }"
         (Var("now_iso"), []) ->
-          "@default-utc { now().time.show-iso }"
+          "@default-utc { now().time.show-iso.trim-right }"
         (Var("unix_to_iso"), [epoch]) ->
-          "@default-utc { unix-instant(" ++ emit-expr(epoch, declared) ++ ").time.show-iso }"
+          "@default-utc { unix-instant(" ++ emit-expr(epoch, declared) ++ ").time.show-iso.trim-right }"
 
         // Random numbers — hica random(min, max) is inclusive on both ends
         (Var("random"), [lo, hi]) ->
