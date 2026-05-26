@@ -25,14 +25,14 @@
 // all_digits is provided by prelude/glob.hc
 
 // Parse a substring as an integer, returning None on failure
-fun parse_part(s: string, start: int, len: int) : maybe<int> =>
+pub fun parse_part(s: string, start: int, len: int) : maybe<int> =>
   parse_int(s[start:start + len])
 
 // Check if a value falls within an inclusive range
-fun in_range(n: int, lo: int, hi: int) : bool => n >= lo && n <= hi
+pub fun in_range(n: int, lo: int, hi: int) : bool => n >= lo && n <= hi
 
 // Days in a given month (handles leap years)
-fun days_in_month(year: int, month: int) : int =>
+pub fun days_in_month(year: int, month: int) : int =>
   match month {
     1 => 31,
     2 => if (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 { 29 } else { 28 },
@@ -72,7 +72,7 @@ pub fun is_valid_date(s: string) : bool =>
   }
 
 // Validate HH:MM (seconds omitted)
-fun is_valid_time_short(s: string) : bool =>
+pub fun is_valid_time_short(s: string) : bool =>
   match parse_int(s[0:2]) {
     Some(h) => match parse_int(s[3:5]) {
       Some(m) => in_range(h, 0, 23) && in_range(m, 0, 59),
@@ -82,7 +82,7 @@ fun is_valid_time_short(s: string) : bool =>
   }
 
 // Validate HH:MM:SS with optional fractional seconds
-fun is_valid_time_full(s: string) : bool =>
+pub fun is_valid_time_full(s: string) : bool =>
   if !all_digits(s[6:8]) { false }
   else {
     let hh = parse_int(s[0:2])
@@ -138,14 +138,14 @@ pub fun is_valid_offset(s: string) : bool =>
   }
 
 // Check if rest (time+offset) is valid with Z/z offset
-fun check_z_offset(rest: string) : bool {
+pub fun check_z_offset(rest: string) : bool {
   let zi = match index_of(rest, "Z") { Some(i) => i, None => match index_of(rest, "z") { Some(i) => i, None => 0 } }
   let t = rest[0:zi]
   is_valid_time(t) && is_valid_offset(rest[zi:])
 }
 
 // Check if rest (time+offset) is valid with +/-HH:MM offset
-fun check_numeric_offset(rest: string) : bool {
+pub fun check_numeric_offset(rest: string) : bool {
   if str_length(rest) < 11 { false }
   else {
     let sign_pos = str_length(rest) - 6
@@ -243,7 +243,7 @@ pub fun datetime_date(s: string) : result<string, string> =>
   else { Err("no valid date in: " + s) }
 
 // Strip offset from a time+offset string to get just the time portion
-fun strip_offset(rest: string) : string =>
+pub fun strip_offset(rest: string) : string =>
   if contains(rest, "Z") || contains(rest, "z") {
     match index_of(rest, "Z") { Some(i) => rest[0:i], None => match index_of(rest, "z") { Some(i) => rest[0:i], None => rest } }
   } else if str_length(rest) >= 11 && (rest[str_length(rest) - 6:str_length(rest) - 5] == "+" || rest[str_length(rest) - 6:str_length(rest) - 5] == "-") {
@@ -342,7 +342,7 @@ pub fun offset_to_minutes(s: string) : result<int, string> =>
 // ---------------------------------------------------------------------------
 
 // Helper: look up a value from a small list by index
-fun list_int_nth(xs: list<int>, i: int) : int => match xs {
+pub fun list_int_nth(xs: list<int>, i: int) : int => match xs {
   [] => 0,
   [x, ..rest] => if i == 0 { x } else { list_int_nth(rest, i - 1) }
 }
@@ -374,7 +374,38 @@ pub fun day_of_week(s: string) : result<string, string> =>
   }
 
 // ---------------------------------------------------------------------------
-// Future: epoch conversion (to_unix / from_unix) and ISO 8601 durations
-// are deferred to Phase 3 when richer datetime types or Koka std/time
-// backing may be introduced.
+// Epoch / duration helpers
+//
+// Built on the now_unix(), now_iso(), and unix_to_iso() built-in primitives
+// (backed by Koka std/time — no import needed in calling code).
+//
+// Unix epoch timestamps are plain `int` values (seconds since 1970-01-01Z).
+// Store them with now_unix(), compare with secs_since / days_since, and
+// convert back to human-readable strings with unix_to_iso().
 // ---------------------------------------------------------------------------
+
+// Seconds elapsed since a stored Unix epoch timestamp.
+pub fun secs_since(epoch: int) => now_unix() - epoch
+
+// Minutes elapsed since a stored Unix epoch timestamp.
+pub fun mins_since(epoch: int) => secs_since(epoch) / 60
+
+// Hours elapsed since a stored Unix epoch timestamp.
+pub fun hours_since(epoch: int) => secs_since(epoch) / 3600
+
+// Days elapsed since a stored Unix epoch timestamp.
+pub fun days_since(epoch: int) => secs_since(epoch) / 86400
+
+// True if the stored epoch is older than `days` days from now.
+pub fun is_older_than_days(epoch: int, days: int) => days_since(epoch) >= days
+
+// True if the stored epoch is older than `hours` hours from now.
+pub fun is_older_than_hours(epoch: int, hours: int) => hours_since(epoch) >= hours
+
+// Absolute difference in seconds between two epoch timestamps.
+pub fun secs_diff(a: int, b: int) =>
+  let d = a - b
+  if d < 0 { -d } else { d }
+
+// Absolute difference in days between two epoch timestamps.
+pub fun days_diff(a: int, b: int) => secs_diff(a, b) / 86400
