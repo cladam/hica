@@ -29,7 +29,7 @@
 
 (println "")
 (println "  ╔══════════════════════════════════════════════════╗")
-(println "  ║           H I C A   T E S T   S U I T E S       ║")
+(println "  ║           H I C A   T E S T   S U I T E S        ║")
 (println "  ╚══════════════════════════════════════════════════╝")
 
 (run-suite "Lexer"         "make test-lexer")

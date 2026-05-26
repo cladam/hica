@@ -1,73 +1,97 @@
-; hica-changelog.hl — parse git log into a grouped CHANGELOG draft
+; hica-changelog.hl — generate a CHANGELOG draft from Conventional Commits
 ;
 ; Run from the hica repo root:
 ;   scripts/hl scripts/hica-changelog.hl
 ;
-; Fetches the last 40 commit subjects, splits them with (lines), filters
-; by conventional-commit type with (starts-with), and writes both a
-; console summary and CHANGELOG-draft.md.
+; Generates commits since the last tag (unreleased mode).
+; Groups by type with emoji section headers matching tbdflow changelog format.
+; Includes short hash prefix on each bullet for easy lookup.
 
 (defn bar ()
   "────────────────────────────────────────────────────────")
 
-; ── commit data ─────────────────────────────────────────────────────────────
+; ── repo metadata ────────────────────────────────────────────────────────────
 
-; One subject per line — no hash prefix so (starts-with) works directly.
-(def commits (lines (exec "git log --format=%s -40")))
+(def latest-tag
+  (exec "git describe --tags --abbrev=0 2>/dev/null || echo ''"))
 
-; ── per-type filtering ──────────────────────────────────────────────────────
+(def today
+  (exec "date '+%Y-%m-%d'"))
 
-(defn of-type (typ)
-  (filter (fn (line) (starts-with line (str typ ":"))) commits))
+; ── commit range ─────────────────────────────────────────────────────────────
 
-(def feat-commits   (of-type "feat"))
-(def fix-commits    (of-type "fix"))
-(def docs-commits   (of-type "docs"))
-(def refact-commits (of-type "refactor"))
-(def test-commits   (of-type "test"))
-(def ci-commits     (of-type "ci"))
-(def chore-commits  (of-type "chore"))
+; Commits since last tag, or last 60 if no tag exists
+(def range-arg
+  (if (= latest-tag "")
+    "-60"
+    (str latest-tag "..HEAD")))
 
-; Commits that don't start with any known type prefix
-(defn typed (line)
-  (any (fn (typ) (starts-with line (str typ ":")))
-       (list "feat" "fix" "docs" "refactor" "test" "ci" "chore")))
+; Count total commits in range
+(def commit-count
+  (length (lines (exec (str "git log --format=%h " range-arg)))))
 
-(def other-commits (filter (fn (line) (not (typed line))) commits))
+; ── section builder ──────────────────────────────────────────────────────────
 
-; ── rendering ───────────────────────────────────────────────────────────────
+; git does the type-filtering via --grep (ORed flags, no shell pipe needed).
+; Format: "abc1234: feat: add feature" — hash prefix, then full subject.
+; We then add "- " bullet prefix via map.
+(defn git-section (grep-args)
+  (let (raw (exec (str "git log --format=%h:%x20%s " range-arg " " grep-args)))
+    (if (= raw "")
+      ""
+      (join "\n" (map (fn (line) (str "- " line)) (lines raw))))))
 
-(defn bullet (line) (str "- " line))
-
-(defn render-section (title commit-list)
-  (if (= (length commit-list) 0)
+; Render a titled section; returns "" if no commits matched
+(defn render-section (title body)
+  (if (= body "")
     ""
-    (str "### " title "\n\n"
-         (join "\n" (map bullet commit-list))
-         "\n\n")))
+    (str title "\n\n" body "\n\n")))
 
-; ── assemble draft ──────────────────────────────────────────────────────────
+; ── gather sections ──────────────────────────────────────────────────────────
 
-(def version
-  (exec "git describe --tags --abbrev=0 2>/dev/null || echo dev"))
+; Breaking changes: feat!: fix!: refactor!: etc.
+(def breaking-body
+  (git-section "--grep=^feat!: --grep=^fix!: --grep=^refactor!: --grep=^perf!: --grep=^chore!: --grep=^build!:"))
+
+(def feat-body
+  (git-section "--grep=^feat:"))
+
+(def fix-body
+  (git-section "--grep=^fix:"))
+
+(def perf-body
+  (git-section "--grep=^perf:"))
+
+(def refactor-body
+  (git-section "--grep=^refactor:"))
+
+; Maintenance covers build/chore/ci/docs/style/test
+(def maint-body
+  (git-section "--grep=^build: --grep=^chore: --grep=^ci: --grep=^docs: --grep=^style: --grep=^test:"))
+
+; ── assemble draft ───────────────────────────────────────────────────────────
+
+(def heading
+  (if (= latest-tag "")
+    (str "# Unreleased Changes (" today ")")
+    (str "# Unreleased since " latest-tag " (" today ")")))
 
 (def sections
   (list
-    (render-section "Features"     feat-commits)
-    (render-section "Bug fixes"    fix-commits)
-    (render-section "Docs"         docs-commits)
-    (render-section "Refactors"    refact-commits)
-    (render-section "Tests & CI"   (concat test-commits ci-commits))
-    (render-section "Chores"       chore-commits)
-    (render-section "Other"        other-commits)))
+    (render-section "### ⚠️ BREAKING CHANGES"        breaking-body)
+    (render-section "### ✨ Features"                 feat-body)
+    (render-section "### 🐛 Bug Fixes"                fix-body)
+    (render-section "### 🚀 Performance Improvements" perf-body)
+    (render-section "### 🔨 Code Refactoring"         refactor-body)
+    (render-section "### ⚙️ Maintenance"              maint-body)))
 
 (def body
   (join "" (filter (fn (s) (not (= s ""))) sections)))
 
 (def draft
-  (str "# Changelog draft — " version "\n\n" body))
+  (str heading "\n\n" body))
 
-; ── output ──────────────────────────────────────────────────────────────────
+; ── output ───────────────────────────────────────────────────────────────────
 
 (println "")
 (println (bar))
@@ -75,8 +99,7 @@
 (println (bar))
 (println "")
 (println draft)
-(println "")
 (write-file "CHANGELOG-draft.md" draft)
-(println (str "  Written to CHANGELOG-draft.md (" (str (length commits)) " commits)"))
+(println (str "  Written to CHANGELOG-draft.md (" (str commit-count) " commits since " latest-tag ")"))
 (println (bar))
 (println "")
