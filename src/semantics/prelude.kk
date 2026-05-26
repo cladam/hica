@@ -76,6 +76,11 @@ pub fun extern-env() : type-env
     ("random",       TFun([TInt, TInt], TInt)),
     ("random_float", TFun([], TFloat)),
 
+    // System clock — backed by Koka std/time
+    ("now_unix",    TFun([], TInt)),
+    ("now_iso",     TFun([], TString)),
+    ("unix_to_iso", TFun([TInt], TString)),
+
     // Formatting
     ("show_fixed", TFun([TFloat, TInt], TString)),
 

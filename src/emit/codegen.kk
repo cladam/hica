@@ -225,6 +225,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
+  val time-import = if program-uses-time(p) then "import std/time/chrono\nimport std/time/utc\nimport std/time/time\nimport std/time/format\nimport std/num/ddouble\n\n" else ""
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
     val pub-str = if imp.is-pub then "pub " else ""
@@ -257,6 +258,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   file-import ++
   exec-import ++
   readline-import ++
+  time-import ++
   hica-imports ++
   break-effect ++
   cont-effect ++
@@ -275,7 +277,7 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
-  val effectful-prims = ["write_file", "exec", "exec_args"]
+  val effectful-prims = ["write_file", "exec", "exec_args", "now_unix", "now_iso", "unix_to_iso"]
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
@@ -519,6 +521,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "(match run-system-read(" ++ emit-expr(cmd, declared) ++ ") { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
         (Var("exec_args"), [cmd, args]) ->
           "(match run-system-read(" ++ emit-expr(cmd, declared) ++ " ++ \" \" ++ " ++ emit-expr(args, declared) ++ ".join(\" \")) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
+
+        // System clock — backed by Koka std/time
+        (Var("now_unix"), []) ->
+          "@default-utc { now().unix-timestamp.truncate.int }"
+        (Var("now_iso"), []) ->
+          "@default-utc { now().time.show-iso }"
+        (Var("unix_to_iso"), [epoch]) ->
+          "@default-utc { unix-instant(" ++ emit-expr(epoch, declared) ++ ").time.show-iso }"
 
         // Random numbers — hica random(min, max) is inclusive on both ends
         (Var("random"), [lo, hi]) ->
@@ -1393,6 +1403,39 @@ fun node-uses-sort( n : node ) : div bool
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-sort(a))
     _                     -> False
 
+// Check whether the program uses system clock functions (now_unix, now_iso, unix_to_iso)
+// that require `import std/time/chrono` etc.
+fun program-uses-time( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-time(d.body))
+
+fun node-uses-time( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-time-fn = match callee.expr
+        Var("now_unix")    -> True
+        Var("now_iso")     -> True
+        Var("unix_to_iso") -> True
+        _                  -> False
+      is-time-fn || node-uses-time(callee) || args.any(fn(a) node-uses-time(a))
+    Let(_, _, init, body) -> node-uses-time(init) || node-uses-time(body)
+    VarDecl(_, _, init, body) -> node-uses-time(init) || node-uses-time(body)
+    Assign(_, value)      -> node-uses-time(value)
+    Fun(_, body)          -> node-uses-time(body)
+    Binary(_, lhs, rhs)   -> node-uses-time(lhs) || node-uses-time(rhs)
+    Unary(_, operand)     -> node-uses-time(operand)
+    If(c, t, e)           -> node-uses-time(c) || node-uses-time(t) || node-uses-time(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-time(s))
+    Match(scrut, arms)    -> node-uses-time(scrut) || arms.any(fn(a) node-uses-time(a.body) || a.guard.map(node-uses-time).default(False))
+    Repeat(count, body)   -> node-uses-time(count) || node-uses-time(body)
+    ForIn(_, s, e, body)  -> node-uses-time(s) || node-uses-time(e) || node-uses-time(body)
+    ForEach(_, coll, body) -> node-uses-time(coll) || node-uses-time(body)
+    While(cond, body)      -> node-uses-time(cond) || node-uses-time(body)
+    Loop(body)             -> node-uses-time(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-time(p))
+    LetTuple(_, init, body) -> node-uses-time(init) || node-uses-time(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-time(a))
+    _                     -> False
+
 val assert-helper-code : string =
   "fun hc-assert( b : bool ) : exn ()\n" ++
   "  if !b then throw(\"assertion failed\")\n" ++
@@ -1626,6 +1669,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
+  val time-import = if program-uses-time(p) then "import std/time/chrono\nimport std/time/utc\nimport std/time/time\nimport std/time/format\nimport std/num/ddouble\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val has-try-r = program-has-try-result(p)
@@ -1665,6 +1709,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   file-import ++
   exec-import ++
   readline-import ++
+  time-import ++
   hica-imports ++
   exit-extern ++
   break-effect ++

@@ -153,6 +153,9 @@ pub fun js-runtime-preamble() : string
   "function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return {__tag:'Ok',value:null}; } catch(e) { return {__tag:'Err',value:e.message}; } }\n" ++
   "function exec(cmd) { try { const r = require('child_process').execSync(cmd, {encoding:'utf8'}); return {__tag:'Ok',value:r}; } catch(e) { return {__tag:'Err',value:e.message}; } }\n" ++
   "function exec_args(cmd, args) { return exec(cmd + ' ' + args.join(' ')); }\n" ++
+  "function now_unix() { return Math.floor(Date.now() / 1000); }\n" ++
+  "function now_iso() { return new Date().toISOString().replace(/\\.\\d+Z$/, 'Z'); }\n" ++
+  "function unix_to_iso(epoch) { return new Date(epoch * 1000).toISOString().replace(/\\.\\d+Z$/, 'Z'); }\n" ++
   "function removeprefix(s, pre) { return s.startsWith(pre) ? s.slice(pre.length) : s; }\n" ++
   "function char_at(s, i) { return i >= 0 && i < s.length ? s[i] : null; }\n" ++
   "function substring(s, start, end) { return s.slice(start, end); }\n" ++
