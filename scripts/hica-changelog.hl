@@ -5,7 +5,7 @@
 ;
 ; Generates commits since the last tag (unreleased mode).
 ; Groups by type with emoji section headers matching tbdflow changelog format.
-; Includes short hash prefix on each bullet for easy lookup.
+; Includes clickable commit links using the GitHub remote URL.
 
 (defn bar ()
   "────────────────────────────────────────────────────────")
@@ -18,6 +18,17 @@
 (def today
   (exec "date '+%Y-%m-%d'"))
 
+(def remote-url
+  (exec "git remote get-url origin 2>/dev/null | sed s/\\.git$// || echo ''"))
+
+; Use remote URL for links only when it's an HTTPS URL (not git@)
+(def repo-url
+  (if (= remote-url "")
+    ""
+    (if (starts-with remote-url "git@")
+      ""
+      remote-url)))
+
 ; ── commit range ─────────────────────────────────────────────────────────────
 
 ; Commits since last tag, or last 60 if no tag exists
@@ -26,48 +37,62 @@
     "-60"
     (str latest-tag "..HEAD")))
 
-; Count total commits in range
-(def commit-count
-  (length (lines (exec (str "git log --format=%h " range-arg)))))
+; Short hashes and subjects as parallel lists — zip into pairs
+(def hashes   (lines (exec (str "git log --format=%h " range-arg))))
+(def subjects (lines (exec (str "git log --format=%s " range-arg))))
+(def pairs    (zip hashes subjects))
 
-; ── section builder ──────────────────────────────────────────────────────────
+; ── helpers ──────────────────────────────────────────────────────────────────
 
-; git does the type-filtering via --grep (ORed flags, no shell pipe needed).
-; Format: "abc1234: feat: add feature" — hash prefix, then full subject.
-; We then add "- " bullet prefix via map.
-(defn git-section (grep-args)
-  (let (raw (exec (str "git log --format=%h:%x20%s " range-arg " " grep-args)))
-    (if (= raw "")
-      ""
-      (join "\n" (map (fn (line) (str "- " line)) (lines raw))))))
+; True if subject starts with "type:"
+(defn of-type (typ subj)
+  (starts-with subj (str typ ":")))
 
-; Render a titled section; returns "" if no commits matched
-(defn render-section (title body)
-  (if (= body "")
+; True if subject is a breaking change: "feat!:" "fix!:" etc.
+(defn breaking (subj)
+  (any (fn (typ) (starts-with subj (str typ "!:")))
+       (list "feat" "fix" "refactor" "perf" "chore" "docs" "build")))
+
+; Format one commit as a markdown bullet with clickable link when repo-url is known
+(defn bullet (hash subj)
+  (if (= repo-url "")
+    (str "- " hash " " subj)
+    (str "- [" hash "](" repo-url "/commit/" hash ") " subj)))
+
+; Filter pairs by subject predicate, render as bullets
+(defn section-bullets (pred)
+  (map (fn (p) (bullet (car p) (car (cdr p))))
+       (filter (fn (p) (pred (car (cdr p)))) pairs)))
+
+; Render a named section; returns "" if empty
+(defn render-section (title bullets-list)
+  (if (= (length bullets-list) 0)
     ""
-    (str title "\n\n" body "\n\n")))
+    (str title "\n\n"
+         (join "\n" bullets-list)
+         "\n\n")))
 
 ; ── gather sections ──────────────────────────────────────────────────────────
 
-; Breaking changes: feat!: fix!: refactor!: etc.
-(def breaking-body
-  (git-section "--grep=^feat!: --grep=^fix!: --grep=^refactor!: --grep=^perf!: --grep=^chore!: --grep=^build!:"))
+(def breaking-bullets
+  (section-bullets breaking))
 
-(def feat-body
-  (git-section "--grep=^feat:"))
+(def feat-bullets
+  (section-bullets (fn (s) (of-type "feat" s))))
 
-(def fix-body
-  (git-section "--grep=^fix:"))
+(def fix-bullets
+  (section-bullets (fn (s) (of-type "fix" s))))
 
-(def perf-body
-  (git-section "--grep=^perf:"))
+(def perf-bullets
+  (section-bullets (fn (s) (of-type "perf" s))))
 
-(def refactor-body
-  (git-section "--grep=^refactor:"))
+(def refactor-bullets
+  (section-bullets (fn (s) (of-type "refactor" s))))
 
-; Maintenance covers build/chore/ci/docs/style/test
-(def maint-body
-  (git-section "--grep=^build: --grep=^chore: --grep=^ci: --grep=^docs: --grep=^style: --grep=^test:"))
+(def maintenance-bullets
+  (section-bullets (fn (s)
+    (any (fn (t) (of-type t s))
+         (list "build" "chore" "ci" "docs" "style" "test")))))
 
 ; ── assemble draft ───────────────────────────────────────────────────────────
 
@@ -78,12 +103,12 @@
 
 (def sections
   (list
-    (render-section "### ⚠️ BREAKING CHANGES"        breaking-body)
-    (render-section "### ✨ Features"                 feat-body)
-    (render-section "### 🐛 Bug Fixes"                fix-body)
-    (render-section "### 🚀 Performance Improvements" perf-body)
-    (render-section "### 🔨 Code Refactoring"         refactor-body)
-    (render-section "### ⚙️ Maintenance"              maint-body)))
+    (render-section "### ⚠️ BREAKING CHANGES"         breaking-bullets)
+    (render-section "### ✨ Features"                  feat-bullets)
+    (render-section "### 🐛 Bug Fixes"                 fix-bullets)
+    (render-section "### 🚀 Performance Improvements"  perf-bullets)
+    (render-section "### 🔨 Code Refactoring"          refactor-bullets)
+    (render-section "### ⚙️ Maintenance"               maintenance-bullets)))
 
 (def body
   (join "" (filter (fn (s) (not (= s ""))) sections)))
@@ -100,6 +125,6 @@
 (println "")
 (println draft)
 (write-file "CHANGELOG-draft.md" draft)
-(println (str "  Written to CHANGELOG-draft.md (" (str commit-count) " commits since " latest-tag ")"))
+(println (str "  Written to CHANGELOG-draft.md (" (str (length subjects)) " commits since " latest-tag ")"))
 (println (bar))
 (println "")
