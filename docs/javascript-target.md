@@ -34,6 +34,7 @@ The JS backend handles most of hica's core language:
 | Maybe (`Some`/`None`) and Result (`Ok`/`Err`) | ✅ |
 | Math, string, list standard library | ✅ |
 | File I/O (`read_file`, `write_file`) | ✅ (Node.js only) |
+| System clock (`now_unix`, `now_iso`, `unix_to_iso`) | ✅ |
 | CLI args (`get_args`) | ✅ (Node.js only) |
 
 ## Limitations
@@ -60,6 +61,7 @@ Key runtime functions provided:
 - **Maybe**: `Some`, `None`, `is_some`, `is_none`, `unwrap`, `unwrap_or`, `map_maybe`, `and_then`
 - **Result**: `Ok`, `Err`, `is_ok`, `is_err`, `unwrap_result`, `map_result`, `map_err`
 - **I/O** (Node.js): `read_file`, `read_lines`, `write_file`, `get_args`
+- **Time**: `now_unix`, `now_iso`, `unix_to_iso`
 - **Parsing**: `parse_int`, `parse_float`, `to_int`
 
 ## REPL

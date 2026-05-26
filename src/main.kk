@@ -32,7 +32,7 @@ import stdlib-bundle
 import mcp
 import deps
 
-val version = "0.30.0"
+val version = "0.30.0-beta"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a

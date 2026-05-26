@@ -236,6 +236,28 @@ Since maps are lists of tuples, all list operations (`filter`, `map`, `fold`, et
 
 Using `random` or `random_float` gives your program the `ndet` (non-determinism) effect.
 
+## System Clock
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `now_unix()` | `() -> int` | Current UTC time as a Unix epoch timestamp (seconds since 1970-01-01) |
+| `now_iso()` | `() -> string` | Current UTC time as an ISO 8601 string (e.g. `"2026-05-26T21:30:16Z"`) |
+| `unix_to_iso(epoch)` | `(int) -> string` | Convert a Unix epoch integer to an ISO 8601 UTC string |
+
+Backed by Koka's `std/time` library. Using any of these gives your program the `ndet` effect.
+
+```hica
+fun main() {
+  let t = now_unix()
+  let s = now_iso()
+  println("epoch: {t}")
+  println("iso:   {s}")
+  println(unix_to_iso(1716800000))   // "2024-05-27T08:53:20Z"
+}
+```
+
+See also the epoch/duration helpers in `std/datetime` for working with stored timestamps.
+
 ```hica
 fun main() {
   let die = random(1, 6)
@@ -503,7 +525,7 @@ fun main() {
 
 ## Datetime (`std/datetime`, `import "std/datetime"` required) — v0.1.0
 
-> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica currently supports validation, decomposition, and comparison via string operations. A future version may introduce structured types backed by Koka's `std/time`.
+> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica supports validation, decomposition, comparison, and epoch-based duration helpers. For obtaining the current time use the built-in `now_unix()`, `now_iso()`, and `unix_to_iso()` primitives (no import needed).
 
 Written in hica itself. Import with `import "std/datetime"`. Supports the four ISO 8601 datetime variants:
 
@@ -551,15 +573,49 @@ Written in hica itself. Import with `import "std/datetime"`. Supports the four I
 | `offset_to_minutes(s)` | `(string) -> result<int, string>` | `"+02:00"` → `120`, `"Z"` → `0` |
 | `day_of_week(s)` | `(string) -> result<string, string>` | Returns `"monday"` through `"sunday"` |
 
+### Epoch & Duration
+
+Work with Unix epoch timestamps obtained from `now_unix()`. No import is needed for `now_unix()`/`now_iso()`/`unix_to_iso()` — they are built-in.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `secs_since(epoch)` | `(int) -> int` | Seconds elapsed since a stored epoch |
+| `mins_since(epoch)` | `(int) -> int` | Minutes elapsed since a stored epoch |
+| `hours_since(epoch)` | `(int) -> int` | Hours elapsed since a stored epoch |
+| `days_since(epoch)` | `(int) -> int` | Days elapsed since a stored epoch |
+| `is_older_than_days(epoch, days)` | `(int, int) -> bool` | True if the epoch is more than `days` days ago |
+| `is_older_than_hours(epoch, hours)` | `(int, int) -> bool` | True if the epoch is more than `hours` hours ago |
+| `secs_diff(a, b)` | `(int, int) -> int` | Absolute difference in seconds between two epochs |
+| `days_diff(a, b)` | `(int, int) -> int` | Absolute difference in days between two epochs |
+
+```hica
+import "std/datetime"
+
+fun main() {
+  let created_at = now_unix() - 7300   // simulate a 2-hour-old record
+  println(hours_since(created_at))           // 2
+  println(is_older_than_hours(created_at, 1)) // true
+  let updated_at = now_unix() - 172800
+  println(days_diff(now_unix(), updated_at))  // 2
+}
+```
+
 ### Internal Helpers
 
-Also available after `import "std/datetime"`:
+These are implementation details exposed as `pub` due to Hica's flat module model. They are available after `import "std/datetime"` but are not part of the stable public API:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `all_digits(s)` | `(string) -> bool` | True if every character is a digit |
 | `in_range(n, lo, hi)` | `(int, int, int) -> bool` | Inclusive range check |
 | `days_in_month(year, month)` | `(int, int) -> int` | Days in a month (handles leap years) |
+| `parse_part(s, start, len)` | `(string, int, int) -> maybe<int>` | Parse substring as integer |
+| `is_valid_time_short(s)` | `(string) -> bool` | Validate `HH:MM` (no seconds) |
+| `is_valid_time_full(s)` | `(string) -> bool` | Validate `HH:MM:SS[.frac]` |
+| `check_z_offset(rest)` | `(string) -> bool` | Validate time+`Z`/`z` suffix |
+| `check_numeric_offset(rest)` | `(string) -> bool` | Validate time+`±HH:MM` suffix |
+| `strip_offset(rest)` | `(string) -> string` | Strip offset suffix from time string |
+| `list_int_nth(xs, i)` | `(list<int>, int) -> int` | Lookup by index with 0 default |
 
 ```hica
 import "std/datetime"
