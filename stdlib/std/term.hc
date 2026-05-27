@@ -79,7 +79,7 @@ pub fun term_rgb(r: int, g: int, b: int, s: string) : string =>
 // Requires true color terminal support (iTerm2, VS Code, most modern terminals).
 // ---------------------------------------------------------------------------
 
-pub fun ilseon_teal(s: string) : string => term_rgb(0, 191, 165, s)       // #00BFA5  TealAccent — primary action
+pub fun ilseon_teal(s: string) : string => term_rgb(0, 191, 165, s)        // #00BFA5  TealAccent — primary action
 pub fun ilseon_muted_red(s: string) : string => term_rgb(179, 95, 95, s)   // #B35F5F  MutedRed — urgent / priority high
 pub fun ilseon_amber(s: string) : string => term_rgb(192, 138, 62, s)      // #C08A3E  QuietAmber — priority medium
 pub fun ilseon_ochre(s: string) : string => term_rgb(226, 176, 94, s)      // #E2B05E  StatusHigh — warm ochre / high energy
@@ -89,3 +89,7 @@ pub fun ilseon_muted_teal(s: string) : string => term_rgb(90, 155, 128, s) // #5
 pub fun ilseon_blue_teal(s: string) : string => term_rgb(76, 154, 155, s)  // #4C9A9B  BlueTeal — secondary highlight
 pub fun ilseon_slate_blue(s: string) : string => term_rgb(94, 109, 126, s) // #5E6D7E  SlateBlue — quiet UI element
 pub fun ilseon_detail(s: string) : string => term_rgb(136, 136, 136, s)    // #888888  MutedDetail — secondary text / low priority
+
+// ----------------------------------------------------------------------------
+// hica unique palette
+// ---------------------------------------------------------------------------- 
