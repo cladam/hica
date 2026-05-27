@@ -32,7 +32,7 @@ import stdlib-bundle
 import mcp
 import deps
 
-val version = "0.30.2"
+val version = "0.30.3"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -95,17 +95,19 @@ val node-repl-script = "const vm=require('vm');" ++
   "});"
 
 // Write .kk only if content changed — preserves Koka's build cache
+// Note: this reports source-to-.kk generation status only.
+// Koka compilation may still run afterwards.
 fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
   if is-file(out-kk) then
     val existing = read-text-file(out-kk)
     if existing == koka-code then
-      println("compiled " ++ hc-file ++ " -> " ++ out-kk.show ++ " (unchanged)")
+      println("generated " ++ hc-file ++ " -> " ++ out-kk.show ++ " (kk unchanged)")
     else
       write-text-file(out-kk, koka-code)
-      println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
+      println("generated " ++ hc-file ++ " -> " ++ out-kk.show)
   else
     write-text-file(out-kk, koka-code)
-    println("compiled " ++ hc-file ++ " -> " ++ out-kk.show)
+    println("generated " ++ hc-file ++ " -> " ++ out-kk.show)
 
 // Detect Windows via the OS environment variable (set to "Windows_NT" on Windows)
 fun is-windows()
