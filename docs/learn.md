@@ -8,8 +8,8 @@ title: Learn hica - hica
 A progressive set of 40 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
-./hica run learn/01-hello.hc
-./hica run learn/02-arrow.hc
+hica run learn/01-hello.hc
+hica run learn/02-arrow.hc
 ```
 
 | #  | File                  | Concept                          | What you'll learn                               |

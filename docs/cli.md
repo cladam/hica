@@ -13,9 +13,11 @@ The hica compiler
 
 Options:
       --check            Check formatting without modifying the file
-      --target=TARGET    Output target for build: koka (default) or js
-      --help             Display this help and exit
-      --version          Output version information and exit
+      --cache            Remove the stdlib cache (~/.hica/stdlib)
+      --target=TARGET    Output target: koka (default) or js
+  -o, --output=OUTPUT    Output binary name (build only)
+      --help                 display this help and exit
+      --version              output version information and exit
 
 Commands:
   build, b               Compile a .hc file and build a binary
@@ -26,6 +28,9 @@ Commands:
   test, t                Run tests in a .hc file
   new                    Create a new hica project
   init                   Initialise a hica project in the current directory
+  add                    Add a dependency
+  remove                 Remove a dependency
+  fetch                  Fetch all dependencies
   repl                   Start an interactive REPL
   help                   Show help for a command
 ```

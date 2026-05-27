@@ -16,15 +16,15 @@ Visit hica's [website](https://cladam.github.io/hica/) for a tour of the languag
 
 ## Design Goals
 
-- **Expression-oriented** — everything returns a value: `if`, `match`, and
+- **Expression-oriented** – everything returns a value: `if`, `match`, and
   blocks are all expressions.
-- **Effect tracking** — side effects (I/O, state, exceptions) are first-class
+- **Effect tracking** – side effects (I/O, state, exceptions) are first-class
   citizens, tracked by the type system.
-- **No garbage collector** — memory safety via Koka's Perceus (Functional But
+- **No garbage collector** – memory safety via Koka's Perceus (Functional But
   In-Place) reference counting, inherited from the Koka target.
-- **Strong inference** — Hindley-Milner type inference with row polymorphism;
+- **Strong inference** – Hindley-Milner type inference with row polymorphism;
   type annotations are rarely required but fully supported.
-- **Familiar syntax** — curly braces, `let`, `fun`, `match`, `if`, and the `=>`
+- **Familiar syntax** – curly braces, `let`, `fun`, `match`, `if`, and the `=>`
   expression-bodied shorthand.
 
 ## Compilation Pipeline
@@ -76,8 +76,7 @@ Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 ```sh
 git clone https://github.com/cladam/hica.git
 cd hica
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
+make release
 ```
 
 ## Quick Start
@@ -168,10 +167,14 @@ fun main() {
 ```
 $ hica --help
 
-Usage: hica [COMMAND] [FILE]
+Usage: hica [OPTIONS] [COMMAND] [FILE]
 The hica compiler
 
 Options:
+      --check            Check formatting without modifying the file
+      --cache            Remove the stdlib cache (~/.hica/stdlib)
+      --target=TARGET    Output target: koka (default) or js
+  -o, --output=OUTPUT    Output binary name (build only)
       --help                 display this help and exit
       --version              output version information and exit
 
@@ -184,6 +187,10 @@ Commands:
   test, t                Run tests in a .hc file
   new                    Create a new hica project
   init                   Initialise a hica project in the current directory
+  add                    Add a dependency
+  remove                 Remove a dependency
+  fetch                  Fetch all dependencies
+  repl                   Start an interactive REPL
   help                   Show help for a command
 ```
 

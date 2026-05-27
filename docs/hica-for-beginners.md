@@ -46,8 +46,7 @@ Override the install directory with `$env:HICA_INSTALL_DIR`.
 ```sh
 git clone https://github.com/cladam/hica.git
 cd hica
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
+make release
 ```
 
 Verify the installation:
@@ -59,7 +58,7 @@ hica --version
 Create a file called `hello.hc` and run it:
 
 ```sh
-./hica run hello.hc
+hica run hello.hc
 ```
 
 That's all. No project setup, no config files. One file, one command.

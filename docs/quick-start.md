@@ -9,7 +9,9 @@ Get hica running and compile your first program in a few minutes.
 
 ## Prerequisites
 
-Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3.2 or newer.
+No prerequisites for the pre-built binary — the install script handles everything.
+
+Building from source requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 
 ## Install hica
 
@@ -48,8 +50,7 @@ hica --version
 ```sh
 git clone https://github.com/cladam/hica.git
 cd hica
-koka -O2 -ilib/klap -isrc src/main.kk -o hica
-chmod +x hica
+make release
 ./hica --version
 ```
 
@@ -86,19 +87,25 @@ Hello, world!
 | `hica check <file>` | Analyse a `.hc` file and report errors |
 | `hica fmt <file>` | Format a `.hc` file according to the style guide |
 | `hica repl` | Start an interactive REPL |
-| `hica clean <file>` | Remove generated build artifacts for a file |
-| `hica clean --cache` | Remove the stdlib cache (`~/.hica/stdlib/`) |
+| `hica test <file>` | Run tests in a `.hc` file |
 | `hica new <name>` | Create a new hica project |
 | `hica init` | Initialise a project in the current directory |
+| `hica add <dep>` | Add a dependency |
+| `hica remove <dep>` | Remove a dependency |
+| `hica fetch` | Fetch all dependencies |
+| `hica clean` | Remove generated build artifacts |
 | `hica help <command>` | Show help for a command |
 
-Short aliases work too: `hica r`, `hica b`, `hica c`, `hica f`.
+Short aliases work too: `hica r`, `hica b`, `hica c`, `hica f`, `hica t`.
 
-Use `--check` with `fmt` to verify formatting without changing the file (exits 1 if changes needed):
+Useful global options:
 
-```sh
-hica fmt --check hello.hc
-```
+| Option | Description |
+| ------ | ----------- |
+| `--target=js` | Compile to JavaScript instead of native |
+| `--output=NAME` | Output binary name (with `build`) |
+| `--check` | Check formatting without modifying the file |
+| `--cache` | Remove the stdlib cache (`~/.hica/stdlib/`) |
 
 ## Try the Examples
 

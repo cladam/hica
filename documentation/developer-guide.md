@@ -33,6 +33,8 @@ Understanding how hica compiles a `.hc` file:
 | `src/semantics/prelude.kk` | Extern function signatures (Koka-backed stdlib) |
 | `src/transform/desugar.kk` | AST-to-AST rewrites (range/bit patterns → guards) |
 | `src/emit/codegen.kk` | Hica AST → Koka source emission |
+| `src/emit/codegen-js.kk` | Hica AST → JavaScript source emission |
+| `src/emit/codegen-js-repl.kk` | JS REPL mode emission |
 | `src/diagnostics/diagnostics.kk` | Error collection and rendering |
 | `src/main.kk` | CLI entry point, build pipeline, prelude loading |
 
@@ -85,6 +87,8 @@ Edit `src/emit/codegen.kk`:
 - Remember: user-declared names get an `hc_` prefix to avoid Koka stdlib clashes
 - Module names that clash with Koka keywords get an `hc-` prefix
 
+If the feature affects the JS target, also update `src/emit/codegen-js.kk` and the JS runtime preamble. If it affects the REPL, update `src/emit/codegen-js-repl.kk`. Run `make test-js` to verify no JS regressions.
+
 ### 8. Write Tests
 
 Tests live in `tests/` and use the `kunit` framework.
@@ -95,6 +99,8 @@ Tests live in `tests/` and use the `kunit` framework.
 | `tests/test-parser.kk` | New syntax parses to correct AST |
 | `tests/test-codegen.kk` | New AST emits correct Koka code |
 | `tests/test-cli.kk` | End-to-end: `.hc` file compiles and runs correctly |
+| `tests/choreo/test-hica-cli.chor` | ATDD acceptance tests for CLI commands |
+| `tests/choreo/test-hica-repl.chor` | ATDD acceptance tests for the REPL |
 
 Test conventions:
 - Use `unit("description") { ... }` for pure tests
@@ -243,8 +249,7 @@ Modules bundled:
 Run this whenever you edit a stdlib file, then rebuild the binary and clear the cache:
 
 ```bash
-bash scripts/bundle-stdlib.sh
-koka -O2 -ilib/klap -isrc src/main.kk -o hica && chmod +x hica
+make bundle-stdlib release
 rm -f ~/.hica/stdlib/*.hc ~/.hica/stdlib/*.kk
 ```
 
