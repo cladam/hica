@@ -32,7 +32,7 @@ import stdlib-bundle
 import mcp
 import deps
 
-val version = "0.30.1"
+val version = "0.30.2"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -264,7 +264,8 @@ fun cmd-build( file : string, target : string = "koka", output : maybe<string> =
   else
     val (extra-includes, koka-flags) = read-manifest-koka()
     val dep-includes = resolve-dep-includes()
-    build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output)
+    val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output)
+    ()
 
 // Build to JavaScript: lex → parse → check → emit JS
 fun build-js( file : string )
@@ -311,8 +312,11 @@ fun build-js( file : string )
 fun cmd-run( file : string, user-args : list<string> )
   val (extra-includes, koka-flags) = read-manifest-koka()
   val dep-includes = resolve-dep-includes()
-  build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
-  run-koka(file, user-args)
+  val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
+  if ok then
+    run-koka(file, user-args)
+  else
+    println("aborted: not running stale executable because compilation failed")
 
 fun cmd-check( file : string )
   val source = read-text-file(file.path)
@@ -409,8 +413,11 @@ fun cmd-test( file : string )
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path) ++ dep-includes ++ extra-includes
-      compile-koka(file, mod-name, inc-dirs, "0", koka-flags)
-      run-tests(file)
+      val ok = compile-koka(file, mod-name, inc-dirs, "0", koka-flags)
+      if ok then
+        run-tests(file)
+      else
+        println("aborted: not running stale test executable because compilation failed")
 
 fun cmd-clean( file : maybe<string>, cache : bool = False )
   if cache then
@@ -1225,22 +1232,24 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
-  // Emit main module — keep prelude + user decls/types/structs, skip imported ones
-  val prelude-count = prelude.decls.length
-  val imported-count = imported-decls.length
-  val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
-  val prelude-struct-count = prelude.structs.length
-  val imported-struct-count = imported-structs.length
-  val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
-  val prelude-type-count = prelude.types.length
-  val imported-type-count = imported-types.length
-  val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-  val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-  val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
-  val out-kk  = dir.path / (mod-name ++ ".kk").path
-  write-kk-if-changed(out-kk, koka-code, file)
-  val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
-  compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
+    False
+  else
+    // Emit main module — keep prelude + user decls/types/structs, skip imported ones
+    val prelude-count = prelude.decls.length
+    val imported-count = imported-decls.length
+    val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
+    val prelude-struct-count = prelude.structs.length
+    val imported-struct-count = imported-structs.length
+    val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
+    val prelude-type-count = prelude.types.length
+    val imported-type-count = imported-types.length
+    val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
+    val out-kk  = dir.path / (mod-name ++ ".kk").path
+    write-kk-if-changed(out-kk, koka-code, file)
+    val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+    compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -1368,10 +1377,12 @@ fun compile-koka( file : string, mod-name : string, include-dirs : list<string> 
     // Re-run with output visible so the user sees the error
     val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
+    False
   else
     if !is-windows() then
       val _ = run-system("chmod 0755 " ++ out-bin)
       ()
+    True
 
 // ---------------------------------------------------------------------------
 // Run: execute the compiled binary

@@ -50,7 +50,7 @@ fun main() {
   header("── Historical Timestamps ───────────────────")
   let y2k     = date_to_unix("2000-01-01")
   let billion = date_to_unix("2001-09-09")
-  let hica_v0 = date_to_unix("2024-01-01")
+  let hica_v0 = date_to_unix("2026-04-26")
 
   row("Y2K          (" + unix_to_iso(y2k)     + ")", age_label(days_since(y2k)))
   row("Unix 10^9    (" + unix_to_iso(billion)  + ")", age_label(days_since(billion)))
