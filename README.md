@@ -196,11 +196,12 @@ Commands:
 
 ## Inspirations
 
-- [Lisette](https://lisette.run/) — Rust-inspired language that compiles to Go
-- [Koka](https://koka-lang.github.io/) — language with algebraic effects and
+- [Koka](https://koka-lang.github.io/) – language with algebraic effects and
   Perceus memory management
-- C# — the `=>` operator and query expression syntax
-- Python – easy and powerful lists
+- [Rust](https://www.rust-lang.org/) – syntax, safety mindset, and the `match` expression
+- [F#](https://fsharp.org/) – functional-first style, pipelines, and type inference ergonomics
+- C# – the `=>` expression-bodied shorthand and query syntax
+- Python – approachable, expressive lists and comprehensions
 
 ## Licence
 
