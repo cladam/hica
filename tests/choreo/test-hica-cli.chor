@@ -123,7 +123,7 @@ scenario "Building binaries" {
             hica_build("examples/fizzbuzz.hc")
         then:
             Terminal last_command succeeded
-            Terminal output_contains "compiled"
+            Terminal output_contains "generated"
             FileSystem file_exists "${PROJECT_ROOT}/examples/fizzbuzz"
     }
 
