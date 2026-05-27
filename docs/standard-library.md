@@ -588,6 +588,26 @@ Work with Unix epoch timestamps obtained from `now_unix()`. No import is needed 
 | `secs_diff(a, b)` | `(int, int) -> int` | Absolute difference in seconds between two epochs |
 | `days_diff(a, b)` | `(int, int) -> int` | Absolute difference in days between two epochs |
 
+### Date String → Epoch
+
+Convert a calendar date into a Unix epoch so you can store and compare it using the duration helpers above.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `date_to_unix(s)` | `(string) -> int` | Parse `"YYYY-MM-DD"` and return the Unix epoch at midnight UTC; returns `-1` for invalid or pre-1970 dates |
+
+```hica
+import "std/datetime"
+
+fun main() {
+  let deadline = date_to_unix("2026-12-31")
+  let release  = date_to_unix("2024-01-01")
+  println(days_since(release))                    // days since release
+  println(is_older_than_days(deadline, 365))      // false — still in the future
+  println(days_diff(deadline, date_to_unix("2026-01-01")))  // 364
+}
+```
+
 ```hica
 import "std/datetime"
 

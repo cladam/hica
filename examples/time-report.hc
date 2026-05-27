@@ -48,9 +48,9 @@ fun main() {
   println("")
 
   header("── Historical Timestamps ───────────────────")
-  let y2k      = 946684800     // 2000-01-01T00:00:00Z
-  let billion  = 1000000000    // 2001-09-09T01:46:40Z
-  let hica_v0  = 1704067200    // 2024-01-01T00:00:00Z  (hica project start)
+  let y2k     = date_to_unix("2000-01-01")
+  let billion = date_to_unix("2001-09-09")
+  let hica_v0 = date_to_unix("2024-01-01")
 
   row("Y2K          (" + unix_to_iso(y2k)     + ")", age_label(days_since(y2k)))
   row("Unix 10^9    (" + unix_to_iso(billion)  + ")", age_label(days_since(billion)))

@@ -409,3 +409,36 @@ pub fun secs_diff(a: int, b: int) =>
 
 // Absolute difference in days between two epoch timestamps.
 pub fun days_diff(a: int, b: int) => secs_diff(a, b) / 86400
+
+// ---------------------------------------------------------------------------
+// Date string → Unix epoch
+// ---------------------------------------------------------------------------
+// Convert a "YYYY-MM-DD" string to a Unix epoch integer (seconds since
+// 1970-01-01T00:00:00Z at midnight UTC). Returns -1 if the date is invalid.
+// Useful for storing and comparing calendar dates as plain integers.
+//
+//   let deadline = date_to_unix("2026-12-31")
+//   println(days_since(deadline) < 0)   // true if still in the future
+
+// Internal: sum of days in months 1..(m-1) of year y (handles leap years)
+pub fun months_days_sum(y: int, m: int, acc: int) =>
+  if m <= 1 { acc }
+  else { months_days_sum(y, m - 1, acc + days_in_month(y, m - 1)) }
+
+// Internal: convert a validated (year, month, day) triple to a Unix epoch
+pub fun date_to_unix_parts(y: int, m: int, d: int) {
+  let b = y - 1
+  let leap_count = b/4 - b/100 + b/400 - 477
+  let year_days = (y - 1970) * 365 + leap_count
+  let month_days = months_days_sum(y, m, 0)
+  let total_days = year_days + month_days + d - 1
+  total_days * 86400
+}
+
+// Convert a "YYYY-MM-DD" string to a Unix epoch integer (midnight UTC).
+// Returns -1 for invalid dates. Supports 1970-01-01 and later.
+pub fun date_to_unix(s: string) =>
+  match date_parts(s) {
+    Err(_) => -1,
+    Ok(parts) => date_to_unix_parts(parts.0, parts.1, parts.2)
+  }
