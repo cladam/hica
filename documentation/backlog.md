@@ -402,55 +402,29 @@ Issues that exist today but are not yet fixed:
   `load-prelude()` now collects `prog.types` alongside `structs` and `decls`.
   Prelude enums are merged into the type registry and visible for construction
   and pattern matching in user code.
-- **`split(s, sub)` Perceus use-after-free when `sub` is from a nested match arm** —
-  Codegen for `split(s, sep)` emits:
-  ```koka
-  if sep.is-empty then s.list.map(fn(c) c.string) else s.split(sep)
-  ```
-  When `sep` is captured from a nested Cons destructure (e.g.
-  `Cons(LStr(s), Cons(LStr(sep), Nil)) ->`), Koka 3.2.3's Perceus drops `sep`
-  after `sep.is-empty`, then the else branch crashes on the freed reference.
-  Discovered in hica-lisp's `builtin_contains`. **Fix:** codegen should bind
-  `sep` to a `val` before the `if`:
-  ```koka
-  val hc__sep = sep
-  if hc__sep.is-empty then s.list.map(fn(c) c.string) else s.split(hc__sep)
-  ```
-  **Workaround:** avoid `split(s, sub)` in match arms with nested Cons patterns;
-  use a recursive helper function where `s` and `sub` are explicit parameters.
-- **Struct update syntax broken with `var` reassignment** — `{ ...s, field: val }`
-  works in `let` bindings but not in `var` reassignment (`s = S { ...s, f: v }`).
-  Codegen emits `s := { val hc__base = s; S(...) }` — Koka rejects the block
-  expression on the right-hand side of `:=`. Discovered in `programs/diff.hc`
-  where hunks are iteratively updated. **Workaround:** spell out all fields
-  explicitly (`S { a: s.a, b: new_val, ... }`).
-- **Explicit return type annotation on a side-effectful function causes Koka effect mismatch** —
-  When a function body uses `println` (or any other effectful operation) and an
-  explicit `: ReturnType` annotation is present, hica emits:
-  ```koka
-  fun hc_f(...) : returntype
-    println(...)
-    expr
-  ```
-  Koka treats `: returntype` as `total`, conflicting with the `console` effect
-  of `println`. Error: `effects do not match — inferred <console|_e>, expected total`.
-  Discovered in `examples/deploy-workflow.hc` on `run_step`. **Fix:** codegen should
-  emit the effect row in the return type (e.g. `: <console> returntype`) for functions
-  that call effectful operations, or suppress the return annotation and let Koka infer
-  it. **Workaround:** omit the explicit `: ReturnType` annotation on any function whose
-  body has side effects.
-- **Reserved keyword used as parameter name gives misleading error at wrong position** —
-  Using a hica keyword (`from`, `test`, `in`, `for`, etc.) as a function parameter
-  name produces a parse error pointing at an unrelated location (e.g. a separator
-  comment line) rather than the actual parameter. The keyword is tokenized as its
-  keyword token (e.g. `from` → `TkFrom`); the parser accepts it as a potential
-  statement start, then hits the `:` type annotation with no valid rule and reports
-  `unexpected token: :` at whatever position the following token happens to land on.
-  Discovered in `examples/deploy-workflow.hc`: `fun choreo_step(from: DeployState, ...)`
-  reported `parse error at 86:74` pointing at a comment line. **Fix:** parser should
-  detect a keyword token in parameter position and emit a clear diagnostic:
-  `'from' is a reserved keyword — choose a different parameter name`. **Workaround:**
-  rename the parameter to a non-keyword identifier.
+- **~~`split(s, sub)` Perceus use-after-free when `sub` is from a nested match arm~~** —
+  Fixed. Codegen now wraps both `s` and `sep` in an IIFE:
+  `(fn(hc__s, hc__sep) if hc__sep.is-empty then hc__s.list.map(fn(c) c.string) else hc__s.split(hc__sep))(s, sep)`
+  so Perceus ref-counting keeps both alive across the `is-empty` check and the
+  `split` call. 2 regression tests added.
+- **~~Struct update syntax broken with `var` reassignment~~** — Fixed. Codegen
+  now emits an IIFE `(fn(hc__base) S(...))(base)` instead of a block
+  `{ val hc__base = base; S(...) }` — the IIFE is valid in both `let` and
+  `:=` positions. 3 regression tests added.
+- **~~Explicit return type annotation on a side-effectful function causes Koka effect mismatch~~** —
+  Fixed. The `effectful-prims` list in codegen now covers all effect-inducing
+  calls: `println`, `print`, `eprintln`, `input`, `random`, `random_float`,
+  `get_args`, `get_env`, `env_require`, `env_or`, `env_int`, `read_file`,
+  `write_file`, `read_lines`, `write_lines`, `exec`, `exec_args`, `now_unix`,
+  `now_iso`, `unix_to_iso`, `exit`. When any of these appear in a function body,
+  the return type annotation is suppressed and Koka infers the full effect row.
+  5 regression tests added.
+- **~~Reserved keyword used as parameter name gives misleading error at wrong position~~** —
+  Fixed. `parse-typed-params` and `parse-params` now detect keyword tokens via a
+  `keyword-name` helper and emit: `'from' is a reserved keyword — choose a
+  different parameter name` at the correct position. Added
+  `run-parser-program-with-errors` to the parser for testability. 5 regression
+  tests added.
 
 ---
 
