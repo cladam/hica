@@ -29,7 +29,6 @@ import format/formatter
 import klap
 import prelude-bundle
 import stdlib-bundle
-import mcp
 import deps
 
 val version = "0.31.0"
@@ -211,10 +210,7 @@ fun split-at-double-dash( args : list<string> ) : (list<string>, list<string>)
       (Cons(a, before), after)
 
 fun main()
-  // Hidden --mcp flag: start MCP server (not shown in --help)
-  val raw-args = get-args()
-  if raw-args.any(fn(a) a == "--mcp") then mcp-serve()
-  else main-cli(raw-args)
+  main-cli(get-args())
 
 fun main-cli( raw-args : list<string> )
   val (hica-args, user-args) = split-at-double-dash(raw-args)
