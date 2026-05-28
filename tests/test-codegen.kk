@@ -1256,6 +1256,19 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
+    dtest("struct update emits IIFE not block")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() { let p = Point { x: 1, y: 2 }; let q = Point { ...p, x: 10 }; println(q) }")
+      assert/is-true(code.contains("fn(hc__base)"))
+
+    dtest("struct update with var reassignment emits IIFE")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() { var p = Point { x: 1, y: 2 }; p = Point { ...p, x: 10 }; println(p) }")
+      assert/is-true(code.contains("fn(hc__base)"))
+
+    dtest("struct update with var reassignment type-checks without error")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() { var p = Point { x: 1, y: 2 }; p = Point { ...p, x: 10 }; println(p) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
     // --- Match exhaustiveness checking ---
     dtest("exhaustive maybe match emits no warning")
       val ds = check-diagnostics("fun main() { let x = Some(1); match x { Some(n) => n, None => 0 } }")

@@ -896,13 +896,15 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     StructLit(sname, fields) ->
       sname ++ "(" ++ fields.map(fn((_, v)) emit-expr(v, declared)).join(", ") ++ ")"
     StructUpdate(sname, base, overrides, def-fields) ->
-      // Emit: { val hc__base = <base>; Name(field-or-override, ...) }
+      // Emit as an IIFE so the binding works in both expression and assignment
+      // (`:=` position) contexts. `{ val hc__base = ...; ... }` is a Koka block
+      // (thunk), not an expression, so it is rejected on the RHS of `:=`.
       val base-code = emit-expr(base, declared)
       val args = def-fields.map fn(fname)
         match overrides.find(fn((nm, _)) nm == fname)
           Just((_, fval)) -> emit-expr(fval, declared)
           Nothing -> "hc__base." ++ marshal-field(fname)
-      "{ val hc__base = " ++ base-code ++ "; " ++ sname ++ "(" ++ args.join(", ") ++ ") }"
+      "(fn(hc__base) " ++ sname ++ "(" ++ args.join(", ") ++ "))(" ++ base-code ++ ")"
     FieldAccess(obj, fname) ->
       val obj-is-struct = match obj.typ
         Just(TStruct(_)) -> True
