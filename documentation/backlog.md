@@ -421,7 +421,7 @@ Issues that exist today but are not yet fixed:
   5 regression tests added.
 - **~~Reserved keyword used as parameter name gives misleading error at wrong position~~** —
   Fixed. `parse-typed-params` and `parse-params` now detect keyword tokens via a
-  `keyword-name` helper and emit: `'from' is a reserved keyword — choose a
+  `keyword-name` helper and emit: `'from' is a reserved keyword – choose a
   different parameter name` at the correct position. Added
   `run-parser-program-with-errors` to the parser for testability. 5 regression
   tests added.
