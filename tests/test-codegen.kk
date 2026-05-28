@@ -956,6 +956,15 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => split(\"a,b\", \",\")")
       assert/is-true(code.contains(".split("))
 
+    dtest("split emits IIFE to guard against Perceus use-after-free")
+      val code = emit-typed-program("fun main() => split(\"a,b\", \",\")")
+      assert/is-true(code.contains("fn(hc__s, hc__sep)"))
+
+    dtest("split with sep from match arm emits IIFE")
+      val src = "fun f(pairs: list<(string, string)>) : list<string> =>\n  match pairs {\n    [] => []\n    [(s, sep), ..rest] => split(s, sep) + f(rest)\n  }\nfun main() => println(show(f([(\"a,b\", \",\")]).length))"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("fn(hc__s, hc__sep)"))
+
     dtest("split returns list of strings")
       val ds = check-diagnostics("fun main() { let xs = split(\"a,b\", \",\"); length(xs) }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
