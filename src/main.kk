@@ -264,6 +264,7 @@ fun cmd-build( file : string, target : string = "koka", output : maybe<string> =
   if target == "js" then
     build-js(file)
   else
+    println("compiling {file} ...")
     val (extra-includes, koka-flags) = read-manifest-koka()
     val dep-includes = resolve-dep-includes()
     val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output)

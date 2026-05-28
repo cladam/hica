@@ -507,7 +507,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           // Bind both args via IIFE so Perceus ref-counting keeps them alive
           // across the is-empty check and the split call (avoids use-after-free
           // when sep comes from a nested match arm Cons destructure).
-          "(fn(hc__s, hc__sep) if hc__sep.is-empty then hc__s.list.map(fn(c) c.string) else hc__s.split(hc__sep))(" ++ s-str ++ ", " ++ sep-str ++ ")"
+          "(fn(hc__s: string, hc__sep: string) if hc__sep.is-empty then hc__s.list.map(fn(c) c.string) else hc__s.split(hc__sep))(" ++ s-str ++ ", " ++ sep-str ++ ")"
         (Var("replace"), [s, old, new_]) ->
           emit-expr(s, declared) ++ ".replace-all(" ++ emit-expr(old, declared) ++ ", " ++ emit-expr(new_, declared) ++ ")"
         (Var("join"), [xs, sep]) ->
