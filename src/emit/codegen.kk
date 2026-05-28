@@ -424,7 +424,12 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             (Add, Just(TList(_))) -> "++"
             _                     -> emit-binop(op)
           "(" ++ emit-expr(l, declared) ++ " " ++ op-str ++ " " ++ emit-expr(r, declared) ++ ")"
-    Unary(Neg, o)           -> "(0 - " ++ emit-expr(o, declared) ++ ")"
+    Unary(Neg, o) ->
+      // Use 0.0 for float operands — `(0 - 1.0)` is int - float64 which Koka rejects.
+      val zero = match o.typ
+        Just(TFloat) -> "0.0"
+        _            -> "0"
+      "(" ++ zero ++ " - " ++ emit-expr(o, declared) ++ ")"
     Unary(Not, o)           -> "!(" ++ emit-expr(o, declared) ++ ")"
     Let(name, _, init, body) ->
       val init-code = emit-expr(init, declared)

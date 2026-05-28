@@ -269,6 +269,25 @@ pub fun main() : io ()
       assert/is-true(code.contains("1.5"))
       assert/is-true(code.contains("2.5"))
 
+    dtest("emit negative float literal uses 0.0 not 0")
+      val code = emit-typed-program("fun main() => -1.0")
+      assert/is-true(code.contains("0.0 - 1.0"))
+      assert/is-true(!code.contains("(0 - 1.0)"))
+
+    dtest("emit negative int literal uses 0 not 0.0")
+      val code = emit-typed-program("fun main() => -5")
+      assert/is-true(code.contains("(0 - 5)"))
+
+    dtest("emit negative float type-checks without error")
+      val ds = check-diagnostics("fun main() => -1.0")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("emit negative float in expression type-checks without error")
+      val ds = check-diagnostics("fun main() { let x = -3.14; x }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
     // --- Tuples ---
     dtest("emit tuple literal")
       val code = emit-typed-program("fun main() => (1, 2)")
