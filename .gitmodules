@@ -7,3 +7,6 @@
 [submodule "lib/hica-lisp"]
 	path = lib/hica-lisp
 	url = https://github.com/cladam/hica-lisp.git
+[submodule "lib/hml"]
+	path = lib/hml
+	url = https://github.com/cladam/hml.git
