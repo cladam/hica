@@ -2068,3 +2068,35 @@ pub fun main() : io ()
       val ds = check-diagnostics("fun greet(name: string) : string { println(name); name }\nfun main() => greet(\"hi\")")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
+
+    // --- Reserved keyword as parameter name ---
+    dtest("keyword param 'from' produces clear error message")
+      val tokens = lex("fun choreo_step(from: int, to: int) : int => from + to\nfun main() => choreo_step(1, 2)")
+      val (_, errs) = run-parser-program-with-errors(tokens)
+      assert/is-true(errs.length > 0)
+      assert/is-true(errs.head.unjust.contains("reserved keyword"))
+      assert/is-true(errs.head.unjust.contains("'from'"))
+
+    dtest("keyword param 'in' produces clear error message")
+      val tokens = lex("fun f(in: string) : string => in\nfun main() => f(\"x\")")
+      val (_, errs) = run-parser-program-with-errors(tokens)
+      assert/is-true(errs.length > 0)
+      assert/is-true(errs.head.unjust.contains("'in'"))
+
+    dtest("keyword param 'for' produces clear error message")
+      val tokens = lex("fun f(for: int) : int => for\nfun main() => f(1)")
+      val (_, errs) = run-parser-program-with-errors(tokens)
+      assert/is-true(errs.length > 0)
+      assert/is-true(errs.head.unjust.contains("'for'"))
+
+    dtest("valid param name produces no keyword error")
+      val tokens = lex("fun f(x: int) : int => x\nfun main() => f(1)")
+      val (_, errs) = run-parser-program-with-errors(tokens)
+      assert/is-true(errs.length == 0)
+
+    dtest("error message pinpoints keyword not a later token")
+      val src = "fun choreo_step(from: int, to: int) : int => from + to\nfun main() => choreo_step(1, 2)"
+      val tokens = lex(src)
+      val (_, errs) = run-parser-program-with-errors(tokens, src)
+      // Error should be on line 1, not a later line (old bug: pointed at line 2 or a comment)
+      assert/is-true(errs.head.unjust.contains("1:"))

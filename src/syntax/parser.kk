@@ -577,6 +577,32 @@ fun parse-optional-type-ann() : <div,parser> maybe<hica-type>
 // Parameters and bindings
 // ---------------------------------------------------------------------------
 
+// Returns the keyword string if the token is a hica keyword, Nothing otherwise.
+// Used to emit clear diagnostics when a keyword appears in identifier position.
+fun keyword-name( tk : token-kind ) : maybe<string>
+  match tk
+    TkLet      -> Just("let")
+    TkVar      -> Just("var")
+    TkFun      -> Just("fun")
+    TkIf       -> Just("if")
+    TkElse     -> Just("else")
+    TkMatch    -> Just("match")
+    TkFor      -> Just("for")
+    TkIn       -> Just("in")
+    TkRepeat   -> Just("repeat")
+    TkWhile    -> Just("while")
+    TkLoop     -> Just("loop")
+    TkBreak    -> Just("break")
+    TkContinue -> Just("continue")
+    TkStruct   -> Just("struct")
+    TkType     -> Just("type")
+    TkImport   -> Just("import")
+    TkFrom     -> Just("from")
+    TkPub      -> Just("pub")
+    TkExtern   -> Just("extern")
+    TkTest     -> Just("test")
+    _          -> Nothing
+
 fun parse-typed-params() : <div,parser> list<(string, maybe<hica-type>)>
   match peek()
     TkRParen -> []
@@ -586,7 +612,16 @@ fun parse-typed-params() : <div,parser> list<(string, maybe<hica-type>)>
       match peek()
         TkComma -> { advance(); Cons((name, ann), parse-typed-params()) }
         _       -> [(name, ann)]
-    _ -> []
+    _ ->
+      match keyword-name(peek())
+        Just(kw) ->
+          val _ = parse-error("'" ++ kw ++ "' is a reserved keyword – choose a different parameter name")
+          advance()
+          val ann = parse-optional-type-ann()
+          match peek()
+            TkComma -> { advance(); Cons((kw, ann), parse-typed-params()) }
+            _       -> [(kw, ann)]
+        Nothing -> []
 
 fun parse-params() : <div,parser> list<string>
   match peek()
@@ -596,7 +631,15 @@ fun parse-params() : <div,parser> list<string>
       match peek()
         TkComma -> { advance(); Cons(name, parse-params()) }
         _       -> [name]
-    _ -> []
+    _ ->
+      match keyword-name(peek())
+        Just(kw) ->
+          val _ = parse-error("'" ++ kw ++ "' is a reserved keyword – choose a different parameter name")
+          advance()
+          match peek()
+            TkComma -> { advance(); Cons(kw, parse-params()) }
+            _       -> [kw]
+        Nothing -> []
 
 fun parse-let() : <div,parser> node
   val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
@@ -1194,6 +1237,42 @@ pub fun run-parser-program( tokens : list<token>, source : string = "" ) : <div,
       println("parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg)
       Node(sp, Literal(LitBool(False)))
   parse-program()
+
+// Like run-parser-program but also returns the list of parse error messages.
+// Used for testing — does not print errors to console.
+pub fun run-parser-program-with-errors( tokens : list<token>, source : string = "" ) : <div> (program, list<string>)
+  var toks := tokens
+  var errs := []
+  with handler
+    fun peek()
+      match toks
+        Cons(t, _) -> t.kind
+        Nil        -> TkEof
+    fun peek-next()
+      match toks
+        Cons(_, Cons(t2, _)) -> t2.kind
+        _ -> TkEof
+    fun peek-newline()
+      match toks
+        Cons(t, _) -> t.newline-before
+        Nil        -> False
+    fun advance()
+      match toks
+        Cons(t, rest) -> { toks := rest; t }
+        Nil           -> Token(TkEof, Span(0, 0))
+    fun current-span()
+      match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+    fun parse-error( msg )
+      val sp = match toks
+        Cons(t, _) -> t.span
+        Nil        -> Span(0, 0)
+      val (line, col) = offset-to-linecol(source, sp.start)
+      errs := errs ++ ["parse error at " ++ line.show ++ ":" ++ col.show ++ ": " ++ msg]
+      Node(sp, Literal(LitBool(False)))
+  val prog = parse-program()
+  (prog, errs)
 
 // ---------------------------------------------------------------------------
 // REPL fragment parser: parse a single declaration or expression
