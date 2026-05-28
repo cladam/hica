@@ -424,6 +424,33 @@ Issues that exist today but are not yet fixed:
   expression on the right-hand side of `:=`. Discovered in `programs/diff.hc`
   where hunks are iteratively updated. **Workaround:** spell out all fields
   explicitly (`S { a: s.a, b: new_val, ... }`).
+- **Explicit return type annotation on a side-effectful function causes Koka effect mismatch** —
+  When a function body uses `println` (or any other effectful operation) and an
+  explicit `: ReturnType` annotation is present, hica emits:
+  ```koka
+  fun hc_f(...) : returntype
+    println(...)
+    expr
+  ```
+  Koka treats `: returntype` as `total`, conflicting with the `console` effect
+  of `println`. Error: `effects do not match — inferred <console|_e>, expected total`.
+  Discovered in `examples/deploy-workflow.hc` on `run_step`. **Fix:** codegen should
+  emit the effect row in the return type (e.g. `: <console> returntype`) for functions
+  that call effectful operations, or suppress the return annotation and let Koka infer
+  it. **Workaround:** omit the explicit `: ReturnType` annotation on any function whose
+  body has side effects.
+- **Reserved keyword used as parameter name gives misleading error at wrong position** —
+  Using a hica keyword (`from`, `test`, `in`, `for`, etc.) as a function parameter
+  name produces a parse error pointing at an unrelated location (e.g. a separator
+  comment line) rather than the actual parameter. The keyword is tokenized as its
+  keyword token (e.g. `from` → `TkFrom`); the parser accepts it as a potential
+  statement start, then hits the `:` type annotation with no valid rule and reports
+  `unexpected token: :` at whatever position the following token happens to land on.
+  Discovered in `examples/deploy-workflow.hc`: `fun choreo_step(from: DeployState, ...)`
+  reported `parse error at 86:74` pointing at a comment line. **Fix:** parser should
+  detect a keyword token in parameter position and emit a clear diagnostic:
+  `'from' is a reserved keyword — choose a different parameter name`. **Workaround:**
+  rename the parameter to a non-keyword identifier.
 
 ---
 

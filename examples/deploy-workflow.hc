@@ -82,28 +82,62 @@ fun rollback(state: DeployState) : Transition =>
   }
 
 // ---------------------------------------------------------------------------
-// Runner — simulates a failing deploy
+// Choreo-style runner - given / when / then output
 // ---------------------------------------------------------------------------
 
-fun run_step(state: DeployState, t: Transition) {
-  println("[" + state_name(state) + " -> " + state_name(t.next) + "] " + t.log)
+fun choreo_step(curr: DeployState, name: string, action: string, t: Transition) {
+  println("  test " + name)
+  println("    given: state is " + state_name(curr))
+  println("    when:  " + action)
+  println("    then:  state is " + state_name(t.next) + "  -- " + t.log)
+  println("")
   t.next
 }
 
-fun main() {
+fun scenario_header(name: string) {
+  println("scenario \"" + name + "\" {")
+  println("")
+}
+
+fun scenario_footer(final_state: DeployState) {
+  println("} // final state: " + state_name(final_state))
+  println("")
+}
+
+// ---------------------------------------------------------------------------
+// Scenario A: deploy fails, system rolls back
+// ---------------------------------------------------------------------------
+
+fun scenario_failing_deploy() {
+  scenario_header("Deploy fails and rolls back")
+  let artifact = "v1.2.3"
   let s0 = Idle
+  let s1 = choreo_step(s0, "StartDeploy", "start_deploy(" + artifact + ")", start_deploy(s0, artifact))
+  let s2 = choreo_step(s1, "HealthCheck", "health_check(503)",              health_check(s1, 503))
+  let s3 = choreo_step(s2, "Rollback",   "rollback()",                     rollback(s2))
+  scenario_footer(s3)
+}
 
-  // Step 1: start deploy
-  let t1 = start_deploy(s0, "v1.2.3")
-  let s1 = run_step(s0, t1)
+// ---------------------------------------------------------------------------
+// Scenario B: deploy succeeds, service is healthy
+// ---------------------------------------------------------------------------
 
-  // Step 2: health check fails (simulate 503)
-  let t2 = health_check(s1, 503)
-  let s2 = run_step(s1, t2)
+fun scenario_happy_deploy() {
+  scenario_header("Deploy succeeds")
+  let artifact = "v2.0.0"
+  let s0 = Idle
+  let s1 = choreo_step(s0, "StartDeploy", "start_deploy(" + artifact + ")", start_deploy(s0, artifact))
+  let s2 = choreo_step(s1, "HealthCheck", "health_check(200)",              health_check(s1, 200))
+  scenario_footer(s2)
+}
 
-  // Step 3: rollback because degraded
-  let t3 = rollback(s2)
-  let s3 = run_step(s2, t3)
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
 
-  println("Final state: " + state_name(s3))
+fun main() {
+  println("feature \"Deploy service workflow\"")
+  println("")
+  scenario_failing_deploy()
+  scenario_happy_deploy()
 }
