@@ -1307,7 +1307,14 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
         val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
         val imp-dir = imp-file.dirname.path
         val (re-decls, re-structs, re-types, re-names) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
-        (prev-decls ++ filtered-decls ++ re-decls, prev-structs ++ mod-prog.structs ++ re-structs, prev-types ++ mod-prog.types ++ re-types, prev-names ++ filtered-names ++ re-names)
+        // Also pull in stdlib symbols from this module's private imports so the checker
+        // can resolve references inside pub-decls (e.g. datetime_kind called from
+        // parser.hc's pub funs when basic.hc imports hml.hc which pub-imports parser).
+        // These are added to the checker env but NOT to imp-names, so they are never
+        // treated as user-re-exported symbols.
+        val mod-priv-stdlib = mod-prog.imports.filter(fn(i) !i.is-pub && i.path.starts-with("std/").bool)
+        val (stdlib-decls, stdlib-structs, stdlib-types, _) = compile-imports(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited))
+        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types, prev-names ++ filtered-names ++ re-names)
   )
 
 // Compile a single imported module to a .kk file
