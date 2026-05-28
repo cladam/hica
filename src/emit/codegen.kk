@@ -277,7 +277,24 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
-  val effectful-prims = ["write_file", "exec", "exec_args", "now_unix", "now_iso", "unix_to_iso"]
+  val effectful-prims = [
+    // console effect — suppress `: ReturnType` annotation so Koka infers <console|_e>
+    "println", "print", "eprintln",
+    // io effect
+    "input",
+    // ndet effect
+    "random", "random_float",
+    // sys/env effect
+    "get_args", "get_env", "env_require", "env_or", "env_int",
+    // fsys effect
+    "read_file", "write_file", "read_lines", "write_lines",
+    // exec effect
+    "exec", "exec_args",
+    // time effect
+    "now_unix", "now_iso", "unix_to_iso",
+    // exit effect
+    "exit"
+  ]
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""

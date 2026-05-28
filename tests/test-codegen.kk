@@ -2047,3 +2047,24 @@ pub fun main() : io ()
     dtest("now_unix suppresses return type annotation as effectful prim")
       val code = emit-typed-program("fun get_time() : int => now_unix()\nfun main() => get_time()")
       assert/is-true(!code.contains("hc_get_time() : int"))
+
+    dtest("println suppresses return type annotation")
+      val code = emit-typed-program("fun greet(name: string) : string { println(name); name }\nfun main() => greet(\"hi\")")
+      assert/is-true(!code.contains("hc_greet(hc_name : string) : string"))
+
+    dtest("print suppresses return type annotation")
+      val code = emit-typed-program("fun show_val(n: int) : int { print(show(n)); n }\nfun main() => show_val(1)")
+      assert/is-true(!code.contains("hc_show_val(hc_n : int) : int"))
+
+    dtest("input suppresses return type annotation")
+      val code = emit-typed-program("fun ask(prompt: string) : string => input(prompt)\nfun main() => ask(\"name?\")")
+      assert/is-true(!code.contains("hc_ask(hc_prompt : string) : string"))
+
+    dtest("random suppresses return type annotation")
+      val code = emit-typed-program("fun roll() : int => random(1, 6)\nfun main() => roll()")
+      assert/is-true(!code.contains("hc_roll() : int"))
+
+    dtest("effectful function with annotation type-checks without error")
+      val ds = check-diagnostics("fun greet(name: string) : string { println(name); name }\nfun main() => greet(\"hi\")")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
