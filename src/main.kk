@@ -1232,6 +1232,10 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   val tokens = lex(source)
   val prog   = run-parser-program(tokens, source)
   val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+  val out-bin-path = match output
+    Just(name) -> name.path
+    Nothing    -> dir.path / (mod-name ++ exe-ext()).path
+  val out-bin = out-bin-path.string
   // Fast path: if the main .kk and all direct imports are up to date, skip the entire
   // hica pipeline (prelude load, import processing, type check, emit) and go to koka.
   // Transitive-dep changes are not checked here — run `hica clean` to force a full rebuild.
@@ -1240,7 +1244,9 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     print("  => compiling...")
     flush-stdout()
     val ok = compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
-    if ok then println(" done")
+    if ok then
+      println(" done")
+      println("generated: " ++ out-bin)
     ok
   else
     // Full pipeline: load prelude .hc files and merge with user program
@@ -1293,7 +1299,9 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       print("  => compiling...")
       flush-stdout()
       val ok = compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
-      if ok then println(" done")
+      if ok then
+        println(" done")
+        println("generated: " ++ out-bin)
       ok
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
