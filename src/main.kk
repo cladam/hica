@@ -105,6 +105,11 @@ fun write-kk-if-changed( out-kk : path, koka-code : string, _hc-file : string )
     val existing = read-text-file(out-kk)
     if existing != koka-code then
       write-text-file(out-kk, koka-code)
+    elif !is-windows() then
+      // Content unchanged — touch the file to update its timestamp so that
+      // kk-is-fresh (test -nt) passes on subsequent runs and the module is skipped.
+      val _ = run-system("touch " ++ out-kk.show)
+      ()
   else
     write-text-file(out-kk, koka-code)
 
@@ -1220,66 +1225,76 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
+  val out-kk = dir.path / (mod-name ++ ".kk").path
   println("building " ++ file)
+  // Always parse the main .hc (fast) to get imports for inc-dirs and the freshness check.
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens, source)
-  // Load prelude .hc files and merge with user program
-  print("  => loading prelude...")
-  flush-stdout()
-  val prelude = load-prelude()
-  println(" done")
-  // Compile imported modules and collect pub declarations
-  print("  => processing imports...")
-  flush-stdout()
-  val (imported-decls, imported-structs, imported-types, imported-names, imported-kk-paths) = compile-imports(prog.imports, dir.path, [file])
-  println(" done")
-  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
-                       types = prelude.types ++ imported-types ++ prog.types,
-                       decls = prelude.decls ++ imported-decls ++ prog.decls,
-                       imports = prog.imports)
-  // Desugar
-  val desugared = desugar-program(merged)
-  // Type check
-  val skip-decls = prelude.decls.length + imported-decls.length
-  val skip-structs = prelude.structs.length + imported-structs.length
-  val skip-types = prelude.types.length + imported-types.length
-  print("  => checking...")
-  flush-stdout()
-  val (typed-prog, diags) = collect-diagnostics
-    run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types)
-  println(" done")
-  val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
-  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
-  warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
-  if !errors.is-empty then
-    errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
-    println("build: " ++ errors.length.show ++ " type error(s)")
-    if !generate then imported-kk-paths.foreach(delete-kk)
-    False
-  else
-    // Emit main module — keep prelude + user decls/types/structs, skip imported ones
-    val prelude-count = prelude.decls.length
-    val imported-count = imported-decls.length
-    val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
-    val prelude-struct-count = prelude.structs.length
-    val imported-struct-count = imported-structs.length
-    val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
-    val prelude-type-count = prelude.types.length
-    val imported-type-count = imported-types.length
-    val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-    val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
-    val out-kk  = dir.path / (mod-name ++ ".kk").path
-    write-kk-if-changed(out-kk, koka-code, file)
-    val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
-    println("  => compiling...")
+  val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
+  // Fast path: if the main .kk and all direct imports are up to date, skip the entire
+  // hica pipeline (prelude load, import processing, type check, emit) and go to koka.
+  // Transitive-dep changes are not checked here — run `hica clean` to force a full rebuild.
+  if !generate && main-kk-is-up-to-date(out-kk, file.path, prog.imports, dir.path) then
+    println("  => up to date")
+    print("  => compiling...")
+    flush-stdout()
     val ok = compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
-    if ok then println("done")
-    if !generate then
-      (Cons(out-kk, imported-kk-paths)).foreach(delete-kk)
+    if ok then println(" done")
     ok
+  else
+    // Full pipeline: load prelude .hc files and merge with user program
+    print("  => loading prelude...")
+    flush-stdout()
+    val prelude = load-prelude()
+    println(" done")
+    // Compile imported modules and collect pub declarations
+    print("  => processing imports...")
+    flush-stdout()
+    val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file])
+    println(" done")
+    val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                         types = prelude.types ++ imported-types ++ prog.types,
+                         decls = prelude.decls ++ imported-decls ++ prog.decls,
+                         imports = prog.imports)
+    // Desugar
+    val desugared = desugar-program(merged)
+    // Type check
+    val skip-decls = prelude.decls.length + imported-decls.length
+    val skip-structs = prelude.structs.length + imported-structs.length
+    val skip-types = prelude.types.length + imported-types.length
+    print("  => checking...")
+    flush-stdout()
+    val (typed-prog, diags) = collect-diagnostics
+      run-fresh
+        check-program(desugared, skip-decls, skip-structs, skip-types)
+    println(" done")
+    val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
+    val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+    warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
+    if !errors.is-empty then
+      errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
+      println("build: " ++ errors.length.show ++ " type error(s)")
+      False
+    else
+      // Emit main module — keep prelude + user decls/types/structs, skip imported ones
+      val prelude-count = prelude.decls.length
+      val imported-count = imported-decls.length
+      val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imported-count)
+      val prelude-struct-count = prelude.structs.length
+      val imported-struct-count = imported-structs.length
+      val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imported-struct-count)
+      val prelude-type-count = prelude.types.length
+      val imported-type-count = imported-types.length
+      val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
+      write-kk-if-changed(out-kk, koka-code, file)
+      print("  => compiling...")
+      flush-stdout()
+      val ok = compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
+      if ok then println(" done")
+      ok
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -1349,53 +1364,84 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
   )
 
 // Compile a single imported module to a .kk file.
+// True if the generated .kk is strictly newer than the .hc source — no recompilation needed.
+fun kk-is-fresh( kk-file : path, hc-file : path ) : io bool
+  if is-windows() then False
+  else run-system("test " ++ kk-file.show ++ " -nt " ++ hc-file.show ++ dev-null()) == 0
+
+// True if the main .kk is newer than the main .hc AND newer than every direct
+// user-import's .hc, AND every direct import's .kk exists on disk.
+// Shallow check — transitive-dep changes require `hica clean` to invalidate.
+fun main-kk-is-up-to-date( out-kk : path, hc-file : path, imports : list<import-decl>, base-dir : path ) : io bool
+  if !kk-is-fresh(out-kk, hc-file) then False
+  else
+    val stdlib-dir = hica-stdlib-dir()
+    imports.foldl(True, fn(ok, imp)
+      if !ok then False
+      elif imp.is-extern then True
+      elif imp.path.starts-with("std/").bool then
+        val stem = imp.path.path.stemname
+        is-file(stdlib-dir / (stem ++ ".kk").path)
+      else
+        val hc = resolve-import(imp.path, base-dir)
+        if !is-file(hc) then False
+        else
+          val lib-kk = hc.dirname.path / (safe-module-name(hc.stemname) ++ ".kk").path
+          is-file(lib-kk) && kk-is-fresh(out-kk, hc)
+    )
+
 // Returns all generated .kk paths in this subtree (for post-compile cleanup).
 fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
-  print("#")
-  flush-stdout()
   val stem = imp-file.stemname
   val mod-name = safe-module-name(stem)
   val dir = imp-file.dirname
-  val source = read-text-file(imp-file)
-  val tokens = lex(source)
-  val prog = run-parser-program(tokens, source)
-  // Load prelude for this module
-  val prelude = load-prelude()
-  // Recursively compile this module's imports
-  val imp-path-str = imp-file.show
-  val (imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
-  val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
-                       types = prelude.types ++ imp-types ++ prog.types,
-                       decls = prelude.decls ++ imp-decls ++ prog.decls,
-                       imports = prog.imports)
-  // Desugar
-  val desugared = desugar-program(merged)
-  // Type check
-  val skip-decls = prelude.decls.length + imp-decls.length
-  val skip-structs = prelude.structs.length + imp-structs.length
-  val skip-types = prelude.types.length + imp-types.length
-  val (typed-prog, diags) = collect-diagnostics
-    run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types)
-  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
-  if !errors.is-empty then
-    errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
-    println("error: " ++ errors.length.show ++ " type error(s) in " ++ imp-file.show)
-  // Emit module .kk — keep prelude + user decls/types/structs, skip imported ones
-  val prelude-count = prelude.decls.length
-  val imp-imported-count = imp-decls.length
-  val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imp-imported-count)
-  val prelude-struct-count = prelude.structs.length
-  val imp-struct-count = imp-structs.length
-  val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imp-struct-count)
-  val prelude-type-count = prelude.types.length
-  val imp-type-count = imp-types.length
-  val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
-  val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-  val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
   val out-kk = dir.path / (mod-name ++ ".kk").path
-  write-kk-if-changed(out-kk, koka-code, imp-file.show)
-  Cons(out-kk, sub-kk-paths)
+  // Timestamp cache: if .kk is already newer than .hc, skip the entire pipeline
+  if is-file(out-kk) && kk-is-fresh(out-kk, imp-file) then
+    [out-kk]
+  else
+    print("#")
+    flush-stdout()
+    val source = read-text-file(imp-file)
+    val tokens = lex(source)
+    val prog = run-parser-program(tokens, source)
+    // Load prelude for this module
+    val prelude = load-prelude()
+    // Recursively compile this module's imports
+    val imp-path-str = imp-file.show
+    val (imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
+    val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
+                         types = prelude.types ++ imp-types ++ prog.types,
+                         decls = prelude.decls ++ imp-decls ++ prog.decls,
+                         imports = prog.imports)
+    // Desugar
+    val desugared = desugar-program(merged)
+    // Type check
+    val skip-decls = prelude.decls.length + imp-decls.length
+    val skip-structs = prelude.structs.length + imp-structs.length
+    val skip-types = prelude.types.length + imp-types.length
+    val (typed-prog, diags) = collect-diagnostics
+      run-fresh
+        check-program(desugared, skip-decls, skip-structs, skip-types)
+    val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+    if !errors.is-empty then
+      errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
+      println("error: " ++ errors.length.show ++ " type error(s) in " ++ imp-file.show)
+    // Emit module .kk — keep prelude + user decls/types/structs, skip imported ones
+    val prelude-count = prelude.decls.length
+    val imp-imported-count = imp-decls.length
+    val user-typed-decls = typed-prog.decls.take(prelude-count) ++ typed-prog.decls.drop(prelude-count + imp-imported-count)
+    val prelude-struct-count = prelude.structs.length
+    val imp-struct-count = imp-structs.length
+    val user-structs = typed-prog.structs.take(prelude-struct-count) ++ typed-prog.structs.drop(prelude-struct-count + imp-struct-count)
+    val prelude-type-count = prelude.types.length
+    val imp-type-count = imp-types.length
+    val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
+    // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
+    write-kk-if-changed(out-kk, koka-code, imp-file.show)
+    Cons(out-kk, sub-kk-paths)
 
 // ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary
