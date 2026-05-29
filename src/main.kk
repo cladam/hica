@@ -31,11 +31,16 @@ import prelude-bundle
 import stdlib-bundle
 import deps
 
-val version = "0.31.0"
+val version = "0.31.1"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
   c inline "(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())"
+
+// Flush stdout immediately — needed so Koka's buffered print() calls
+// appear before subsequent run-system() writes to the same fd.
+extern flush-stdout() : io ()
+  c inline "fflush(stdout)"
 
 // Check if stdin is a terminal (not piped/redirected)
 fun stdin-isatty()
@@ -93,20 +98,28 @@ val node-repl-script = "const vm=require('vm');" ++
     "else{buf+=ln+'\\n'}" ++
   "});"
 
-// Write .kk only if content changed — preserves Koka's build cache
-// Note: this reports source-to-.kk generation status only.
-// Koka compilation may still run afterwards.
-fun write-kk-if-changed( out-kk : path, koka-code : string, hc-file : string )
+// Write .kk only if content changed — preserves Koka's build cache.
+// Silent: callers emit their own progress.
+fun write-kk-if-changed( out-kk : path, koka-code : string, _hc-file : string )
   if is-file(out-kk) then
     val existing = read-text-file(out-kk)
-    if existing == koka-code then
-      println("generated " ++ hc-file ++ " -> " ++ out-kk.show ++ " (kk unchanged)")
-    else
+    if existing != koka-code then
       write-text-file(out-kk, koka-code)
-      println("generated " ++ hc-file ++ " -> " ++ out-kk.show)
   else
     write-text-file(out-kk, koka-code)
-    println("generated " ++ hc-file ++ " -> " ++ out-kk.show)
+
+// Delete a generated .kk file (silently, idempotent) and invalidate koka's .kki cache.
+// Koka stores interface files in .koka/v*/<hash>/ and encodes underscores as __ in filenames.
+fun delete-kk( p : path ) : io ()
+  if is-file(p) then
+    val _ = run-system((if is-windows() then "del " else "rm -f ") ++ p.show)
+    if !is-windows() then
+      // Remove matching .kki from all koka cache hash dirs so stale interfaces don't
+      // cause "unable to read" / "no corresponding source module" errors on next run.
+      val stem = p.stemname
+      val koka-stem = stem.replace-all("_", "__")  // koka encodes _ as __ in cache names
+      val _ = run-system("rm -f .koka/v*/*/" ++ stem ++ ".kki .koka/v*/*/" ++ koka-stem ++ ".kki 2>/dev/null")
+      ()
 
 // Detect Windows via the OS environment variable (set to "Windows_NT" on Windows)
 fun is-windows()
@@ -128,6 +141,7 @@ fun hica-cli() : command
     .arg(positional("FILE").help("Source .hc file"))
     .arg(flag("check").help("Check formatting without modifying the file"))
     .arg(flag("cache").help("Remove the stdlib cache (~/.hica/stdlib)"))
+    .arg(flag("generate").help("Keep generated .kk files after compilation"))
     .arg(option("target").help("Output target: koka (default) or js"))
     .arg(option-short("output", 'o').help("Output binary name (build only)"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
@@ -149,11 +163,13 @@ fun build-cli() : command
     .about("Compile a .hc file and build a binary")
     .arg(positional("FILE").help("Source .hc file").required)
     .arg(option-short("output", 'o').help("Output binary name"))
+    .arg(flag("generate").help("Keep generated .kk files after compilation"))
 
 fun run-cli() : command
   command("hica run")
     .about("Compile and run a .hc file")
     .arg(positional("FILE").help("Source .hc file").required)
+    .arg(flag("generate").help("Keep generated .kk files after compilation"))
 
 fun check-cli() : command
   command("hica check")
@@ -235,10 +251,10 @@ fun main-cli( raw-args : list<string> )
           val target = m.get-one-or("target", "koka")
           val output = m.get-one("output")
           match cmd
-            "build" -> cmd-build(f, target, output)
-            "b"     -> cmd-build(f, target, output)
-            "run"   -> cmd-run(f, user-args)
-            "r"     -> cmd-run(f, user-args)
+            "build" -> cmd-build(f, target, output, m.get-flag("generate"))
+            "b"     -> cmd-build(f, target, output, m.get-flag("generate"))
+            "run"   -> cmd-run(f, user-args, m.get-flag("generate"))
+            "r"     -> cmd-run(f, user-args, m.get-flag("generate"))
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
             "fmt"   -> cmd-fmt(f, m.get-flag("check"))
@@ -256,14 +272,13 @@ fun main-cli( raw-args : list<string> )
 // Commands
 // ---------------------------------------------------------------------------
 
-fun cmd-build( file : string, target : string = "koka", output : maybe<string> = Nothing )
+fun cmd-build( file : string, target : string = "koka", output : maybe<string> = Nothing, generate : bool = False )
   if target == "js" then
     build-js(file)
   else
-    println("compiling {file} ...")
     val (extra-includes, koka-flags) = read-manifest-koka()
     val dep-includes = resolve-dep-includes()
-    val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output)
+    val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output, generate=generate)
     ()
 
 // Build to JavaScript: lex → parse → check → emit JS
@@ -275,7 +290,7 @@ fun build-js( file : string )
   val tokens = lex(source)
   val prog   = run-parser-program(tokens, source)
   val prelude = load-prelude()
-  val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file])
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -308,10 +323,10 @@ fun build-js( file : string )
     write-text-file(out-js, js-code)
     println("compiled " ++ file ++ " -> " ++ out-js.show ++ " (js)")
 
-fun cmd-run( file : string, user-args : list<string> )
+fun cmd-run( file : string, user-args : list<string>, generate : bool = False )
   val (extra-includes, koka-flags) = read-manifest-koka()
   val dep-includes = resolve-dep-includes()
-  val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags)
+  val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, generate=generate)
   if ok then
     run-koka(file, user-args)
   else
@@ -323,7 +338,7 @@ fun cmd-check( file : string )
   val prog   = run-parser-program(tokens, source)
   val dir    = file.path.dirname
   val prelude = load-prelude()
-  val (imported-decls, imported-structs, imported-types, _) = compile-imports(prog.imports, dir.path, [file])
+  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file])
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls)
@@ -376,7 +391,7 @@ fun cmd-test( file : string )
   else
     // Load prelude and merge
     val prelude = load-prelude()
-    val (imported-decls, imported-structs, imported-types, imported-names) = compile-imports(prog.imports, dir.path, [file])
+    val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file])
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -1201,17 +1216,24 @@ fun compile-stdlib-import( mod-path : string ) : io (list<fun-decl>, list<struct
 // Build pipeline: read .hc → lex → parse → emit → write .kk
 // ---------------------------------------------------------------------------
 
-fun build( file : string, opt-level : string = "2", extra-includes : list<string> = [], koka-flags : string = "", output : maybe<string> = Nothing )
+fun build( file : string, opt-level : string = "2", extra-includes : list<string> = [], koka-flags : string = "", output : maybe<string> = Nothing, generate : bool = False )
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
+  println("building " ++ file)
   val source = read-text-file(file.path)
   val tokens = lex(source)
   val prog   = run-parser-program(tokens, source)
   // Load prelude .hc files and merge with user program
+  print("  => loading prelude...")
+  flush-stdout()
   val prelude = load-prelude()
+  println(" done")
   // Compile imported modules and collect pub declarations
-  val (imported-decls, imported-structs, imported-types, imported-names) = compile-imports(prog.imports, dir.path, [file])
+  print("  => processing imports...")
+  flush-stdout()
+  val (imported-decls, imported-structs, imported-types, imported-names, imported-kk-paths) = compile-imports(prog.imports, dir.path, [file])
+  println(" done")
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -1222,15 +1244,19 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types = prelude.types.length + imported-types.length
+  print("  => checking...")
+  flush-stdout()
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
       check-program(desugared, skip-decls, skip-structs, skip-types)
+  println(" done")
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
+    if !generate then imported-kk-paths.foreach(delete-kk)
     False
   else
     // Emit main module — keep prelude + user decls/types/structs, skip imported ones
@@ -1248,7 +1274,12 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     val out-kk  = dir.path / (mod-name ++ ".kk").path
     write-kk-if-changed(out-kk, koka-code, file)
     val inc-dirs = import-dirs(prog.imports, dir.path) ++ extra-includes
-    compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
+    println("  => compiling...")
+    val ok = compile-koka(file, mod-name, inc-dirs, opt-level, koka-flags, output)
+    if ok then println("done")
+    if !generate then
+      (Cons(out-kk, imported-kk-paths)).foreach(delete-kk)
+    ok
 
 // Collect unique directories that imported modules live in (for Koka -i flags)
 fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
@@ -1267,16 +1298,16 @@ fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
 fun resolve-import( imp-path : string, base-dir : path ) : path
   base-dir / (imp-path ++ ".hc").path
 
-// Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names)
+// Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names, generated-kk-paths)
 fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
-  imp-list.foldl(([], [], [], []), fn(acc, imp)
-    val (prev-decls, prev-structs, prev-types, prev-names) = acc
+  imp-list.foldl(([], [], [], [], []), fn(acc, imp)
+    val (prev-decls, prev-structs, prev-types, prev-names, prev-kk-paths) = acc
     // Extern imports pass through to Koka — skip .hc resolution
     if imp.is-extern then acc
     // Stdlib imports: resolved from embedded sources, extracted to ~/.hica/stdlib
     elif imp.path.starts-with("std/").bool then
       val (sd, ss, st, sn) = compile-stdlib-import(imp.path)
-      (prev-decls ++ sd, prev-structs ++ ss, prev-types ++ st, prev-names ++ sn)
+      (prev-decls ++ sd, prev-structs ++ ss, prev-types ++ st, prev-names ++ sn, prev-kk-paths)
     else
       val imp-file = resolve-import(imp.path, base-dir)
       val imp-path-str = imp-file.show
@@ -1288,8 +1319,8 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
         println("error: imported file not found: " ++ imp-path-str)
         acc
       else
-        // Compile the imported module to .kk
-        compile-module(imp-file, visited)
+        // Compile the imported module to .kk; collect generated .kk paths for later cleanup
+        val mod-kk-paths = compile-module(imp-file, visited)
         // Parse the module to collect pub declarations for the checker
         val mod-source = read-text-file(imp-file)
         val mod-tokens = lex(mod-source)
@@ -1306,19 +1337,22 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
         // Collect re-exported symbols from the module's pub imports
         val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
         val imp-dir = imp-file.dirname.path
-        val (re-decls, re-structs, re-types, re-names) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
+        val (re-decls, re-structs, re-types, re-names, re-kk-paths) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited))
         // Also pull in stdlib symbols from this module's private imports so the checker
         // can resolve references inside pub-decls (e.g. datetime_kind called from
         // parser.hc's pub funs when basic.hc imports hml.hc which pub-imports parser).
         // These are added to the checker env but NOT to imp-names, so they are never
         // treated as user-re-exported symbols.
         val mod-priv-stdlib = mod-prog.imports.filter(fn(i) !i.is-pub && i.path.starts-with("std/").bool)
-        val (stdlib-decls, stdlib-structs, stdlib-types, _) = compile-imports(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited))
-        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types, prev-names ++ filtered-names ++ re-names)
+        val (stdlib-decls, stdlib-structs, stdlib-types, _, _) = compile-imports(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited))
+        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types, prev-names ++ filtered-names ++ re-names, prev-kk-paths ++ mod-kk-paths ++ re-kk-paths)
   )
 
-// Compile a single imported module to a .kk file
-fun compile-module( imp-file : path, visited : list<string> )
+// Compile a single imported module to a .kk file.
+// Returns all generated .kk paths in this subtree (for post-compile cleanup).
+fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
+  print("#")
+  flush-stdout()
   val stem = imp-file.stemname
   val mod-name = safe-module-name(stem)
   val dir = imp-file.dirname
@@ -1329,7 +1363,7 @@ fun compile-module( imp-file : path, visited : list<string> )
   val prelude = load-prelude()
   // Recursively compile this module's imports
   val imp-path-str = imp-file.show
-  val (imp-decls, imp-structs, imp-types, imp-names) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
+  val (imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
   val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
                        types = prelude.types ++ imp-types ++ prog.types,
                        decls = prelude.decls ++ imp-decls ++ prog.decls,
@@ -1361,6 +1395,7 @@ fun compile-module( imp-file : path, visited : list<string> )
   val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
   val out-kk = dir.path / (mod-name ++ ".kk").path
   write-kk-if-changed(out-kk, koka-code, imp-file.show)
+  Cons(out-kk, sub-kk-paths)
 
 // ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary
@@ -1378,9 +1413,15 @@ fun compile-koka( file : string, mod-name : string, include-dirs : list<string> 
   val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("") ++ " -i" ++ stdlib-dir.show
   val opt-flag = "-O" ++ opt-level
   val extra = if koka-flags.is-empty then "" else " " ++ koka-flags
-  val exit-code = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file ++ dev-null())
+  val koka-cmd = "koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file
+  // On Unix: run koka silently in background and print '#' every 0.5s as a progress indicator
+  val exit-code = if is-windows() then
+    run-system(koka-cmd ++ dev-null())
+  else
+    run-system(koka-cmd ++ " >/dev/null 2>&1 & hica_p=$!; while kill -0 $hica_p 2>/dev/null; do printf '#'; sleep 0.5; done; wait $hica_p")
   if exit-code != 0 then
-    // Re-run with output visible so the user sees the error
+    // Re-run with output visible so the user sees the error; start on a fresh line
+    println("")
     val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file)
     println("error: koka failed with exit code " ++ exit-code.show)
     False

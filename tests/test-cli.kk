@@ -118,8 +118,8 @@ pub fun main() : io ()
     // --- Clean ---
 
     itest("clean removes build artifacts")
-      // First build to ensure target/ exists
-      hica("build examples/hello.hc")
+      // Build with --generate to keep the .kk artifact, then clean it
+      hica("build --generate examples/hello.hc")
       val out = hica("clean examples/hello.kk")
       assert/is-true(out.contains("removed"))
 
