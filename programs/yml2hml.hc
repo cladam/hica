@@ -24,12 +24,12 @@
 //   - YAML tags (!tag)
 
 // --- YAML line classification ---
-// TODO: import "../src/hml" — re-enable when hml module is published
+// TODO: import "../lib/hml" — re-enable when hml module is published
 import "std/cli"
 
 type YamlLine {
-    YKeyVal(indent: int, key: string, value: string),
-    YListItem(indent: int, value: string),
+    YKeyVal(indent: int, key: string, text: string),
+    YListItem(indent: int, text: string),
     YKeyOnly(indent: int, key: string),
     YBlank,
     YComment(text: string)
@@ -526,6 +526,7 @@ fun convert_block(st: ConvertState, parent_indent: int, depth: int) : (list<stri
 // Top-level converter
 fun yaml_to_hml(input: string) : string {
     let raw_lines = lines(input)
+    // Filter out empty trailing lines
     let st = make_state(raw_lines)
     let result = convert_block(st, 0, 0)
     join(result.0, "\n")
