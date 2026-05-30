@@ -241,6 +241,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val exit-helper = if program-uses-exit(p) then exit-helper-code else ""
+  val get-env-helper = if program-uses-get-env(p) then get-env-helper-code else ""
   val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
   val assert-helper = assert-helper-code
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
@@ -267,6 +268,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   try-maybe-effect ++
   sort-helper ++
   exit-helper ++
+  get-env-helper ++
   set-env-helper ++
   assert-helper ++
   type-defs ++ type-sep ++
@@ -544,7 +546,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("get_args"), []) ->
           "get-args()"
         (Var("get_env"), [key]) ->
-          "get-env-value(" ++ emit-expr(key, declared) ++ ")"
+          "hica-get-env(" ++ emit-expr(key, declared) ++ ")"
         (Var("set_env"), [key, value]) ->
           "hica-set-env(" ++ emit-expr(key, declared) ++ ", " ++ emit-expr(value, declared) ++ ")"
         (Var("set_env_nooverwrite"), [key, value]) ->
@@ -1226,37 +1228,69 @@ fun node-has-float( n : node ) : div bool
     MapLit(entries)         -> entries.any(fn((k, v)) node-has-float(k) || node-has-float(v))
     _                     -> False
 
-// Check whether the program uses environment functions (get_args, get_env)
-// that require `import std/os/env`.
-fun program-uses-env( p : program ) : div bool
-  p.decls.any(fn(d) node-uses-env(d.body))
+// Check whether the program uses get_args — needs `import std/os/env`.
+fun program-uses-get-args( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-get-args(d.body))
 
-fun node-uses-env( n : node ) : div bool
+fun node-uses-get-args( n : node ) : div bool
   match n.expr
     Call(callee, args) ->
-      val is-env-fn = match callee.expr
+      val is-get-args = match callee.expr
         Var("get_args") -> True
+        _               -> False
+      is-get-args || node-uses-get-args(callee) || args.any(fn(a) node-uses-get-args(a))
+    Let(_, _, init, body) -> node-uses-get-args(init) || node-uses-get-args(body)
+    VarDecl(_, _, init, body) -> node-uses-get-args(init) || node-uses-get-args(body)
+    Assign(_, value)      -> node-uses-get-args(value)
+    Fun(_, body)          -> node-uses-get-args(body)
+    Binary(_, lhs, rhs)   -> node-uses-get-args(lhs) || node-uses-get-args(rhs)
+    Unary(_, operand)     -> node-uses-get-args(operand)
+    If(c, t, e)           -> node-uses-get-args(c) || node-uses-get-args(t) || node-uses-get-args(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-get-args(s))
+    Match(scrut, arms)    -> node-uses-get-args(scrut) || arms.any(fn(a) node-uses-get-args(a.body) || a.guard.map(node-uses-get-args).default(False))
+    Repeat(count, body)   -> node-uses-get-args(count) || node-uses-get-args(body)
+    ForIn(_, s, e, body)  -> node-uses-get-args(s) || node-uses-get-args(e) || node-uses-get-args(body)
+    ForEach(_, coll, body) -> node-uses-get-args(coll) || node-uses-get-args(body)
+    While(cond, body)      -> node-uses-get-args(cond) || node-uses-get-args(body)
+    Loop(body)             -> node-uses-get-args(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-get-args(p))
+    LetTuple(_, init, body) -> node-uses-get-args(init) || node-uses-get-args(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-get-args(a))
+    _                     -> False
+
+// Check whether the program uses get_env — needs `hica-get-env` C helper.
+fun program-uses-get-env( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-get-env(d.body))
+
+fun node-uses-get-env( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-get-env = match callee.expr
         Var("get_env")  -> True
         _               -> False
-      is-env-fn || node-uses-env(callee) || args.any(fn(a) node-uses-env(a))
-    Let(_, _, init, body) -> node-uses-env(init) || node-uses-env(body)
-    VarDecl(_, _, init, body) -> node-uses-env(init) || node-uses-env(body)
-    Assign(_, value)      -> node-uses-env(value)
-    Fun(_, body)          -> node-uses-env(body)
-    Binary(_, lhs, rhs)   -> node-uses-env(lhs) || node-uses-env(rhs)
-    Unary(_, operand)     -> node-uses-env(operand)
-    If(c, t, e)           -> node-uses-env(c) || node-uses-env(t) || node-uses-env(e)
-    Block(stmts)          -> stmts.any(fn(s) node-uses-env(s))
-    Match(scrut, arms)    -> node-uses-env(scrut) || arms.any(fn(a) node-uses-env(a.body) || a.guard.map(node-uses-env).default(False))
-    Repeat(count, body)   -> node-uses-env(count) || node-uses-env(body)
-    ForIn(_, s, e, body)  -> node-uses-env(s) || node-uses-env(e) || node-uses-env(body)
-    ForEach(_, coll, body) -> node-uses-env(coll) || node-uses-env(body)
-    While(cond, body)      -> node-uses-env(cond) || node-uses-env(body)
-    Loop(body)             -> node-uses-env(body)
-    StringInterp(parts)   -> parts.any(fn(p) node-uses-env(p))
-    LetTuple(_, init, body) -> node-uses-env(init) || node-uses-env(body)
-    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-env(a))
+      is-get-env || node-uses-get-env(callee) || args.any(fn(a) node-uses-get-env(a))
+    Let(_, _, init, body) -> node-uses-get-env(init) || node-uses-get-env(body)
+    VarDecl(_, _, init, body) -> node-uses-get-env(init) || node-uses-get-env(body)
+    Assign(_, value)      -> node-uses-get-env(value)
+    Fun(_, body)          -> node-uses-get-env(body)
+    Binary(_, lhs, rhs)   -> node-uses-get-env(lhs) || node-uses-get-env(rhs)
+    Unary(_, operand)     -> node-uses-get-env(operand)
+    If(c, t, e)           -> node-uses-get-env(c) || node-uses-get-env(t) || node-uses-get-env(e)
+    Block(stmts)          -> stmts.any(fn(s) node-uses-get-env(s))
+    Match(scrut, arms)    -> node-uses-get-env(scrut) || arms.any(fn(a) node-uses-get-env(a.body) || a.guard.map(node-uses-get-env).default(False))
+    Repeat(count, body)   -> node-uses-get-env(count) || node-uses-get-env(body)
+    ForIn(_, s, e, body)  -> node-uses-get-env(s) || node-uses-get-env(e) || node-uses-get-env(body)
+    ForEach(_, coll, body) -> node-uses-get-env(coll) || node-uses-get-env(body)
+    While(cond, body)      -> node-uses-get-env(cond) || node-uses-get-env(body)
+    Loop(body)             -> node-uses-get-env(body)
+    StringInterp(parts)   -> parts.any(fn(p) node-uses-get-env(p))
+    LetTuple(_, init, body) -> node-uses-get-env(init) || node-uses-get-env(body)
+    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-get-env(a))
     _                     -> False
+
+// Legacy alias used in emit-program and emit-test-program env-import detection.
+fun program-uses-env( p : program ) : div bool
+  program-uses-get-args(p)
 
 // Check whether the program uses file I/O functions (read_file, write_file)
 // that require `import std/os/file` and `import std/os/path`.
@@ -1496,6 +1530,19 @@ val assert-helper-code : string =
 val exit-helper-code : string =
   "extern hica-exit( code : int ) : a\n" ++
   "  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n" ++
+  "\n"
+
+// Emitted when the program calls get_env — bypasses Koka's lazy environ cache.
+val get-env-helper-code : string =
+  "extern hica-getenv-exists( key : string ) : io bool\n" ++
+  "  c inline \"getenv(kk_string_cbuf_borrow(#1,NULL,kk_context())) != NULL\"\n" ++
+  "\n" ++
+  "extern hica-getenv-raw( key : string ) : io string\n" ++
+  "  c inline \"kk_string_alloc_from_qutf8n((kk_ssize_t)strlen(getenv(kk_string_cbuf_borrow(#1,NULL,kk_context()))), getenv(kk_string_cbuf_borrow(#1,NULL,kk_context())), kk_context())\"\n" ++
+  "\n" ++
+  "fun hica-get-env( key : string ) : io maybe<string>\n" ++
+  "  if hica-getenv-exists(key) then Just(hica-getenv-raw(key))\n" ++
+  "  else Nothing\n" ++
   "\n"
 
 val set-env-helper-code : string =
@@ -1772,6 +1819,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
+  val get-env-helper = if program-uses-get-env(p) then get-env-helper-code else ""
   val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
@@ -1804,6 +1852,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   time-import ++
   hica-imports ++
   exit-extern ++
+  get-env-helper ++
   set-env-helper ++
   break-effect ++
   cont-effect ++

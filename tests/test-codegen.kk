@@ -1407,18 +1407,18 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => get_args()")
       assert/is-true(code.contains("import std/os/env"))
 
-    dtest("get_env emits get-env-value")
+    dtest("get_env emits hica-get-env")
       val code = emit-typed-program("fun main() => get_env(\"HOME\")")
-      assert/is-true(code.contains("get-env-value"))
+      assert/is-true(code.contains("hica-get-env"))
 
     dtest("get_env type-checks as maybe<string>")
       val ds = check-diagnostics("fun main() => get_env(\"HOME\")")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
-    dtest("get_env imports std/os/env")
+    dtest("get_env does not import std/os/env")
       val code = emit-typed-program("fun main() => get_env(\"HOME\")")
-      assert/is-true(code.contains("import std/os/env"))
+      assert/is-true(!code.contains("import std/os/env"))
 
     dtest("eprintln emits trace")
       val code = emit-typed-program("fun main() => eprintln(\"oops\")")

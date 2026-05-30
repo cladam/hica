@@ -8,7 +8,7 @@ title: Standard Library - hica
 Hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -25,6 +25,7 @@ Hica's standard library has two layers:
 |----------|-----------|-------------|
 | `get_args()` | `() -> list<string>` | Command-line arguments (excluding the program name) |
 | `get_env(key)` | `(string) -> maybe<string>` | Look up an environment variable; returns `Some(value)` or `None` |
+| `set_env(key, value)` | `(string, string) -> ()` | Set an environment variable (overwrites existing) |
 | `exit(code)` | `(int) -> ()` | Exit the process with the given exit code |
 
 ### Environment Helpers (`std/env`, `import "std/env"` required)
@@ -46,6 +47,38 @@ fun main() {
     Some(p) => println("port: {p}"),
     None => println("port not set")
   }
+}
+```
+
+### .env File Support (`std/dotenv`, `import "std/dotenv"` required)
+
+Reads `.env` files and loads key=value pairs into the process environment.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `dotenv_load(path)` | `(string) -> ()` | Load a `.env` file; skip vars already set in environment |
+| `dotenv_load_override(path)` | `(string) -> ()` | Load a `.env` file; overwrite existing environment variables |
+| `dotenv_parse(content)` | `(string) -> list<(string, string)>` | Parse `.env` format string into key/value pairs |
+| `dotenv_apply(pairs)` | `(list<(string, string)>) -> ()` | Set env vars from a list; skip already-set keys |
+| `dotenv_apply_override(pairs)` | `(list<(string, string)>) -> ()` | Set env vars from a list; overwrite existing keys |
+
+Supported `.env` format:
+- `KEY=value` — plain value
+- `KEY="quoted value"` — double-quoted (quotes stripped)
+- `KEY='single quoted'` — single-quoted (quotes stripped)
+- `export KEY=value` — optional `export` prefix
+- `# comment` — lines starting with `#` are ignored
+
+```hica
+import "std/dotenv"
+import "std/env"
+
+fun main() {
+  dotenv_load(".env")             // load .env; don't overwrite existing vars
+  let db = env_or("DB_URL", "sqlite://dev.db")
+  let port = env_or("PORT", "3000")
+  println("DB: {db}")
+  println("PORT: {port}")
 }
 ```
 
