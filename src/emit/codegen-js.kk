@@ -148,6 +148,8 @@ pub fun js-runtime-preamble() : string
   "function show_fixed(f, prec) { return f.toFixed(prec); }\n" ++
   "\n// I/O (Node.js only — no-op in browser)\n" ++
   "function get_args() { return typeof process !== 'undefined' ? process.argv.slice(2) : []; }\n" ++
+  "function get_env(key) { return typeof process !== 'undefined' && process.env[key] !== undefined ? process.env[key] : null; }\n" ++
+  "function set_env(key, value) { if (typeof process !== 'undefined') process.env[key] = value; }\n" ++
   "function read_file(path) { try { const fs = require('fs'); return fs.readFileSync(path, 'utf8'); } catch(e) { return null; } }\n" ++
   "function read_lines(path) { const s = read_file(path); return s !== null ? s.split('\\n') : []; }\n" ++
   "function write_file(path, content) { try { const fs = require('fs'); fs.writeFileSync(path, content); return {__tag:'Ok',value:null}; } catch(e) { return {__tag:'Err',value:e.message}; } }\n" ++

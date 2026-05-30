@@ -241,6 +241,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val exit-helper = if program-uses-exit(p) then exit-helper-code else ""
+  val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
   val assert-helper = assert-helper-code
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
@@ -266,6 +267,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   try-maybe-effect ++
   sort-helper ++
   exit-helper ++
+  set-env-helper ++
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
@@ -285,7 +287,9 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     // ndet effect
     "random", "random_float",
     // sys/env effect
-    "get_args", "get_env", "env_require", "env_or", "env_int",
+    "get_args", "get_env", "set_env", "set_env_nooverwrite", "env_require", "env_or", "env_int",
+    // dotenv effect (read file + set env)
+    "dotenv_load", "dotenv_load_override", "dotenv_apply", "dotenv_apply_override",
     // fsys effect
     "read_file", "write_file", "read_lines", "write_lines",
     // exec effect
@@ -541,6 +545,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "get-args()"
         (Var("get_env"), [key]) ->
           "get-env-value(" ++ emit-expr(key, declared) ++ ")"
+        (Var("set_env"), [key, value]) ->
+          "hica-set-env(" ++ emit-expr(key, declared) ++ ", " ++ emit-expr(value, declared) ++ ")"
+        (Var("set_env_nooverwrite"), [key, value]) ->
+          "hica-set-env-nooverwrite(" ++ emit-expr(key, declared) ++ ", " ++ emit-expr(value, declared) ++ ")"
         (Var("exit"), [code]) ->
           "hica-exit(" ++ emit-expr(code, declared) ++ ")"
         (Var("eprintln"), [arg]) ->
@@ -1490,6 +1498,14 @@ val exit-helper-code : string =
   "  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n" ++
   "\n"
 
+val set-env-helper-code : string =
+  "extern hica-set-env( name : string, value : string ) : io ()\n" ++
+  "  c inline \"setenv(kk_string_cbuf_borrow(#1,NULL,kk_context()), kk_string_cbuf_borrow(#2,NULL,kk_context()), 1)\"\n" ++
+  "\n" ++
+  "extern hica-set-env-nooverwrite( name : string, value : string ) : io ()\n" ++
+  "  c inline \"setenv(kk_string_cbuf_borrow(#1,NULL,kk_context()), kk_string_cbuf_borrow(#2,NULL,kk_context()), 0)\"\n" ++
+  "\n"
+
 // Check whether the program uses exit() — needs the C extern helper.
 fun program-uses-exit( p : program ) : div bool
   p.decls.any(fn(d) node-uses-exit(d.body))
@@ -1519,6 +1535,37 @@ fun node-uses-exit( n : node ) : div bool
     LetTuple(_, init, body) -> node-uses-exit(init) || node-uses-exit(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-exit(a))
     _                     -> False
+
+// Check whether the program uses set_env — needs the C extern helper.
+fun program-uses-set-env( p : program ) : div bool
+  p.decls.any(fn(d) node-uses-set-env(d.body))
+
+fun node-uses-set-env( n : node ) : div bool
+  match n.expr
+    Call(callee, args) ->
+      val is-set-env-fn = match callee.expr
+        Var("set_env") -> True
+        Var("set_env_nooverwrite") -> True
+        _              -> False
+      is-set-env-fn || node-uses-set-env(callee) || args.any(fn(a) node-uses-set-env(a))
+    Let(_, _, init, body)      -> node-uses-set-env(init) || node-uses-set-env(body)
+    VarDecl(_, _, init, body)  -> node-uses-set-env(init) || node-uses-set-env(body)
+    Assign(_, value)           -> node-uses-set-env(value)
+    Fun(_, body)               -> node-uses-set-env(body)
+    Binary(_, lhs, rhs)        -> node-uses-set-env(lhs) || node-uses-set-env(rhs)
+    Unary(_, operand)          -> node-uses-set-env(operand)
+    If(c, t, e)                -> node-uses-set-env(c) || node-uses-set-env(t) || node-uses-set-env(e)
+    Block(stmts)               -> stmts.any(fn(s) node-uses-set-env(s))
+    Match(scrut, arms)         -> node-uses-set-env(scrut) || arms.any(fn(a) node-uses-set-env(a.body) || a.guard.map(node-uses-set-env).default(False))
+    Repeat(count, body)        -> node-uses-set-env(count) || node-uses-set-env(body)
+    ForIn(_, s, e, body)       -> node-uses-set-env(s) || node-uses-set-env(e) || node-uses-set-env(body)
+    ForEach(_, coll, body)     -> node-uses-set-env(coll) || node-uses-set-env(body)
+    While(cond, body)          -> node-uses-set-env(cond) || node-uses-set-env(body)
+    Loop(body)                 -> node-uses-set-env(body)
+    StringInterp(parts)        -> parts.any(fn(p) node-uses-set-env(p))
+    LetTuple(_, init, body)    -> node-uses-set-env(init) || node-uses-set-env(body)
+    EConstructor(_, cargs)     -> cargs.any(fn(a) node-uses-set-env(a))
+    _                          -> False
 
 val sort-helper-code : string =
   "fun hc-merge-with( xs, ys, cmp )\n" ++
@@ -1725,6 +1772,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
+  val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
     val pub-str = if imp.is-pub then "pub " else ""
@@ -1756,6 +1804,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   time-import ++
   hica-imports ++
   exit-extern ++
+  set-env-helper ++
   break-effect ++
   cont-effect ++
   try-result-effect ++

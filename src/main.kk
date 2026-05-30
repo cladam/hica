@@ -1611,7 +1611,7 @@ fun print-usage()
 // Known effectful function → effect name mapping.
 val console-fns = ["println", "eprintln"]
 val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
-val io-fns      = ["input", "get_args", "get_env"]
+val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwrite"]
 val ndet-fns    = ["random"]
 
 fun discover-effects( prog : program ) : div list<string>

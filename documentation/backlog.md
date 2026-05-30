@@ -343,7 +343,7 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 | **uuid** | **—** | Low | UUID v4 generation. Single function: `uuid()` → `string`. Needs `ndet` effect |
 | **semver** | **—** | Low | Semantic version parsing and comparison. `parse_semver(s)`, `semver_cmp(a, b)`, `satisfies(version, range)`. hica-semver already exists as a prototype |
 | **glob** | **done** | Medium | File glob pattern matching. `glob_match(pattern, path)`, `glob_files(pattern)`. Inspired by `glob` crate. Useful for file-processing CLI tools. `examples/glob-test.hc` already exists |
-| **env** (dotenv) | **—** | Low | Read `.env` files and merge into environment. `dotenv_load(path)`, `dotenv_parse(str) : map`. Complements the prelude's `get_env`/`env_or` helpers — those read live env vars, this reads the file. `python-dotenv` is #41 on PyPI (567M/month) |
+| **env** (dotenv) | **done** | Low | Read `.env` files and merge into environment. `set_env(key, val)` primitive in prelude. `std/dotenv`: `dotenv_load(path)`, `dotenv_load_override(path)`, `dotenv_parse(str)`, `dotenv_apply(pairs)`, `dotenv_apply_override(pairs)`. `export KEY=val` and quoted values supported. Complements `get_env`/`env_or` from `std/env`. `python-dotenv` is #41 on PyPI (567M/month) |
 | **datetime** (v2) | **—** | Medium | Promote `prelude/datetime.hc` to a full library. Add `to_unix`, `from_unix`, timezone support via Koka `std/time`. `python-dateutil` (#13, 1.05B/month) and `pytz` (#55, 489M/month) both in Python top 60 — datetime arithmetic is a genuine pain point |
 | **compress** | **—** | High | Gzip/deflate compression. `gzip(data)`, `gunzip(data)`. Inspired by `flate2` crate. Would need `--cclib=z` |
 
