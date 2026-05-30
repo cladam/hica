@@ -308,7 +308,7 @@ Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, et
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
 | **json** | **—** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel. **#1 priority** — every HTTP API response is JSON |
-| **csv** | **—** | Low | RFC 4180 CSV parser and writer. `csv_parse(str) : list<list<string>>`, `csv_rows(str, header) : list<map>`, `csv_emit(rows) : string`. Pure hica, no deps. Python's pandas (#33, 669M/month) is the downstream signal — the underlying need is reading tabular data |
+| **csv** | **done** | Low | RFC 4180 CSV parser and serializer. `CsvTable` type with named column access, filtering, mapping, and round-trip serialization. Custom delimiters (TSV, semicolon), optional header rows, quoted fields, doubled-quote escaping. [github.com/cladam/csv](https://github.com/cladam/csv) v1.0.0 |
 | **xml** | **—** | High | XML parsing. Less common but still needed for configs, feeds, legacy APIs |
 
 ### Text Processing

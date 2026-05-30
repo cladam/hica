@@ -103,6 +103,43 @@ fun main() {
 }
 ```
 
+#### csv
+
+An RFC 4180 CSV parser and serializer for hica. Parses comma-separated and delimiter-separated text into typed `CsvTable` values with named column access, filtering, mapping, and round-trip serialization. Supports quoted fields, embedded delimiters, doubled-quote escaping, custom delimiters (TSV, semicolon), optional header rows, and `\n`/`\r\n`/`\r` line endings.
+
+- **Repository**: [github.com/cladam/csv](https://github.com/cladam/csv)
+- **Version**: v1.0.0
+- **Install**: `git submodule add https://github.com/cladam/csv.git lib/csv`
+- **Import**: `import "./lib/csv/src/csv"`
+
+```hica
+import "./lib/csv/src/csv"
+
+fun main() {
+  let input = "name,age,city\nKalle,30,Copenhagenk\nLisa,25,Stockholm"
+  let t = csv_parse(input)
+
+  println(csv_pretty(t))
+  // name  | age | city    
+  // ------+-----+---------
+  // Kalle | 30  | Copenhagen
+  // Lisa  | 25  | Stockholm  
+
+  match csv_get_by_name(t, 1, "city") {
+    Some(v) => println(v),   // Stockholm
+    None => println("not found")
+  }
+
+  // Tab-separated, no header
+  let opts = CsvOptions { delimiter: "\t", has_header: false, quote_char: "\"" }
+  let tsv = csv_parse_opts("1\thello\n2\tworld", opts)
+  println(csv_show(tsv))  // [csv: 2 rows x 2 cols]
+
+  // Round-trip
+  println(csv_to_csv(t))
+}
+```
+
 ### Networking
 
 #### http
