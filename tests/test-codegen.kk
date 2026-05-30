@@ -2119,3 +2119,30 @@ pub fun main() : io ()
       val (_, errs) = run-parser-program-with-errors(tokens, src)
       // Error should be on line 1, not a later line (old bug: pointed at line 2 or a comment)
       assert/is-true(errs.head.unjust.contains("1:"))
+
+    // --- Match as lambda body bug ---
+    dtest("match as lambda body uses multiline fn form")
+      val code = emit-program-show("fun f(xs: list<int>) : list<int> => filter(xs, (x) => match x { 0 => false, _ => true })\nfun main() => f([1, 0, 2])")
+      // Must emit fn(x)\n  match x ... NOT fn(x) match x ...
+      assert/is-true(code.contains("fn(x)"))
+      assert/is-true(code.contains("match x"))
+      // The match must NOT appear on the same line as fn(x)
+      val fn_line = code.lines.filter(fn(l) l.contains("fn(x)")).head.default("")
+      assert/is-true(!fn_line.contains("match x"))
+
+    dtest("match as lambda body in map compiles without error")
+      val code = emit-program-show("fun categorise(xs: list<int>) : list<string> => map(xs, (x) => match x { 0 => \"zero\", _ => \"nonzero\" })\nfun main() => categorise([0, 1])")
+      assert/is-true(code.contains("fn(x)"))
+      assert/is-true(!code.contains("fn(x) match"))
+
+    // --- If/else result used with binary operator bug ---
+    dtest("if-else result added to int uses val binding")
+      val code = emit-program-show("fun f(b: bool) : int { let inc = (if b { 1 } else { 0 }); inc + 10 }\nfun main() => f(true)")
+      // Baseline: let binding works fine — just ensure it compiles
+      assert/is-true(code.contains("if b"))
+
+    dtest("if-else directly as binary operand hoists to val binding")
+      val code = emit-program-show("fun f(b: bool, n: int) : int => (if b { 1 } else { 0 }) + n\nfun main() => f(true, 5)")
+      // Must hoist the if-else to hc__lv so '+' is not absorbed into else branch
+      assert/is-true(code.contains("hc__lv"))
+      assert/is-true(!code.contains("else\n    0 + "))

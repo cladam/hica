@@ -423,7 +423,22 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             (Add, Just(TString))  -> "++"
             (Add, Just(TList(_))) -> "++"
             _                     -> emit-binop(op)
-          "(" ++ emit-expr(l, declared) ++ " " ++ op-str ++ " " ++ emit-expr(r, declared) ++ ")"
+          val l-code = emit-expr(l, declared)
+          val r-code = emit-expr(r, declared)
+          // Hoist if/else operands to a val binding so the operator isn't
+          // absorbed into the else branch by Koka's layout rules.
+          val l-is-if = match l.expr
+            If(_, _, _) -> True
+            _           -> False
+          val r-is-if = match r.expr
+            If(_, _, _) -> True
+            _           -> False
+          if l-is-if then
+            "val hc__lv = " ++ l-code ++ "\n(hc__lv " ++ op-str ++ " " ++ r-code ++ ")"
+          else if r-is-if then
+            "val hc__rv = " ++ r-code ++ "\n(" ++ l-code ++ " " ++ op-str ++ " hc__rv)"
+          else
+            "(" ++ l-code ++ " " ++ op-str ++ " " ++ r-code ++ ")"
     Unary(Neg, o) ->
       // Use 0.0 for float operands — `(0 - 1.0)` is int - float64 which Koka rejects.
       val zero = match o.typ
@@ -1122,10 +1137,12 @@ fun is-multiline( e : expr ) : bool
     Let(_, _, _, _)     -> True
     VarDecl(_, _, _, _) -> True
     LetTuple(_, _, _)   -> True
+    Match(_, _)         -> True
     Block(Cons(s, Nil)) -> match s.expr
       Let(_, _, _, _)     -> True
       VarDecl(_, _, _, _) -> True
       LetTuple(_, _, _)   -> True
+      Match(_, _)         -> True
       _                   -> False
     Block(stmts)        -> stmts.length > 1
     _                   -> False

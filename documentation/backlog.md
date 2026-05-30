@@ -425,6 +425,14 @@ Issues that exist today but are not yet fixed:
   different parameter name` at the correct position. Added
   `run-parser-program-with-errors` to the parser for testability. 5 regression
   tests added.
+- **~~`match` as the body of a lambda argument causes a codegen error~~** — Fixed.
+  `Match` is now included in `is-multiline`, so a lambda with a `match` body always
+  uses the `fn(x)\n  match x ...` form. Koka's parser sees a valid layout-block body.
+  2 regression tests added. Discovered by the CSV library team.
+- **~~`+` operator absorbed into `if/else` else branch when expression is parenthesised~~** —
+  Fixed. `Binary` codegen now detects when either operand is an `If` node and hoists
+  it to a `val hc__lv` / `val hc__rv` binding, so the operator is never on the same
+  layout line as the else branch. 2 regression tests added. Discovered by the CSV library team.
 
 
 ---
