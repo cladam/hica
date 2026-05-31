@@ -26,6 +26,11 @@
       <h3 class="nav-category-title">Learn</h3>
       <ul>
         <li>
+          <a href="{{ '/hica-for-kids/' | relative_url }}" {% if page.url contains "hica-for-kids" %}class="active"{% endif %}>
+            Hica for Kids
+          </a>
+        </li>
+        <li>
           <a href="{{ '/docs/hica-for-beginners' | relative_url }}" {% if page.url == "/docs/hica-for-beginners/" %}class="active"{% endif %}>
             Hica for Beginners
           </a>
