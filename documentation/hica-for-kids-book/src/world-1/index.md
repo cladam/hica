@@ -1,3 +1,5 @@
+<img src="../images/hica-mascot-world1.png" alt="World 1 mascot" class="mascot" />
+
 ## 🏕️ World 1: The Training Grounds
 
 > Welcome, adventurer! Every great coder starts here. In this world you'll

@@ -28,7 +28,7 @@
         <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../theme/custom-0c288815.css">
+        <link rel="stylesheet" href="../theme/custom-6d8a09fe.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "../searchindex-5224b389.js";
+            window.path_to_searchindex_js = "../searchindex-483247d6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-3796dec3.js"></script>
+        <script src="../toc-2275f13e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -179,8 +179,11 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="level-34-dates--times-what-day-is-it"><a class="header" href="#level-34-dates--times-what-day-is-it">Level 34. Dates &amp; Times: What Day Is It?</a></h1>
-<p>Hica has built-in functions for working with dates and times. They use
-<strong>strings</strong> that look like this:</p>
+<p>Hica has functions for working with dates and times in the <code>std/datetime</code> library.
+You need to import it at the top of your program:</p>
+<pre><code class="language-hica">import "std/datetime"
+</code></pre>
+<p>They use <strong>strings</strong> that look like this:</p>
 <ul>
 <li>A <strong>date</strong>: <code>"2026-05-15"</code>. Year, month, day, separated by dashes</li>
 <li>A <strong>time</strong>: <code>"07:32:00"</code>. Hours, minutes, seconds, separated by colons</li>
@@ -189,21 +192,27 @@
 <p>Think of it like writing a date on a letter. You write it in a standard
 format so everyone can read it.</p>
 <h3 id="is-this-date-real"><a class="header" href="#is-this-date-real">Is this date real?</a></h3>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   println(is_valid_date("2024-05-15"))   // true
   println(is_valid_date("2024-02-30"))   // false — February doesn't have 30 days!
   println(is_valid_date("2024-13-01"))   // false — there's no month 13
 }
 </code></pre>
 <p>Hica knows about <strong>leap years</strong> too:</p>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   println(is_valid_date("2024-02-29"))   // true  — 2024 is a leap year
   println(is_valid_date("2023-02-29"))   // false — 2023 is not
 }
 </code></pre>
 <h3 id="what-kind-of-date-is-this"><a class="header" href="#what-kind-of-date-is-this">What kind of date is this?</a></h3>
 <p>The <code>datetime_kind</code> function tells you what you’re looking at:</p>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   println(datetime_kind("2024-05-15"))                // "local-date"
   println(datetime_kind("07:32:00"))                   // "local-time"
   println(datetime_kind("2024-05-15T07:32:00"))        // "local-datetime"
@@ -213,7 +222,9 @@ format so everyone can read it.</p>
 </code></pre>
 <h3 id="breaking-a-date-apart"><a class="header" href="#breaking-a-date-apart">Breaking a date apart</a></h3>
 <p>You can split a date into its pieces. Year, month, and day:</p>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   match date_parts("2026-05-15") {
     Ok(d) =&gt; println("Year: {d.0}, Month: {d.1}, Day: {d.2}"),
     Err(e) =&gt; println(e)
@@ -221,13 +232,17 @@ format so everyone can read it.</p>
 }
 </code></pre>
 <h3 id="which-comes-first"><a class="header" href="#which-comes-first">Which comes first?</a></h3>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   println(is_before("2024-01-01", "2024-12-31"))   // true
   println(is_before("2024-12-31", "2024-01-01"))   // false
 }
 </code></pre>
 <h3 id="what-day-of-the-week"><a class="header" href="#what-day-of-the-week">What day of the week?</a></h3>
-<pre><code class="language-hica">fun main() {
+<pre><code class="language-hica">import "std/datetime"
+
+fun main() {
   match day_of_week("2026-05-15") {
     Ok(d) =&gt; println("Today is " + d),   // "Today is friday"
     Err(e) =&gt; println(e)

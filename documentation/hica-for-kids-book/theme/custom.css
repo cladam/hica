@@ -186,3 +186,13 @@ pre .clip-button:hover {
 .playground-close:hover {
     opacity: 1;
 }
+
+/* --- Mascot images --- */
+.content img.mascot,
+.content video.mascot,
+.mascot {
+    display: block;
+    margin: 1.5rem auto 2rem;
+    width: 300px !important;
+    max-width: 100% !important;
+}

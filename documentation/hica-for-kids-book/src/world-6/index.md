@@ -1,3 +1,5 @@
+<img src="../images/hica-mascot-world6.png" alt="World 6 mascot" class="mascot" />
+
 ## 🌍 World 6: Real-World Quests
 
 > Time to use everything you've learned on real missions! Ask the user

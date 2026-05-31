@@ -28,7 +28,7 @@
         <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="theme/custom-0c288815.css">
+        <link rel="stylesheet" href="theme/custom-6d8a09fe.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "searchindex-5224b389.js";
+            window.path_to_searchindex_js = "searchindex-483247d6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-3796dec3.js"></script>
+        <script src="toc-2275f13e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -230,14 +230,14 @@
 <tr><td><code>show_fixed(v, n)</code></td><td>Format a float with exactly n decimal places — <code>show_fixed(3.14159, 2)</code> gives <code>"3.14"</code></td></tr>
 <tr><td><code>parse_int(s)</code></td><td>Try to turn a string into an integer — returns <code>Some(n)</code> or <code>None</code></td></tr>
 <tr><td><code>parse_float(s)</code></td><td>Try to turn a string into a float — returns <code>Some(n)</code> or <code>None</code></td></tr>
-<tr><td><code>is_valid_date(s)</code></td><td>Check if a string is a real date like <code>"2024-05-15"</code></td></tr>
-<tr><td><code>is_valid_time(s)</code></td><td>Check if a string is a real time like <code>"07:32:00"</code></td></tr>
-<tr><td><code>datetime_kind(s)</code></td><td>Tell you what kind of datetime a string is</td></tr>
-<tr><td><code>date_parts(s)</code></td><td>Break a date into year, month, day</td></tr>
-<tr><td><code>time_parts(s)</code></td><td>Break a time into hour, minute, second</td></tr>
-<tr><td><code>is_before(d1, d2)</code></td><td>True if the first date/time comes before the second</td></tr>
-<tr><td><code>day_of_week(s)</code></td><td>What day of the week is this date? Returns <code>"monday"</code> etc.</td></tr>
-<tr><td><code>offset_to_minutes(s)</code></td><td>Convert a timezone offset to minutes — <code>"+02:00"</code> gives <code>120</code></td></tr>
+<tr><td><code>is_valid_date(s)</code></td><td>Check if a string is a real date like <code>"2024-05-15"</code> — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>is_valid_time(s)</code></td><td>Check if a string is a real time like <code>"07:32:00"</code> — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>datetime_kind(s)</code></td><td>Tell you what kind of datetime a string is — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>date_parts(s)</code></td><td>Break a date into year, month, day — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>time_parts(s)</code></td><td>Break a time into hour, minute, second — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>is_before(d1, d2)</code></td><td>True if the first date/time comes before the second — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>day_of_week(s)</code></td><td>What day of the week is this date? Returns <code>"monday"</code> etc. — needs <code>import "std/datetime"</code></td></tr>
+<tr><td><code>offset_to_minutes(s)</code></td><td>Convert a timezone offset to minutes — <code>"+02:00"</code> gives <code>120</code> — needs <code>import "std/datetime"</code></td></tr>
 <tr><td><code>is_digit(c)</code></td><td>True if <code>c</code> is a digit (<code>0</code>–<code>9</code>)</td></tr>
 <tr><td><code>is_alpha(c)</code></td><td>True if <code>c</code> is a letter (<code>a</code>–<code>z</code> or <code>A</code>–<code>Z</code>)</td></tr>
 <tr><td><code>is_upper(c)</code></td><td>True if <code>c</code> is an uppercase letter</td></tr>

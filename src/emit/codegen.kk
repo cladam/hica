@@ -299,7 +299,9 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     // time effect
     "now_unix", "now_iso", "unix_to_iso",
     // exit effect
-    "exit"
+    "exit",
+    // rawterm effect
+    "read_key", "term_cols", "term_rows", "flush_stdout"
   ]
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann
@@ -431,20 +433,23 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             _                     -> emit-binop(op)
           val l-code = emit-expr(l, declared)
           val r-code = emit-expr(r, declared)
-          // Hoist if/else operands to a val binding so the operator isn't
-          // absorbed into the else branch by Koka's layout rules.
-          val l-is-if = match l.expr
-            If(_, _, _) -> True
-            _           -> False
-          val r-is-if = match r.expr
-            If(_, _, _) -> True
-            _           -> False
-          if l-is-if then
-            "val hc__lv = " ++ l-code ++ "\n(hc__lv " ++ op-str ++ " " ++ r-code ++ ")"
-          else if r-is-if then
-            "val hc__rv = " ++ r-code ++ "\n(" ++ l-code ++ " " ++ op-str ++ " hc__rv)"
+          // Hoist multiline operands to a val binding inside an IIFE so the
+          // operator and closing ) are never appended to the last line of a
+          // multi-line expression (trailing lambda, if-then-else, etc.).
+          if l-code.contains("\n") then
+            "(fn()\n" ++ indent-all("val hc__lv = " ++ l-code ++ "\nhc__lv " ++ op-str ++ " " ++ r-code) ++ "\n)()"
+          else if r-code.contains("\n") then
+            "(fn()\n" ++ indent-all("val hc__rv = " ++ r-code ++ "\n" ++ l-code ++ " " ++ op-str ++ " hc__rv") ++ "\n)()"
           else
-            "(" ++ l-code ++ " " ++ op-str ++ " " ++ r-code ++ ")"
+            // Koka does not allow `if` as a direct binary operand without parens.
+            // Parenthesize any If sub-expression that would appear inline.
+            val l-safe = match l.expr
+              If(_, _, _) -> "(" ++ l-code ++ ")"
+              _           -> l-code
+            val r-safe = match r.expr
+              If(_, _, _) -> "(" ++ r-code ++ ")"
+              _           -> r-code
+            "(" ++ l-safe ++ " " ++ op-str ++ " " ++ r-safe ++ ")"
     Unary(Neg, o) ->
       // Use 0.0 for float operands — `(0 - 1.0)` is int - float64 which Koka rejects.
       val zero = match o.typ
@@ -1148,6 +1153,11 @@ fun is-multiline( e : expr ) : bool
     VarDecl(_, _, _, _) -> True
     LetTuple(_, _, _)   -> True
     Match(_, _)         -> True
+    // If-then-else is always treated as multiline: Koka emits the then/else branches
+    // on separate indented lines, so a trailing `)` from a surrounding call would
+    // be stuck to the last line of the else branch, breaking layout parsing.
+    // Using trailing lambda syntax avoids this entirely.
+    If(_, _, _)         -> True
     Block(Cons(s, Nil)) -> match s.expr
       Let(_, _, _, _)     -> True
       VarDecl(_, _, _, _) -> True
@@ -1166,7 +1176,10 @@ fun is-fun-multiline( e : expr ) : bool
 // Emit an if-branch as an indented block.
 fun emit-branch( n : node, declared : list<string> ) : div string
   match n.expr
-    Block(stmts) -> stmts.map(fn(s) indent-all(emit-stmt(s, declared))).join("\n")
+    Block(stmts) ->
+      val code = stmts.map(fn(s) indent-all(emit-stmt(s, declared))).join("\n")
+      // Empty block must still emit a valid expression in Koka
+      if code.is-empty then "  ()" else code
     _            -> indent-all(emit-stmt(n, declared))
 
 fun program-has-float( p : program ) : div bool
@@ -1790,7 +1803,9 @@ fun program-has-try-maybe( p : program ) : div bool
 // beyond the loop into subsequent statements.
 fun wrap-break-handler( body : node, loop-code : string ) : div string
   if body-has-break(body) then
-    "val _ =\n" ++ indent-all("with handler\n  ctl hica-break() -> ()\n" ++ loop-code)
+    // Use an IIFE to scope the handler and produce an expression (not a val binding).
+    // This avoids "last statement must be expression" when the loop is the last item in a block.
+    "(fn()\n" ++ indent-all("with handler\n  ctl hica-break() -> ()\n" ++ loop-code) ++ "\n)()"
   else
     loop-code
 

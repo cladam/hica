@@ -22,6 +22,7 @@ import syntax/ast
 // checker.kk `env/lookup`).
 pub fun extern-env() : type-env
   [ ("println", TFun([TVar("_a")], TUnit)),
+    ("print",   TFun([TVar("_a")], TUnit)),
     ("show",    TFun([TVar("_a")], TString)),
     ("map",     TFun([TList(TVar("_a")), TFun([TVar("_a")], TVar("_b"))], TList(TVar("_b")))),
     ("filter",  TFun([TList(TVar("_a")), TFun([TVar("_a")], TBool)], TList(TVar("_a")))),
@@ -64,6 +65,12 @@ pub fun extern-env() : type-env
     ("set_env_nooverwrite", TFun([TString, TString], TUnit)),
     ("eprintln",    TFun([TVar("_a")], TUnit)),
     ("exit",        TFun([TInt], TUnit)),
+
+    // Raw terminal I/O — backed by term_raw.kk C FFI
+    ("read_key",     TFun([], TInt)),
+    ("term_cols",    TFun([], TInt)),
+    ("term_rows",    TFun([], TInt)),
+    ("flush_stdout", TFun([], TUnit)),
 
     // User input
     ("input",       TFun([TString], TString)),

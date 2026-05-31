@@ -61,7 +61,7 @@ Create a file called `hello.hc` and run it:
 hica run hello.hc
 ```
 
-That's all. No project setup, no config files. One file, one command.
+That's all. One file and one command.
 
 ### Try it interactively
 
