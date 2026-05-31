@@ -333,7 +333,7 @@ Koka has no companion config format; you would reach for JSON or YAML and write 
 - You are teaching programming to students
 - You want type safety and immutability without a steep learning curve
 - You are building applications where you do not need custom effects
-- You want a Rust-like syntax with automatic memory management
+- You want a familiar, curly-brace syntax with automatic memory management
 
 **Use Koka when:**
 

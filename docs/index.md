@@ -5,13 +5,13 @@ title: Introduction - hica
 
 # Introduction
 
-**hica** is an expression-oriented programming language designed to feel approachable without giving up type safety or performance.
+**hica** is a safe, expression-oriented, functional-flavored language with a gentle learning curve.
 
-It is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka’s algebraic effect system and Perceus memory management.
+It is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka's algebraic effect system and Perceus memory management.
 
 ## Why hica?
 
-Most programming languages force you to choose: easy to learn **or** safe and fast. hica shifts the trade-off boundary; global type inference gives you the low-friction syntax of a dynamic language, while the Koka backend compiles to native C11 for systems-level performance.
+Most languages make you choose: easy to learn **or** safe and correct. hica shifts that trade-off. Global type inference gives you the low-friction feel of a dynamic language, while static types, immutability by default, and `Result`/`Maybe` types mean errors are caught at compile time rather than discovered at runtime.
 
 - **Familiar syntax**: if you've seen Rust, TypeScript, or C#, hica feels natural. Curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 - **Everything is an expression**: `if`, `match`, and blocks compose naturally because they return values.

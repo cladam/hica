@@ -1,11 +1,11 @@
 ---
 layout: default
-title: hica — A Modern Systems Language
+title: hica — A safe, expression-oriented language
 ---
 
 # What is hica?
 
-**hica** is a high-performance, expression-oriented programming language built in [Koka](https://koka-lang.github.io/) that also transpiles to Koka. It blends Rust-like syntax and safety with a pragmatic, approachable design, powered by Koka's algebraic effect system and Perceus reference counting.
+**hica** is a safe, expression-oriented, functional-flavored language with a gentle learning curve. It is built in [Koka](https://koka-lang.github.io/) and transpiles to Koka, powered by Koka's algebraic effect system and Perceus reference counting.
 
 Because the target is Koka itself, hica programs can be compiled onward to **C**, **JavaScript**, or **WASM**.
 
@@ -13,10 +13,12 @@ Because the target is Koka itself, hica programs can be compiled onward to **C**
 
 ## Design Goals
 
+- **Safe by default** — no null, no unhandled exceptions; errors are values (`Result`, `Maybe`).
 - **Expression-oriented** — everything returns a value: `if`, `match`, and blocks are all expressions.
-- **Effect tracking** — side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
-- **No garbage collector** — memory safety via Koka's Perceus reference counting, inherited from the Koka target.
-- **Strong inference** — Hindley-Milner type inference with row polymorphism; type annotations are rarely required but fully supported.
+- **Functional-flavored** — immutability by default, higher-order functions, and pattern matching at the core.
+- **Gentle learning curve** — Hindley-Milner type inference means you rarely write annotations; the language gets out of your way.
+- **Effect tracking** — side effects (I/O, state, exceptions) are tracked by the type system, not buried in function bodies.
+- **No garbage collector** — memory safety via Koka's Perceus reference counting, with no GC pauses.
 - **Familiar syntax** — curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 
 ## A Quick Taste
