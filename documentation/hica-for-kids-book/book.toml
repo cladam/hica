@@ -1,7 +1,7 @@
 [book]
 title = "Hica for Kids"
 authors = ["Claes Adamsson"]
-description = "Learn programming with Hica — the language with the magic arrow"
+description = "Learn programming with Hica – the language with the magic arrow"
 language = "en"
 src = "src"
 

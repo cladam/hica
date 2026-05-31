@@ -1,4 +1,4 @@
-# 🚀 Hica for Kids: The Language with the Magic Arrow
+# Hica for Kids: The Language with the Magic Arrow `=>`
 
 <img src="images/hica-mascot.png" alt="Hica mascot" class="mascot" />
 

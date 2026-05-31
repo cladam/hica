@@ -29,7 +29,7 @@ Every item in a list must be the same type. You can't mix numbers and strings:
 ```hica
 [1, 2, 3]          // ✅ all ints
 ["a", "b", "c"]    // ✅ all strings
-[1, "hello"]        // ❌ type error!
+[1, "hello"]       // ❌ type error!
 ```
 
 This is different from tuples, which *can* hold different types.
@@ -132,7 +132,7 @@ first. For most programs it doesn't matter, but if speed is important,
 The nicest way to walk through a list is with a `for` loop:
 
 ```hica
-let names = ["Alice", "Bob", "Carol"]
+let names = ["Kalle", "Lisa", "Olle"]
 for name in names {
   println("Hi, {name}!")
 }
@@ -140,9 +140,9 @@ for name in names {
 
 This prints:
 ```
-Hi, Alice!
-Hi, Bob!
-Hi, Carol!
+Hi, Kalle!
+Hi, Lisa!
+Hi, Olle!
 ```
 
 You can also use the function form: `foreach(names, (name) => println(name))`

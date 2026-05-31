@@ -1,6 +1,6 @@
 <img src="../images/hica-mascot-world3.png" alt="World 3 mascot" class="mascot" />
 
-## ⏳ World 3: Time Loops & Word Magic
+## World 3: Time Loops & Word Magic
 
 > Loops let you repeat things without writing the same code over and over.
 > Strings let you build messages and talk to the world. And the magic pipe

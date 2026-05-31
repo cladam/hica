@@ -8,7 +8,7 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="Learn programming with Hica — the language with the magic arrow">
+        <meta name="description" content="Learn programming with Hica – the language with the magic arrow">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "../searchindex-483247d6.js";
+            window.path_to_searchindex_js = "../searchindex-068794fc.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-2275f13e.js"></script>
+        <script src="../toc-ca8ade93.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -195,7 +195,7 @@ let words = ["hello", "hej", "hola"]
 <p>Every item in a list must be the same type. You can’t mix numbers and strings:</p>
 <pre><code class="language-hica">[1, 2, 3]          // ✅ all ints
 ["a", "b", "c"]    // ✅ all strings
-[1, "hello"]        // ❌ type error!
+[1, "hello"]       // ❌ type error!
 </code></pre>
 <p>This is different from tuples, which <em>can</em> hold different types.</p>
 <h3 id="lists-vs-tuples-whats-the-difference"><a class="header" href="#lists-vs-tuples-whats-the-difference">Lists vs Tuples: what’s the difference?</a></h3>
@@ -265,15 +265,15 @@ first. For most programs it doesn’t matter, but if speed is important,
 <code>cons</code> is the way to go!</p>
 <p><strong><code>for x in list</code>. Do something with each item</strong></p>
 <p>The nicest way to walk through a list is with a <code>for</code> loop:</p>
-<pre><code class="language-hica">let names = ["Alice", "Bob", "Carol"]
+<pre><code class="language-hica">let names = ["Kalle", "Lisa", "Olle"]
 for name in names {
   println("Hi, {name}!")
 }
 </code></pre>
 <p>This prints:</p>
-<pre><code>Hi, Alice!
-Hi, Bob!
-Hi, Carol!
+<pre><code>Hi, Kalle!
+Hi, Lisa!
+Hi, Olle!
 </code></pre>
 <p>You can also use the function form: <code>foreach(names, (name) =&gt; println(name))</code></p>
 <p><code>for x in list</code> is like walking down the row of boxes and doing something at each

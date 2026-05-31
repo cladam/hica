@@ -1,6 +1,6 @@
 <img src="../images/hica-mascot-world5.png" alt="World 5 mascot" class="mascot" />
 
-## 🧙 World 5: Wizard Level Coding
+## World 5: Wizard Level Coding
 
 > You've made it to Wizard Level! Here you'll master the most powerful
 > spells in programming: recursion (the Russian doll trick), closures

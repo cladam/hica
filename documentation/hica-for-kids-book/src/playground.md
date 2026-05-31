@@ -1,6 +1,6 @@
 # Playground
 
-Write and run Hica code directly in your browser. No installation needed!
+Write and run hica code directly in your browser. No installation needed!
 
 <iframe
   src="https://cladam.github.io/hica/playground/"

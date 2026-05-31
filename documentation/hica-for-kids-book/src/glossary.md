@@ -111,4 +111,4 @@
 | Perceus | The smart memory cleaner — no garbage collector needed |
 
 
-*Happy coding! 🎮*
+*Happy coding!*
