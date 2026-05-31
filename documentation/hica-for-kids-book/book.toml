@@ -10,11 +10,10 @@ build-dir = "book"
 
 [output.html]
 default-theme = "light"
-preferred-dark-theme = "ayu"
 git-repository-url = "https://github.com/cladam/hica"
 site-url = "/hica/hica-for-kids/"
 additional-css = ["theme/custom.css"]
-additional-js = ["theme/playground-buttons.js"]
+additional-js = ["theme/playground-buttons.js", "theme/highlight-hica.js"]
 
 [output.html.search]
 enable = true

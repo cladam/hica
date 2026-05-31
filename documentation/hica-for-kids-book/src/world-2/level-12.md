@@ -27,9 +27,9 @@ Add `if` after the pattern to create a **guard**:
 
 ```hica
 fun classify(n) => match n {
-  x if x < 0   => "negative",
+  x if x < 0    => "negative",
   0             => "zero",
-  x if x > 100 => "big",
+  x if x > 100  => "big",
   _             => "small positive"
 }
 

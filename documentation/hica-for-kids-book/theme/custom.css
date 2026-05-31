@@ -2,6 +2,12 @@
    hica for Kids — mdBook theme matching the main GH Pages site
    ========================================================= */
 
+/* --- Force light theme only: hide the theme toggle button --- */
+#theme-toggle,
+#theme-list {
+    display: none !important;
+}
+
 /* --- Fonts (same as main site) --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Fira+Code:wght@400;500;700&display=swap');
 
@@ -185,6 +191,13 @@ pre .clip-button:hover {
 }
 .playground-close:hover {
     opacity: 1;
+}
+
+/* --- Syntax highlighting: functions in blue --- */
+.hljs-function,
+.hljs-title.function,
+.hljs-title.function\.invoke {
+    color: #2563eb;
 }
 
 /* --- Mascot images --- */
