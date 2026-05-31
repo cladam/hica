@@ -83,6 +83,8 @@ hljs.registerLanguage('hica', function (hljs) {
       { className: 'number',   begin: /\b0[bB][01_]+/ },
       { className: 'number',   begin: /\b[0-9][0-9_]*\.[0-9][0-9_]*/ },
       { className: 'number',   begin: /\b[0-9][0-9_]*/ },
+      // Pipe-passed function: 4 |> add_one |> double — identifier after |> without parens
+      { className: 'function', begin: /(?<=\|>\s*)[a-z_][a-zA-Z0-9_]*/ },
       { className: 'operator', begin: /\|>|=>|->|\.\.\.?|==|!=|<=|>=|&&|\|\||[?]/ },
       { className: 'operator', begin: /[+\-*\/%<>!|]/ },
       { className: 'type',     begin: /\b[A-Z][a-zA-Z0-9_]*/ },
