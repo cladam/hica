@@ -92,7 +92,7 @@ make release
 
 ### Expression-bodied functions
 
-```hica
+```rust
 fun double(x) => x * 2
 
 fun main() {
@@ -103,7 +103,7 @@ fun main() {
 
 ### If / else-if chains
 
-```hica
+```rust
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }
@@ -113,7 +113,7 @@ fun fizzbuzz(n) =>
 
 ### Match expressions
 
-```hica
+```rust
 fun describe(x) => match x {
   0 => "zero",
   1 => "one",
@@ -123,7 +123,7 @@ fun describe(x) => match x {
 
 ### Lambdas
 
-```hica
+```rust
 fun apply(f, x) => f(x)
 
 fun main() {
@@ -134,7 +134,7 @@ fun main() {
 
 ### Type annotations
 
-```hica
+```rust
 fun add(a: int, b: int) : int => a + b
 
 fun main() {
@@ -145,7 +145,7 @@ fun main() {
 
 ### Maybe and Result types
 
-```hica
+```rust
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -201,4 +201,4 @@ Commands:
 
 ## Licence
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0 – see [LICENSE](LICENSE).
