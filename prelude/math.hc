@@ -24,3 +24,6 @@ fun pow(base, exp) => if exp <= 0 { 1 } else { base * pow(base, exp - 1) }
 
 // Sign function: returns -1, 0, or 1
 fun sign(n) => if n > 0 { 1 } else if n < 0 { -1 } else { 0 }
+
+// Integer square root (floor of the real square root)
+fun isqrt(n: int) : int => floor(sqrt(to_float(n)))
