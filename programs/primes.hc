@@ -3,9 +3,11 @@
 // Checks whether numbers are prime and prints primes in a range.
 // Uses trial division up to the integer square root for efficiency.
 //
-// Showcases: recursion, isqrt from math prelude.
+// Showcases: recursion, isqrt from math prelude, range_inc + filter from std/list.
 //
 // Usage: hica run programs/primes.hc
+
+import "std/list"
 
 fun has_divisor(n: int, d: int) : bool =>
   if d > isqrt(n) { false }
@@ -19,9 +21,7 @@ fun is_prime(n: int) : bool =>
   else { has_divisor(n, 3) == false }
 
 fun primes_in_range(lo: int, hi: int) : list<int> =>
-  if lo > hi { [] }
-  else if is_prime(lo) { [lo] + primes_in_range(lo + 1, hi) }
-  else { primes_in_range(lo + 1, hi) }
+  filter(range_inc(lo, hi), is_prime)
 
 fun main() {
   let line = input("Find primes up to: ")
