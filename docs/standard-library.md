@@ -193,6 +193,8 @@ Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
+| `range(lo, hi)` | `(int, int) -> list<int>` | Integers from `lo` up to (not including) `hi` — Python-style half-open range |
+| `range_inc(lo, hi)` | `(int, int) -> list<int>` | Integers from `lo` to `hi` inclusive |
 | `sum(xs)` | `(list<int>) -> int` | Sum all elements |
 | `product(xs)` | `(list<int>) -> int` | Multiply all elements |
 | `unique(xs)` | `(list<int>) -> list<int>` | Remove duplicates (keeps first occurrence) |
@@ -210,6 +212,8 @@ Written in hica itself:
 
 ```hica
 fun main() {
+  println(range(0, 5))                      // [0, 1, 2, 3, 4]
+  println(range_inc(1, 5))                   // [1, 2, 3, 4, 5]
   println(sum([1, 2, 3, 4, 5]))           // 15
   println(sort_by([3, 1, 4], (a, b) => a <= b))  // [1, 3, 4]
   println(unique([1, 2, 3, 2, 1]))        // [1, 2, 3]
@@ -367,6 +371,7 @@ Always available with no import needed. Written in hica itself:
 | `lcm(a, b)` | `(int, int) -> int` | Least common multiple |
 | `pow(base, exp)` | `(int, int) -> int` | Integer exponentiation |
 | `sign(n)` | `(int) -> int` | Returns -1, 0, or 1 |
+| `isqrt(n)` | `(int) -> int` | Integer square root — floor of √n |
 
 ## Float Math
 
@@ -387,6 +392,8 @@ fun main() {
   println(to_float(42))   // 42.0
   println(pow(2, 10))     // 1024
   println(lcm(12, 18))    // 36
+  println(isqrt(25))      // 5
+  println(isqrt(26))      // 5
 }
 ```
 
