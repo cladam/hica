@@ -2143,6 +2143,7 @@ pub fun main() : io ()
 
     dtest("if-else directly as binary operand hoists to val binding")
       val code = emit-program-show("fun f(b: bool, n: int) : int => (if b { 1 } else { 0 }) + n\nfun main() => f(true, 5)")
-      // Must hoist the if-else to hc__lv so '+' is not absorbed into else branch
-      assert/is-true(code.contains("hc__lv"))
+      // if-else as binary operand is parenthesized so '+' is not absorbed into else branch
+      // New strategy: emit ((if b then 1 else 0) + n) with explicit parens around the if
+      assert/is-true(code.contains("(if b then 1 else 0)"))
       assert/is-true(!code.contains("else\n    0 + "))
