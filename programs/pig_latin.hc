@@ -11,7 +11,7 @@
 // Usage: hica run programs/pig_latin.hc
 
 fun is_vowel(c: string) : bool =>
-  contains("aeiouAEIOU", c)
+  contains("aeiouåäöAEIOUÅÄÖ", c)
 
 fun consonant_prefix_len(chars: list<string>) : int =>
   match chars {

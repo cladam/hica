@@ -371,7 +371,7 @@ Always available with no import needed. Written in hica itself:
 | `lcm(a, b)` | `(int, int) -> int` | Least common multiple |
 | `pow(base, exp)` | `(int, int) -> int` | Integer exponentiation |
 | `sign(n)` | `(int) -> int` | Returns -1, 0, or 1 |
-| `isqrt(n)` | `(int) -> int` | Integer square root — floor of √n |
+| `isqrt(n)` | `(int) -> int` | Integer square root, floor of √n |
 
 ## Float Math
 
