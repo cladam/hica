@@ -9,21 +9,6 @@
 //
 // Usage: hica run programs/robber_language.hc
 
-//function translateToRobber(text) {
-//  var consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'z'];
-//  var result = '';
-//
-//  for (i = 0; i < text.length; ++i) {
-//    let char = text[i];
-//    result += char;
-//
-//    if (consonants.includes(char.toLowerCase())) {
-//      result += 'o' + char.toLowerCase();
-//    }
-//  }
-//  return result;
-//}
-
 fun is_consonant(c: string) : bool =>
   contains("bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ", c)
 
@@ -39,7 +24,7 @@ fun robber_language(text: string) : string =>
   join(map(words(text), robber_word), " ")
 
 fun main() {
-  println("Robber Language Translator – Rövarspråket")
+  println("Robber Language Translator - Rövarspråket")
   println("------------------------------------------")
   let line = input("Enter your message: ")
   let msg = trim(line)
