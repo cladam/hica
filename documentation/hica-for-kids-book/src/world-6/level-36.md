@@ -33,8 +33,6 @@ fun main() {
 
 > We pass a one-character string and check if it appears inside the vowel list.
 
----
-
 ## Step 2: How Many Consonants at the Start?
 
 Next, we count how many consonants are at the *beginning* of the word.
@@ -56,8 +54,6 @@ Read it like this:
 - Otherwise? Count this consonant, then check the rest.
 
 For `"string"`, the letters are `["s","t","r","i","n","g"]`. It counts `s`, `t`, `r`, then hits `i` (a vowel) and stops. Result: **3**.
-
----
 
 ## Step 3: Translate One Word
 
