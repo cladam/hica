@@ -3,7 +3,7 @@
 | Reason | What it means |
 | --- | --- |
 | **Easy to read** | Hica code looks almost like plain English |
-| **No boilerplate** | No more `public static void main(String[] args)` — just `fun main()` |
+| **No boilerplate** | No more `public static void main(String[] args)`, just `fun main()` |
 | **Fast programs** | Your code becomes a real executable, not just a script |
 | **Smart memory** | Hica uses a trick called **Perceus** to clean up after itself — no garbage collector slowdowns |
 | **Everything is an expression** | `if`, `match`, and blocks all give back values |
