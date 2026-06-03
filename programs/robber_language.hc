@@ -25,7 +25,7 @@ fun robber_language(text: string) : string =>
 
 fun main() {
   println("Robber Language Translator - Rövarspråket")
-  println("------------------------------------------")
+  println("-----------------------------------------")
   let line = input("Enter your message: ")
   let msg = trim(line)
   if str_length(msg) == 0 {

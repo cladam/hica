@@ -24,6 +24,7 @@ documentation/building-sml-in-hica.md
 documentation/library-wishlist.md
 
 .koka/
+.hica/
 .DS_Store
 
 # hica binary

@@ -45,6 +45,7 @@
   - [Level 33. Sharing Code Between Files](world-6/level-33.md)
   - [Level 34. Dates & Times: What Day Is It?](world-6/level-34.md)
   - [Level 35. Pattern Matching with Globs: The Treasure Map](world-6/level-35.md)
+  - [Level 36. Pig Latin: A Secret Language](world-6/level-36.md)
 
 # Reference
 
