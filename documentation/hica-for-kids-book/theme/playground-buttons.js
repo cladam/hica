@@ -2,7 +2,13 @@
 (function () {
   var PLAYGROUND_URL = "https://cladam.github.io/hica/playground/";
 
+  // Pages where input() is used — playground JS bundle doesn't support it
+  var NO_PLAYGROUND_PAGES = ["level-36"];
+
   function addPlaygroundButtons() {
+    var path = window.location.pathname;
+    if (NO_PLAYGROUND_PAGES.some(function (p) { return path.indexOf(p) !== -1; })) return;
+
     var codeBlocks = document.querySelectorAll("code.language-hica");
 
     codeBlocks.forEach(function (codeEl) {
