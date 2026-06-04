@@ -281,7 +281,7 @@ fun cmd-build( file : string, target : string = "koka", output : maybe<string> =
   if target == "js" then
     build-js(file)
   else
-    val (extra-includes, koka-flags) = read-manifest-koka()
+    val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)
     val dep-includes = resolve-dep-includes()
     val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output, generate=generate)
     ()
@@ -329,7 +329,7 @@ fun build-js( file : string )
     println("compiled " ++ file ++ " -> " ++ out-js.show ++ " (js)")
 
 fun cmd-run( file : string, user-args : list<string>, generate : bool = False )
-  val (extra-includes, koka-flags) = read-manifest-koka()
+  val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)
   val dep-includes = resolve-dep-includes()
   val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, generate=generate)
   if ok then
@@ -383,7 +383,7 @@ fun cmd-fmt( file : string, check-only : bool )
       println("fmt: " ++ file ++ " — formatted")
 
 fun cmd-test( file : string )
-  val (extra-includes, koka-flags) = read-manifest-koka()
+  val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)
   val dep-includes = resolve-dep-includes()
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
@@ -1550,18 +1550,46 @@ fun read-manifest-description() : <fsys,exn,div> (string, string, string, string
     (summary, author, homepage, repository)
   else ("", "", "", "")
 
-// Read @koka block from hica.hml: include dirs and extra flags
-fun read-manifest-koka() : <fsys,exn,div> (list<string>, string)
-  if is-file(manifest-name.path) then
-    val content = read-text-file(manifest-name.path)
+// Read @koka block from hica.hml: include dirs and extra flags.
+// Searches `dir` first (the source file's directory), then CWD.
+// Paths in include: and -L flags are resolved relative to the manifest's own directory.
+fun read-manifest-koka( dir : string = "." ) : <fsys,exn,div> (list<string>, string)
+  val candidate  = dir ++ "/" ++ manifest-name
+  val has-local  = is-file(candidate.path)
+  val has-cwd    = is-file(manifest-name.path)
+  if has-local || has-cwd then
+    val manifest-path = if has-local then candidate else manifest-name
+    val manifest-dir  = if has-local then dir else "."
+    val content = read-text-file(manifest-path.path)
     val includes = match hml-field(content, "koka", "include")
       Just(s) -> s.split(";").map(fn(p) p.trim).filter(fn(p) !p.is-empty)
+                .map(fn(p) if p.starts-with("/").bool then p else manifest-dir ++ "/" ++ p)
       Nothing -> []
     val flags = match hml-field(content, "koka", "flags")
-      Just(s) -> s
+      Just(s) -> resolve-flags-paths(s, manifest-dir)
       Nothing -> ""
     (includes, flags)
-  else ([], "")
+  else
+    ([], "")
+
+// Resolve relative -L / --cclibdir paths in the raw koka flags string
+// relative to the manifest's directory so that `hica run path/to/file.hc`
+// from the repo root finds the same libraries as `hica build file.hc` from
+// the file's own directory.
+fun resolve-flags-paths( flags : string, mdir : string ) : string
+  if mdir == "." || mdir.is-empty then flags
+  else
+    flags.split(" ").filter(fn(t) !t.is-empty).map(fn(tok)
+      val pfx-l = "--cclinkopts=-L"
+      val pfx-d = "--cclibdir="
+      if tok.starts-with(pfx-l).bool then
+        val p = tok.slice.sslice/drop(pfx-l.count).string
+        if p.starts-with("/").bool then tok else pfx-l ++ mdir ++ "/" ++ p
+      elif tok.starts-with(pfx-d).bool then
+        val p = tok.slice.sslice/drop(pfx-d.count).string
+        if p.starts-with("/").bool then tok else pfx-d ++ mdir ++ "/" ++ p
+      else tok
+    ).join(" ")
 
 fun hml-field( content : string, element : string, key : string ) : div maybe<string>
   // Parse "key: value" within @element { ... } blocks in hica.hml
