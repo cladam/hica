@@ -14,6 +14,7 @@
  */
 
 #include "imgui_glue.h"
+#include "inter_font.h"   /* Inter-Regular — embedded via xxd -i */
 
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -122,6 +123,99 @@ static char* text_state(const char* label, int capacity) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Ilseon theme — OLED-focused dark palette, Inter font
+ *
+ * Palette values taken from stdlib/std/term.hc ilseon_* functions.
+ * -------------------------------------------------------------------------*/
+
+static void hk_apply_ilseon_theme() {
+    ImGuiStyle& s = ImGui::GetStyle();
+    ImVec4* c = s.Colors;
+
+    // --- Palette ---
+    const ImVec4 teal       = ImVec4(0.000f, 0.749f, 0.647f, 1.00f); // #00BFA5 TealAccent
+    const ImVec4 teal_hover = ImVec4(0.200f, 0.820f, 0.730f, 1.00f); // brightened
+    const ImVec4 teal_med   = ImVec4(0.000f, 0.749f, 0.647f, 0.60f);
+    const ImVec4 teal_dim   = ImVec4(0.000f, 0.749f, 0.647f, 0.28f);
+    const ImVec4 text_main  = ImVec4(0.910f, 0.910f, 0.925f, 1.00f); // #E8E8EC
+    const ImVec4 text_muted = ImVec4(0.533f, 0.533f, 0.533f, 1.00f); // #888888 MutedDetail
+    const ImVec4 border     = ImVec4(0.369f, 0.427f, 0.494f, 0.38f); // #5E6D7E SlateBlue
+    const ImVec4 bg_deep    = ImVec4(0.047f, 0.047f, 0.063f, 1.00f); // #0C0C10 OLED black
+    const ImVec4 bg_base    = ImVec4(0.071f, 0.071f, 0.090f, 1.00f); // #121217
+    const ImVec4 bg_frame   = ImVec4(0.110f, 0.110f, 0.141f, 1.00f); // #1C1C24
+    const ImVec4 bg_hover   = ImVec4(0.150f, 0.150f, 0.188f, 1.00f);
+    const ImVec4 bg_popup   = ImVec4(0.102f, 0.102f, 0.125f, 0.97f); // #1A1A20
+    const ImVec4 none       = ImVec4(0.000f, 0.000f, 0.000f, 0.00f);
+
+    c[ImGuiCol_Text]                  = text_main;
+    c[ImGuiCol_TextDisabled]          = text_muted;
+    c[ImGuiCol_WindowBg]              = bg_base;
+    c[ImGuiCol_ChildBg]               = bg_deep;
+    c[ImGuiCol_PopupBg]               = bg_popup;
+    c[ImGuiCol_Border]                = border;
+    c[ImGuiCol_BorderShadow]          = none;
+    c[ImGuiCol_FrameBg]               = bg_frame;
+    c[ImGuiCol_FrameBgHovered]        = bg_hover;
+    c[ImGuiCol_FrameBgActive]         = teal_dim;
+    c[ImGuiCol_TitleBg]               = bg_deep;
+    c[ImGuiCol_TitleBgActive]         = ImVec4(0.000f, 0.380f, 0.330f, 1.0f);
+    c[ImGuiCol_TitleBgCollapsed]      = bg_deep;
+    c[ImGuiCol_MenuBarBg]             = bg_deep;
+    c[ImGuiCol_ScrollbarBg]           = bg_deep;
+    c[ImGuiCol_ScrollbarGrab]         = ImVec4(0.369f, 0.427f, 0.494f, 0.55f);
+    c[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.490f, 0.522f, 0.592f, 0.80f);
+    c[ImGuiCol_ScrollbarGrabActive]   = teal;
+    c[ImGuiCol_CheckMark]             = teal;
+    c[ImGuiCol_SliderGrab]            = teal_med;
+    c[ImGuiCol_SliderGrabActive]      = teal_hover;
+    c[ImGuiCol_Button]                = bg_frame;
+    c[ImGuiCol_ButtonHovered]         = teal_med;
+    c[ImGuiCol_ButtonActive]          = teal;
+    c[ImGuiCol_Header]                = teal_dim;
+    c[ImGuiCol_HeaderHovered]         = teal_med;
+    c[ImGuiCol_HeaderActive]          = teal;
+    c[ImGuiCol_Separator]             = border;
+    c[ImGuiCol_SeparatorHovered]      = teal_med;
+    c[ImGuiCol_SeparatorActive]       = teal;
+    c[ImGuiCol_ResizeGrip]            = teal_dim;
+    c[ImGuiCol_ResizeGripHovered]     = teal_med;
+    c[ImGuiCol_ResizeGripActive]      = teal;
+    c[ImGuiCol_Tab]                   = bg_frame;
+    c[ImGuiCol_TabHovered]            = teal_med;
+    c[ImGuiCol_TabSelected]           = teal_dim;
+    c[ImGuiCol_TabSelectedOverline]   = teal;
+    c[ImGuiCol_TabDimmed]             = bg_deep;
+    c[ImGuiCol_TabDimmedSelected]     = bg_frame;
+    c[ImGuiCol_PlotLines]             = ImVec4(0.353f, 0.608f, 0.502f, 1.0f); // MutedTeal
+    c[ImGuiCol_PlotLinesHovered]      = teal_hover;
+    c[ImGuiCol_PlotHistogram]         = ImVec4(0.753f, 0.541f, 0.243f, 1.0f); // QuietAmber
+    c[ImGuiCol_PlotHistogramHovered]  = ImVec4(0.886f, 0.690f, 0.369f, 1.0f); // Ochre
+    c[ImGuiCol_TableHeaderBg]         = bg_deep;
+    c[ImGuiCol_TableBorderStrong]     = border;
+    c[ImGuiCol_TableBorderLight]      = ImVec4(0.20f, 0.20f, 0.25f, 0.5f);
+    c[ImGuiCol_TableRowBg]            = none;
+    c[ImGuiCol_TableRowBgAlt]         = ImVec4(1.0f, 1.0f, 1.0f, 0.03f);
+    c[ImGuiCol_TextSelectedBg]        = teal_dim;
+    c[ImGuiCol_DragDropTarget]        = teal;
+    c[ImGuiCol_NavHighlight]          = teal;
+    c[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.70f);
+    c[ImGuiCol_NavWindowingDimBg]     = ImVec4(0.0f, 0.0f, 0.0f, 0.20f);
+    c[ImGuiCol_ModalWindowDimBg]      = ImVec4(0.0f, 0.0f, 0.0f, 0.35f);
+
+    // --- Rounding & spacing ---
+    s.WindowRounding    = 6.0f;
+    s.FrameRounding     = 4.0f;
+    s.ScrollbarRounding = 6.0f;
+    s.GrabRounding      = 4.0f;
+    s.TabRounding       = 4.0f;
+    s.WindowPadding     = ImVec2(12.0f, 10.0f);
+    s.FramePadding      = ImVec2(8.0f, 4.0f);
+    s.ItemSpacing       = ImVec2(8.0f, 6.0f);
+    s.WindowBorderSize  = 1.0f;
+    s.FrameBorderSize   = 0.0f;
+}
+
+/* ---------------------------------------------------------------------------
  * Lifecycle
  * -------------------------------------------------------------------------*/
 
@@ -171,7 +265,20 @@ void hk_gui_init(const char* title, int w, int h) {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    ImGui::StyleColorsDark();
+    /* --- Inter font, HiDPI-aware --- */
+    int ww, wh, dw, dh;
+    SDL_GetWindowSize(g_window, &ww, &wh);
+    SDL_GL_GetDrawableSize(g_window, &dw, &dh);
+    float dpi_scale = (ww > 0) ? (float)dw / (float)ww : 1.0f;
+    ImFontConfig font_cfg;
+    font_cfg.FontDataOwnedByAtlas = false;  /* static array — do not free */
+    io.Fonts->AddFontFromMemoryTTF(
+        (void*)Inter_Regular_ttf, (int)Inter_Regular_ttf_len,
+        16.0f * dpi_scale, &font_cfg);
+    io.FontGlobalScale = 1.0f / dpi_scale;  /* render at logical pixels */
+
+    /* --- Ilseon colour theme --- */
+    hk_apply_ilseon_theme();
 
     /* Backends: GLSL version must match the context we requested above */
     ImGui_ImplSDL2_InitForOpenGL(g_window, g_gl_ctx);
@@ -222,7 +329,7 @@ void hk_gui_end_frame(void) {
     ImGuiIO& io = ImGui::GetIO();
     SDL_GL_MakeCurrent(g_window, g_gl_ctx);
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(0.10f, 0.10f, 0.12f, 1.00f);
+    glClearColor(0.047f, 0.047f, 0.063f, 1.00f); /* Ilseon OLED black #0C0C10 */
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(g_window);
