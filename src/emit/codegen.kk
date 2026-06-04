@@ -301,7 +301,13 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     // exit effect
     "exit",
     // rawterm effect
-    "read_key", "term_cols", "term_rows", "flush_stdout"
+    "read_key", "term_cols", "term_rows", "flush_stdout",
+    // gui effect (Dear ImGui backend — lib/imgui)
+    "gui_init", "gui_begin_frame", "gui_end_frame", "gui_shutdown",
+    "gui_window", "gui_text", "gui_button", "gui_checkbox",
+    "gui_slider_int", "gui_slider_float", "gui_input_text",
+    "gui_separator", "gui_same_line", "gui_spacing",
+    "gui_begin_panel", "gui_end_panel"
   ]
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann

@@ -72,6 +72,24 @@ pub fun extern-env() : type-env
     ("term_rows",    TFun([], TInt)),
     ("flush_stdout", TFun([], TUnit)),
 
+    // GUI — backed by lib/imgui (Dear ImGui + SDL2 + OpenGL3)
+    ("gui_init",         TFun([TString, TInt, TInt], TUnit)),
+    ("gui_begin_frame",  TFun([], TBool)),
+    ("gui_end_frame",    TFun([], TUnit)),
+    ("gui_shutdown",     TFun([], TUnit)),
+    ("gui_window",       TFun([TString, TInt, TInt, TFun([], TUnit)], TUnit)),
+    ("gui_text",         TFun([TString], TUnit)),
+    ("gui_button",       TFun([TString], TBool)),
+    ("gui_checkbox",     TFun([TString, TBool], TBool)),
+    ("gui_slider_int",   TFun([TString, TInt, TInt, TInt], TInt)),
+    ("gui_slider_float", TFun([TString, TFloat, TFloat, TFloat], TFloat)),
+    ("gui_input_text",   TFun([TString, TInt], TString)),
+    ("gui_separator",    TFun([], TUnit)),
+    ("gui_same_line",    TFun([], TUnit)),
+    ("gui_spacing",      TFun([], TUnit)),
+    ("gui_begin_panel",  TFun([TString], TBool)),
+    ("gui_end_panel",    TFun([], TUnit)),
+
     // User input
     ("input",       TFun([TString], TString)),
 
