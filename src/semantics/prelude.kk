@@ -72,41 +72,6 @@ pub fun extern-env() : type-env
     ("term_rows",    TFun([], TInt)),
     ("flush_stdout", TFun([], TUnit)),
 
-    // GUI — backed by lib/imgui (Dear ImGui + SDL2 + OpenGL3)
-    ("gui_init",         TFun([TString, TInt, TInt], TUnit)),
-    ("gui_begin_frame",  TFun([], TBool)),
-    ("gui_end_frame",    TFun([], TUnit)),
-    ("gui_shutdown",     TFun([], TUnit)),
-    ("gui_window",       TFun([TString, TInt, TInt, TFun([], TUnit)], TUnit)),
-    // Text
-    ("gui_text",         TFun([TString], TUnit)),
-    ("gui_text_colored", TFun([TString, TFloat, TFloat, TFloat, TFloat], TUnit)),
-    ("gui_text_wrapped", TFun([TString], TUnit)),
-    ("gui_bullet_text",  TFun([TString], TUnit)),
-    // Interactive
-    ("gui_button",       TFun([TString], TBool)),
-    ("gui_checkbox",     TFun([TString, TBool], TBool)),
-    // Sliders
-    ("gui_slider_int",   TFun([TString, TInt, TInt, TInt], TInt)),
-    ("gui_slider_float", TFun([TString, TFloat, TFloat, TFloat], TFloat)),
-    ("gui_drag_int",     TFun([TString, TInt, TInt, TInt, TFloat], TInt)),
-    ("gui_drag_float",   TFun([TString, TFloat, TFloat, TFloat, TFloat], TFloat)),
-    // Input fields
-    ("gui_input_text",   TFun([TString, TInt], TString)),
-    ("gui_input_int",    TFun([TString, TInt], TInt)),
-    ("gui_input_float",  TFun([TString, TFloat], TFloat)),
-    // Layout
-    ("gui_separator",    TFun([], TUnit)),
-    ("gui_same_line",    TFun([], TUnit)),
-    ("gui_new_line",     TFun([], TUnit)),
-    ("gui_spacing",      TFun([], TUnit)),
-    ("gui_dummy",        TFun([TFloat, TFloat], TUnit)),
-    ("gui_indent",       TFun([], TUnit)),
-    ("gui_unindent",     TFun([], TUnit)),
-    // Panels
-    ("gui_begin_panel",  TFun([TString], TBool)),
-    ("gui_end_panel",    TFun([], TUnit)),
-
     // User input
     ("input",       TFun([TString], TString)),
 

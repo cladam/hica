@@ -216,7 +216,7 @@ fun offset-to-line( source : string, offset : int ) : int
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
-pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0 ) : div string
+pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [] ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -273,11 +273,11 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
-  prelude-decls.map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n") ++
+  prelude-decls.map(fn(d) emit-decl(d, declared, rec-names, extra-effectful = extra-effectful)).join("\n\n") ++
   (if !prelude-decls.is-empty && p.decls.length > prelude-count then "\n\n" else "") ++
-  p.decls.drop(prelude-count).map(fn(d) emit-decl(d, declared, rec-names, source)).join("\n\n") ++ "\n"
+  p.decls.drop(prelude-count).map(fn(d) emit-decl(d, declared, rec-names, source, extra-effectful = extra-effectful)).join("\n\n") ++ "\n"
 
-fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> = [], source : string = "" ) : div string
+fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> = [], source : string = "", extra-effectful : list<string> = [] ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
@@ -301,14 +301,8 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     // exit effect
     "exit",
     // rawterm effect
-    "read_key", "term_cols", "term_rows", "flush_stdout",
-    // gui effect (Dear ImGui backend — lib/imgui)
-    "gui_init", "gui_begin_frame", "gui_end_frame", "gui_shutdown",
-    "gui_window", "gui_text", "gui_button", "gui_checkbox",
-    "gui_slider_int", "gui_slider_float", "gui_input_text",
-    "gui_separator", "gui_same_line", "gui_spacing",
-    "gui_begin_panel", "gui_end_panel"
-  ]
+    "read_key", "term_cols", "term_rows", "flush_stdout"
+  ] ++ extra-effectful
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
@@ -1819,7 +1813,7 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // Test program emission: generates a self-contained test runner
 // ---------------------------------------------------------------------------
 
-pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [] ) : div string
+pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [] ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) || tests-have-float(p.tests) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -1854,7 +1848,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   // Emit user functions (excluding main — tests replace main)
   val user-decls = p.decls.filter(fn(d) d.name != "main")
   val rec-names = compute-div-names(p.decls)
-  val decls-code = user-decls.map(fn(d) emit-decl(d, declared, rec-names)).join("\n\n")
+  val decls-code = user-decls.map(fn(d) emit-decl(d, declared, rec-names, extra-effectful = extra-effectful)).join("\n\n")
   val decls-sep = if user-decls.is-empty then "" else "\n\n"
   // Emit each test as a function
   val test-fns = p.tests.map-indexed(fn(i, t) emit-test-fn(i, t, declared)).join("\n\n")

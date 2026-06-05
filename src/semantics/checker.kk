@@ -1143,7 +1143,7 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 // Check an entire program: infer all declarations in order.
 // skip-kw-check: number of leading declarations (prelude + imports) to skip
 // for Koka keyword warnings. These are trusted code, not user-authored.
-pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0 ) : <div,diag,fresh> program
+pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [] ) : <div,diag,fresh> program
   with handler
     fun get-structs() p.structs
   with handler
@@ -1163,7 +1163,8 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   p.decls.drop(skip-kw-check).foreach fn(d)
     check-not-koka-keyword(d.name, d.span)
     d.params.foreach(fn(param) check-not-koka-keyword(param, d.span))
-  val (s1, env1, decls') = infer-decls(extern-env(), empty-subst, p.decls)
+  val base-env = extern-env() ++ extra-extern
+  val (s1, env1, decls') = infer-decls(base-env, empty-subst, p.decls)
   val tests' = infer-tests(env1, s1, p.tests)
   Program(p.structs, types = p.types, decls = decls', tests = tests')
 

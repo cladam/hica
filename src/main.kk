@@ -296,6 +296,7 @@ fun build-js( file : string )
   val prog   = run-parser-program(tokens, source)
   val prelude = load-prelude()
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file])
+  val ext-env = collect-extern-env(prog.imports, dir.path)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -306,7 +307,7 @@ fun build-js( file : string )
   val skip-types = prelude.types.length + imported-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -344,6 +345,7 @@ fun cmd-check( file : string )
   val dir    = file.path.dirname
   val prelude = load-prelude()
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file])
+  val ext-env = collect-extern-env(prog.imports, dir.path)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls)
@@ -353,7 +355,7 @@ fun cmd-check( file : string )
   val skip-types = prelude.types.length + imported-types.length
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -397,6 +399,7 @@ fun cmd-test( file : string )
     // Load prelude and merge
     val prelude = load-prelude()
     val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file])
+    val ext-env = collect-extern-env(prog.imports, dir.path)
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
@@ -409,7 +412,7 @@ fun cmd-test( file : string )
     val skip-types = prelude.types.length + imported-types.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -428,7 +431,7 @@ fun cmd-test( file : string )
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
-      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names)
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path) ++ dep-includes ++ extra-includes
@@ -1258,6 +1261,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     print("  => processing imports...")
     flush-stdout()
     val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file])
+    val ext-env = collect-extern-env(prog.imports, dir.path)
     println(" done")
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
@@ -1273,7 +1277,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     flush-stdout()
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
     println(" done")
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
@@ -1294,7 +1298,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count)
+      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
       write-kk-if-changed(out-kk, koka-code, file)
       print("  => compiling...")
       flush-stdout()
@@ -1318,14 +1322,162 @@ fun import-dirs( imports : list<import-decl>, base-dir : path ) : list<string>
 // ---------------------------------------------------------------------------
 
 // Resolve an import path relative to a directory → absolute .hc file path
+// NOTE: Must use string concatenation before converting to path — same reason as resolve-kk-extern.
 fun resolve-import( imp-path : string, base-dir : path ) : path
-  base-dir / (imp-path ++ ".hc").path
+  (base-dir.string ++ "/" ++ imp-path ++ ".hc").path
+
+// Resolve an extern import path to its .kk file.
+// NOTE: Must use string concatenation before converting to path — Koka's path / path
+// operator normalizes each operand independently, which eliminates leading ".." components
+// before they can traverse into the base-dir. String concat lets the OS normalise together.
+fun resolve-kk-extern( imp-path : string, base-dir : path ) : path
+  if imp-path.starts-with("/").bool then (imp-path ++ ".kk").path
+  else (base-dir.string ++ "/" ++ imp-path ++ ".kk").path
+
+// Parse `pub extern` declarations from a Koka .kk file and return
+// a type-env usable by the hica checker.
+fun parse-kk-extern-env( kk-file : path )
+  if !is-file(kk-file) then []
+  else
+    val content = read-text-file(kk-file)
+    content.lines.foldl([], fn(acc, raw-line)
+      val line = raw-line.trim
+      if !line.starts-with("pub extern ").bool then acc
+      else
+        val rest = line.slice.sslice/drop(11).string.trim   // after "pub extern "
+        val name = rest.split("(").head-or("").trim
+        if name.is-empty then acc
+        else
+          val after-open = match rest.split("(")
+            Cons(_, Cons(s, _)) -> s
+            _ -> ""
+          val params-str = after-open.split(")").head-or("")
+          val param-types = parse-kk-param-types(params-str)
+          val after-close = match after-open.split(")")
+            Cons(_, Cons(s, _)) -> s.trim
+            _ -> ""
+          val ret-str = kk-parse-ret(after-close)
+          val ret-type = kk-type-to-hica(ret-str)
+          Cons((name, TFun(param-types, ret-type)), acc)
+    )
+
+// Resolve return type word from the suffix after ")" e.g. " : io ()" → "()"
+fun kk-parse-ret( after-close : string ) : string
+  val stripped = if after-close.starts-with(":").bool
+    then after-close.slice.sslice/drop(1).string.trim else after-close.trim
+  val words = stripped.split(" ").filter(fn(w) !w.is-empty)
+  match words
+    Cons(w, Cons(r, _)) ->
+      if w == "io" || w == "div" || w == "ndet" || w == "exn" then r else w
+    Cons(w, _) -> w
+    _ -> ""
+
+// Parse a Koka param list "label : string, min : int" → list of hica types.
+// Each unknown type gets a unique TVar so the checker doesn't over-unify.
+fun parse-kk-param-types( params-str : string ) : list<hica-type>
+  if params-str.trim.is-empty then []
+  else
+    val params = params-str.split(",").filter(fn(p) !p.trim.is-empty)
+    val (_, result) = params.foldl((0, []), fn((idx, acc), p)
+      val parts = p.trim.split(":").map(fn(s) s.trim)
+      val type-str = match parts
+        Cons(_, Cons(t, _)) -> t.trim
+        _ -> p.trim   // no colon → treat the whole thing as a type (e.g. "@hica:" style)
+      val tp = if type-str == "fun" || type-str == "any"
+        then TVar("_a" ++ idx.show)
+        else kk-type-to-hica(type-str)
+      (idx + 1, Cons(tp, acc))
+    )
+    result.reverse
+
+// Map a Koka type keyword to a hica-type.
+fun kk-type-to-hica( t : string ) : hica-type
+  match t.trim.split(" ").head-or("")
+    "string"  -> TString
+    "int"     -> TInt
+    "bool"    -> TBool
+    "float64" -> TFloat
+    "()"      -> TUnit
+    _         -> TVar("_a")
+
+fun head-or( xs : list<string>, default : string ) : string
+  match xs
+    Cons(h, _) -> h
+    _ -> default
+
+// Infer which extern function names are effectful (have an `io` effect row)
+// by re-scanning the .kk file for the `io` keyword.
+fun parse-kk-effectful-names( kk-file : path )
+  if !is-file(kk-file) then []
+  else
+    val content = read-text-file(kk-file)
+    content.lines.foldl([], fn(acc, raw-line)
+      val line = raw-line.trim
+      if !line.starts-with("pub extern ").bool then acc
+      else
+        val rest = line.slice.sslice/drop(11).string.trim
+        val name = rest.split("(").head-or("").trim
+        if name.is-empty then acc
+        else
+          val after-open = match rest.split("(")
+            Cons(_, Cons(s, _)) -> s
+            _ -> ""
+          val after-close = match after-open.split(")")
+            Cons(_, Cons(s, _)) -> s.trim
+            _ -> ""
+          val is-io = after-close.starts-with(": io").bool
+          if is-io then Cons(name, acc) else acc
+    )
+
+// Collect extra-effectful names from all extern imports, recursively following regular .hc imports.
+fun collect-extern-effectful-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
+  imp-list.foldl([], fn(acc, imp)
+    if imp.is-extern then
+      val kk-path = resolve-kk-extern(imp.path, base-dir)
+      acc ++ parse-kk-effectful-names(kk-path)
+    elif imp.path.starts-with("std/").bool then acc
+    else
+      val hc-path = resolve-import(imp.path, base-dir)
+      val hc-str  = hc-path.string
+      if visited.any(fn(v) v == hc-str) || !is-file(hc-path) then acc
+      else
+        val sub-source = read-text-file(hc-path)
+        val sub-tokens = lex(sub-source)
+        val sub-prog   = run-parser-program(sub-tokens, sub-source)
+        val sub-dir    = hc-path.dirname.path
+        acc ++ collect-extern-effectful-rec(sub-prog.imports, sub-dir, Cons(hc-str, visited))
+  )
+
+fun collect-extern-effectful( imports : list<import-decl>, base-dir : path )
+  collect-extern-effectful-rec(imports, base-dir, [])
+
+// Collect type-env entries from all extern imports, recursively following regular .hc imports.
+fun collect-extern-env-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
+  imp-list.foldl([], fn(acc, imp)
+    if imp.is-extern then
+      val kk-path = resolve-kk-extern(imp.path, base-dir)
+      acc ++ parse-kk-extern-env(kk-path)
+    elif imp.path.starts-with("std/").bool then acc
+    else
+      val hc-path = resolve-import(imp.path, base-dir)
+      val hc-str  = hc-path.string
+      if visited.any(fn(v) v == hc-str) || !is-file(hc-path) then acc
+      else
+        val sub-source = read-text-file(hc-path)
+        val sub-tokens = lex(sub-source)
+        val sub-prog   = run-parser-program(sub-tokens, sub-source)
+        val sub-dir    = hc-path.dirname.path
+        acc ++ collect-extern-env-rec(sub-prog.imports, sub-dir, Cons(hc-str, visited))
+  )
+
+fun collect-extern-env( imports : list<import-decl>, base-dir : path )
+  collect-extern-env-rec(imports, base-dir, [])
 
 // Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names, generated-kk-paths)
 fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
   imp-list.foldl(([], [], [], [], []), fn(acc, imp)
     val (prev-decls, prev-structs, prev-types, prev-names, prev-kk-paths) = acc
-    // Extern imports pass through to Koka — skip .hc resolution
+    // Extern imports: just record the path for Koka; type info collected separately
     if imp.is-extern then acc
     // Stdlib imports: resolved from embedded sources, extracted to ~/.hica/stdlib
     elif imp.path.starts-with("std/").bool then
@@ -1423,6 +1575,7 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     // Recursively compile this module's imports
     val imp-path-str = imp-file.show
     val (imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited))
+    val ext-env = collect-extern-env(prog.imports, dir.path)
     val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
                          types = prelude.types ++ imp-types ++ prog.types,
                          decls = prelude.decls ++ imp-decls ++ prog.decls,
@@ -1435,7 +1588,7 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     val skip-types = prelude.types.length + imp-types.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     if !errors.is-empty then
       errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
@@ -1451,7 +1604,7 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     val imp-type-count = imp-types.length
     val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
     val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count)
+    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
     // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
     write-kk-if-changed(out-kk, koka-code, imp-file.show)
     Cons(out-kk, sub-kk-paths)
