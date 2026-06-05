@@ -216,7 +216,7 @@ fun offset-to-line( source : string, offset : int ) : int
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
-pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [] ) : div string
+pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -231,6 +231,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
     val pub-str = if imp.is-pub then "pub " else ""
     pub-str ++ "import " ++ koka-mod ++ "\n"
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
+  val extra-kk-imports = extra-imports.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-imports.is-nil then "" else "\n")
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val has-try-r = program-has-try-result(p)
@@ -262,6 +263,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   readline-import ++
   time-import ++
   hica-imports ++
+  extra-kk-imports ++
   break-effect ++
   cont-effect ++
   try-result-effect ++
@@ -1813,7 +1815,7 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // Test program emission: generates a self-contained test runner
 // ---------------------------------------------------------------------------
 
-pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [] ) : div string
+pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
   val float-import = if program-has-float(p) || tests-have-float(p.tests) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -1841,6 +1843,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
     val pub-str = if imp.is-pub then "pub " else ""
     pub-str ++ "import " ++ koka-mod ++ "\n"
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
+  val extra-kk-imports = extra-imports.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-imports.is-nil then "" else "\n")
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
@@ -1866,6 +1869,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   readline-import ++
   time-import ++
   hica-imports ++
+  extra-kk-imports ++
   exit-extern ++
   get-env-helper ++
   set-env-helper ++

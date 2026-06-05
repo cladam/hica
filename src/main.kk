@@ -431,7 +431,7 @@ fun cmd-test( file : string )
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
-      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path), extra-imports = collect-extern-kk-modules(prog.imports, dir.path))
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path) ++ dep-includes ++ extra-includes
@@ -1298,7 +1298,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
+      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path), extra-imports = collect-extern-kk-modules(prog.imports, dir.path))
       write-kk-if-changed(out-kk, koka-code, file)
       print("  => compiling...")
       flush-stdout()
@@ -1473,6 +1473,29 @@ fun collect-extern-env-rec( imp-list : list<import-decl>, base-dir : path, visit
 fun collect-extern-env( imports : list<import-decl>, base-dir : path )
   collect-extern-env-rec(imports, base-dir, [])
 
+// Collect Koka module names for all extern imports (transitively), for injection into
+// the generated .kk header as `import X` statements. Deduplicates by module name.
+fun collect-extern-kk-modules-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
+  imp-list.foldl([], fn(acc, imp)
+    if imp.is-extern then
+      val mod-name-str = safe-module-name(imp.path.path.stemname)
+      if acc.any(fn(m) m == mod-name-str) then acc else Cons(mod-name-str, acc)
+    elif imp.path.starts-with("std/").bool then acc
+    else
+      val hc-path = resolve-import(imp.path, base-dir)
+      val hc-str  = hc-path.string
+      if visited.any(fn(v) v == hc-str) || !is-file(hc-path) then acc
+      else
+        val sub-source = read-text-file(hc-path)
+        val sub-tokens = lex(sub-source)
+        val sub-prog   = run-parser-program(sub-tokens, sub-source)
+        val sub-dir    = hc-path.dirname.path
+        acc ++ collect-extern-kk-modules-rec(sub-prog.imports, sub-dir, Cons(hc-str, visited))
+  )
+
+fun collect-extern-kk-modules( imports : list<import-decl>, base-dir : path )
+  collect-extern-kk-modules-rec(imports, base-dir, [])
+
 // Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names, generated-kk-paths)
 fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string> )
   imp-list.foldl(([], [], [], [], []), fn(acc, imp)
@@ -1604,7 +1627,7 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     val imp-type-count = imp-types.length
     val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
     val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path))
+    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path), extra-imports = collect-extern-kk-modules(prog.imports, dir.path))
     // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
     write-kk-if-changed(out-kk, koka-code, imp-file.show)
     Cons(out-kk, sub-kk-paths)
