@@ -1165,6 +1165,7 @@ fun is-multiline( e : expr ) : bool
       VarDecl(_, _, _, _) -> True
       LetTuple(_, _, _)   -> True
       Match(_, _)         -> True
+      If(_, _, _)         -> True
       _                   -> False
     Block(stmts)        -> stmts.length > 1
     _                   -> False
