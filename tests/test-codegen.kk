@@ -1636,8 +1636,8 @@ pub fun main() : io ()
     // --- input() ---
     dtest("input emits print and readline")
       val code = emit-typed-program("fun main() { let name = input(\"Name: \")\nprintln(name) }")
-      assert/is-true(code.contains("print("))
-      assert/is-true(code.contains("readline()"))
+      assert/is-true(code.contains("hica-readline-prompt("))
+      assert/is-true(code.contains("readline"))
 
     dtest("input imports std/os/readline")
       val code = emit-typed-program("fun main() { let x = input(\"hi\")\nprintln(x) }")
