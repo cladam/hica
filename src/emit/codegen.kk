@@ -225,6 +225,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
+  val readline-helper = if program-uses-input(p) then readline-helper-code else ""
   val time-import = if program-uses-time(p) then "import std/time/chrono\nimport std/time/utc\nimport std/time/time\nimport std/time/format\nimport std/num/ddouble\n\n" else ""
   val hica-imports = p.imports.map(fn(imp)
     val koka-mod = safe-module-name(imp.path.import-basename)
@@ -272,6 +273,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   exit-helper ++
   get-env-helper ++
   set-env-helper ++
+  readline-helper ++
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
@@ -567,9 +569,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 
         // User input
         (Var("input"), [prompt]) ->
-          "{ val _ = print(" ++ emit-expr(prompt, declared) ++ "); readline() }"
-
-        // File I/O
+          "hica-readline-prompt(" ++ emit-expr(prompt, declared) ++ ")"
         (Var("read_file"), [p]) ->
           "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
         (Var("write_file"), [p, content]) ->
@@ -1272,7 +1272,9 @@ fun node-uses-get-args( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-get-args(p))
     LetTuple(_, init, body) -> node-uses-get-args(init) || node-uses-get-args(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-get-args(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-get-args(e))
+    TupleIndex(t, _)        -> node-uses-get-args(t)
+    _                       -> False
 
 // Check whether the program uses get_env — needs `hica-get-env` C helper.
 fun program-uses-get-env( p : program ) : div bool
@@ -1302,7 +1304,9 @@ fun node-uses-get-env( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-get-env(p))
     LetTuple(_, init, body) -> node-uses-get-env(init) || node-uses-get-env(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-get-env(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-get-env(e))
+    TupleIndex(t, _)        -> node-uses-get-env(t)
+    _                       -> False
 
 // Legacy alias used in emit-program and emit-test-program env-import detection.
 fun program-uses-env( p : program ) : div bool
@@ -1338,7 +1342,9 @@ fun node-uses-file-io( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-file-io(p))
     LetTuple(_, init, body) -> node-uses-file-io(init) || node-uses-file-io(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-file-io(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-file-io(e))
+    TupleIndex(t, _)        -> node-uses-file-io(t)
+    _                       -> False
 
 // Check whether the program uses exec/exec_args
 // that require `import std/os/process`.
@@ -1370,7 +1376,9 @@ fun node-uses-exec( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-exec(p))
     LetTuple(_, init, body) -> node-uses-exec(init) || node-uses-exec(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-exec(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-exec(e))
+    TupleIndex(t, _)        -> node-uses-exec(t)
+    _                       -> False
 
 // Check whether the program uses the input() function
 // that requires `import std/os/readline`.
@@ -1402,7 +1410,9 @@ fun node-uses-random( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-random(p))
     LetTuple(_, init, body) -> node-uses-random(init) || node-uses-random(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-random(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-random(e))
+    TupleIndex(t, _)        -> node-uses-random(t)
+    _                       -> False
 
 fun program-uses-bitwise( p : program ) : div bool
   p.decls.any(fn(d) node-uses-bitwise(d.body))
@@ -1436,7 +1446,9 @@ fun node-uses-bitwise( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-bitwise(p))
     LetTuple(_, init, body) -> node-uses-bitwise(init) || node-uses-bitwise(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-bitwise(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-bitwise(e))
+    TupleIndex(t, _)        -> node-uses-bitwise(t)
+    _                       -> False
 
 fun arm-uses-bitwise( a : match-arm ) : div bool
   match a.pattern
@@ -1468,9 +1480,11 @@ fun node-uses-input( n : node ) : div bool
     While(cond, body)      -> node-uses-input(cond) || node-uses-input(body)
     Loop(body)             -> node-uses-input(body)
     StringInterp(parts)   -> parts.any(fn(p) node-uses-input(p))
-    LetTuple(_, init, body) -> node-uses-input(init) || node-uses-input(body)
-    EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-input(a))
-    _                     -> False
+    LetTuple(_, init, body)  -> node-uses-input(init) || node-uses-input(body)
+    EConstructor(_, cargs)   -> cargs.any(fn(a) node-uses-input(a))
+    Tuple(elems)             -> elems.any(fn(e) node-uses-input(e))
+    TupleIndex(t, _)         -> node-uses-input(t)
+    _                        -> False
 
 // ---------------------------------------------------------------------------
 // Sort detection: emit merge-sort helper when sort_by is used
@@ -1503,7 +1517,9 @@ fun node-uses-sort( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-sort(p))
     LetTuple(_, init, body) -> node-uses-sort(init) || node-uses-sort(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-sort(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-sort(e))
+    TupleIndex(t, _)        -> node-uses-sort(t)
+    _                       -> False
 
 // Check whether the program uses system clock functions (now_unix, now_iso, unix_to_iso)
 // that require `import std/time/chrono` etc.
@@ -1536,11 +1552,29 @@ fun node-uses-time( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-time(p))
     LetTuple(_, init, body) -> node-uses-time(init) || node-uses-time(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-time(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-time(e))
+    TupleIndex(t, _)        -> node-uses-time(t)
+    _                       -> False
 
 val assert-helper-code : string =
   "fun hc-assert( b : bool ) : exn ()\n" ++
   "  if !b then throw(\"assertion failed\")\n" ++
+  "\n"
+
+// Emitted when the program uses input() — provides a flushing, EOF-safe stdin reader.
+// Fixes two problems with the naive `print(p); readline()` approach:
+//   1. stdout is buffered on macOS/Darwin: fflush() makes the prompt appear before blocking.
+//   2. readline() throws exn on EOF: the match/try wrapper returns "" instead of crashing.
+val readline-helper-code : string =
+  "extern hica-fflush() : io ()\n" ++
+  "  c inline \"(fflush(stdout),kk_Unit)\"\n" ++
+  "\n" ++
+  "fun hica-readline-prompt(prompt : string) : io string\n" ++
+  "  print(prompt)\n" ++
+  "  hica-fflush()\n" ++
+  "  match try(readline)\n" ++
+  "    Ok(s)    -> s\n" ++
+  "    Error(_) -> \"\"\n" ++
   "\n"
 
 val exit-helper-code : string =
@@ -1597,7 +1631,9 @@ fun node-uses-exit( n : node ) : div bool
     StringInterp(parts)   -> parts.any(fn(p) node-uses-exit(p))
     LetTuple(_, init, body) -> node-uses-exit(init) || node-uses-exit(body)
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-uses-exit(a))
-    _                     -> False
+    Tuple(elems)            -> elems.any(fn(e) node-uses-exit(e))
+    TupleIndex(t, _)        -> node-uses-exit(t)
+    _                       -> False
 
 // Check whether the program uses set_env — needs the C extern helper.
 fun program-uses-set-env( p : program ) : div bool
@@ -1628,6 +1664,8 @@ fun node-uses-set-env( n : node ) : div bool
     StringInterp(parts)        -> parts.any(fn(p) node-uses-set-env(p))
     LetTuple(_, init, body)    -> node-uses-set-env(init) || node-uses-set-env(body)
     EConstructor(_, cargs)     -> cargs.any(fn(a) node-uses-set-env(a))
+    Tuple(elems)               -> elems.any(fn(e) node-uses-set-env(e))
+    TupleIndex(t, _)           -> node-uses-set-env(t)
     _                          -> False
 
 val sort-helper-code : string =
@@ -1825,6 +1863,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
+  val readline-helper = if program-uses-input(p) then readline-helper-code else ""
   val time-import = if program-uses-time(p) then "import std/time/chrono\nimport std/time/utc\nimport std/time/time\nimport std/time/format\nimport std/num/ddouble\n\n" else ""
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
@@ -1879,6 +1918,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   try-result-effect ++
   try-maybe-effect ++
   sort-helper ++
+  readline-helper ++
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
