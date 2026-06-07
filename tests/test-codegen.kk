@@ -2147,3 +2147,22 @@ pub fun main() : io ()
       // New strategy: emit ((if b then 1 else 0) + n) with explicit parens around the if
       assert/is-true(code.contains("(if b then 1 else 0)"))
       assert/is-true(!code.contains("else\n    0 + "))
+
+    // --- let-in-lambda-arg bug ---
+    dtest("let bindings in multiline lambda passed as non-trailing call arg: IIFE hoisted")
+      val src = "fun apply(f: (int) -> int, x: int) : int => f(x)\nfun main() { let r = apply((n) => { let d = n * 2; d + n }, 5); println(show(r)) }"
+      val code = emit-typed-program(src)
+      // Must NOT have the lambda body directly followed by `, 5)` on the same line
+      // (that was the old broken form: hc_apply(fn(n)\n  ...\n  body, 5) )
+      val lambda_line_followed_by_comma = code.lines.filter(fn(l) l.contains("fn(n)") && l.contains(", 5)"))
+      assert/is-true(lambda_line_followed_by_comma.is-nil)
+      // Must use IIFE pattern: val hc__arg0 = fn(n) ... ; hc_apply(hc__arg0, 5)
+      assert/is-true(code.contains("hc__arg0"))
+      assert/is-true(code.contains("hc_apply(hc__arg0"))
+
+    dtest("let bindings in multiline lambda as trailing call arg: trailing lambda syntax")
+      val src = "fun main() { let r = fold([1, 2, 3], 0, (acc, x) => { let v = acc + x; v }); println(show(r)) }"
+      val code = emit-typed-program(src)
+      // Last arg is multiline lambda — should use trailing lambda syntax, not IIFE
+      assert/is-true(!code.contains("hc__arg"))
+      assert/is-true(code.contains("foldl"))

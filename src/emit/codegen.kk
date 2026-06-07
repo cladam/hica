@@ -413,6 +413,25 @@ pub fun emit( n : node ) : div string
   "  println(" ++ emit-expr(n, []) ++ ".show)\n"
 
 // ---------------------------------------------------------------------------
+// Hoist multiline call arguments to val-bindings inside an IIFE.
+// Koka's layout-sensitive parser cannot close a `fn` body block via `)`, so
+// any multiline arg in a non-trailing position must be pre-bound to a val.
+// Returns (hoist-stmts, arg-refs) where each multiline arg becomes
+// "val hc__argN = <code>" and the corresponding ref is "hc__argN".
+// ---------------------------------------------------------------------------
+
+fun hoist-multiline-args( coded : list<string>, idx : int ) : div (list<string>, list<string>)
+  match coded
+    Nil -> ([], [])
+    Cons(c, rest) ->
+      val (rest-hoists, rest-refs) = hoist-multiline-args(rest, idx + 1)
+      if c.contains("\n") then
+        val nm = "hc__arg" ++ show(idx)
+        (Cons("val " ++ nm ++ " = " ++ c, rest-hoists), Cons(nm, rest-refs))
+      else
+        (rest-hoists, Cons(c, rest-refs))
+
+// ---------------------------------------------------------------------------
 // Expression emission
 // ---------------------------------------------------------------------------
 
@@ -787,7 +806,11 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Var("cons")   -> "Cons"
             Var("show")   -> "show"
             _             -> emit-expr(callee, declared)
-          // Use trailing lambda syntax when the last argument is a multiline lambda
+          // Use trailing lambda syntax when the last argument is a multiline lambda.
+          // For non-trailing multiline args (e.g. `f((fn(n) { let x = ...; x }), 5)`)
+          // Koka's layout parser cannot close a `fn` body block via `)`.  We use
+          // IIFE hoisting instead: bind each multiline arg to a `val hc__argN`
+          // inside `(fn() val hc__arg0 = ...; call(hc__arg0, rest...))()`.
           match args.reverse
             Cons(last, rest) | last.expr.is-fun-multiline ->
               val init-args = rest.reverse.map(fn(a) emit-expr(a, declared))
@@ -797,7 +820,14 @@ fun emit-expr( n : node, declared : list<string> ) : div string
               else
                 callee-code ++ "(" ++ init-args.join(", ") ++ ") " ++ trailing
             _ ->
-              callee-code ++ "(" ++ args.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
+              val coded-args = args.map(fn(a) emit-expr(a, declared))
+              if coded-args.all(fn(c) !c.contains("\n")) then
+                callee-code ++ "(" ++ coded-args.join(", ") ++ ")"
+              else
+                // At least one non-trailing arg is multiline — IIFE-hoist each one.
+                val (hoists, refs) = hoist-multiline-args(coded-args, 0)
+                val inner = (hoists ++ [callee-code ++ "(" ++ refs.join(", ") ++ ")"]).join("\n")
+                "(fn()\n" ++ indent-all(inner) ++ "\n)()"
     If(cond, then-e, else-e) ->
       match else-e.expr
         Block([]) ->
