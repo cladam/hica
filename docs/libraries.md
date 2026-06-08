@@ -202,3 +202,62 @@ fun main() {
   println(url)  // SGVsbG8sIFdvcmxkIQ
 }
 ```
+
+### GUI
+
+#### imgui
+
+An immediate-mode GUI library for hica, backed by [Dear ImGui](https://github.com/ocornut/imgui) + SDL2 + OpenGL3. Ships with the Inter font and the Ilseon dark theme baked in. Build native desktop GUIs with no external assets.
+
+- **Repository**: [github.com/cladam/imgui](https://github.com/cladam/imgui)
+- **Requires**: SDL2 on the system (`brew install sdl2` / `apt install libsdl2-dev`)
+- **Install**: `git submodule add https://github.com/cladam/imgui.git lib/imgui`
+- **Import**: `import "../../lib/imgui/src/imgui"` (path relative to your source file)
+
+**Step 1 — download the pre-built static library:**
+
+```sh
+mkdir -p lib/imgui/lib
+
+# macOS Apple Silicon:
+curl -L https://github.com/cladam/imgui/releases/latest/download/libimgui_hica-macos-arm64.a \
+     -o lib/imgui/lib/libimgui_hica.a
+
+# Linux x86-64:
+# curl -L https://github.com/cladam/imgui/releases/latest/download/libimgui_hica-linux-x86_64.a \
+#      -o lib/imgui/lib/libimgui_hica.a
+```
+
+Or build from source with `cd lib/imgui && ./build.sh` (requires clang++ and SDL2 dev headers).
+
+**Step 2 — configure `hica.hml`:**
+
+```hml
+@koka {
+    include: "./lib/imgui/src"
+    flags: "--cclinkopts=-L./lib/imgui/lib --cclinkopts=-L/opt/homebrew/opt/sdl2/lib --cclib=imgui_hica --cclib=SDL2 --cclinkopts=-lc++ --cclinkopts=-framework --cclinkopts=OpenGL"
+}
+```
+
+Run `sdl2-config --libs` to find the correct SDL2 lib path on your machine. Linux users replace the last two flags with `--cclib=GL`.
+
+**Quick start:**
+
+```hica
+import "../../lib/imgui/src/imgui"
+
+fun main() {
+  var count = 0
+
+  gui_window("My App", 520, 360, () => {
+    gui_text("Counter: " + show(count))
+    if gui_button("Increment") {
+      count = count + 1
+    }
+  })
+}
+```
+
+`gui_window` opens the OS window, runs the render loop, and calls your lambda every frame. Close the window to exit.
+
+See [examples/hello-gui](https://github.com/cladam/imgui/tree/main/examples/hello-gui) for a full widget showcase.
