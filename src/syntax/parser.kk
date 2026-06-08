@@ -1119,10 +1119,24 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
       parse-block()
   Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub)
 
+fun parse-global-decl() : <div,parser> global-decl
+  val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected identifier after 'let'"); "_" }
+  val ann = parse-optional-type-ann()
+  expect("=", fn(k) match k { TkEq -> True; _ -> False })
+  val body = parse-expr()
+  match peek()
+    TkSemicolon -> { advance(); () }
+    _           -> ()
+  Global-decl(Span(t.span.start, body.span.end), name, body, ann = ann)
+
 pub fun parse-program() : <div,parser> program
   var decls := []
   var structs := []
   var types := []
+  var globals := []
   var tests := []
   var imports := []
   // Parse imports at the top of the file
@@ -1135,6 +1149,7 @@ pub fun parse-program() : <div,parser> program
       TkType   -> types := Cons(parse-type-decl(), types)
       TkTest   -> tests := Cons(parse-test-decl(), tests)
       TkExtern -> imports := Cons(parse-import-decl(), imports)
+      TkLet    -> globals := Cons(parse-global-decl(), globals)
       TkPub    ->
         // pub import "path" — re-export
         match peek-next()
@@ -1148,9 +1163,13 @@ pub fun parse-program() : <div,parser> program
             advance()
             val td = parse-type-decl()
             types := Cons(td(is-pub = True), types)
+          TkLet ->
+            advance()
+            val gd = parse-global-decl()
+            globals := Cons(gd(is-pub = True), globals)
           _        -> decls := Cons(parse-fun-decl(), decls)
       _        -> decls := Cons(parse-fun-decl(), decls)
-  Program(structs.reverse, types = types.reverse, decls = decls.reverse, tests = tests.reverse, imports = imports.reverse)
+  Program(structs.reverse, types = types.reverse, decls = decls.reverse, globals = globals.reverse, tests = tests.reverse, imports = imports.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

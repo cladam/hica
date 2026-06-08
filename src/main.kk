@@ -31,7 +31,7 @@ import prelude-bundle
 import stdlib-bundle
 import deps
 
-val version = "0.34.1" 
+val version = "0.35.0" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -300,6 +300,7 @@ fun build-js( file : string )
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       globals = prog.globals,
                        imports = prog.imports)
   val desugared = desugar-program(merged)
   val skip-decls = prelude.decls.length + imported-decls.length
@@ -348,7 +349,8 @@ fun cmd-check( file : string )
   val ext-env = collect-extern-env(prog.imports, dir.path)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
-                       decls = prelude.decls ++ imported-decls ++ prog.decls)
+                       decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       globals = prog.globals)
   val desugared = desugar-program(merged)
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
@@ -403,6 +405,7 @@ fun cmd-test( file : string )
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
+                         globals = prog.globals,
                          tests = prog.tests)
     // Desugar
     val desugared = desugar-program(merged)
@@ -1266,6 +1269,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
+                         globals = prog.globals,
                          imports = prog.imports)
     // Desugar
     val desugared = desugar-program(merged)
@@ -1602,6 +1606,7 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
                          types = prelude.types ++ imp-types ++ prog.types,
                          decls = prelude.decls ++ imp-decls ++ prog.decls,
+                         globals = prog.globals,
                          imports = prog.imports)
     // Desugar
     val desugared = desugar-program(merged)

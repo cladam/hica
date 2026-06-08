@@ -21,11 +21,13 @@ import syntax/ast
 pub fun emit-js-program( p : program, mod-name : string = "main" ) : div string
   val struct-defs = p.structs.map(emit-js-struct).join("\n\n")
   val type-defs = p.types.map(emit-js-type-def).join("\n\n")
+  val global-defs = p.globals.map(emit-js-global).join("\n")
   val decls = p.decls.map(emit-js-decl).join("\n\n")
   val preamble = js-runtime-preamble()
   preamble ++ "\n" ++
   (if struct-defs.is-empty then "" else struct-defs ++ "\n\n") ++
   (if type-defs.is-empty then "" else type-defs ++ "\n\n") ++
+  (if global-defs.is-empty then "" else global-defs ++ "\n\n") ++
   decls ++ "\n\n" ++
   "// Entry point\n" ++
   "if (typeof main === 'function') { const __r = main(); if (__r !== undefined && __r !== null) println(show(__r)); }\n"
@@ -212,6 +214,9 @@ pub fun emit-js-type-def( td : type-def ) : div string
 // ---------------------------------------------------------------------------
 // Function declaration emission
 // ---------------------------------------------------------------------------
+
+fun emit-js-global( g : global-decl ) : div string
+  "const " ++ g.name ++ " = " ++ emit-js-expr(g.body) ++ ";"
 
 fun emit-js-decl( d : fun-decl ) : div string
   val params = d.params.join(", ")

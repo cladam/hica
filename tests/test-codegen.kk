@@ -2166,3 +2166,15 @@ pub fun main() : io ()
       // Last arg is multiline lambda — should use trailing lambda syntax, not IIFE
       assert/is-true(!code.contains("hc__arg"))
       assert/is-true(code.contains("foldl"))
+
+    // --- Top-level let (global constants) ---
+    dtest("top-level let emits Koka val declaration")
+      val code = emit-typed-program("let max_retries = 3\nfun main() => max_retries")
+      assert/is-true(code.contains("val hc_max_retries"))
+      assert/is-true(code.contains("= 3"))
+
+    dtest("top-level let string is accessible in functions")
+      val code = emit-typed-program("let greeting = \"hello\"\nfun main() { println(greeting) }")
+      assert/is-true(code.contains("val hc_greeting"))
+      assert/is-true(code.contains("\"hello\""))
+      assert/is-true(code.contains("hc_greeting"))

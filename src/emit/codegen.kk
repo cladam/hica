@@ -217,7 +217,8 @@ fun offset-to-line( source : string, offset : int ) : int
 // ---------------------------------------------------------------------------
 
 pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
-  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
+  val global-names = p.globals.map(fn(g) g.name)
+  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ global-names ++ imported-names
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
@@ -250,6 +251,8 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
+  val global-defs = p.globals.map(fn(g) emit-global(g, declared)).join("\n")
+  val global-sep = if p.globals.is-empty then "" else "\n\n"
   val rec-names = compute-div-names(p.decls)
   val user-names = p.decls.drop(prelude-count).map(fn(d) d.name)
   val prelude-decls = p.decls.take(prelude-count).filter(fn(d) !user-names.any(fn(n) n == d.name))
@@ -277,9 +280,18 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   assert-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
+  global-defs ++ global-sep ++
   prelude-decls.map(fn(d) emit-decl(d, declared, rec-names, extra-effectful = extra-effectful)).join("\n\n") ++
   (if !prelude-decls.is-empty && p.decls.length > prelude-count then "\n\n" else "") ++
   p.decls.drop(prelude-count).map(fn(d) emit-decl(d, declared, rec-names, source, extra-effectful = extra-effectful)).join("\n\n") ++ "\n"
+
+fun emit-global( g : global-decl, declared : list<string> ) : div string
+  val pub-str = if g.is-pub then "pub " else ""
+  val name-str = marshal-name(g.name, declared)
+  val type-str = match g.typ
+    Just(t) -> " : " ++ emit-type(t)
+    Nothing -> ""
+  pub-str ++ "val " ++ name-str ++ type-str ++ " = " ++ emit-expr(g.body, declared)
 
 fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> = [], source : string = "", extra-effectful : list<string> = [] ) : div string
   val params-str = emit-typed-params(d.params, d.param-types, declared)

@@ -368,6 +368,17 @@ pub struct fun-decl
 pub fun fun-decl/show( d : fun-decl ) : div string
   "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show
 
+pub struct global-decl
+  span   : span
+  name   : string
+  body   : node
+  ann    : maybe<hica-type> = Nothing  // user-written type annotation
+  typ    : maybe<hica-type> = Nothing  // inferred type (filled by checker)
+  is-pub : bool = False
+
+pub fun global-decl/show( g : global-decl ) : div string
+  "let " ++ g.name ++ " = " ++ g.body.show
+
 pub struct struct-def
   span   : span
   name   : string
@@ -420,14 +431,16 @@ pub struct program
   structs : list<struct-def>
   types   : list<type-def> = []
   decls   : list<fun-decl>
+  globals : list<global-decl> = []
   tests   : list<test-decl> = []
   imports : list<import-decl> = []
 
 pub fun program/show( prg : program ) : div string
   val import-strs = prg.imports.map(show)
   val struct-strs = prg.structs.map(show)
+  val global-strs = prg.globals.map(show)
   val decl-strs = prg.decls.map(show)
-  (import-strs ++ struct-strs ++ decl-strs).join("\n\n")
+  (import-strs ++ struct-strs ++ global-strs ++ decl-strs).join("\n\n")
 
 // ---------------------------------------------------------------------------
 // REPL input: a single fragment parsed from interactive input

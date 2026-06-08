@@ -1163,10 +1163,23 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   p.decls.drop(skip-kw-check).foreach fn(d)
     check-not-koka-keyword(d.name, d.span)
     d.params.foreach(fn(param) check-not-koka-keyword(param, d.span))
+  // Check global let names against Koka keyword blocklist
+  p.globals.foreach fn(g)
+    check-not-koka-keyword(g.name, g.span)
   val base-env = extern-env() ++ extra-extern
-  val (s1, env1, decls') = infer-decls(base-env, empty-subst, p.decls)
+  // Type-check top-level globals in order; each one extends the env for the next.
+  val (s0, global-env, globals') = p.globals.foldl((empty-subst, base-env, []:list<global-decl>)) fn(acc, g)
+    val (s-acc, env-acc, checked) = acc
+    val (s', body') = infer(env-acc, s-acc, g.body)
+    val t = apply-subst(s', body'.typ.default(fresh-tvar()))
+    val t' = match g.ann
+      Just(ann-t) -> ann-t
+      Nothing     -> t
+    val env' = env-acc.extend(g.name, t')
+    (s', env', Cons(g(body = body', typ = Just(t')), checked))
+  val (s1, env1, decls') = infer-decls(global-env, s0, p.decls)
   val tests' = infer-tests(env1, s1, p.tests)
-  Program(p.structs, types = p.types, decls = decls', tests = tests')
+  Program(p.structs, types = p.types, decls = decls', globals = globals'.reverse, tests = tests')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, list<fun-decl>)
   // Two-pass approach: pre-seed ALL function signatures first (enables mutual recursion),
