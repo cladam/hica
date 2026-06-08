@@ -31,7 +31,7 @@ import prelude-bundle
 import stdlib-bundle
 import deps
 
-val version = "0.34.0" 
+val version = "0.34.1" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
