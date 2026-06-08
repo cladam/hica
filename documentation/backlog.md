@@ -141,7 +141,7 @@ Legend: **done** = shipped, **—** = not started
 | `hica init` | **done** | — | Initialise in current directory |
 | `hica fmt` / `hica fmt --check` | **done** | Medium | Token-stream formatter. Enforces style-guide rules: trailing whitespace, operator spacing, blank line normalisation, bracket spacing, comma/colon formatting. `--check` returns exit 1 if changes needed. Short alias: `hica f` |
 | `hica test [file]` | **done** | High | Built-in test runner. `test "name" { ... }` blocks in `.hc` files; `assert(expr)`, `assert_eq(a, b)` builtins; collect all test blocks, emit as Koka fns, run + report pass/fail with ANSI colors. Exit code 1 on failure. No modules, no annotations, no imports needed. Short alias: `hica t` |
-| `hica clean --cache` / auto-invalidate | **—** | Medium | Stale `.kk` cache files cause phantom errors after edits. Currently requires manual `rm src/*.kk`. Auto-invalidate on recompile (hash source, compare before reusing `.kk`), or expose `hica clean --cache` to purge intermediate files. HML retro: "became muscle memory — this is a tooling gap that will trip up every new user" |
+| `hica clean --cache` / auto-invalidate | **done** | Medium | `hica clean --cache` purges intermediate `.kk` / stdlib cache files. Auto-invalidate on build: stale `.kk` files are deleted after each run. HML retro: "became muscle memory — this is a tooling gap that will trip up every new user" |
 | `hica build -o <name>` | **done** | Low | Allow naming the output binary: `hica build foo.hc -o myprog`. Supports both `-o name` and `--output name`. Binary placed at the exact path given. Defaults to source stem as before |
 
 ### The "fmt" Implementation Goal
@@ -433,6 +433,11 @@ Issues that exist today but are not yet fixed:
   Fixed. `Binary` codegen now detects when either operand is an `If` node and hoists
   it to a `val hc__lv` / `val hc__rv` binding, so the operator is never on the same
   layout line as the else branch. 2 regression tests added. Discovered by the CSV library team.
+- **~~`let` bindings inside a lambda that is a non-trailing function call argument~~** —
+  Fixed. Call codegen now detects any multiline non-trailing argument and IIFE-hoists
+  it to `val hc__argN` inside `(fn() ... )()`, so Koka's layout parser cannot absorb
+  `, nextArg)` into the lambda body. Trailing multiline lambdas continue to use Koka's
+  trailing-lambda syntax unchanged. 2 regression tests added.
 
 
 ---
