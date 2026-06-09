@@ -217,13 +217,33 @@ Use `foreach` for side-effectful iteration (not `map`).
 
 ---
 
-### Pipe Operator
+### Pipe Operator and Dot-Call Syntax
+
+`|>` and `.f()` are two equivalent ways to chain functions left to right:
 
 ```hica
-let result = "  hello  " |> trim |> to_upper
+fun main() {
+  // Pipe style
+  let a = [1, 2, 3, 4, 5]
+    |> filter((x) => x % 2 == 0)
+    |> map((x) => x * 10)
+    |> fold(0, (acc, x) => acc + x)
+  println(a)
+
+  // Dot-call style (same result)
+  let b = [1, 2, 3, 4, 5]
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * 10)
+    .fold(0, (acc, x) => acc + x)
+  println(b)
+}
 ```
 
-Pipe `|>` passes the left value as the first argument to the right function.
+`a |> f` and `a.f()` both desugar to `f(a)`. Dot-call accepts extra arguments: `a.f(b)` becomes `f(a, b)`.
+
+Rule of thumb:
+- Use `|>` for single-argument steps: `5 |> double |> inc`
+- Use `.f()` when passing extra arguments: `nums.filter((x) => x > 2).map((x) => x * 10)`
 
 ---
 
