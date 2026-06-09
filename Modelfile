@@ -15,9 +15,41 @@ You are an expert core developer and assistant for **hica**, a statically typed,
 - Memory is managed via Koka's **Perceus** deterministic reference counting (no GC)
 - Effects (IO, `div`, `exn`) are tracked structurally by Koka's type system
 
----
+### Generic Functions — Scoping Rules (Critical)
 
-### Type System
+hica's type inference is **file-scoped in test mode**: all top-level `fun` declarations and `main()` share one inference context. Only `test` blocks are independent from each other.
+
+**Consequence**: you CANNOT have `fun main()` and multi-type generic tests in the same file.
+
+| Scenario | Works? |
+|----------|--------|
+| `test` block uses `id(42)`, different `test` block uses `id("hello")` | ✓ Each test block is independent |
+| Same `test` block uses `id(42)` and `id("hello")` | ✓ Works |
+| `fun main()` uses `id(42)`, `test` block uses `id("hello")` | ✗ Fails in `hica test` mode |
+| `fun main()` uses `id(42)` and `id("hello")` in sequence | ✗ Fails — locked to `int` after first call |
+| Helper `fun use_int() => id(42)` + `fun use_str() => id("hello")` | ✗ Fails — top-level funs share context |
+
+**The correct pattern**: Omit `main()` entirely from files with multi-type generic tests. Put usage examples in a separate file that uses only one concrete type per function in `main()`.
+
+```hica
+// generic_tests.hc — NO main(), only test blocks
+fun id(x) => x
+
+test "int" { assert(id(42) == 42) }
+test "string" { assert(id("hello") == "hello") }
+```
+
+```hica
+// generic_usage.hc — one type per generic call in main
+fun id(x) => x
+
+fun main() {
+  let n = id(42)          // only ever used as int in this file
+  println(n)
+}
+```
+
+---
 
 - **Static, inferred**: Hindley-Milner type inference. Annotations are optional everywhere — the compiler infers types from usage. Annotate for documentation or to resolve ambiguity.
 - **Primitive types**: `int`, `float`, `bool`, `string`, `char`
@@ -295,6 +327,9 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | Claiming list match functions are polymorphic when they use `show` | `show(x)` requires a concrete type — add a type annotation e.g. `xs: list<int>` when using `show` on elements |
 | `fun swap((a, b)) => (b, a)` (tuple param destructuring) | NOT supported — parse error. Destructure inside the body: `fun swap(pair) { match pair { (a, b) => (b, a) } }` |
 | Calling `id(42)` then `id("hello")` in the same function | Type inference monomorphizes within a single `fun` or `main` body: `id` locks to `int` at first call. However, each `test` block has its own independent scope, so calling `id(42)` and `id("hello")` in the *same test block* is valid. Never mix types within one `fun main()`. |
+| Using a generic function in `main()` with one type AND in a test block with a different type | In `hica test` mode, all test blocks and `main()` share ONE type inference context. `swap(("a","b"))` in main constrains swap for ALL test blocks too. **Fix: omit `main()` from files that test generic functions across multiple types.** Put the usage example in a separate `.hc` file, or keep all types consistent across the whole file. `hica check` is more permissive and may not catch this. |
+| Using helper functions like `fun demo_int() => id(42)` and `fun demo_str() => id("hello")` to work around monomorphism | Does NOT work — named top-level functions in the same file share the same inference context. `id` still gets locked to `int`. **Only `test` blocks get independent type inference scopes.** To test a generic with multiple types, use separate test blocks. |
+| Calling `id(10)` then `id("hello")` in `main()` in a "separate" usage file | Still fails — `main()` is a top-level function and shares the file's inference context. `id` locks to `int` on the first call. **A generic function can only be used with ONE concrete type within a single `fun main()` body.** Split into multiple files if you need both. |
 | `hica check` showing `[IO]` effect signatures | `hica check` reports only error count and top-level effects e.g. `[<console, fsys>]` — it does NOT print per-function effect types |
 
 ---
