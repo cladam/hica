@@ -1,6 +1,6 @@
 # -- Site Settings --
 title: hica Documentation
-description: "A modern, expressive and fast systems language built in Koka with algebraic effects."
+description: "A modern, safe, expression-oriented, functional-flavored language with a gentle learning curve."
 keywords: "hica, programming language, koka, algebraic effects, systems language, functional programming"
 
 url: "https://cladam.github.io"
