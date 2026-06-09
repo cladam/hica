@@ -244,6 +244,12 @@ Pipe `|>` passes the left value as the first argument to the right function.
 
 **Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
 
+**Critical prelude type signatures:**
+- `is_empty(s: string) : bool` — for **strings only**, NOT lists. To check an empty list, use `match xs { [] => ..., _ => ... }`
+- `head(xs: list<T>) : maybe<T>` — returns `maybe<T>`, NOT `T`. Use `head_or(xs, default)` from `import "std/list"` for a safe default, or pattern match with `[x, ..rest]`
+- `tail(xs: list<T>) : list<T>` — safe, returns `[]` for empty list
+- `min(a: int, b: int) : int` and `max(a: int, b: int) : int` — take two `int` args, not a list
+
 **`unwrap` vs `unwrap_maybe_or`**: `unwrap` is for `result<T,E>` only. `parse_int` returns `maybe<int>` — use `unwrap_maybe_or(default)` or match on `Some`/`None`. Using `unwrap` on a `maybe` is a type error.
 
 **Do NOT add `import "std/io"` just to use `println`** — it is already in the prelude.
@@ -326,6 +332,8 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `show(x)` inside `"...{show(x)}..."` with generic `x` | Koka can't resolve `show` overload for unconstrained type — use `"{x}"` directly (interpolation calls show implicitly), or annotate the parameter type |
 | Claiming list match functions are polymorphic when they use `show` | `show(x)` requires a concrete type — add a type annotation e.g. `xs: list<int>` when using `show` on elements |
 | `fun swap((a, b)) => (b, a)` (tuple param destructuring) | NOT supported — parse error. Destructure inside the body: `fun swap(pair) { match pair { (a, b) => (b, a) } }` |
+| `is_empty(xs)` on a list | `is_empty` takes a `string`, not a list — use `match xs { [] => ..., _ => ... }` to check for an empty list |
+| `head(xs)` as an `int` seed value | `head` returns `maybe<T>` not `T` — use `match xs { [] => 0, [x, ..rest] => ... }` or `head_or(xs, 0)` from `std/list` |
 | Calling `id(42)` then `id("hello")` in the same function | Type inference monomorphizes within a single `fun` or `main` body: `id` locks to `int` at first call. However, each `test` block has its own independent scope, so calling `id(42)` and `id("hello")` in the *same test block* is valid. Never mix types within one `fun main()`. |
 | Using a generic function in `main()` with one type AND in a test block with a different type | In `hica test` mode, all test blocks and `main()` share ONE type inference context. `swap(("a","b"))` in main constrains swap for ALL test blocks too. **Fix: omit `main()` from files that test generic functions across multiple types.** Put the usage example in a separate `.hc` file, or keep all types consistent across the whole file. `hica check` is more permissive and may not catch this. |
 | Using helper functions like `fun demo_int() => id(42)` and `fun demo_str() => id("hello")` to work around monomorphism | Does NOT work — named top-level functions in the same file share the same inference context. `id` still gets locked to `int`. **Only `test` blocks get independent type inference scopes.** To test a generic with multiple types, use separate test blocks. |
