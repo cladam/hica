@@ -258,6 +258,18 @@ koka -ilib/kunit -ilib/klap -isrc -e tests/test-codegen.kk
 - **Desugar eliminates nodes before checker/codegen**: the pipeline runs `Parse → Desugar → TypeCheck → Codegen`. If you desugar a construct (e.g., `Unless` → `If`), the checker and codegen will NEVER see the original node. Do NOT add checker/codegen arms for desugared constructs — they are unreachable dead code.
 - **`else { () }` is wrong** — `()` parses as `TTuple([])` not `TUnit`; they fail to unify. Always use `Block([])` for an empty else branch in generated AST, which emits as an empty Koka block.
 - **`desugar_expr` returns `node`, not `expr`** — every desugar output must be wrapped in `Node(span, expr)`. Writing `If(neg_cond, body, empty_else)` is an `expr` value and will type-error in Koka. The correct form is `Node(node.span, If(neg_cond, body, empty_else))`.
+- **Prelude functions with system calls do NOT use `extern` in `.hc` files** — there is no `prelude/io.hc` and no `extern` keyword in hica `.hc` syntax. System-level prelude functions (e.g., `get_env`, `exec`, `exit`) are implemented as injected Koka helper code strings inside `src/emit/codegen.kk`. The pattern is:
+  1. `src/semantics/prelude.kk` — add the type signature to `extern-env()` e.g. `("get_cwd", TFun([], TString))`
+  2. `src/emit/codegen.kk` — add a `val get-cwd-helper-code : string` containing inline Koka/C extern code, a `program-uses-get-cwd` detection function, wire the helper into `emit-program`, and add a `(Var("get_cwd"), []) -> "hica-get-cwd()"` arm in the call emitter
+  3. Run `make build` — no `make bundle-prelude` needed since no `.hc` prelude file was changed
+  See `get-env-helper-code` and `set-env-helper-code` in `src/emit/codegen.kk` as the canonical examples.
+- **Koka C FFI inline syntax for string-returning externs**:
+  ```koka
+  "extern hica-foo() : io string\n" ++
+  "  c inline \"kk_string_alloc_from_qutf8(c_expression_returning_char_ptr, kk_context())\"\n"
+  ```
+  Do NOT use `array::alloc<char>`, `string::from-char-array`, `exn::raise`, or `extern "C" { }` — these are not valid Koka. The `c inline` form is the only supported FFI syntax in the helper code pattern.
+- **`program-uses-X` detection functions take a `program`, not a `type-env`** — they traverse the AST (same shape as `node-uses-get-env` in `codegen.kk`). Never pass a type environment to an AST traversal function.
 - **Implicit effects**: hica does not expose Koka's effect system to users. The checker tracks effects internally; codegen never emits explicit effect annotations.
 - **`div` propagation**: The checker's `compute-div-names` runs a fixpoint to detect which functions are divergent. Functions that transitively call divergent functions get the `div` effect.
 - **Name prefixing**: The `hc-` prefix on user symbols prevents clashes with Koka builtins like `map`, `filter`, `show`. Struct/enum names are NOT prefixed (they're PascalCase by convention).
