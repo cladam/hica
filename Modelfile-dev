@@ -1,4 +1,4 @@
-FROM qwen3:30b-a3b
+FROM qwen3.6:35b-a3b
 
 PARAMETER temperature 0.15
 PARAMETER top_p 0.85
@@ -253,6 +253,11 @@ koka -ilib/kunit -ilib/klap -isrc -e tests/test-codegen.kk
 ### Known Design Decisions & Gotchas
 
 - **`StructUpdate` spread syntax** (`{ ...s, f: v }`) exists in the AST but is NOT yet exposed in hica syntax — parser doesn't accept `...`. Do not document it as user-facing.
+- **`If` always requires three `node` arguments** — `If(cond, then-expr, else-expr : node)`. The else branch is never `maybe<node>`. For constructs like `unless` that have no else, use an empty block: `Node(span, Block([]))`.
+- **Negation wrapping in desugar**: when desugaring `unless cond { body }` to `If(Not(cond), body, empty)`, wrap the entire condition in `Unary(Not, cond)` — do NOT emit `!cond op val` in a string. Always wrap in `Node()`: `let neg-node = Node(cond.span, Unary(Not, cond))` — `Unary` is an `expr` variant, not a `node`.
+- **Desugar eliminates nodes before checker/codegen**: the pipeline runs `Parse → Desugar → TypeCheck → Codegen`. If you desugar a construct (e.g., `Unless` → `If`), the checker and codegen will NEVER see the original node. Do NOT add checker/codegen arms for desugared constructs — they are unreachable dead code.
+- **`else { () }` is wrong** — `()` parses as `TTuple([])` not `TUnit`; they fail to unify. Always use `Block([])` for an empty else branch in generated AST, which emits as an empty Koka block.
+- **`desugar_expr` returns `node`, not `expr`** — every desugar output must be wrapped in `Node(span, expr)`. Writing `If(neg_cond, body, empty_else)` is an `expr` value and will type-error in Koka. The correct form is `Node(node.span, If(neg_cond, body, empty_else))`.
 - **Implicit effects**: hica does not expose Koka's effect system to users. The checker tracks effects internally; codegen never emits explicit effect annotations.
 - **`div` propagation**: The checker's `compute-div-names` runs a fixpoint to detect which functions are divergent. Functions that transitively call divergent functions get the `div` effect.
 - **Name prefixing**: The `hc-` prefix on user symbols prevents clashes with Koka builtins like `map`, `filter`, `show`. Struct/enum names are NOT prefixed (they're PascalCase by convention).
