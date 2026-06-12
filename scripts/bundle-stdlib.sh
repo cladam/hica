@@ -22,6 +22,7 @@ STDLIB_FILES=(
   "std/cli:stdlib/std/cli.hc"
   "std/env:stdlib/std/env.hc"
   "std/dotenv:stdlib/std/dotenv.hc"
+  "std/log:stdlib/std/log.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."
