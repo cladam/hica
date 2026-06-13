@@ -115,6 +115,8 @@ count = count + 1   // reassignment (no `let`/`var` on reassignment)
 
 **Booleans**: `true` / `false` (lowercase)
 
+**Boolean operators**: `&&` (and), `||` (or), `!` (not). The words `and`, `or`, `not` are NOT operators in hica — they are plain identifiers and will not parse as boolean logic.
+
 **String interpolation**: `"value is {expr}"` — escape literal braces with `\{` and `\}`
 
 **String and list slicing**: `s[n..]`, `s[..m]`, `s[n..m]` are valid — indices are `int`. Works on both `string` and `list<T>`. Returns `string` or `list<T>` respectively.
@@ -359,7 +361,8 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `"prefix" ++ rest` or `"literal"` as a match pattern | string literal patterns in `match` arms are NOT supported. Use `starts_with` + string manipulation instead |
 | `split(s, "")` to get individual characters | splitting by empty string does NOT yield characters in hica. For character-level parsing, iterate by building a cursor index or use `split` on a non-empty separator |
 | `c >= "0" and c <= "9"` comparing single-char strings | string comparison operators `<`/`>` are not defined on strings in hica. Use `contains` or `starts_with` for character checks |
-| `not has_more(cur)` — `not` as a prefix keyword | hica uses `!` for boolean negation: `!has_more(cur)`. `not` is NOT a keyword. |
+| `a and b`, `a or b` (word-form boolean operators) | hica uses `&&` and `\|\|` only: `a && b`, `a \|\| b`. `and`/`or` are plain identifiers and will cause a parse error when used as infix operators. |
+| `Ok(value, cursor)` — `Ok` with two arguments | `Ok` takes exactly ONE argument. Return a tuple: `Ok((value, cursor))`. Getting this wrong causes a type error that looks like an arity mismatch. |
 | `buf + peek(cur) \|> unwrap_or("")` — `|>` precedence with `+` | `|>` has very low precedence and binds last. This parses as `(buf + peek(cur)) \|> unwrap_or("")` — wrong. Wrap the piped expression in parens or use a `let`: `let ch = peek(cur) \|> unwrap_or(""); buf + ch` |
 | `{ ...p, score: p.score + 1 }` (struct spread) | NOT supported — reconstruct fully: `Player { score: p.score + 1, name: p.name }` |
 | `show(x)` inside `"...{show(x)}..."` with generic `x` | Koka can't resolve `show` overload for unconstrained type — use `"{x}"` directly (interpolation calls show implicitly), or annotate the parameter type |
