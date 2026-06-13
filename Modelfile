@@ -268,7 +268,9 @@ Rule of thumb:
 
 ### Imports and Modules
 
-**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
+**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `str_length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
+
+**`length` vs `str_length`**: `length(xs)` is for `list<T>` only — returns the number of elements. For strings, use `str_length(s) : int`. Using `length` on a string is a type error: `length(s)` fails with "expected list, got string". This is the #1 cause of parse errors in cursor-based parsers.
 
 **Critical prelude type signatures:**
 - `is_empty(s: string) : bool` — for **strings only**, NOT lists. To check an empty list, use `match xs { [] => ..., _ => ... }`
@@ -347,7 +349,9 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 |-------|-------|
 | `fn foo()` | `fun foo()` |
 | `foo() -> int` | `foo() : int` |
-| `if cond then expr else other` | `then` is NOT a keyword in hica — parse error. Use brace syntax: `if cond { expr } else { other }`. This applies to `else if` chains too: `if a { x } else if b { y } else { z }`. |
+| `length(s)` on a string | `length` is for `list<T>` only. For strings use `str_length(s)`. |
+| `s[n..m]` slice syntax (dots) | **Parse error** — use colons: `s[n:m]`, `s[n:]`, `s[:m]`. `..` is only valid in list spread patterns `[x, ..rest]`. |
+| `if cond then expr else other` | `then` is NOT a keyword in hica — parse error. Use brace syntax: `if cond { expr } else { other }`. |
 | `return x` or `return Err(e)` anywhere in a function | hica has NO `return` keyword — it is a parse error. The last expression is the return value. For early error propagation in parsers, use **nested `match` chains**: `match foo() { Err(e) => Err(e), Ok(v) => /* rest of function — this IS the return value */ }`. Alternatively use `and_then_result`: `foo() \|> and_then_result((v) => ...)`. Never write `return Err(e)` inside a match arm. |
 | `let (a, b) = result_expr` — destructuring a result as a tuple | `result<(a,b), e>` is a `result`, not a tuple. You cannot destructure it with `let (a, b) = ...`. Use `match result_expr { Ok((a, b)) => ..., Err(e) => Err(e) }` instead. **Most common case**: you write a `collect_items` helper that returns `result<(list<T>, int), string>`, then the caller does `let (items, pos) = collect_items(s, p, [])` — type error. Fix: `match collect_items(s, p, []) { Ok((items, pos)) => ..., Err(e) => Err(e) }`. This is separate from the closing-delimiter check: always pattern match the result before accessing the cursor position. |
 | `"a" ++ "b"` | `"a" + "b"` |
