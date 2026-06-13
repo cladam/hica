@@ -32,7 +32,7 @@ Legend: **done** = shipped, **—** = not started
 | Int literal patterns | **done** | — | `0 => ...`, `1 => ...` |
 | Wildcard patterns | **done** | — | `_ => ...` |
 | Variable patterns | **done** | — | `n => ...` |
-| String literal patterns | **done** | Low | Parser + checker; codegen already emits strings |
+| String literal patterns in `match` | **—** | Medium | `"hello" =>` and `"n" =>` in match arms. Previously marked done but does not work in practice — strings extracted via slicing (`s[i..i+1]`) cannot be used as match patterns. Every string dispatch currently requires `if/else if` chains or guards (`Some(ch) if ch == "n"`), which is unnatural. Fix: parser must accept `PLit(LString(s))` patterns; checker allows on `TString`; codegen emits Koka `\| "s" ->` literal patterns. Blocking issue for beginners — discovered through 13 rounds of hica-assistant JSON parser testing. |
 | Constructor patterns (`Some(x)`, `None`, `Ok(x)`, `Err(e)`) | **done** | Medium | Maybe/result pattern matching in `match` arms |
 | Match exhaustiveness checking | **done** | Medium | Warns on missing cases for Maybe, Result, Bool, and literal types |
 | Destructuring patterns (tuples/structs) | **done** | Medium | Tuple patterns: `(a, b) => ...`. Struct patterns: `Point { x, y } => ...`, `Point { x: 0, y } => ...`. Partial patterns (unmentioned fields are wildcards). Checker validates field names against struct definition |
@@ -69,7 +69,8 @@ Legend: **done** = shipped, **—** = not started
 | Parse functions (`parse_int`, `parse_float`) | **done** | Low | Prelude externs; return `maybe<int>` / `maybe<float>` |
 | Type conversion (`to_int`, `to_float`) | **done** | Low | `to_int(str)` → `int` (returns -1 on invalid); emits Koka `parse-int` with match. `to_float(n)` → `float`; emits Koka `.float64` |
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | **done** | Medium | `unwrap(result)` → value or throw; `unwrap_or(result, default)` → value or default. Maybe/Result combinators: `map_maybe`, `and_then`, `or_else`, `map_result`, `map_err` |
-| `?` operator (early return on Err/None) | **done** | High | Postfix `?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Implemented via Koka algebraic effects (`hica-early-maybe`) |
+| `?` operator on `maybe<T>` (early return on None) | **done** | High | Postfix `?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Implemented via Koka algebraic effects (`hica-early-maybe`). Lesson 36 in learn/ |
+| `?` operator on `result<T,E>` (early return on Err) | **—** | Medium | Postfix `?` on `result<T,E>` — unwraps `Ok(v)` or returns `Err(e)` early, analogous to Rust's `?`. Implement as `hica-early-result` effect alongside `hica-early-maybe`. Checker distinguishes `TResult` from `TMaybe` and emits the right handler. Functions using `?` on result must have `result<T,E>` return type. Eliminates nested `match` chains that bubble `Err(e)` — the single biggest source of parser boilerplate in hica today. |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
 | Mutable variables (`var x = 10; x = 5`) | **done** | Medium | `var` declares mutable local; `x = expr` reassigns. Emits Koka `var x := 10` / `x := 5`. Effect-safe via Koka's algebraic `local-var` — can't leak scope |
 
