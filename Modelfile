@@ -296,6 +296,8 @@ import "../src/mymod"    // relative path (no .hc extension)
 | `exec_lines(cmd)` | `result<list<string>, string>` | Run a shell command, return stdout as lines |
 
 **Known gaps — functions that do NOT exist in hica:**
+- `drop_prefix(s, n)` — not in prelude or stdlib. To drop the first `n` characters, implement a recursive helper using `split` on a known separator or build one with `starts_with` and `replace`. There is no general char-index string slicer.
+- `take_char(s)` / `char_at(s, i)` — not in prelude or stdlib. hica has no character indexing. For single-char prefix inspection, use `starts_with(s, "x")`.
 - `get_cwd()` — not implemented. Workarounds:
   - `get_env("PWD")` → `maybe<string>` (Unix-only, always in prelude, no import needed)
   - `exec("pwd")` → `result<string, string>` (requires `import "std/io"`, cross-platform intent)
@@ -345,8 +347,13 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `assert(x \|> f == val)` | `let r = x \|> f; assert(r == val)` |
 | `assert(match ...)` | `let r = match ...; assert(r == ...)` |
 | `items[i]` (list index) | recursive pattern match |
-| `let rec aux(x) = ...` | top-level `fun aux(x) => ...` (no `let rec` in hica) |
+| `let rec aux(x) = ... in aux(start)` (local recursive function) | hica has NO local recursive functions and NO `let ... in` syntax. Every recursive helper must be a top-level `fun`. Pass all needed state as explicit arguments. This is the single most common mistake when generating parsers or tree traversals. |
 | inner `fun` closing over outer param for recursion | pass state as an explicit accumulator argument to a top-level helper |
+| `(j, _) =>` tuple destructuring in a lambda param | NOT supported — same rule as `fun swap((a,b))`. Destructure in the body: `(pair) => { match pair { (j, _) => j } }` |
+| `tok.value` field access on an enum variant | enums require pattern matching, not dot notation. `TokNum(n)` → `match tok { TokNum(n) => n, _ => 0.0 }` |
+| `"prefix" ++ rest` or `"literal"` as a match pattern | string literal patterns in `match` arms are NOT supported. Use `starts_with` + string manipulation instead |
+| `split(s, "")` to get individual characters | splitting by empty string does NOT yield characters in hica. For character-level parsing, iterate by building a cursor index or use `split` on a non-empty separator |
+| `c >= "0" and c <= "9"` comparing single-char strings | string comparison operators `<`/`>` are not defined on strings in hica. Use `contains` or `starts_with` for character checks |
 | `parse_int(s) \|> unwrap()` | `parse_int` returns `maybe<int>` — use `unwrap_maybe_or(0)` or match `Some`/`None` |
 | `{ ...p, score: p.score + 1 }` (struct spread) | NOT supported — reconstruct fully: `Player { score: p.score + 1, name: p.name }` |
 | `show(x)` inside `"...{show(x)}..."` with generic `x` | Koka can't resolve `show` overload for unconstrained type — use `"{x}"` directly (interpolation calls show implicitly), or annotate the parameter type |

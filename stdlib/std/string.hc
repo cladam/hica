@@ -33,3 +33,14 @@ pub fun shout(s: string) : string => to_upper(s) + "!"
 pub fun removesuffix(s: string, suf: string) : string =>
   if ends_with(s, suf) { s[:str_length(s) - str_length(suf)] }
   else { s }
+
+// --- Float formatting ---
+
+// show() for floats inherits Koka's %g formatting which drops the decimal
+// point for whole numbers (1.0 → "1"). show_float always includes it,
+// making it correct for formats like JSON that require 1.0 not "1".
+// Scientific notation (1e+10) is left unchanged — it already signals float.
+pub fun show_float(n: float) : string =>
+  let s = show(n)
+  if contains(s, ".") || contains(s, "e") { s }
+  else { s + ".0" }
