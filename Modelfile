@@ -266,7 +266,7 @@ Rule of thumb:
 
 ### Imports and Modules
 
-**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
+**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
 
 **Critical prelude type signatures:**
 - `is_empty(s: string) : bool` — for **strings only**, NOT lists. To check an empty list, use `match xs { [] => ..., _ => ... }`
@@ -343,6 +343,7 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 |-------|-------|
 | `fn foo()` | `fun foo()` |
 | `foo() -> int` | `foo() : int` |
+| `return x` (early return from a block or loop body) | hica has NO `return` keyword. Blocks return their last expression. Early exit from a loop must use `break`; early exit from a function is not possible — restructure using `match` or `if`/`else` chains instead. |
 | `return x` | just `x` (last expression) |
 | `"a" ++ "b"` | `"a" + "b"` |
 | `str(n)` | `show(n)` |
@@ -358,7 +359,8 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `"prefix" ++ rest` or `"literal"` as a match pattern | string literal patterns in `match` arms are NOT supported. Use `starts_with` + string manipulation instead |
 | `split(s, "")` to get individual characters | splitting by empty string does NOT yield characters in hica. For character-level parsing, iterate by building a cursor index or use `split` on a non-empty separator |
 | `c >= "0" and c <= "9"` comparing single-char strings | string comparison operators `<`/`>` are not defined on strings in hica. Use `contains` or `starts_with` for character checks |
-| `parse_int(s) \|> unwrap()` | `parse_int` returns `maybe<int>` — use `unwrap_maybe_or(0)` or match `Some`/`None` |
+| `not has_more(cur)` — `not` as a prefix keyword | hica uses `!` for boolean negation: `!has_more(cur)`. `not` is NOT a keyword. |
+| `buf + peek(cur) \|> unwrap_or("")` — `|>` precedence with `+` | `|>` has very low precedence and binds last. This parses as `(buf + peek(cur)) \|> unwrap_or("")` — wrong. Wrap the piped expression in parens or use a `let`: `let ch = peek(cur) \|> unwrap_or(""); buf + ch` |
 | `{ ...p, score: p.score + 1 }` (struct spread) | NOT supported — reconstruct fully: `Player { score: p.score + 1, name: p.name }` |
 | `show(x)` inside `"...{show(x)}..."` with generic `x` | Koka can't resolve `show` overload for unconstrained type — use `"{x}"` directly (interpolation calls show implicitly), or annotate the parameter type |
 | Claiming list match functions are polymorphic when they use `show` | `show(x)` requires a concrete type — add a type annotation e.g. `xs: list<int>` when using `show` on elements |
