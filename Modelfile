@@ -117,6 +117,8 @@ count = count + 1   // reassignment (no `let`/`var` on reassignment)
 
 **String interpolation**: `"value is {expr}"` — escape literal braces with `\{` and `\}`
 
+**String and list slicing**: `s[n..]`, `s[..m]`, `s[n..m]` are valid — indices are `int`. Works on both `string` and `list<T>`. Returns `string` or `list<T>` respectively.
+
 **String concatenation**: `+` (NOT `++`)
 
 **Int to string**: `show(n)` (NOT `str(n)` or `to_string(n)`)
@@ -363,7 +365,10 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `fun swap((a, b)) => (b, a)` (tuple param destructuring) | NOT supported — parse error. Destructure inside the body: `fun swap(pair) { match pair { (a, b) => (b, a) } }` |
 | `is_empty(xs)` on a list | `is_empty` takes a `string`, not a list — use `match xs { [] => ..., _ => ... }` to check for an empty list |
 | `head(xs)` as an `int` seed value | `head` returns `maybe<T>` not `T` — use `match xs { [] => 0, [x, ..rest] => ... }` or `head_or(xs, 0)` from `std/list` |
-| `head_or(xs, None)` to get `maybe<T>` from a list | `head_or` returns `T`, not `maybe<T>`. `None` is not a valid default for a `list<(string, Json)>`. Use `head(xs)` which returns `maybe<T>` — then pipe through `and_then` to extract a field: `head(filtered) \|> and_then((f) => Some(f.1))` |
+| `type Cursor = (string, int)` (type alias) | hica has NO type aliases. `type X = Y` is not valid syntax. Use a named `struct` instead: `struct Cursor { s: string, pos: int }`, or just pass tuples directly without naming them. |
+| `c1.pos` — named field access on a tuple | Tuples only support positional access: `.0`, `.1`, `.2`. Named field access requires a `struct`. If you used `type Cursor = (string, int)`, the field `pos` does not exist — use `c1.1` or refactor to `struct Cursor { s: string, pos: int }` and access `c1.pos`. |
+| `contains(ch, "0123456789.")` to check character membership | `contains(haystack, needle)` checks if `needle` is a **substring** of `haystack`. Calling `contains("3", "0123456789")` checks if `"0123456789"` is inside `"3"`, which is always false. hica has no character-set membership function. Workaround: use `or`-chains: `ch == "0" or ch == "1" or ...`, or check with `starts_with`. |
+| `json_str(json_get(j, "key"))` when `json_get` returns `maybe<Json>` | `json_str` takes `Json`, not `maybe<Json>`. This is a type error. Compose with `and_then`: `json_get(j, "key") \|> and_then(json_str)` or match explicitly: `match json_get(j, "key") { Some(v) => json_str(v), None => None }`. |
 | `f.0` and `f.1` tuple field access in a lambda over generic pairs | `.0`/`.1` on generic tuples emits ambiguous `.fst`/`.snd` in Koka and may fail to typecheck. Destructure with match in the lambda body instead: `(f) => { match f { (k, v) => ... } }` |
 | Deeply nested `replace(replace(replace(...)))` calls | The parser can mis-count parentheses in deeply nested calls. Use sequential `let` bindings instead: `let s1 = replace(s, ...) ; let s2 = replace(s1, ...) ; s2` |
 | Calling `id(42)` then `id("hello")` in the same function | Type inference monomorphizes within a single `fun` or `main` body: `id` locks to `int` at first call. However, each `test` block has its own independent scope, so calling `id(42)` and `id("hello")` in the *same test block* is valid. Never mix types within one `fun main()`. |
