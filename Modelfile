@@ -276,6 +276,8 @@ Rule of thumb:
 - `tail(xs: list<T>) : list<T>` — safe, returns `[]` for empty list
 - `min(a: int, b: int) : int` and `max(a: int, b: int) : int` — take two `int` args, not a list
 
+**`and_then` vs `and_then_result`**: `and_then` is for `maybe<T>` only — `and_then(m, f)` where `f: T -> maybe<U>`. For `result<T,E>`, use `and_then_result(r, f)` where `f: T -> result<U,E>`. Confusing them causes a type mismatch.
+
 **`unwrap` vs `unwrap_maybe_or`**: `unwrap` is for `result<T,E>` only. `parse_int` returns `maybe<int>` — use `unwrap_maybe_or(default)` or match on `Some`/`None`. Using `unwrap` on a `maybe` is a type error.
 
 **Do NOT add `import "std/io"` just to use `println`** — it is already in the prelude.
@@ -377,7 +379,9 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `contains(ch, "0123456789.")` to check character membership | `contains(haystack, needle)` checks if `needle` is a **substring** of `haystack`. Calling `contains("3", "0123456789")` checks if `"0123456789"` is inside `"3"`, which is always false. hica has no character-set membership function. Workaround: use `or`-chains: `ch == "0" or ch == "1" or ...`, or check with `starts_with`. |
 | `json_str(json_get(j, "key"))` when `json_get` returns `maybe<Json>` | `json_str` takes `Json`, not `maybe<Json>`. This is a type error. Compose with `and_then`: `json_get(j, "key") \|> and_then(json_str)` or match explicitly: `match json_get(j, "key") { Some(v) => json_str(v), None => None }`. |
 | `f.0` and `f.1` tuple field access in a lambda over generic pairs | `.0`/`.1` on generic tuples emits ambiguous `.fst`/`.snd` in Koka and may fail to typecheck. Destructure with match in the lambda body instead: `(f) => { match f { (k, v) => ... } }` |
-| Deeply nested `replace(replace(replace(...)))` calls | The parser can mis-count parentheses in deeply nested calls. Use sequential `let` bindings instead: `let s1 = replace(s, ...) ; let s2 = replace(s1, ...) ; s2` |
+| `r \|> and_then((x) => ...)` when `r` is `result<T,E>` | `and_then` is for `maybe<T>` only. For `result<T,E>`, use `and_then_result(r, (x) => ...)` or `r \|> and_then_result((x) => ...)`. Mixing them causes a type mismatch that looks like a unification error. |
+| `expr \|> match { Ok(x) => ..., Err(e) => ... }` | `match` requires a scrutinee — you cannot pipe directly into a bare `match` block. Write it as `match expr { Ok(x) => ..., Err(e) => ... }`. |
+| `starts_with(s, " \t\n\r")` to check for whitespace | Checks for the literal 4-character string `" \t\n\r"`, not any whitespace character. Use separate `starts_with` calls: `starts_with(s, " ") \|\| starts_with(s, "\t") \|\| starts_with(s, "\n") \|\| starts_with(s, "\r")`. |
 | Calling `id(42)` then `id("hello")` in the same function | Type inference monomorphizes within a single `fun` or `main` body: `id` locks to `int` at first call. However, each `test` block has its own independent scope, so calling `id(42)` and `id("hello")` in the *same test block* is valid. Never mix types within one `fun main()`. |
 | Using a generic function in `main()` with one type AND in a test block with a different type | In `hica test` mode, all test blocks and `main()` share ONE type inference context. `swap(("a","b"))` in main constrains swap for ALL test blocks too. **Fix: omit `main()` from files that test generic functions across multiple types.** Put the usage example in a separate `.hc` file, or keep all types consistent across the whole file. `hica check` is more permissive and may not catch this. |
 | Using helper functions like `fun demo_int() => id(42)` and `fun demo_str() => id("hello")` to work around monomorphism | Does NOT work — named top-level functions in the same file share the same inference context. `id` still gets locked to `int`. **Only `test` blocks get independent type inference scopes.** To test a generic with multiple types, use separate test blocks. |
