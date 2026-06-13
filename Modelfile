@@ -121,6 +121,8 @@ count = count + 1   // reassignment (no `let`/`var` on reassignment)
 
 **Int to string**: `show(n)` (NOT `str(n)` or `to_string(n)`)
 
+**Float to string**: `show(n)` is polymorphic and works on floats but may produce scientific notation or truncated output. For predictable decimal formatting (e.g. `"3.14"`, `"1.0"`), use `show_float(n)` from `import "std/string"`.
+
 **Types**: PascalCase — `Int` is NOT a type; use `int`, `string`, `float`, `bool`, `list<T>`
 
 ---
@@ -361,6 +363,9 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `fun swap((a, b)) => (b, a)` (tuple param destructuring) | NOT supported — parse error. Destructure inside the body: `fun swap(pair) { match pair { (a, b) => (b, a) } }` |
 | `is_empty(xs)` on a list | `is_empty` takes a `string`, not a list — use `match xs { [] => ..., _ => ... }` to check for an empty list |
 | `head(xs)` as an `int` seed value | `head` returns `maybe<T>` not `T` — use `match xs { [] => 0, [x, ..rest] => ... }` or `head_or(xs, 0)` from `std/list` |
+| `head_or(xs, None)` to get `maybe<T>` from a list | `head_or` returns `T`, not `maybe<T>`. `None` is not a valid default for a `list<(string, Json)>`. Use `head(xs)` which returns `maybe<T>` — then pipe through `and_then` to extract a field: `head(filtered) \|> and_then((f) => Some(f.1))` |
+| `f.0` and `f.1` tuple field access in a lambda over generic pairs | `.0`/`.1` on generic tuples emits ambiguous `.fst`/`.snd` in Koka and may fail to typecheck. Destructure with match in the lambda body instead: `(f) => { match f { (k, v) => ... } }` |
+| Deeply nested `replace(replace(replace(...)))` calls | The parser can mis-count parentheses in deeply nested calls. Use sequential `let` bindings instead: `let s1 = replace(s, ...) ; let s2 = replace(s1, ...) ; s2` |
 | Calling `id(42)` then `id("hello")` in the same function | Type inference monomorphizes within a single `fun` or `main` body: `id` locks to `int` at first call. However, each `test` block has its own independent scope, so calling `id(42)` and `id("hello")` in the *same test block* is valid. Never mix types within one `fun main()`. |
 | Using a generic function in `main()` with one type AND in a test block with a different type | In `hica test` mode, all test blocks and `main()` share ONE type inference context. `swap(("a","b"))` in main constrains swap for ALL test blocks too. **Fix: omit `main()` from files that test generic functions across multiple types.** Put the usage example in a separate `.hc` file, or keep all types consistent across the whole file. `hica check` is more permissive and may not catch this. |
 | Using helper functions like `fun demo_int() => id(42)` and `fun demo_str() => id("hello")` to work around monomorphism | Does NOT work — named top-level functions in the same file share the same inference context. `id` still gets locked to `int`. **Only `test` blocks get independent type inference scopes.** To test a generic with multiple types, use separate test blocks. |
