@@ -544,6 +544,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         // --- String utilities ---
         (Var("str_length"), [s]) ->
           emit-expr(s, declared) ++ ".count"
+        // is_empty on lists is rewritten by the checker to list_is_empty
+        (Var("list_is_empty"), [xs]) ->
+          emit-expr(xs, declared) ++ ".is-nil"
         (Var("contains"), [s, sub]) ->
           emit-expr(s, declared) ++ ".contains(" ++ emit-expr(sub, declared) ++ ")"
         (Var("str_contains"), [s, sub]) ->

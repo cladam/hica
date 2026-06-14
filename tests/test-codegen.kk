@@ -507,6 +507,24 @@ pub fun main() : io ()
       val code = emit-typed-program("fun main() => length([1, 2, 3])")
       assert/is-true(code.contains("length("))
 
+    dtest("length on string emits .count")
+      val code = emit-typed-program("fun main() => length(\"hello\")")
+      assert/is-true(code.contains(".count"))
+
+    dtest("length on string type-checks")
+      val ds = check-diagnostics("fun main() { let n = length(\"hi\"); n + 1 }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("is_empty on list emits .is-nil")
+      val code = emit-typed-program("fun main() => is_empty([])")
+      assert/is-true(code.contains(".is-nil"))
+
+    dtest("is_empty on list type-checks")
+      val ds = check-diagnostics("fun main() => is_empty([1, 2, 3])")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
     dtest("reverse type-checks")
       val ds = check-diagnostics("fun main() => reverse([1, 2, 3])")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))

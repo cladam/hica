@@ -395,19 +395,55 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
 
     // --- Function calls ---
     Call(callee, args) ->
-      // Infer the callee
-      val (s1, callee') = infer(env, s, callee)
-      // Infer each argument
-      val (s2, args') = infer-args(env, s1, args)
-      val callee-type = apply-subst(s2, get-type(callee'))
-      // Build the expected function type: (arg-types) -> fresh-ret
-      val arg-types = args'.map(fn(a) apply-subst(s2, get-type(a)))
-      val ret-var = fresh-tvar()
-      val expected = TFun(arg-types, ret-var)
-      // Unify callee's type with the expected function type
-      val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
-      val result-type = apply-subst(s3, ret-var)
-      (s3, Node(n.span, Call(callee', args'), Just(result-type)))
+      // Type-directed overloads: length and is_empty accept both strings and lists.
+      // We intercept before the generic unification and rewrite the callee so that
+      // codegen can emit the correct Koka expression for each type.
+      match (callee.expr, args)
+        (Var("length"), [arg]) ->
+          val (s1, arg') = infer(env, s, arg)
+          match apply-subst(s1, get-type(arg'))
+            TString ->
+              // Rewrite to str_length — codegen emits .count
+              val rewritten = Node(callee.span, Var("str_length"), Nothing)
+              (s1, Node(n.span, Call(rewritten, [arg']), Just(TInt)))
+            _ ->
+              // List path: run the normal generic unification
+              val (s2, callee') = infer(env, s1, callee)
+              val callee-type = apply-subst(s2, get-type(callee'))
+              val arg-types = [apply-subst(s2, get-type(arg'))]
+              val ret-var = fresh-tvar()
+              val expected = TFun(arg-types, ret-var)
+              val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
+              val result-type = apply-subst(s3, ret-var)
+              (s3, Node(n.span, Call(callee', [arg']), Just(result-type)))
+        (Var("is_empty"), [arg]) ->
+          val (s1, arg') = infer(env, s, arg)
+          match apply-subst(s1, get-type(arg'))
+            TList(_) ->
+              // Rewrite to list_is_empty — codegen emits .is-nil
+              val rewritten = Node(callee.span, Var("list_is_empty"), Nothing)
+              (s1, Node(n.span, Call(rewritten, [arg']), Just(TBool)))
+            _ ->
+              // String path: run the normal generic unification (is_empty defined in prelude)
+              val (s2, callee') = infer(env, s1, callee)
+              val callee-type = apply-subst(s2, get-type(callee'))
+              val arg-types = [apply-subst(s2, get-type(arg'))]
+              val ret-var = fresh-tvar()
+              val expected = TFun(arg-types, ret-var)
+              val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
+              val result-type = apply-subst(s3, ret-var)
+              (s3, Node(n.span, Call(callee', [arg']), Just(result-type)))
+        _ ->
+          // Generic handler
+          val (s1, callee') = infer(env, s, callee)
+          val (s2, args') = infer-args(env, s1, args)
+          val callee-type = apply-subst(s2, get-type(callee'))
+          val arg-types = args'.map(fn(a) apply-subst(s2, get-type(a)))
+          val ret-var = fresh-tvar()
+          val expected = TFun(arg-types, ret-var)
+          val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
+          val result-type = apply-subst(s3, ret-var)
+          (s3, Node(n.span, Call(callee', args'), Just(result-type)))
 
     // --- Binary operators ---
     Binary(op, lhs, rhs) ->
