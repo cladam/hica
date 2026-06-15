@@ -703,21 +703,38 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           match f.expr
             Fun(Cons(p, Nil), body) ->
               val pn = marshal-name(p, declared)
-              "(match " ++ emit-expr(r, declared) ++ " { Right(" ++ pn ++ ") -> Right(" ++ emit-expr(body, declared) ++ "); Left(hc__e) -> Left(hc__e) })"
+              val rc = emit-expr(r, declared)
+              val bc = emit-expr(body, declared)
+              if body.expr.is-multiline then
+                // Multiline body (e.g. a match) — use layout-based outer match to avoid
+                // Koka brace-layout conflict (nested match inside Right(...) in { } match).
+                "match " ++ rc ++ "\n  Right(" ++ pn ++ ") ->\n    val hc__mr =\n      " ++ bc.replace-all("\n", "\n      ") ++ "\n    Right(hc__mr)\n  Left(hc__e) -> Left(hc__e)"
+              else
+                "(match " ++ rc ++ " { Right(" ++ pn ++ ") -> Right(" ++ bc ++ "); Left(hc__e) -> Left(hc__e) })"
             _ ->
               "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right((" ++ emit-expr(f, declared) ++ ")(hc__v)); Left(hc__e) -> Left(hc__e) })"
         (Var("map_err"), [r, f]) ->
           match f.expr
             Fun(Cons(p, Nil), body) ->
               val pn = marshal-name(p, declared)
-              "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(" ++ pn ++ ") -> Left(" ++ emit-expr(body, declared) ++ ") })"
+              val rc = emit-expr(r, declared)
+              val bc = emit-expr(body, declared)
+              if body.expr.is-multiline then
+                "match " ++ rc ++ "\n  Right(hc__v) -> Right(hc__v)\n  Left(" ++ pn ++ ") ->\n    val hc__mr =\n      " ++ bc.replace-all("\n", "\n      ") ++ "\n    Left(hc__mr)"
+              else
+                "(match " ++ rc ++ " { Right(hc__v) -> Right(hc__v); Left(" ++ pn ++ ") -> Left(" ++ bc ++ ") })"
             _ ->
               "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> Right(hc__v); Left(hc__e) -> Left((" ++ emit-expr(f, declared) ++ ")(hc__e)) })"
         (Var("and_then_result"), [r, f]) ->
           match f.expr
             Fun(Cons(p, Nil), body) ->
               val pn = marshal-name(p, declared)
-              "(match " ++ emit-expr(r, declared) ++ " { Right(" ++ pn ++ ") -> " ++ emit-expr(body, declared) ++ "; Left(hc__e) -> Left(hc__e) })"
+              val rc = emit-expr(r, declared)
+              val bc = emit-expr(body, declared)
+              if body.expr.is-multiline then
+                "match " ++ rc ++ "\n  Right(" ++ pn ++ ") ->\n    " ++ bc.replace-all("\n", "\n    ") ++ "\n  Left(hc__e) -> Left(hc__e)"
+              else
+                "(match " ++ rc ++ " { Right(" ++ pn ++ ") -> " ++ bc ++ "; Left(hc__e) -> Left(hc__e) })"
             _ ->
               "(match " ++ emit-expr(r, declared) ++ " { Right(hc__v) -> (" ++ emit-expr(f, declared) ++ ")(hc__v); Left(hc__e) -> Left(hc__e) })"
         (Var("is_ok"), [r]) ->
@@ -1204,7 +1221,8 @@ fun needs-block( e : expr ) : bool
     Block(_)            -> True
     _                   -> False
 
-// Check if an expression produces multiple lines (needs indented block in lambda body)
+// Check if an expression produces multiple lines (needs indented block in lambda body).
+// Total (non-recursive) — safe to use in Koka guard expressions.
 fun is-multiline( e : expr ) : bool
   match e
     Let(_, _, _, _)     -> True
@@ -1215,6 +1233,33 @@ fun is-multiline( e : expr ) : bool
     // on separate indented lines, so a trailing `)` from a surrounding call would
     // be stuck to the last line of the else branch, breaking layout parsing.
     // Using trailing lambda syntax avoids this entirely.
+    If(_, _, _)         -> True
+    Block(Cons(s, Nil)) -> match s.expr
+      Let(_, _, _, _)     -> True
+      VarDecl(_, _, _, _) -> True
+      LetTuple(_, _, _)   -> True
+      Match(_, _)         -> True
+      If(_, _, _)         -> True
+      _                   -> False
+    Block(stmts)        -> stmts.length > 1
+    // map_result / map_err / and_then_result with a match-body lambda are multiline.
+    // Use a shallow check (not recursive) to keep this function total.
+    Call(callee, args)  -> match (callee.expr, args)
+      (Var(nm), [_, f]) | (nm == "map_result" || nm == "map_err" || nm == "and_then_result") ->
+        match f.expr
+          Fun(_, body) -> is-multiline-shallow(body.expr)
+          _            -> False
+      _ -> False
+    _                   -> False
+
+// Shallow version of is-multiline: checks only the top-level node type, no recursion.
+// Used to avoid div in the Call case of is-multiline.
+fun is-multiline-shallow( e : expr ) : bool
+  match e
+    Let(_, _, _, _)     -> True
+    VarDecl(_, _, _, _) -> True
+    LetTuple(_, _, _)   -> True
+    Match(_, _)         -> True
     If(_, _, _)         -> True
     Block(Cons(s, Nil)) -> match s.expr
       Let(_, _, _, _)     -> True

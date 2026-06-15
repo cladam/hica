@@ -2249,3 +2249,19 @@ pub fun main() : io ()
       val code = emit-typed-program("fun parse_int(s: string) : result<int, string> { Ok(42) }\nfun main() => parse_int(\"42\")")
       assert/is-true(code.contains("hc_parse_int"))
       assert/is-true(!code.contains(".parse-int"))
+
+    dtest("map_result with match lambda emits layout-safe outer match")
+      val src = "fun main() {\n  let r : result<int, string> = Ok(1)\n  let s = map_result(r, (n) => match n { _ => n * 2 })\n  println(show(s))\n}"
+      val code = emit-typed-program(src)
+      // Must NOT embed the inner match inside Right(...) on the same line
+      assert/is-true(!code.contains("Right(match "))
+
+    dtest("map_result with match lambda compiles via Koka")
+      val src = "fun safe_div(a, b) => if b == 0 { Err(\"zero\") } else { Ok(a / b) }\nfun main() {\n  let r = safe_div(10, 2)\n  let s = map_result(r, (n) => match n { _ => n + 1 })\n  println(show(s))\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("match "))
+
+    dtest("and_then_result with match lambda emits layout-safe outer match")
+      val src = "fun main() {\n  let r : result<int, string> = Ok(2)\n  let s = and_then_result(r, (n) => match n { _ => Ok(n + 1) })\n  println(show(s))\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(!code.contains("Right(match "))
