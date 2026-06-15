@@ -319,7 +319,7 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     // rawterm effect
     "read_key", "term_cols", "term_rows", "flush_stdout"
   ] ++ extra-effectful
-  val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims)
+  val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims) || node-has-while(d.body)
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
@@ -447,13 +447,24 @@ fun hoist-multiline-args( coded : list<string>, idx : int ) : div (list<string>,
 // Expression emission
 // ---------------------------------------------------------------------------
 
+// Translate escape sequences into Koka-compatible hex escapes.
+// Handles two input forms:
+//   - Raw control bytes (0x08, 0x0c) — e.g. pasted text or some editors
+//   - Typed two-char escapes (backslash+b, backslash+f) — hica source files
+// Both become the Koka hex-escape sequences that Koka's string parser accepts.
+fun fix-string-escapes( s : string ) : string
+  s.replace-all("\x08", "\\x08")   // raw backspace byte → \x08
+   .replace-all("\x0c", "\\x0c")   // raw form-feed byte → \x0c
+   .replace-all("\\b",  "\\x08")   // typed \b escape    → \x08
+   .replace-all("\\f",  "\\x0c")   // typed \f escape    → \x0c
+
 fun emit-expr( n : node, declared : list<string> ) : div string
   match n.expr
     Literal(LitInt(i))      -> i.show
     Literal(LitFloat(f))    -> f
     Literal(LitBool(True))  -> "True"
     Literal(LitBool(False)) -> "False"
-    Literal(LitString(s))   -> "\"" ++ s ++ "\""
+    Literal(LitString(s))   -> "\"" ++ fix-string-escapes(s) ++ "\""
     Literal(LitChar(c))     -> "'" ++ c ++ "'"
     Var(name)               -> marshal-name(name, declared)
     Binary(op, l, r)        ->
@@ -1288,6 +1299,42 @@ fun node-has-float( n : node ) : div bool
     EConstructor(_, cargs)  -> cargs.any(fn(a) node-has-float(a))
     MapLit(entries)         -> entries.any(fn((k, v)) node-has-float(k) || node-has-float(v))
     _                     -> False
+
+// Check whether the body contains a while or loop node.  These always carry
+// the `div` effect in Koka, so an explicit return-type annotation must be
+// suppressed (otherwise Koka rejects the pure signature).
+fun node-has-while( n : node ) : div bool
+  match n.expr
+    While(_, _)                    -> True
+    Loop(_)                        -> True
+    Let(_, _, init, body)          -> node-has-while(init) || node-has-while(body)
+    VarDecl(_, _, init, body)      -> node-has-while(init) || node-has-while(body)
+    Assign(_, value)               -> node-has-while(value)
+    Fun(_, body)                   -> node-has-while(body)
+    Call(callee, args)             -> node-has-while(callee) || args.any(fn(a) node-has-while(a))
+    Binary(_, lhs, rhs)            -> node-has-while(lhs) || node-has-while(rhs)
+    Unary(_, operand)              -> node-has-while(operand)
+    If(c, t, e)                    -> node-has-while(c) || node-has-while(t) || node-has-while(e)
+    Block(stmts)                   -> stmts.any(fn(s) node-has-while(s))
+    Match(scrut, arms)             -> node-has-while(scrut) || arms.any(fn(a) node-has-while(a.body))
+    Repeat(count, body)            -> node-has-while(count) || node-has-while(body)
+    ForIn(_, s, e, body)           -> node-has-while(s) || node-has-while(e) || node-has-while(body)
+    ForEach(_, coll, body)         -> node-has-while(coll) || node-has-while(body)
+    StringInterp(parts)            -> parts.any(fn(p) node-has-while(p))
+    Tuple(elems)                   -> elems.any(fn(e) node-has-while(e))
+    EList(elems)                   -> elems.any(fn(e) node-has-while(e))
+    ListIndex(lst, idx)            -> node-has-while(lst) || node-has-while(idx)
+    ListSlice(lst, s, e)           -> node-has-while(lst) || s.map(node-has-while).default(False) || e.map(node-has-while).default(False)
+    TupleIndex(tup, _)             -> node-has-while(tup)
+    LetTuple(_, init, body)        -> node-has-while(init) || node-has-while(body)
+    ESome(v)                       -> node-has-while(v)
+    EOk(v)                         -> node-has-while(v)
+    EErr(v)                        -> node-has-while(v)
+    StructLit(_, fs)               -> fs.any(fn((_, v)) node-has-while(v))
+    FieldAccess(o, _)              -> node-has-while(o)
+    EConstructor(_, cargs)         -> cargs.any(fn(a) node-has-while(a))
+    MapLit(entries)                -> entries.any(fn((k, v)) node-has-while(k) || node-has-while(v))
+    _                              -> False
 
 // Check whether the program uses get_args — needs `import std/os/env`.
 fun program-uses-get-args( p : program ) : div bool

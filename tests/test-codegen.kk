@@ -47,6 +47,12 @@ fun check-diagnostics( source : string ) : <div,console> list<diagnostic>
       check-program(desugared)
   ds
 
+// Helper: parse only (no type check) — returns list of parse error strings
+fun check-parse-errors( source : string ) : div list<string>
+  val tokens = lex(source)
+  val (_, errs) = run-parser-program-with-errors(tokens)
+  errs
+
 pub fun main() : io ()
   println(bold("Codegen tests"))
   println("")
@@ -2196,3 +2202,32 @@ pub fun main() : io ()
       assert/is-true(code.contains("val hc_greeting"))
       assert/is-true(code.contains("\"hello\""))
       assert/is-true(code.contains("hc_greeting"))
+
+    // --- .. inside slice error message ---
+    dtest(".. inside slice gives targeted error message")
+      val errs = check-parse-errors("fun main() { let xs = [1,2,3]; xs[0..2] }")
+      assert/is-true(errs.any(fn(e) e.contains("':'")))
+
+    dtest("..= inside slice gives targeted error message")
+      val errs = check-parse-errors("fun main() { let xs = [1,2,3]; xs[0..=2] }")
+      assert/is-true(errs.any(fn(e) e.contains("':'")))
+
+    // --- while suppresses return type annotation ---
+    dtest("while loop suppresses explicit return type annotation")
+      val code = emit-typed-program("fun count(n: int) : int { var i = 0; while i < n { i = i + 1 }; i }")
+      // with while present, needs-div is true so ': int' annotation must be absent
+      assert/is-true(!code.contains(") : int"))
+
+    dtest("while loop body compiles without type error")
+      val ds = check-diagnostics("fun count(n: int) : int { var i = 0; while i < n { i = i + 1 }; i }")
+      val errs = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errs.length == 0)
+
+    // --- \b / \f string escape translation ---
+    dtest("\\b in string literal emits \\x08")
+      val code = emit-typed-program("fun main() => println(\"\\b\")")
+      assert/is-true(code.contains("\\x08"))
+
+    dtest("\\f in string literal emits \\x0c")
+      val code = emit-typed-program("fun main() => println(\"\\f\")")
+      assert/is-true(code.contains("\\x0c"))

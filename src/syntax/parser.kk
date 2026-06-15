@@ -339,6 +339,20 @@ fun parse-postfix() : <div,parser> node
                       val end-e = parse-expr()
                       val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
                       result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Just(end-e)))
+                TkDotDot ->
+                  // User wrote list[start..end] (Rust-style) — give a targeted error
+                  parse-error("use ':' for slices, not '..'. Try: list[start:end]")
+                  advance()  // skip ..
+                  val end-e = parse-expr()
+                  val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                  result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Just(end-e)))
+                TkDotDotEq ->
+                  // User wrote list[start..=end] (Rust-style) — give a targeted error
+                  parse-error("use ':' for slices, not '..='. Try: list[start:end]")
+                  advance()  // skip ..=
+                  val end-e = parse-expr()
+                  val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+                  result := Node(Span(result.span.start, end-tok.span.end), ListSlice(result, Just(idx-e), Just(end-e)))
                 _ ->
                   // list[index]
                   val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
