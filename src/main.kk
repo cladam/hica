@@ -1638,12 +1638,75 @@ fun compile-module( imp-file : path, visited : list<string> ) : io list<path>
     Cons(out-kk, sub-kk-paths)
 
 // ---------------------------------------------------------------------------
+// Koka error line rewriting: translate .kk line numbers back to .hc lines
+// ---------------------------------------------------------------------------
+
+// Given a .kk file's content as a list of lines (1-indexed by position),
+// find the nearest "// .hc:N" comment at or before line `kk-line`.
+// Returns the .hc line number, or Nothing if no comment found.
+fun find-hc-line( kk-lines : list<string>, kk-line : int ) : maybe<int>
+  // Take lines 1..kk-line, reverse so we scan backward
+  val before = kk-lines.take(kk-line).reverse
+  fun scan(ls : list<string>) : maybe<int>
+    match ls
+      Nil -> Nothing
+      Cons(l, rest) ->
+        val t = l.trim
+        if t.starts-with("// .hc:").bool then
+          val n-str = t.slice.drop(7).string.trim
+          n-str.parse-int
+        else
+          scan(rest)
+  scan(before)
+
+// Rewrite a single line of Koka error output.
+// Replaces `<path>.kk(<line>, <col>):` with `<stem>.hc(<hc-line>, <col>):`.
+// `kk-lines` is the split content of the generated .kk file.
+// `hc-file` is the original .hc file path string.
+fun rewrite-koka-error-line( line : string, kk-lines : list<string>, kk-file : string, hc-file : string ) : string
+  // Split on ".kk(" to locate the position
+  match line.split(".kk(")
+    Cons(_, Nil) -> line  // no match
+    Cons(_, Cons(after-paren, _)) ->
+      // Split after-paren on ")" to get coords and the rest
+      match after-paren.split(")")
+        Cons(coords-str, Cons(rest-after, _)) ->
+          // Must start with ":"
+          if !rest-after.starts-with(":").bool then line
+          else
+            // Parse coords: "line, col" or "line,col"
+            val parts = coords-str.split(",")
+            match parts
+              Cons(line-part, Cons(col-part, _)) ->
+                match line-part.trim.split("-")
+                  Cons(ln-str, _) ->
+                    match ln-str.trim.parse-int
+                      Nothing -> line
+                      Just(kk-ln) ->
+                        match find-hc-line(kk-lines, kk-ln)
+                          Nothing -> line
+                          Just(hc-ln) ->
+                            hc-file ++ "(" ++ hc-ln.show ++ ", " ++ col-part.trim ++ ")" ++ rest-after
+                  Nil -> line
+              _ -> line
+        _ -> line
+    Nil -> line
+
+// Rewrite all Koka error output lines, translating .kk locations to .hc locations.
+fun rewrite-koka-errors( output : string, kk-file-raw : string, hc-file : string )
+  val kk-content = if is-file(kk-file-raw.path) then read-text-file(kk-file-raw.path) else ""
+  val kk-lines = kk-content.lines
+  output.lines.map(fn(l) rewrite-koka-error-line(l, kk-lines, kk-file-raw, hc-file)).join("\n")
+
+// ---------------------------------------------------------------------------
 // Compile: invoke koka to compile the generated file into a binary
 // ---------------------------------------------------------------------------
 
 fun compile-koka( file : string, mod-name : string, include-dirs : list<string> = [], opt-level : string = "2", koka-flags : string = "", output : maybe<string> = Nothing )
   val dir  = file.path.dirname
-  val kk-file = (dir.path / (mod-name ++ ".kk").path).show
+  val kk-path = dir.path / (mod-name ++ ".kk").path
+  val kk-file-raw = kk-path.string  // raw path for Koka file I/O
+  val kk-file = kk-path.show        // shell-quoted for subprocess commands
   val out-bin = match output
     Just(name) -> name
     Nothing    -> (dir.path / (mod-name ++ exe-ext()).path).show
@@ -1660,9 +1723,15 @@ fun compile-koka( file : string, mod-name : string, include-dirs : list<string> 
   else
     run-system(koka-cmd ++ " >/dev/null 2>&1 & hica_p=$!; while kill -0 $hica_p 2>/dev/null; do printf '#'; sleep 0.5; done; wait $hica_p")
   if exit-code != 0 then
-    // Re-run with output visible so the user sees the error; start on a fresh line
+    // Re-run, capturing output to a temp file so we can rewrite .kk line numbers → .hc lines
     println("")
-    val _ = run-system("koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file)
+    val err-tmp = (hica-stdlib-dir().string ++ "/__koka_err.txt").path
+    val capture-cmd = "koka " ++ opt-flag ++ " -v0 -o " ++ out-bin ++ inc-flags ++ extra ++ " " ++ kk-file ++ " > " ++ err-tmp.show ++ " 2>&1"
+    val _ = run-system(capture-cmd)
+    val raw-output = if is-file(err-tmp) then read-text-file(err-tmp) else ""
+    val _ = if is-file(err-tmp) then run-system((if is-windows() then "del " else "rm -f ") ++ err-tmp.show) else 0
+    val rewritten = rewrite-koka-errors(raw-output, kk-file-raw, file)
+    println(rewritten)
     println("error: koka failed with exit code " ++ exit-code.show)
     False
   else
