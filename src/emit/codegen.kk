@@ -240,7 +240,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val has-try-m = program-has-try-maybe(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
-  val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
+  val try-result-effect = if has-try-r then "effect hica-early-result<a>\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val exit-helper = if program-uses-exit(p) then exit-helper-code else ""
@@ -591,7 +591,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           "(match " ++ emit-expr(s, declared) ++ ".find(" ++ emit-expr(sub, declared) ++ ") { Just(hc__ss) -> Just(hc__ss.before.count); Nothing -> Nothing })"
         (Var("to_int"), [s]) ->
           "(match " ++ emit-expr(s, declared) ++ ".parse-int { Just(hc__n) -> hc__n; Nothing -> -1 })"
-        (Var("parse_int"), [s]) ->
+        (Var("parse_int"), [s]) | !declared.any(fn(d) d == "parse_int") ->
           emit-expr(s, declared) ++ ".parse-int"
         (Var("parse_float"), [s]) ->
           emit-expr(s, declared) ++ ".parse-float64"
@@ -1963,7 +1963,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val has-try-m = program-has-try-maybe(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
-  val try-result-effect = if has-try-r then "effect hica-early-result\n  ctl hica-early-err(e : a) : b\n\n" else ""
+  val try-result-effect = if has-try-r then "effect hica-early-result<a>\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code

@@ -2231,3 +2231,21 @@ pub fun main() : io ()
     dtest("\\f in string literal emits \\x0c")
       val code = emit-typed-program("fun main() => println(\"\\f\")")
       assert/is-true(code.contains("\\x0c"))
+
+    // --- ? operator on result<T,E> ---
+    dtest("? on result propagates error type")
+      val code = emit-typed-program("fun f(r: result<int, string>) : result<int, string> { let n = r?; Ok(n + 1) }")
+      assert/is-true(code.contains("hica-early-err"))
+
+    dtest("? on result wraps function body with handler")
+      val code = emit-typed-program("fun f(r: result<int, string>) : result<int, string> { let n = r?; Ok(n + 1) }")
+      assert/is-true(code.contains("ctl hica-early-err(e) -> Left(e)"))
+
+    dtest("? on result emits parameterized effect declaration")
+      val code = emit-typed-program("fun f(r: result<int, string>) : result<int, string> { let n = r?; Ok(n + 1) }")
+      assert/is-true(code.contains("effect hica-early-result<a>"))
+
+    dtest("user-defined parse_int is not replaced by builtin")
+      val code = emit-typed-program("fun parse_int(s: string) : result<int, string> { Ok(42) }\nfun main() => parse_int(\"42\")")
+      assert/is-true(code.contains("hc_parse_int"))
+      assert/is-true(!code.contains(".parse-int"))
