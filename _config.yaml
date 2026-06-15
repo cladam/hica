@@ -3,8 +3,8 @@ title: hica Documentation
 description: "A modern, safe, expression-oriented, functional-flavored language with a gentle learning curve."
 keywords: "hica, programming language, koka, algebraic effects, systems language, functional programming"
 
-url: "https://cladam.github.io"
-baseurl: "/hica"
+url: "https://www.hica.dev"
+baseurl: ""
 
 # -- Build Settings --
 markdown: kramdown

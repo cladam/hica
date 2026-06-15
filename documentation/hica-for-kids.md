@@ -116,7 +116,7 @@ Install [Koka](https://koka-lang.github.io/koka/doc/book.html#install) version 3
 #### Linux / macOS / Chromebook
 
 ```sh
-curl -fsSL https://cladam.github.io/hica/install.sh | sh
+curl -fsSL https://www.hica.dev/install.sh | sh
 ```
 
 This downloads the latest release binary and installs it to `~/.local/bin`.
@@ -125,13 +125,13 @@ Make sure that directory is on your `PATH`.
 To install elsewhere:
 
 ```sh
-curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+curl -fsSL https://www.hica.dev/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
 ```
 
 #### Windows (PowerShell)
 
 ```powershell
-irm https://cladam.github.io/hica/install.ps1 | iex
+irm https://www.hica.dev/install.ps1 | iex
 ```
 
 This installs hica to `%LOCALAPPDATA%\hica` and adds it to your user PATH.
@@ -158,7 +158,7 @@ Type `:quit` to exit. The `_` holds your last result.
 
 ### Try it in the browser
 
-Don't want to install anything? The [hica Playground](https://cladam.github.io/hica/playground/) lets you write and run hica code directly in your browser: no setup required. It comes with example programs you can explore with one click.
+Don't want to install anything? The [hica Playground](https://www.hica.dev/playground/) lets you write and run hica code directly in your browser: no setup required. It comes with example programs you can explore with one click.
 
 ---
 

@@ -11,7 +11,7 @@ hica programs can be compiled onward to C, JavaScript, or WASM.
 
 hica is a good name for this language and it can stand for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 
-Visit hica's [website](https://cladam.github.io/hica/) for a tour of the language.
+Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 
 ## Design Goals
 
@@ -50,19 +50,19 @@ state (diagnostics, fresh type variables, symbol scopes).
 **Linux / macOS / Chromebook:**
 
 ```sh
-curl -fsSL https://cladam.github.io/hica/install.sh | sh
+curl -fsSL https://www.hica.dev/install.sh | sh
 ```
 
 This installs the latest release binary to `~/.local/bin`. Override with `HICA_INSTALL_DIR`:
 
 ```sh
-curl -fsSL https://cladam.github.io/hica/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
+curl -fsSL https://www.hica.dev/install.sh | HICA_INSTALL_DIR=/usr/local/bin sh
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://cladam.github.io/hica/install.ps1 | iex
+irm https://www.hica.dev/install.ps1 | iex
 ```
 
 ### Build from source
