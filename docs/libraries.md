@@ -140,6 +140,63 @@ fun main() {
 }
 ```
 
+#### json
+
+A JSON parser and serializer for hica. Parses any valid JSON — null, booleans, numbers, strings, arrays, and objects including nested structures and unicode escapes — and provides a pipe-friendly API for navigating and extracting values.
+
+- **Repository**: [github.com/cladam/json](https://github.com/cladam/json)
+- **Version**: v1.0.0
+- **Install**: `git submodule add https://github.com/cladam/json.git lib/json`
+- **Import**: `import "./lib/json/src/json"`
+
+```hica
+import "./lib/json/src/json"
+
+fun main() {
+  let input = "{\"database\": {\"host\": \"localhost\", \"port\": 5432}}"
+
+  // Parse and navigate with pipes
+  let host = parse_json(input)
+    |> json_ok
+    |> at("database")
+    |> at("host")
+    |> as_str
+
+  println(str_or(host, "unknown"))
+
+  // Serialize back to JSON
+  let data = JObject([("name", JString("myapp")), ("port", JNumber(8080.0))])
+  println(json_emit(data))
+  // {"name": "myapp", "port": 8080.0}
+
+  println(json_pretty(data, 0))
+  // {
+  //   "name": "myapp",
+  //   "port": 8080.0
+  // }
+}
+```
+
+**Navigation API** (`parse_json` returns `result<Json, string>`; use `json_ok` to get `maybe<Json>`):
+
+| Function | Purpose |
+|----------|---------|
+| `json_ok` | Convert parse result to `maybe<Json>` |
+| `at(key)` | Navigate into an object field |
+| `nth(i)` | Index into an array |
+| `as_str` | Extract string value |
+| `as_int` | Extract int value (truncates float) |
+| `as_num` | Extract number as float |
+| `as_bool` | Extract bool value |
+| `as_array` | Extract array items |
+| `as_object` | Extract object fields |
+
+**Defaults**: `str_or`, `int_or`, `num_or`, `bool_or` — unwrap a `maybe<Json>` with a fallback value.
+
+**Inspection**: `has_key`, `keys`, `json_length`.
+
+**Direct accessors** (for unwrapped `Json`): `json_get`, `json_str`, `json_int`, `json_num`, `json_bool`, `json_array`, `json_object`, `json_is_null`.
+
 ### Networking
 
 #### http
@@ -172,7 +229,7 @@ fun main() {
 }
 ```
 
-Note: `http` is a Koka library (C FFI), so it uses `extern import` instead of a regular hica import. Configure your `hica.ini` with `flags = --cclib=curl` under `[koka]`.
+Note: `http` is a Koka library (C FFI), so it uses `extern import` instead of a regular hica import. Configure your `hica.hml` with `flags: "--cclib=curl"` under `@koka { ... }`.
 
 ### Text Processing
 
