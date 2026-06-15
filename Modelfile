@@ -270,15 +270,32 @@ Rule of thumb:
 
 **Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `str_length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
 
-**`length` vs `str_length`**: `length(xs)` is for `list<T>` only — returns the number of elements. For strings, use `str_length(s) : int`. Using `length` on a string is a type error: `length(s)` fails with "expected list, got string". This is the #1 cause of parse errors in cursor-based parsers.
+**`length`**: works on both `list<T>` and `string`. `length(xs)` returns the number of elements; `length(s)` returns the number of characters. `str_length(s)` is an alias and still works.
 
 **Critical prelude type signatures:**
-- `is_empty(s: string) : bool` — for **strings only**, NOT lists. To check an empty list, use `match xs { [] => ..., _ => ... }`
+- `is_empty(s: string) : bool` and `is_empty(xs: list<T>) : bool` — overloaded for both strings and lists
 - `head(xs: list<T>) : maybe<T>` — returns `maybe<T>`, NOT `T`. Use `head_or(xs, default)` from `import "std/list"` for a safe default, or pattern match with `[x, ..rest]`
 - `tail(xs: list<T>) : list<T>` — safe, returns `[]` for empty list
 - `min(a: int, b: int) : int` and `max(a: int, b: int) : int` — take two `int` args, not a list
 
+**Error messages point to `.hc` source lines**: When Koka compilation fails, `hica` now remaps error line numbers from the generated `.kk` file back to the original `.hc` source using the `// .hc:N` comments embedded in generated code. Errors always reference the `.hc` file.
+
 **`and_then` vs `and_then_result`**: `and_then` is for `maybe<T>` only — `and_then(m, f)` where `f: T -> maybe<U>`. For `result<T,E>`, use `and_then_result(r, f)` where `f: T -> result<U,E>`. Confusing them causes a type mismatch.
+
+**`?` operator (early return on None / Err)**: Postfix `?` works on both `maybe<T>` and `result<T,E>`. Inside a function with matching return type it short-circuits on failure:
+- `val?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Return type of enclosing function must be `maybe<...>`.
+- `val?` on `result<T,E>` — unwraps `Ok(v)` or returns `Err(e)` early. Return type of enclosing function must be `result<...,E>`.
+```hica
+fun lookup_name(db: list<(int, string)>, id: int) : maybe<string> {
+  let entry = find(db, (pair) => pair.0 == id)?   // returns None if not found
+  Some(entry.1)
+}
+
+fun parse_and_validate(s: string) : result<Json, string> {
+  let j = parse_json(s)?   // returns Err(e) if parse fails
+  Ok(j)
+}
+```
 
 **`unwrap` vs `unwrap_or` vs `unwrap_maybe_or`**: `unwrap(r)` panics if `r` is `Err` — only use on `result<T,E>`. `unwrap_or(r, default)` returns the value if `Ok` or `default` if `Err` — also only for `result<T,E>`. For `maybe<T>`, use `unwrap_maybe_or(m, default)` (returns the value if `Some` or `default` if `None`). Using `unwrap_or` on a `maybe<T>` is a type error: `json_get(j, "k") |> and_then(json_str) |> unwrap_or("x")` fails because the pipeline produces `maybe<string>`, not `result<string, E>`.
 
@@ -349,8 +366,7 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 |-------|-------|
 | `fn foo()` | `fun foo()` |
 | `foo() -> int` | `foo() : int` |
-| `length(s)` on a string | `length` is for `list<T>` only. For strings use `str_length(s)`. |
-| `s[n..m]` slice syntax (dots) | **Parse error** — use colons: `s[n:m]`, `s[n:]`, `s[:m]`. `..` is only valid in list spread patterns `[x, ..rest]`. |
+| `s[n..m]` slice syntax (dots) | **Parse error with targeted message** — use colons: `s[n:m]`, `s[n:]`, `s[:m]`. hica now emits: *"slice separator must be a colon, not `..` — write `s[n:m]`, not `s[n..m]`"*. `..` is only valid in list spread patterns `[x, ..rest]`. |
 | `if cond then expr else other` | `then` is NOT a keyword in hica — parse error. Use brace syntax: `if cond { expr } else { other }`. |
 | `return x` or `return Err(e)` anywhere in a function | hica has NO `return` keyword — it is a parse error. The last expression is the return value. For early error propagation in parsers, use **nested `match` chains**: `match foo() { Err(e) => Err(e), Ok(v) => /* rest of function — this IS the return value */ }`. Alternatively use `and_then_result`: `foo() \|> and_then_result((v) => ...)`. Never write `return Err(e)` inside a match arm. |
 | `let (a, b) = result_expr` — destructuring a result as a tuple | `result<(a,b), e>` is a `result`, not a tuple. You cannot destructure it with `let (a, b) = ...`. Use `match result_expr { Ok((a, b)) => ..., Err(e) => Err(e) }` instead. **Most common case**: you write a `collect_items` helper that returns `result<(list<T>, int), string>`, then the caller does `let (items, pos) = collect_items(s, p, [])` — type error. Fix: `match collect_items(s, p, []) { Ok((items, pos)) => ..., Err(e) => Err(e) }`. This is separate from the closing-delimiter check: always pattern match the result before accessing the cursor position. |
@@ -377,7 +393,7 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `show(x)` inside `"...{show(x)}..."` with generic `x` | Koka can't resolve `show` overload for unconstrained type — use `"{x}"` directly (interpolation calls show implicitly), or annotate the parameter type |
 | Claiming list match functions are polymorphic when they use `show` | `show(x)` requires a concrete type — add a type annotation e.g. `xs: list<int>` when using `show` on elements |
 | `fun swap((a, b)) => (b, a)` (tuple param destructuring) | NOT supported — parse error. Destructure inside the body: `fun swap(pair) { match pair { (a, b) => (b, a) } }` |
-| `is_empty(xs)` on a list | `is_empty` takes a `string`, not a list — use `match xs { [] => ..., _ => ... }` to check for an empty list |
+| `is_empty(xs)` on a list | **Fixed** — `is_empty` is now overloaded: works on both `string` and `list<T>`. `is_empty([])` returns `true`. |
 | `head(xs)` as an `int` seed value | `head` returns `maybe<T>` not `T` — use `match xs { [] => 0, [x, ..rest] => ... }` or `head_or(xs, 0)` from `std/list` |
 | `type Cursor = (string, int)` (type alias) | hica has NO type aliases. `type X = Y` is not valid syntax. Use a named `struct` instead: `struct Cursor { s: string, pos: int }`, or just pass tuples directly without naming them. |
 | `c1.pos` — named field access on a tuple | Tuples only support positional access: `.0`, `.1`, `.2`. Named field access requires a `struct`. If you used `type Cursor = (string, int)`, the field `pos` does not exist — use `c1.1` or refactor to `struct Cursor { s: string, pos: int }` and access `c1.pos`. |
@@ -416,10 +432,10 @@ _ => Ok(([item] + acc, pos)) // item included
 | Inconsistent opening-quote convention in string parser helpers | When `parse_string_inner` starts reading at the character AFTER the opening `"`, all callers must pass `pos + 1` (skipping the `"`). If `parse_value` calls `parse_string_val(s, p + 1)` but `parse_object_fields` calls `parse_string_val(s, p)` with `p` pointing AT `"`, then `parse_string_inner` sees `"` immediately and returns `Ok(("", p+1))` — an empty string for every object key. Pick ONE convention and apply it everywhere: either always pass the position AFTER the opening `"`, or have `parse_string_val` itself check and skip the `"` before calling the inner helper. |
 | Bare `if` without `else` used as a guard clause expecting early exit | In a block body `{ ... }`, a bare `if cond { Err("...") }` statement **does NOT return early**. It evaluates to `Err(...)` (or `()` in the false branch), discards the value, and execution continues to the next statement. In hica there is no early return — the block returns its **last expression** only. This pattern silently drops all error paths. The fix is to use a single `if/else if/else` chain: `if cond1 { Err("...") } else if cond2 { Ok(...) } else { next_step }`. | In a block body `{ ... }`, a bare `if cond { Err("...") }` statement **does NOT return early**. It evaluates to `Err(...)` (or `()` in the false branch), discards the value, and execution continues to the next statement. In hica there is no early return — the block returns its **last expression** only. This pattern silently drops all error paths. The fix is to use a single `if/else if/else` chain: `if cond1 { Err("...") } else if cond2 { Ok(...) } else { next_step }`. Alternatively restructure with nested `match`. |
 | Using a match-bound variable outside its match arm | A variable bound inside a match arm (`Ok(j) => { ... }`) is only in scope within that arm's body. After the `match` expression ends, `j` is out of scope. Attempting to use it after the match (e.g. `let emitted = json_emit(j)`) is a scope error. Fix: move the usage inside the arm, or bind the result of the match to an outer variable and handle both cases. |
-| `r \|> map_result((pair) => match pair { (a, b) => ... })` or `r \|> and_then_result((pair) => match pair { ... })` inside a match arm | **Koka codegen layout bug**: `map_result` and `and_then_result` with a lambda that contains a `match` expression generate a braced Koka construct `{ Right(pair) -> Right(match pair ...` that Koka's layout parser cannot handle — it closes the outer brace too early. This causes a `parse error: unexpected layout: an open brace` in the generated `.kk` file. **Fix**: replace with an explicit `match` on the sub-parser result: `match parse_string_val(c) { Ok((str, nc)) => Ok((JString(str), nc)), Err(e) => Err(e) }`. Similarly, replace `and_then_result` chains with explicit match on the result. |
-| `"\b"` or `"\f"` in hica string literals | hica passes these escape sequences through to the generated Koka, but Koka does NOT support `\b` (backspace) or `\f` (form feed) as string escapes — it only supports `\\`, `\"`, `\n`, `\r`, `\t`, `\0`, and `\u{XXXX}`. Using `"\b"` causes a Koka compile error "unexpected illegal character in string". **Fix**: use `char_to_string(chr(8))` for backspace and `char_to_string(chr(12))` for form feed. |
+| `r \|> map_result((pair) => match pair { (a, b) => ... })` | **Fixed** — `map_result` and `and_then_result` with a lambda containing a `match` expression now generate correct Koka layout. Both pipe styles work: `r \|> map_result((pair) => match pair { (a, b) => (J(a), b) })` and explicit `match r { Ok(x) => ..., Err(e) => Err(e) }`. |
+| `"\b"` and `"\f"` in hica string literals | **Fixed** — hica now translates `\b` to `char_to_string(chr(8))` and `\f` to `char_to_string(chr(12))` in codegen. Both escape sequences work directly in string literals. |
 | `"{"` or `"}"` as a string literal (including in match patterns like `Some("{")`) | hica's lexer treats `{` inside a double-quoted string as the START of string interpolation. Writing `Some("{") =>` is a parse error — the `{` starts an interpolation and `"` closes the string, not the `}`. **Fix**: always escape literal braces: `Some("\{") =>` for `{` and `Some("\}") =>` for `}`. Same for string literals in error messages: `"expected '\{'"` not `"expected '{'"`.|
-| Explicit return type annotation on a function containing `while` or `var` with mutation | Functions that use `while` loops have a `div` effect (potentially diverging) inferred by Koka. If the hica function has an explicit return type annotation like `: Cursor` or `: result<T,E>`, the codegen emits that as a total-effect Koka signature — Koka then rejects it with "effects do not match: inferred effect `<div\|_e>`, expected total". **Fix**: remove the explicit return type annotation from any function that contains `while`. Koka will infer the correct effect row automatically. |
+| Explicit return type annotation on a function containing `while` | **Fixed** — codegen now suppresses the return type annotation automatically when the function body contains `while`. You can write `fun skip_ws(c: Cursor) : Cursor { while ... }` and it compiles correctly. |
 
 ---
 
