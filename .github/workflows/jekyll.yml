@@ -49,6 +49,7 @@ jobs:
           set net:timeout 15
           set net:max-retries 1
           set ftp:passive-mode yes
+          set ssl:verify-certificate no
           ls
           quit
           EOF
@@ -63,6 +64,7 @@ jobs:
           set net:timeout 30
           set net:max-retries 3
           set ftp:passive-mode yes
+          set ssl:verify-certificate no
           mirror -R --delete --verbose _site/ /
           quit
           EOF
