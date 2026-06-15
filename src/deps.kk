@@ -200,6 +200,33 @@ pub fun remove-dep-from-hml( content : string, dep-name : string ) : div string
   filtered.join("\n")
 
 // ---------------------------------------------------------------------------
+// Lockfile
+// ---------------------------------------------------------------------------
+
+val lockfile-name = "hica.lock"
+
+// Format a single dep-spec as a lockfile [[package]] entry.
+fun format-lock-entry( d : dep-spec ) : string
+  val source-str = match d.source
+    GitDep(url, tag)     -> "git+https://" ++ url ++ "?tag=" ++ tag
+    PathDep(p)           -> "path:" ++ p
+    RegistryDep(version) -> "registry+pkg.hica.dev@" ++ version
+  val version-str = match d.source
+    GitDep(_, tag)       -> tag
+    PathDep(_)           -> "0.0.0"
+    RegistryDep(version) -> version
+  "[[package]]\n" ++
+  "name = \"" ++ d.name ++ "\"\n" ++
+  "version = \"" ++ version-str ++ "\"\n" ++
+  "source = \"" ++ source-str ++ "\"\n"
+
+// Write hica.lock from a list of resolved dep-specs.
+pub fun write-lockfile( dep-list : list<dep-spec> ) : io ()
+  val entries = dep-list.map(format-lock-entry)
+  val content = "# hica.lock — auto-generated, do not edit\n\n" ++ entries.join("\n")
+  write-text-file(lockfile-name.path, content)
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 

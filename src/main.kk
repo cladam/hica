@@ -524,7 +524,9 @@ fun cmd-add( spec-arg : maybe<string> )
           write-text-file(manifest-name.path, new-content)
           println("added " ++ format-dep(dep).trim)
           match fetch-dep(dep, ".".path)
-            Just(_) -> ()
+            Just(_) ->
+              val updated = parse-deps-section(new-content)
+              write-lockfile(updated)
             Nothing -> ()
 
 fun cmd-remove( name-arg : maybe<string> )
@@ -555,6 +557,7 @@ fun cmd-fetch()
       println("no dependencies")
     else
       val paths = fetch-all-deps(dep-list, ".".path)
+      write-lockfile(dep-list)
       println("fetched " ++ paths.length.show ++ " dependencies")
 
 // Resolve dependency include paths from hica.ini [dependencies] section
