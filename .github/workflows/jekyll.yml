@@ -45,26 +45,28 @@ jobs:
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASS: ${{ secrets.SFTP_PASS }}
         run: |
-          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" -e "
-            set sftp:auto-confirm yes;
-            set net:timeout 15;
-            set net:max-retries 1;
-            set sftp:connect-program \"ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\";
-            ls;
-            quit
-          "
+          cat > /tmp/lftp-test.txt << 'EOF'
+          set sftp:auto-confirm yes
+          set net:timeout 15
+          set net:max-retries 1
+          set sftp:connect-program "ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          ls
+          quit
+          EOF
+          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" < /tmp/lftp-test.txt
       - name: Deploy via SFTP
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASS: ${{ secrets.SFTP_PASS }}
         run: |
-          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" -e "
-            set sftp:auto-confirm yes;
-            set net:timeout 30;
-            set net:max-retries 3;
-            set sftp:connect-program \"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\";
-            mirror -R --delete --verbose _site/ /;
-            quit
-          "
+          cat > /tmp/lftp-deploy.txt << 'EOF'
+          set sftp:auto-confirm yes
+          set net:timeout 30
+          set net:max-retries 3
+          set sftp:connect-program "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          mirror -R --delete --verbose _site/ /
+          quit
+          EOF
+          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" < /tmp/lftp-deploy.txt
 
