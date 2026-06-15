@@ -818,7 +818,9 @@ fun main() {
 
 ### Error propagation (`?`)
 
-The `?` operator unwraps a `maybe` value: if it is `Some(v)`, the expression evaluates to `v`; if it is `None`, the enclosing function returns `None` immediately. This replaces nested `match` expressions with a single postfix `?`.
+The `?` operator provides early-return propagation for both `maybe<T>` and `result<T,E>`.
+
+**With `maybe<T>`:** if the value is `Some(v)`, `?` evaluates to `v`; if it is `None`, the enclosing function returns `None` immediately.
 
 ```hica
 fun add_strings(a: string, b: string) : maybe<int> {
@@ -830,6 +832,27 @@ fun add_strings(a: string, b: string) : maybe<int> {
 fun main() {
   println(add_strings("3", "4"))    // Some(7)
   println(add_strings("3", "abc"))  // None
+}
+```
+
+**With `result<T,E>`:** if the value is `Ok(v)`, `?` evaluates to `v`; if it is `Err(e)`, the enclosing function returns `Err(e)` immediately, propagating the error up the call chain.
+
+```hica
+fun parse_int(s: string) : result<int, string> {
+  if s == "" { Err("empty input") }
+  else { Ok(42) }   // simplified
+}
+
+fun double_parsed(s: string) : result<int, string> {
+  let n = parse_int(s)?    // Err → return Err early
+  Ok(n * 2)
+}
+
+fun main() {
+  match double_parsed("42") {
+    Ok(n) => println(n),     // 84
+    Err(e) => println(e)
+  }
 }
 ```
 
@@ -848,8 +871,8 @@ fun add_strings(a: string, b: string) : maybe<int> {
 ```
 
 Rules:
-- The expression before `?` must be of type `maybe<T>`.
-- The enclosing function must return `maybe<T>` (so early-return `None` is type-safe).
+- The expression before `?` must be of type `maybe<T>` or `result<T,E>`.
+- The enclosing function must return the same wrapper type (so early-return is type-safe).
 - `?` is a postfix operator and binds tighter than binary operators, so `parse_int(a)? + parse_int(b)?` works as expected.
 
 ## Testing

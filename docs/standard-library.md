@@ -170,7 +170,7 @@ fun main() {
 | `map(xs, f)` | `(list<a>, (a) -> b) -> list<b>` | Apply `f` to each element |
 | `filter(xs, f)` | `(list<a>, (a) -> bool) -> list<a>` | Keep elements where `f` returns true |
 | `fold(xs, init, f)` | `(list<a>, b, (b, a) -> b) -> b` | Reduce a list to a single value |
-| `length(xs)` | `(list<a>) -> int` | Length of a list |
+| `length(xs)` | `(list<a>) -> int` | Length of a list (also works on strings: `length(s)`) |
 | `reverse(xs)` | `(list<a>) -> list<a>` | Reverse a list |
 | `take(xs, n)` | `(list<a>, int) -> list<a>` | Take the first `n` elements |
 | `drop(xs, n)` | `(list<a>, int) -> list<a>` | Drop the first `n` elements |
@@ -487,7 +487,7 @@ Always available with no import needed. Written in hica itself:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `is_empty(s)` | `(string) -> bool` | True if the string has zero length |
+| `is_empty(s)` | `(string) -> bool` | True if the string has zero length (also works on lists: `is_empty(xs)`) |
 | `is_blank(s)` | `(string) -> bool` | True if the string is empty after trimming |
 | `words(s)` | `(string) -> list<string>` | Split on spaces, removing empty parts |
 | `lines(s)` | `(string) -> list<string>` | Split on newlines |

@@ -1,4 +1,4 @@
-// Hica — result type: Ok and Err
+// Hica — result type: Ok, Err, and ? propagation
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }
@@ -7,6 +7,13 @@ fun validate_age(age) =>
   if age < 0 { Err("age cannot be negative") }
   else if age > 150 { Err("age seems unrealistic") }
   else { Ok(age) }
+
+// ? propagates the first Err automatically
+fun compute(a, b, c) : result<int, string> {
+  let x = safe_divide(a, b)?
+  let y = safe_divide(x, c)?
+  Ok(y)
+}
 
 fun main() {
   // Ok case
@@ -30,5 +37,16 @@ fun main() {
   match validate_age(-5) {
     Ok(a)  => println("valid age: {a}"),
     Err(e) => println(e)
+  }
+
+  // ? propagation: early return on first Err
+  match compute(100, 5, 4) {
+    Ok(n)  => println("compute(100,5,4) = {n}"),
+    Err(e) => println("error: {e}")
+  }
+
+  match compute(100, 0, 4) {
+    Ok(n)  => println("compute(100,0,4) = {n}"),
+    Err(e) => println("error: {e}")    // "division by zero" from first ?
   }
 }
