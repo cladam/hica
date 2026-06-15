@@ -46,14 +46,13 @@ jobs:
           SFTP_PASS: ${{ secrets.SFTP_PASS }}
         run: |
           cat > /tmp/lftp-test.txt << 'EOF'
-          set sftp:auto-confirm yes
           set net:timeout 15
           set net:max-retries 1
-          set sftp:connect-program "ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          set ftp:passive-mode yes
           ls
           quit
           EOF
-          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" < /tmp/lftp-test.txt
+          lftp -d -u "$SFTP_USER","$SFTP_PASS" ftp://"$SFTP_HOST":21 < /tmp/lftp-test.txt
       - name: Deploy via SFTP
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
@@ -61,12 +60,11 @@ jobs:
           SFTP_PASS: ${{ secrets.SFTP_PASS }}
         run: |
           cat > /tmp/lftp-deploy.txt << 'EOF'
-          set sftp:auto-confirm yes
           set net:timeout 30
           set net:max-retries 3
-          set sftp:connect-program "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          set ftp:passive-mode yes
           mirror -R --delete --verbose _site/ /
           quit
           EOF
-          lftp -d -u "$SFTP_USER","$SFTP_PASS" sftp://"$SFTP_HOST" < /tmp/lftp-deploy.txt
+          lftp -d -u "$SFTP_USER","$SFTP_PASS" ftp://"$SFTP_HOST":21 < /tmp/lftp-deploy.txt
 
