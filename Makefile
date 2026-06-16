@@ -20,12 +20,12 @@ all: build
 
 ## Debug build (fast, no optimisations)
 build:
-	$(KOKA) -i$(KLAP) -i$(SRC) $(SRC_MAIN) -o hica
+	$(KOKA) -i$(KLAP) -i$(SRC) --cclib=curl $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 
 ## Optimised release build
 release:
-	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 $(SRC_MAIN) -o hica
+	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 --cclib=curl $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 
 # ── Bundle ────────────────────────────────────────────────────────────────────

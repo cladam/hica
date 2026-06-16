@@ -30,6 +30,7 @@ import klap
 import prelude-bundle
 import stdlib-bundle
 import deps
+import http
 
 val version = "0.36.0" 
 
