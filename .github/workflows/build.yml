@@ -79,28 +79,30 @@ jobs:
         run: |
           vcpkg install curl:x64-windows
           vcpkg integrate install
-          $vcpkgRoot = Split-Path (Get-Command vcpkg).Path -Parent
-          "VCPKG_ROOT=$vcpkgRoot" | Out-File -Append -FilePath $env:GITHUB_ENV
 
       - name: Build (release)
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            make release KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-Wl,/LIBPATH:${VCPKG_ROOT}/installed/x64-windows/lib"
-          else
+          if ($IsWindows) {
+            $vcpkg_include = "C:\vcpkg\installed\x64-windows\include"
+            $vcpkg_lib = "C:\vcpkg\installed\x64-windows\lib"
+            make release KOKA_EXTRA_FLAGS="--ccopts=-I$vcpkg_include --cclinkopts=-L$vcpkg_lib"
+          } else {
             make release
-          fi
-        shell: bash
+          }
 
       - name: Build (debug)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        shell: pwsh
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            make build KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-Wl,/LIBPATH:${VCPKG_ROOT}/installed/x64-windows/lib"
-          else
+          if ($IsWindows) {
+            $vcpkg_include = "C:\vcpkg\installed\x64-windows\include"
+            $vcpkg_lib = "C:\vcpkg\installed\x64-windows\lib"
+            make build KOKA_EXTRA_FLAGS="--ccopts=-I$vcpkg_include --cclinkopts=-L$vcpkg_lib"
+          } else {
             make build
-          fi
-        shell: bash
+          }
 
       - name: Verify binary (Unix)
         if: runner.os != 'Windows'
