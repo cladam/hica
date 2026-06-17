@@ -28,7 +28,7 @@ typedef struct {
 static size_t hica_write_buf(void* ptr, size_t size, size_t nmemb, void* userdata) {
   hica_buf_t* buf = (hica_buf_t*)userdata;
   size_t bytes = size * nmemb;
-  char* newdata = realloc(buf->data, buf->size + bytes + 1);
+  char* newdata = (char*)realloc(buf->data, buf->size + bytes + 1);
   if (!newdata) return 0;
   buf->data = newdata;
   memcpy(buf->data + buf->size, ptr, bytes);
