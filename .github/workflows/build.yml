@@ -86,7 +86,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            make release KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include"
+            make release KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-Wl,/LIBPATH:${VCPKG_ROOT}/installed/x64-windows/lib"
           else
             make release
           fi
@@ -96,7 +96,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            make build KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include"
+            make build KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-Wl,/LIBPATH:${VCPKG_ROOT}/installed/x64-windows/lib"
           else
             make build
           fi
