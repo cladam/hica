@@ -79,12 +79,14 @@ jobs:
         run: |
           vcpkg install curl:x64-windows
           vcpkg integrate install
+          $vcpkgRoot = Split-Path (Get-Command vcpkg).Path -Parent
+          "VCPKG_ROOT=$vcpkgRoot" | Out-File -Append -FilePath $env:GITHUB_ENV
 
       - name: Build (release)
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            make release KOKA_EXTRA_FLAGS="--ccincludes=C:\\vcpkg\\installed\\x64-windows\\include --cclib=libcurl"
+            make release KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-L${VCPKG_ROOT}/installed/x64-windows/lib --cclib=libcurl"
           else
             make release
           fi
@@ -94,7 +96,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            make build KOKA_EXTRA_FLAGS="--ccincludes=C:\\vcpkg\\installed\\x64-windows\\include --cclib=libcurl"
+            make build KOKA_EXTRA_FLAGS="--ccopts=-I${VCPKG_ROOT}/installed/x64-windows/include --cclinkopts=-L${VCPKG_ROOT}/installed/x64-windows/lib --cclib=libcurl"
           else
             make build
           fi
