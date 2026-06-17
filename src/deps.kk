@@ -13,6 +13,7 @@ import std/os/dir
 import std/os/file
 import std/os/path
 import std/os/process
+import http
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,13 +74,17 @@ fun parse-dep-line( line : string ) : div maybe<dep-spec>
         elif value.starts-with("path:").bool then
           val p = value.slice.sslice/drop(5).string.trim
           Just(Dep-spec(name, PathDep(p)))
-        else
+        elif value.contains("/") then
+          // git URL: github.com/user/repo@tag or github.com/user/repo
           val at-parts = value.split("@")
           match at-parts
             Cons(url, Cons(tag, _)) ->
               Just(Dep-spec(name, GitDep(url.trim, tag.trim)))
             _ ->
               Just(Dep-spec(name, GitDep(value, "main")))
+        else
+          // registry dep: plain version string like "0.1.0" or "latest"
+          Just(Dep-spec(name, RegistryDep(value)))
     _ -> Nothing
 
 fun dep-unquote( s : string ) : string
@@ -110,15 +115,82 @@ pub fun fetch-all-deps( dep-list : list<dep-spec>, base-dir : path ) : io list<s
 pub fun fetch-dep( dep : dep-spec, base-dir : path ) : io maybe<path>
   match dep.source
     GitDep(url, tag) -> fetch-git(dep.name, url, tag)
-    RegistryDep(_) ->
-      println("error: registry dependencies not yet implemented")
-      Nothing
+    RegistryDep(version) -> fetch-registry(dep.name, version)
     PathDep(p) ->
       val resolved = base-dir / p.path
       if !is-directory(resolved) then
         println("error: dependency '" ++ dep.name ++ "': path not found: " ++ resolved.show)
         Nothing
       else Just(resolved)
+
+// ---------------------------------------------------------------------------
+// Registry
+// ---------------------------------------------------------------------------
+
+// Extract a string value for a key from flat JSON: "key": "value"
+// Works for our controlled registry metadata format (no escaped quotes in values).
+fun json-get-str( json : string, key : string ) : div maybe<string>
+  val needle = "\"" ++ key ++ "\": \""
+  val parts = json.split(needle)
+  match parts
+    Cons(_, Cons(after, _)) ->
+      val val-parts = after.split("\"")
+      match val-parts
+        Cons(value, _) -> Just(value)
+        _              -> Nothing
+    _ -> Nothing
+
+fun fetch-registry( dep-name : string, version-str : string ) : io maybe<path>
+  match (safe-shell-arg(dep-name), safe-shell-arg(version-str))
+    (Nothing, _) ->
+      println("error: registry package name '" ++ dep-name ++ "' contains unsafe characters")
+      Nothing
+    (_, Nothing) ->
+      println("error: registry version '" ++ version-str ++ "' contains unsafe characters")
+      Nothing
+    (Just(safe-name), Just(_)) ->
+      val resolved = if version-str == "latest" then
+        http-get("https://pkg.hica.dev/" ++ safe-name ++ "/latest").trim
+      else version-str
+      if resolved.is-empty then
+        println("error: could not resolve version of '" ++ safe-name ++ "'")
+        Nothing
+      else
+        val cache   = hica-cache-dir()
+        val dep-dir = cache / "pkg.hica.dev".path / safe-name.path / resolved.path
+        if is-directory(dep-dir) then Just(dep-dir)
+        else fetch-registry-install(safe-name, resolved, dep-dir)
+
+fun fetch-registry-install( safe-name : string, version : string, dep-dir : path ) : io maybe<path>
+  val meta-url = "https://pkg.hica.dev/" ++ safe-name ++ "/" ++ version ++ ".json"
+  val meta     = http-get(meta-url)
+  if meta.is-empty then
+    println("error: package '" ++ safe-name ++ "@" ++ version ++ "' not found in registry")
+    Nothing
+  else
+    match json-get-str(meta, "tarball")
+      Nothing ->
+        println("error: malformed registry metadata for '" ++ safe-name ++ "'")
+        Nothing
+      Just(tarball-url) ->
+        val tmp-tar = "/tmp/hica-" ++ safe-name ++ "-" ++ version ++ ".tar.gz"
+        println("  fetching " ++ safe-name ++ " (" ++ version ++ ") from registry")
+        val dl-code = http-download(tarball-url, tmp-tar)
+        if dl-code != 0 then
+          println("error: failed to download '" ++ safe-name ++ "' from " ++ tarball-url)
+          Nothing
+        else
+          val quoted-dir = "\"" ++ dep-dir.show ++ "\""
+          val mkdir-exit = run-system("mkdir -p " ++ quoted-dir)
+          if mkdir-exit != 0 then
+            println("error: failed to create cache directory for '" ++ safe-name ++ "'")
+            Nothing
+          else
+            val tar-exit = run-system("tar -xzf " ++ tmp-tar ++ " -C " ++ quoted-dir)
+            if tar-exit != 0 then
+              println("error: failed to extract '" ++ safe-name ++ "'")
+              Nothing
+            else Just(dep-dir)
 
 // Reject strings containing shell metacharacters to prevent command injection.
 fun safe-shell-arg( s : string ) : maybe<string>
@@ -238,18 +310,33 @@ pub fun infer-dep-name( url : string ) : div string
     _             -> url
 
 // Parse a dependency spec from a CLI argument.
-// Format: "host/owner/repo@tag" or "path:../dir"
+// Formats:
+//   "github.com/user/repo@tag"  → git dep
+//   "github.com/user/repo"      → git dep (main branch)
+//   "path:../dir"               → path dep
+//   "json@0.1.0"                → registry dep (exact version)
+//   "json"                      → registry dep (latest)
 pub fun parse-dep-spec( spec : string ) : div dep-spec
   if spec.starts-with("path:").bool then
     val p = spec.slice.sslice/drop(5).string.trim
     val name = p.path.stemname
     Dep-spec(name, PathDep(p))
   else
-    val parts = spec.split("@")
-    match parts
-      Cons(url, Cons(tag, _)) ->
-        val name = infer-dep-name(url)
-        Dep-spec(name, GitDep(url, tag))
+    val at-parts = spec.split("@")
+    match at-parts
+      Cons(pkg, Cons(version, _)) ->
+        if pkg.contains("/") then
+          // git: github.com/user/repo@tag
+          val name = infer-dep-name(pkg)
+          Dep-spec(name, GitDep(pkg, version))
+        else
+          // registry: json@0.1.0
+          Dep-spec(pkg.trim, RegistryDep(version.trim))
       _ ->
-        val name = infer-dep-name(spec)
-        Dep-spec(name, GitDep(spec, "main"))
+        if spec.contains("/") then
+          // git URL without tag
+          val name = infer-dep-name(spec)
+          Dep-spec(name, GitDep(spec, "main"))
+        else
+          // registry package, latest
+          Dep-spec(spec.trim, RegistryDep("latest"))

@@ -1,0 +1,116 @@
+# Publish a hica package to pkg.hica.dev
+#
+# Triggered manually (workflow_dispatch) or on version tags (v*).
+# Can be copied to any package repo — set package_dir if the package
+# is not at the repo root.
+#
+# Required secrets: SFTP_HOST, SFTP_USER, SFTP_PASS (same as site deploy)
+#
+# Registry layout produced:
+#   pkg.hica.dev/<name>/latest           plain text: resolved version
+#   pkg.hica.dev/<name>/<version>.json   package metadata
+#   pkg.hica.dev/<name>/<name>-<version>.tar.gz  source tarball
+
+name: Publish hica package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      package_dir:
+        description: 'Package directory relative to repo root (default: .)'
+        required: false
+        default: '.'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse package metadata
+        id: meta
+        run: |
+          PKG_DIR="${{ github.event.inputs.package_dir || '.' }}"
+          MANIFEST="$PKG_DIR/hica.hml"
+          if [ ! -f "$MANIFEST" ]; then
+            echo "error: $MANIFEST not found"
+            exit 1
+          fi
+          PKG_NAME=$(grep -E '^\s+name:' "$MANIFEST" | head -1 | sed 's/.*name: *"\(.*\)".*/\1/')
+          PKG_VERSION=$(grep -E '^\s+version:' "$MANIFEST" | head -1 | sed 's/.*version: *"\(.*\)".*/\1/')
+          if [ -z "$PKG_NAME" ] || [ -z "$PKG_VERSION" ]; then
+            echo "error: could not parse name/version from $MANIFEST"
+            exit 1
+          fi
+          echo "name=$PKG_NAME"     >> $GITHUB_OUTPUT
+          echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
+          echo "dir=$PKG_DIR"       >> $GITHUB_OUTPUT
+          echo "Publishing: $PKG_NAME @ $PKG_VERSION"
+
+      - name: Create tarball
+        run: |
+          PKG_DIR="${{ steps.meta.outputs.dir }}"
+          PKG_NAME="${{ steps.meta.outputs.name }}"
+          PKG_VERSION="${{ steps.meta.outputs.version }}"
+          TARBALL="${PKG_NAME}-${PKG_VERSION}.tar.gz"
+          tar czf "$TARBALL" \
+            --exclude='.git' \
+            --exclude='*.kk' \
+            --exclude='*.kki' \
+            --exclude='.hica' \
+            --exclude='node_modules' \
+            -C "$PKG_DIR" .
+          echo "TARBALL=$TARBALL" >> $GITHUB_ENV
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
+
+      - name: Compute checksum
+        run: |
+          CHECKSUM=$(sha256sum "$TARBALL" | awk '{print $1}')
+          echo "CHECKSUM=sha256:$CHECKSUM" >> $GITHUB_ENV
+          echo "Checksum: sha256:$CHECKSUM"
+
+      - name: Write version metadata
+        run: |
+          TARBALL_URL="https://pkg.hica.dev/${PKG_NAME}/${TARBALL}"
+          python3 - << EOF
+          import json
+          meta = {
+            "name": "$PKG_NAME",
+            "version": "$PKG_VERSION",
+            "tarball": "$TARBALL_URL",
+            "checksum": "$CHECKSUM"
+          }
+          with open("${PKG_NAME}-${PKG_VERSION}.json", "w") as f:
+            json.dump(meta, f, indent=2)
+            f.write("\n")
+          EOF
+          echo "$PKG_VERSION" > latest
+          echo "Metadata written for $PKG_NAME@$PKG_VERSION"
+
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Upload to registry
+        env:
+          FTP_HOST: ${{ secrets.SFTP_HOST }}
+          FTP_USER: ${{ secrets.SFTP_USER }}
+          FTP_PASS: ${{ secrets.SFTP_PASS }}
+        run: |
+          cat > /tmp/lftp-publish.txt << LFTP_EOF
+          set net:timeout 30
+          set net:max-retries 3
+          set ftp:passive-mode yes
+          set ssl:verify-certificate no
+          mkdir -p ${PKG_NAME}
+          put ${TARBALL} -o ${PKG_NAME}/${TARBALL}
+          put ${PKG_NAME}-${PKG_VERSION}.json -o ${PKG_NAME}/${PKG_VERSION}.json
+          put latest -o ${PKG_NAME}/latest
+          quit
+          LFTP_EOF
+          lftp -u "$FTP_USER","$FTP_PASS" ftp://"$FTP_HOST":21 < /tmp/lftp-publish.txt
+          echo "Published ${PKG_NAME}@${PKG_VERSION} to pkg.hica.dev"
