@@ -65,6 +65,19 @@ jobs:
           & "$env:TEMP\install-koka.bat"
           "$env:LOCALAPPDATA\koka\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
 
+      - name: Install libcurl (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Install libcurl (macOS)
+        if: runner.os == 'macOS'
+        run: brew install curl
+
+      - name: Install libcurl (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install curl --no-progress
+
       - name: Build (release)
         if: startsWith(github.ref, 'refs/tags/v')
         run: make release
