@@ -8,6 +8,12 @@ KLAP       = lib/klap
 KUNIT      = lib/kunit
 SRC        = src
 
+ifeq ($(OS),Windows_NT)
+CURL_LIB   = libcurl
+else
+CURL_LIB   = curl
+endif
+
 .PHONY: all build release bundle bundle-prelude bundle-stdlib test test-lexer \
         test-parser test-codegen test-cli test-js test-repl playground clean \
 		choreo-cli choreo-repl
@@ -20,12 +26,12 @@ all: build
 
 ## Debug build (fast, no optimisations)
 build:
-	$(KOKA) -i$(KLAP) -i$(SRC) --cclib=curl $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
+	$(KOKA) -i$(KLAP) -i$(SRC) --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 
 ## Optimised release build
 release:
-	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 --cclib=curl $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
+	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 
 # ── Bundle ────────────────────────────────────────────────────────────────────
