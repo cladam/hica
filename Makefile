@@ -27,6 +27,7 @@ build:
 ## Optimised release build
 release:
 	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
+	chmod +x $(HICA)
 
 # ── Bundle ────────────────────────────────────────────────────────────────────
 
