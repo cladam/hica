@@ -85,7 +85,7 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            $env:KOKA_EXTRA_FLAGS = "--ccopts=-IC:/vcpkg/installed/x64-windows/include"
+            $env:KOKA_EXTRA_FLAGS = "--ccopts=-IC:/vcpkg/installed/x64-windows/include --cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib"
             make release
           } else {
             make release
@@ -96,7 +96,7 @@ jobs:
         shell: pwsh
         run: |
           if ($IsWindows) {
-            $env:KOKA_EXTRA_FLAGS = "--ccopts=-IC:/vcpkg/installed/x64-windows/include"
+            $env:KOKA_EXTRA_FLAGS = "--ccopts=-IC:/vcpkg/installed/x64-windows/include --cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib"
             make build
           } else {
             make build
