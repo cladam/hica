@@ -51,6 +51,7 @@ static kk_string_t kk_hica_http_get(kk_string_t url_str, kk_context_t* ctx) {
 
   hica_buf_t buf = { NULL, 0 };
   int ok = 0;
+  long status = 0;
 
   CURL* curl = curl_easy_init();
   if (curl) {
@@ -60,7 +61,10 @@ static kk_string_t kk_hica_http_get(kk_string_t url_str, kk_context_t* ctx) {
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     CURLcode res = curl_easy_perform(curl);
-    if (res == CURLE_OK) ok = 1;
+    if (res == CURLE_OK) {
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+      if (status >= 200 && status < 300) ok = 1;
+    }
     curl_easy_cleanup(curl);
   }
 
@@ -97,6 +101,7 @@ static kk_integer_t kk_hica_http_download(kk_string_t url_str, kk_string_t dest_
   }
 
   int ok = 0;
+  long status = 0;
   CURL* curl = curl_easy_init();
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -105,10 +110,16 @@ static kk_integer_t kk_hica_http_download(kk_string_t url_str, kk_string_t dest_
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
     CURLcode res = curl_easy_perform(curl);
-    if (res == CURLE_OK) ok = 1;
+    if (res == CURLE_OK) {
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+      if (status >= 200 && status < 300) ok = 1;
+    }
     curl_easy_cleanup(curl);
   }
   fclose(fp);
+  if (!ok) {
+    remove(dest);
+  }
 
   kk_string_drop(url_str,  ctx);
   kk_string_drop(dest_str, ctx);

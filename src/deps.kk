@@ -140,6 +140,17 @@ fun json-get-str( json : string, key : string ) : div maybe<string>
         _              -> Nothing
     _ -> Nothing
 
+fun looks-like-html( s : string ) : bool
+  val t = s.trim
+  t.starts-with("<!DOCTYPE").bool || t.starts-with("<html").bool || t.starts-with("<?xml").bool
+
+fun is-valid-registry-version( s : string ) : bool
+  if s.is-empty then False
+  elif looks-like-html(s) then False
+  else
+    val dangerous = ['/', '\\', ':', ';', '&', '|', '$', '`', '(', ')', '<', '>', '\n', '\r', '\t', ' ', '"', '\'']
+    !dangerous.any(fn(c) s.contains(c.show))
+
 fun fetch-registry( dep-name : string, version-str : string ) : io maybe<path>
   match (safe-shell-arg(dep-name), safe-shell-arg(version-str))
     (Nothing, _) ->
@@ -152,7 +163,10 @@ fun fetch-registry( dep-name : string, version-str : string ) : io maybe<path>
       val resolved = if version-str == "latest" then
         http-get("https://pkg.hica.dev/" ++ safe-name ++ "/latest").trim
       else version-str
-      if resolved.is-empty then
+      if !is-valid-registry-version(resolved) then
+        println("error: package '" ++ safe-name ++ "' not found in registry (latest is unavailable)")
+        Nothing
+      elif resolved.is-empty then
         println("error: could not resolve version of '" ++ safe-name ++ "'")
         Nothing
       else
