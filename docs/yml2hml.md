@@ -163,8 +163,8 @@ Notice how yml2hml automatically converts underscore keys (`main_branch_name`) t
 - **Slice patterns**: `[" ", ..rest] =>` for counting indentation
 - **Or-patterns**: `"true" | "yes" | "on" =>` for YAML boolean mapping
 - **Pattern matching**: `match`/`Some`/`None` throughout for safe value handling
-- **String interpolation**: `"@{hkey} \{"` for building output
-- **Recursion**: `convert_block` recursively processes nested YAML structure
+- **String concatenation**: `pad + "@" + hkey + " \{"` for building output
+- **Recursion**: `convert_block` dispatches to named helpers (`convert_comment`, `convert_list_line`, `convert_nested_key`, `convert_scalar_key`) that each recurse back through it
 - **Pipe operator**: `read_file(path) |> unwrap` for chaining
 - **Closures**: `map(items, (item) => hml_value(strip(item)))` for transformations
 - **Dot-call syntax**: `trimmed.strip()`, `items.length()` for readability
@@ -174,4 +174,4 @@ Notice how yml2hml automatically converts underscore keys (`main_branch_name`) t
 
 ## Source
 
-The full source is in [`programs/yml2hml.hc`](https://github.com/cladam/hica/blob/main/programs/yml2hml.hc) (~580 lines).
+The full source is in [`programs/yml2hml.hc`](https://github.com/cladam/hica/blob/main/programs/yml2hml.hc) (~560 lines).
