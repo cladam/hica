@@ -24,16 +24,7 @@
 //   - YAML tags (!tag)
 
 // --- YAML line classification ---
-// TODO: import "../lib/hml" — re-enable when hml module is published
 import "std/cli"
-
-type YamlLine {
-    YKeyVal(indent: int, key: string, text: string),
-    YListItem(indent: int, text: string),
-    YKeyOnly(indent: int, key: string),
-    YBlank,
-    YComment(text: string)
-}
 
 // Count leading spaces
 fun count_indent(s: string) : int {
@@ -221,30 +212,6 @@ fun find_key_sep_at(s: string, pos: int, len: int) : int {
                     if last == ":" { len - 1 }
                     else { -1 }
                 } else { -1 }
-            }
-        }
-    }
-}
-
-// Parse a single YAML line into a YamlLine
-fun parse_yaml_line(line: string) : YamlLine {
-    let trimmed = strip(line)
-    if trimmed == "" { YBlank }
-    else if has_prefix(trimmed, "#") { YComment(trimmed[1:]) }
-    else {
-        let indent = count_indent(line)
-        if has_prefix(trimmed, "- ") {
-            YListItem(indent, strip_inline_comment(strip(trimmed[2:])))
-        } else {
-            // Look for "key: value" (colon + space) or "key:" (colon at end)
-            let sep = find_key_sep(trimmed)
-            if sep >= 0 {
-                let key = trimmed[:sep]
-                let after = strip_inline_comment(strip(trimmed[sep + 1:]))
-                if after == "" { YKeyOnly(indent, key) }
-                else { YKeyVal(indent, key, after) }
-            } else {
-                YListItem(indent, trimmed)
             }
         }
     }
