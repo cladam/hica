@@ -107,7 +107,9 @@ pub fun hica-cache-dir() : io path
 pub fun fetch-all-deps( dep-list : list<dep-spec>, base-dir : path ) : io list<string>
   dep-list.map(fn(d)
     match fetch-dep(d, base-dir)
-      Just(p) -> [p.show]
+      Just(p) ->
+        val src-dir = p / "src".path
+        if is-directory(src-dir) then [p.string, src-dir.string] else [p.string]
       Nothing -> []
   ).concat
 
