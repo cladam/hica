@@ -23,7 +23,7 @@
 //   - Merge keys (<<)
 //   - YAML tags (!tag)
 
-// --- YAML line classification ---
+// --- Core utilities ---
 import "std/cli"
 
 // Count leading spaces
@@ -672,4 +672,32 @@ test "yaml_to_hml: comment converted" {
 
 test "yaml_to_hml: scalar list" {
     assert_eq(yaml_to_hml("items:\n  - a\n  - b"), "items: [\"a\", \"b\"]")
+}
+
+test "yaml_to_hml: nested object becomes element block" {
+    assert_eq(
+        yaml_to_hml("parent:\n  child: value"),
+        "@parent \{\n    child: \"value\"\n\}"
+    )
+}
+
+test "yaml_to_hml: list of objects becomes repeated elements" {
+    assert_eq(
+        yaml_to_hml("users:\n  - name: alice\n    age: 30\n  - name: bob\n    age: 25"),
+        "@users \{\n    name: \"alice\"\n    age: 30\n\}\n@users \{\n    name: \"bob\"\n    age: 25\n\}"
+    )
+}
+
+test "yaml_to_hml: flow map becomes inline element" {
+    assert_eq(
+        yaml_to_hml("item: \{name: foo, enabled: yes\}"),
+        "@item(name: \"foo\", enabled: true)"
+    )
+}
+
+test "yaml_to_hml: block scalar becomes triple quoted string" {
+    assert_eq(
+        yaml_to_hml("desc: |\n  hello\n  world"),
+        "desc: \"\"\"\nhello\nworld\n\"\"\""
+    )
 }

@@ -158,20 +158,33 @@ Notice how yml2hml automatically converts underscore keys (`main_branch_name`) t
 
 `yml2hml` is also a showcase of hica language features:
 
-- **Enum types**: `type YamlLine { YKeyVal(...), YListItem(...), ... }` for classifying parsed lines
 - **Structs**: `struct ConvertState { remaining: list<string> }` for parser state
 - **Slice patterns**: `[" ", ..rest] =>` for counting indentation
 - **Or-patterns**: `"true" | "yes" | "on" =>` for YAML boolean mapping
 - **Pattern matching**: `match`/`Some`/`None` throughout for safe value handling
 - **String concatenation**: `pad + "@" + hkey + " \{"` for building output
-- **Recursion**: `convert_block` dispatches to named helpers (`convert_comment`, `convert_list_line`, `convert_nested_key`, `convert_scalar_key`) that each recurse back through it
-- **Pipe operator**: `read_file(path) |> unwrap` for chaining
+- **Recursive descent with helper dispatch**: `convert_block` delegates to focused helpers (`convert_comment`, `convert_list_line`, `convert_nested_key`, `convert_scalar_key`) and recurses through state
 - **Closures**: `map(items, (item) => hml_value(strip(item)))` for transformations
-- **Dot-call syntax**: `trimmed.strip()`, `items.length()` for readability
 - **File I/O**: `read_file`, `write_file` with `Result` error handling
 - **CLI prelude**: `cli() |> arg()` builder for `--help`, `--version`, and argument validation
 - **CLI args**: `cli_parse`, `Parsed(r)`, `get_positional` for structured argument handling
 
+## Tests
+
+`yml2hml` includes inline tests for core helpers and full conversion paths.
+
+```sh
+hica test programs/yml2hml.hc
+```
+
+Current coverage includes:
+
+- Scalar conversion and key normalization
+- Flow sequence / flow mapping conversion
+- Comment stripping and key separator detection
+- Nested objects and lists of objects
+- Block scalar conversion
+
 ## Source
 
-The full source is in [`programs/yml2hml.hc`](https://github.com/cladam/hica/blob/main/programs/yml2hml.hc) (~560 lines).
+The full source is in [`programs/yml2hml.hc`](https://github.com/cladam/hica/blob/main/programs/yml2hml.hc) (~700 lines, including inline tests).
