@@ -403,6 +403,104 @@ fun is_list_of_objects(st: ConvertState, expected_indent: int) : bool {
     }
 }
 
+// Convert a YAML comment line to a HML // comment
+fun convert_comment(trimmed: string, pad: string, st: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    let comment_text = trimmed[1:]
+    let spaced = if has_prefix(comment_text, " ") { comment_text } else { " " + comment_text }
+    let st2 = advance(st)
+    let rest = convert_block(st2, parent_indent, depth)
+    ([pad + "//" + spaced] + rest.0, rest.1)
+}
+
+// Collect top-level "- item" list items and emit as an HML array
+fun convert_list_line(st: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    let items_result = collect_list_items(st, parent_indent)
+    let items = items_result.0
+    let st2 = items_result.1
+    let arr = "[" + join(items, ", ") + "]"
+    let rest = convert_block(st2, parent_indent, depth)
+    ([arr] + rest.0, rest.1)
+}
+
+// Handle a block scalar value (| or >) → triple-quoted HML string
+fun convert_block_scalar_key(hkey: string, pad: string, st2: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    let block_indent = parent_indent + 2
+    let block_result = collect_block_lines(st2, block_indent)
+    let blines = block_result.0
+    let st3 = block_result.1
+    let hval = block_to_hml_string(blines)
+    let out_line = pad + hkey + ": " + hval
+    let rest = convert_block(st3, parent_indent, depth)
+    ([out_line] + rest.0, rest.1)
+}
+
+// Handle a key with no inline value — next lines are a list or nested @element block
+fun convert_nested_key(hkey: string, pad: string, st2: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    let list_indent = peek_list_indent(st2, parent_indent)
+    if list_indent >= 0 {
+        if is_list_of_objects(st2, list_indent) {
+            // List of objects → repeated @elements
+            let obj_result = collect_object_list(st2, list_indent, hkey, depth)
+            let obj_lines = obj_result.0
+            let st3 = obj_result.1
+            let rest = convert_block(st3, parent_indent, depth)
+            (obj_lines + rest.0, rest.1)
+        } else {
+            // Scalar list → HML array
+            let items_result = collect_list_items(st2, list_indent)
+            let items = items_result.0
+            let st3 = items_result.1
+            let arr = "[" + join(items, ", ") + "]"
+            let out_line = pad + hkey + ": " + arr
+            let rest = convert_block(st3, parent_indent, depth)
+            ([out_line] + rest.0, rest.1)
+        }
+    } else {
+        // Nested object → @element block
+        let child_indent = parent_indent + 2
+        let body_result = convert_block(st2, child_indent, depth + 1)
+        let body_lines = body_result.0
+        let st3 = body_result.1
+        let header = pad + "@" + hkey + " \{"
+        let footer = pad + "\}"
+        let block = [header] + body_lines + [footer]
+        let rest = convert_block(st3, parent_indent, depth)
+        (block + rest.0, rest.1)
+    }
+}
+
+// Handle a key with a scalar or flow-map value
+fun convert_scalar_key(after: string, hkey: string, pad: string, st2: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    if is_flow_map(after) {
+        let out_line = pad + convert_flow_map(after, hkey)
+        let rest = convert_block(st2, parent_indent, depth)
+        ([out_line] + rest.0, rest.1)
+    } else {
+        let hval = hml_value(after)
+        let out_line = pad + hkey + ": " + hval
+        let rest = convert_block(st2, parent_indent, depth)
+        ([out_line] + rest.0, rest.1)
+    }
+}
+
+// Dispatch a key: value line (or emit unrecognised line as a comment)
+fun convert_key(trimmed: string, pad: string, st: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
+    let sep = find_key_sep(trimmed)
+    if sep >= 0 {
+        let key = trimmed[:sep]
+        let hkey = to_hml_key(key)
+        let after = strip_inline_comment(strip(trimmed[sep + 1:]))
+        let st2 = advance(st)
+        if is_block_scalar(after) { convert_block_scalar_key(hkey, pad, st2, parent_indent, depth) }
+        else if after == "" { convert_nested_key(hkey, pad, st2, parent_indent, depth) }
+        else { convert_scalar_key(after, hkey, pad, st2, parent_indent, depth) }
+    } else {
+        let st2 = advance(st)
+        let rest = convert_block(st2, parent_indent, depth)
+        ([pad + "// ? " + trimmed] + rest.0, rest.1)
+    }
+}
+
 // Convert a block of YAML lines at a given indent level to HML lines
 fun convert_block(st: ConvertState, parent_indent: int, depth: int) : (list<string>, ConvertState) {
     if done(st) { ([], st) }
@@ -410,115 +508,14 @@ fun convert_block(st: ConvertState, parent_indent: int, depth: int) : (list<stri
         let line = current_line(st)
         let trimmed = strip(line)
         let indent = count_indent(line)
-        // Stop if we've dedented past our parent
         if indent < parent_indent { ([], st) }
+        else if indent > parent_indent { ([], st) }
+        else if trimmed == "" { convert_block(advance(st), parent_indent, depth) }
         else {
-            if indent > parent_indent {
-                // Skip lines with deeper indent than expected (handled by recursion)
-                ([], st)
-            } else {
-                // We're at the expected indent level
-                if trimmed == "" {
-                    // Blank line — skip
-                    let st2 = advance(st)
-                    convert_block(st2, parent_indent, depth)
-                } else {
-                    if has_prefix(trimmed, "#") {
-                        // Comment — convert # to //
-                        let pad = make_pad(depth)
-                        let comment_text = trimmed[1:]
-                        let spaced = if has_prefix(comment_text, " ") { comment_text }
-                                     else { " " + comment_text }
-                        let st2 = advance(st)
-                        let rest = convert_block(st2, parent_indent, depth)
-                        ([pad + "//" + spaced] + rest.0, rest.1)
-                    } else {
-                        if has_prefix(trimmed, "- ") {
-                            // List items at top level of this block
-                            let items_result = collect_list_items(st, parent_indent)
-                            let items = items_result.0
-                            let st2 = items_result.1
-                            let arr = "[" + join(items, ", ") + "]"
-                            let rest = convert_block(st2, parent_indent, depth)
-                            // Return array string (caller adds key:)
-                            ([arr] + rest.0, rest.1)
-                        } else {
-                            // Key: value or Key: (block)
-                            let sep = find_key_sep(trimmed)
-                            if sep >= 0 {
-                                    let key = trimmed[:sep]
-                                    let hkey = to_hml_key(key)
-                                    let after = strip_inline_comment(strip(trimmed[sep + 1:]))
-                                    let pad = make_pad(depth)
-                                    let st2 = advance(st)
-                                    if is_block_scalar(after) {
-                                        // Multi-line block scalar (| or >)
-                                        let block_indent = parent_indent + 2
-                                        let block_result = collect_block_lines(st2, block_indent)
-                                        let blines = block_result.0
-                                        let st3 = block_result.1
-                                        let hval = block_to_hml_string(blines)
-                                        let out_line = pad + hkey + ": " + hval
-                                        let rest = convert_block(st3, parent_indent, depth)
-                                        ([out_line] + rest.0, rest.1)
-                                    } else if after == "" {
-                                        // Block — check if next lines are list items or a nested object
-                                        let list_indent = peek_list_indent(st2, parent_indent)
-                                        if list_indent >= 0 {
-                                            if is_list_of_objects(st2, list_indent) {
-                                                // List of objects → repeated elements (no outer wrapper)
-                                                let obj_result = collect_object_list(st2, list_indent, hkey, depth)
-                                                let obj_lines = obj_result.0
-                                                let st3 = obj_result.1
-                                                let rest = convert_block(st3, parent_indent, depth)
-                                                (obj_lines + rest.0, rest.1)
-                                            } else {
-                                                // Collect as scalar array
-                                                let items_result = collect_list_items(st2, list_indent)
-                                                let items = items_result.0
-                                                let st3 = items_result.1
-                                                let arr = "[" + join(items, ", ") + "]"
-                                                let out_line = pad + hkey + ": " + arr
-                                                let rest = convert_block(st3, parent_indent, depth)
-                                                ([out_line] + rest.0, rest.1)
-                                            }
-                                        } else {
-                                            // Nested object → @element
-                                            let child_indent = parent_indent + 2
-                                            let body_result = convert_block(st2, child_indent, depth + 1)
-                                            let body_lines = body_result.0
-                                            let st3 = body_result.1
-                                            let header = pad + "@" + hkey + " \{"
-                                            let footer = pad + "\}"
-                                            let block = [header] + body_lines + [footer]
-                                            let rest = convert_block(st3, parent_indent, depth)
-                                            (block + rest.0, rest.1)
-                                        }
-                                    } else {
-                                        // Simple key: value
-                                        if is_flow_map(after) {
-                                            // Flow mapping → inline element
-                                            let out_line = pad + convert_flow_map(after, hkey)
-                                            let rest = convert_block(st2, parent_indent, depth)
-                                            ([out_line] + rest.0, rest.1)
-                                        } else {
-                                            let hval = hml_value(after)
-                                            let out_line = pad + hkey + ": " + hval
-                                            let rest = convert_block(st2, parent_indent, depth)
-                                            ([out_line] + rest.0, rest.1)
-                                        }
-                                    }
-                            } else {
-                                    // Unrecognised line, emit as comment
-                                    let pad = make_pad(depth)
-                                    let st2 = advance(st)
-                                    let rest = convert_block(st2, parent_indent, depth)
-                                    ([pad + "// ? " + trimmed] + rest.0, rest.1)
-                            }
-                        }
-                    }
-                }
-            }
+            let pad = make_pad(depth)
+            if has_prefix(trimmed, "#") { convert_comment(trimmed, pad, st, parent_indent, depth) }
+            else if has_prefix(trimmed, "- ") { convert_list_line(st, parent_indent, depth) }
+            else { convert_key(trimmed, pad, st, parent_indent, depth) }
         }
     }
 }

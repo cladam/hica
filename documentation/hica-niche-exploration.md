@@ -12,6 +12,48 @@ Many languages compete for general-purpose mindshare and lose. The ones that bre
 
 ## Candidate niches
 
+### 0. SICP Distilled with HiLisp ★★★★
+
+SICP is still one of the best ways to teach abstraction, interpreters, and symbolic
+computation. The challenge in 2026 is that many learners bounce off Scheme tooling,
+while modern clones often lose the "minimal core" feel.
+
+HiLisp is a strong fit for a SICP-style track inside the hica ecosystem:
+- Lisp surface syntax keeps the SICP mental model intact
+- Small evaluator and prelude make language internals inspectable
+- Same repository and toolchain as hica keeps contributor workflow simple
+
+Positioning angle:
+
+> Learn computer science ideas in HiLisp, then cross the bridge to typed production
+> programs in hica.
+
+This creates a pedagogical ladder:
+1. Start with substitution model, recursion, data-as-code in HiLisp
+2. Rebuild core SICP artifacts (symbolic differentiator, metacircular evaluator subset)
+3. Port selected exercises to hica to show how types/effects refine the same ideas
+
+Why this is differentiated:
+- Most "SICP in modern language" efforts stop at translation
+- This path adds an explicit second stage: from elegant Lisp ideas to effect-typed
+  systems code
+- It naturally showcases the hica family rather than only the hica compiler
+
+First concrete slice:
+- Create a "SICP track" folder with 3 runnable HiLisp lessons:
+  - numeric recursion and higher-order functions
+  - symbolic data and tree recursion
+  - mini evaluator core (environment + eval/apply subset)
+- Add side-by-side ports for one lesson in hica
+- Publish as "SICP Distilled: HiLisp to Hica"
+
+Success signal:
+- A learner can complete one chapter and explain both:
+  - the Lisp concept
+  - how hica's type/effect system changes implementation constraints
+
+---
+
 ### 1. AI Agent Capability Language ★★★★★
 
 The 2026 problem nobody has solved at the language level: **"What can this agent actually do?"**
