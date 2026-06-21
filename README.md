@@ -1,15 +1,22 @@
 <div align="center">
   <img src="assets/hica-logo2.png" width="200" alt="hica logo" />
-  <p><b>A safe, expression-oriented, functional-flavored language with a gentle learning curve</b></p>
+  <p><b>A safe, expression-oriented language with algebraic effects and familiar syntax.</b></p>
   
 </div>
 
-**hica** is a safe, expression-oriented, functional-flavored language with a gentle learning curve.
-It is built in [Koka](https://koka-lang.github.io/) and transpiles to Koka, powered by Koka's
-algebraic effect system and Perceus reference counting. Because the target is Koka itself,
-hica programs can be compiled onward to C, JavaScript, or WASM.
+**hica** is a safe, expression-oriented language with a functional style and familiar syntax.
 
-hica is a good name for this language and it can stand for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
+Features include:
+
+- Hindley-Milner type inference
+- Algebraic effects
+- Expression-oriented design
+- No nulls or unchecked exceptions
+- Compilation to C, JavaScript, and WASM
+
+Under the hood, hica is implemented in [Koka](https://koka-lang.github.io/) and inherits Koka's algebraic effect system and Perceus memory management.
+
+hica stands for **H**indley-Milner **I**nference **C**ompiler with **A**lgebraic effects.
 
 Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 
@@ -17,33 +24,11 @@ Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 
 - **Safe by default** – no null, no unhandled exceptions; errors are values (`Result`, `Maybe`).
 - **Expression-oriented** – everything returns a value: `if`, `match`, and blocks are all expressions.
-- **Functional-flavored** – immutability by default, higher-order functions, and pattern matching at the core.
-- **Gentle learning curve** – Hindley-Milner type inference means you rarely write annotations; the language gets out of your way.
+- **Functional-first** – immutability by default, higher-order functions, and pattern matching at the core.
+- **Minimal ceremony** – Hindley-Milner type inference means you rarely write annotations; the language gets out of your way.
 - **Effect tracking** – side effects (I/O, state, exceptions) are tracked by the type system, not buried in function bodies.
-- **No garbage collector** – memory safety via Koka's Perceus reference counting, with no GC pauses.
+- **Predictable memory management** – inherited from Koka's Perceus reference counting; no GC pauses, no manual allocation.
 - **Familiar syntax** – curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
-
-## Compilation Pipeline
-
-```
-.hc source → Lex → Parse → Desugar → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
-```
-
-Each phase is implemented as a Koka module using algebraic effects for compiler
-state (diagnostics, fresh type variables, symbol scopes).
-
-## Technical Stack
-
-| Component             | Approach                                        |
-| --------------------- | ----------------------------------------------- |
-| Implementation        | Koka 3.x                                        |
-| Parsing               | Recursive descent with Pratt expression parsing |
-| Type system           | Hindley-Milner with unification                  |
-| Name resolution       | Declaration-aware marshalling (`hc_` prefix)     |
-| CLI argument parsing  | klap (clap-inspired, in-tree)                    |
-| Memory management     | Perceus (inherited from Koka target)             |
-| Backend target        | Koka (.kk) → C / JS / WASM via Koka              |
-| Runtime               | Koka standard library and runtime                |
 
 ## Install
 
@@ -77,15 +62,31 @@ make release
 
 ## Quick Start
 
-```sh
-# Compile and run a Hica source file
-./hica run examples/hello.hc
+Create a file `hello.hc`:
 
-# Just compile (outputs .kk alongside source)
-./hica build examples/arrow.hc
+```rust
+fun main() {
+  println("Hello, world")
+}
+```
+
+Then run it:
+
+```sh
+hica run hello.hc
+```
+
+Other common commands:
+
+```sh
+# Compile to a binary
+hica build hello.hc -o hello
 
 # Type-check without emitting
-./hica check examples/hello.hc
+hica check hello.hc
+
+# Format source
+hica fmt hello.hc
 ```
 
 ## Examples
@@ -99,16 +100,6 @@ fun main() {
   let result = double(21)
   result
 }
-```
-
-### If / else-if chains
-
-```rust
-fun fizzbuzz(n) =>
-  if n % 15 == 0 { "fizzbuzz" }
-  else if n % 3 == 0 { "fizz" }
-  else if n % 5 == 0 { "buzz" }
-  else { show(n) }
 ```
 
 ### Match expressions
@@ -158,37 +149,29 @@ fun main() {
 }
 ```
 
+### FizzBuzz
+
+```rust
+fun fizzbuzz(n) =>
+  if n % 15 == 0 { "fizzbuzz" }
+  else if n % 3 == 0 { "fizz" }
+  else if n % 5 == 0 { "buzz" }
+  else { show(n) }
+```
+
 ## CLI
 
-```
-$ hica --help
+| Command  | Description                          |
+| -------- | ------------------------------------ |
+| `build`  | Compile a file to a binary           |
+| `run`    | Compile and run a file               |
+| `check`  | Type-check source without emitting   |
+| `fmt`    | Format source                        |
+| `test`   | Run tests in a file                  |
+| `new`    | Create a new project                 |
+| `repl`   | Start an interactive shell           |
 
-Usage: hica [OPTIONS] [COMMAND] [FILE]
-The hica compiler
-
-Options:
-      --check            Check formatting without modifying the file
-      --cache            Remove the stdlib cache (~/.hica/stdlib)
-      --target=TARGET    Output target: koka (default) or js
-  -o, --output=OUTPUT    Output binary name (build only)
-      --help                 display this help and exit
-      --version              output version information and exit
-
-Commands:
-  build, b               Compile a .hc file and build a binary
-  run, r                 Compile and run a .hc file
-  check, c               Analyse a .hc file and report errors
-  fmt, f                 Format a .hc file
-  clean                  Remove generated build artifacts
-  test, t                Run tests in a .hc file
-  new                    Create a new hica project
-  init                   Initialise a hica project in the current directory
-  add                    Add a dependency
-  remove                 Remove a dependency
-  fetch                  Fetch all dependencies
-  repl                   Start an interactive REPL
-  help                   Show help for a command
-```
+Run `hica help <command>` for details on any command.
 
 ## Inspirations
 
@@ -196,8 +179,47 @@ Commands:
   Perceus memory management
 - [Rust](https://www.rust-lang.org/) – syntax, safety mindset, and the `match` expression
 - [F#](https://fsharp.org/) – functional-first style, pipelines, and type inference ergonomics
-- C# – the `=>` expression-bodied shorthand and query syntax
-- Python – approachable, expressive lists and comprehensions
+- [C#](https://learn.microsoft.com/en-us/dotnet/csharp/) – the `=>` expression-bodied shorthand and query syntax
+- [Python](https://www.python.org/) – approachable, expressive lists and comprehensions
+
+## Status
+
+hica is under active development.
+
+The language is usable today for experimentation and personal projects, but some features and APIs may change between releases.
+
+## Why hica?
+
+hica aims to combine:
+
+- the readability of Python,
+- the safety mindset of Rust,
+- the ergonomics of F#,
+- and the algebraic effects of Koka,
+
+while keeping a familiar curly-brace syntax.
+
+## Compilation Pipeline
+
+```
+.hc source → Lex → Parse → Desugar → Type Check → Emit Koka (.kk) → Koka Compiler → C/JS/WASM
+```
+
+Each phase is implemented as a Koka module using algebraic effects for compiler
+state (diagnostics, fresh type variables, symbol scopes).
+
+## Technical Stack
+
+| Component             | Approach                                        |
+| --------------------- | ----------------------------------------------- |
+| Implementation        | Koka 3.x                                        |
+| Parsing               | Recursive descent with Pratt expression parsing |
+| Type system           | Hindley-Milner with unification                  |
+| Name resolution       | Declaration-aware marshalling (`hc_` prefix)     |
+| CLI argument parsing  | klap (clap-inspired, in-tree)                    |
+| Memory management     | Perceus (inherited from Koka target)             |
+| Backend target        | Koka (.kk) → C / JS / WASM via Koka              |
+| Runtime               | Koka standard library and runtime                |
 
 ## Licence
 
