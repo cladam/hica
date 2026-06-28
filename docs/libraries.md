@@ -5,23 +5,23 @@ title: Libraries - hica
 
 # Libraries
 
-hica libraries are currently distributed as git submodules while the package registry and dependency manager are under development.
+hica libraries are installed with the built-in package manager.
 
 ## Installation
 
-Add a library as a git submodule to your project:
+Add a library to your project:
 
 ```sh
-git submodule add https://github.com/cladam/yaml.git lib/yaml
+hica add yaml
 ```
 
 Then import it in your hica source:
 
 ```hica
-import "./lib/yaml/src/yaml"
+import "yaml"
 ```
 
-Libraries in hica are imported directly from source paths.
+Run `hica fetch` to download dependencies declared in `hica.hml`.
 
 ## Available Libraries
 
@@ -33,11 +33,11 @@ A YAML parser and serializer for hica. Parses the YAML that real-world config fi
 
 - **Repository**: [github.com/cladam/yaml](https://github.com/cladam/yaml)
 - **Version**: v1.0.0
-- **Install**: `git submodule add https://github.com/cladam/yaml.git lib/yaml`
-- **Import**: `import "./lib/yaml/src/yaml"`
+- **Install**: `hica add yaml`
+- **Import**: `import "yaml"`
 
 ```hica
-import "./lib/yaml/src/yaml"
+import "yaml"
 
 fun main() {
   let input = "database:\n  host: localhost\n  port: 5432"
@@ -63,11 +63,11 @@ A full TOML v1.1.0 parser for hica. Handles all TOML types including date-times,
 
 - **Repository**: [github.com/cladam/toml](https://github.com/cladam/toml)
 - **Version**: v1.0.0
-- **Install**: `git submodule add https://github.com/cladam/toml.git lib/toml`
-- **Import**: `import "./lib/toml/src/toml"`
+- **Install**: `hica add toml`
+- **Import**: `import "toml"`
 
 ```hica
-import "./lib/toml/src/toml"
+import "toml"
 
 fun main() {
   let input = "[server]\nhost = \"localhost\"\nport = 8080"
@@ -86,11 +86,11 @@ An HML (Hica Markup Language) parser. HML combines the semantic strength of XML 
 
 - **Repository**: [github.com/cladam/hml](https://github.com/cladam/hml)
 - **Version**: v1.0.0
-- **Install**: `git submodule add https://github.com/cladam/hml.git lib/hml`
-- **Import**: `import "./lib/hml/src/hml"`
+- **Install**: `hica add hml`
+- **Import**: `import "hml"`
 
 ```hica
-import "./lib/hml/src/hml"
+import "hml"
 
 fun main() {
   let input = "@server(port: 8080) {\n  host: \"localhost\"\n}"
@@ -109,11 +109,11 @@ An RFC 4180 CSV parser and serializer for hica. Parses comma-separated and delim
 
 - **Repository**: [github.com/cladam/csv](https://github.com/cladam/csv)
 - **Version**: v1.0.0
-- **Install**: `git submodule add https://github.com/cladam/csv.git lib/csv`
-- **Import**: `import "./lib/csv/src/csv"`
+- **Install**: `hica add csv`
+- **Import**: `import "csv"`
 
 ```hica
-import "./lib/csv/src/csv"
+import "csv"
 
 fun main() {
   let input = "name,age,city\nKalle,30,Copenhagenk\nLisa,25,Stockholm"
@@ -146,11 +146,11 @@ A JSON parser and serializer for hica. Parses any valid JSON — null, booleans,
 
 - **Repository**: [github.com/cladam/json](https://github.com/cladam/json)
 - **Version**: v1.0.0
-- **Install**: `git submodule add https://github.com/cladam/json.git lib/json`
-- **Import**: `import "./lib/json/src/json"`
+- **Install**: `hica add json`
+- **Import**: `import "json"`
 
 ```hica
-import "./lib/json/src/json"
+import "json"
 
 fun main() {
   let input = "{\"database\": {\"host\": \"localhost\", \"port\": 5432}}"
@@ -206,7 +206,7 @@ HTTP client library built on libcurl. Supports GET, POST, PUT, DELETE, PATCH, HE
 - **Repository**: [github.com/cladam/http](https://github.com/cladam/http)
 - **Version**: v1.0.0
 - **Requires**: libcurl, Koka 3.2.3+, hica 0.16.0+
-- **Install**: `git submodule add https://github.com/cladam/http.git lib/http`
+- **Install**: `hica add http`
 - **Import**: `extern import "http"` + `import http_client`
 
 ```hica
@@ -239,11 +239,11 @@ Base64 encoding and decoding for hica. Pure functions with no effects, encode st
 
 - **Repository**: [github.com/cladam/base64](https://github.com/cladam/base64)
 - **Version**: v1.0.1
-- **Install**: `git submodule add https://github.com/cladam/base64.git lib/base64`
-- **Import**: `import "./lib/base64/src/base64"`
+- **Install**: `hica add base64`
+- **Import**: `import "base64"`
 
 ```hica
-import "./lib/base64/src/base64"
+import "base64"
 
 fun main() {
   let encoded = b64_encode("Hello, World!")
@@ -268,31 +268,30 @@ An immediate-mode GUI library for hica, backed by [Dear ImGui](https://github.co
 
 - **Repository**: [github.com/cladam/imgui](https://github.com/cladam/imgui)
 - **Requires**: SDL2 on the system (`brew install sdl2` / `apt install libsdl2-dev`)
-- **Install**: `git submodule add https://github.com/cladam/imgui.git lib/imgui`
-- **Import**: `import "../../lib/imgui/src/imgui"` (path relative to your source file)
+- **Install**: `hica add imgui`
+- **Import**: `import "imgui"`
 
 **Step 1 — download the pre-built static library:**
 
 ```sh
-mkdir -p lib/imgui/lib
+mkdir -p vendor/imgui/lib
 
 # macOS Apple Silicon:
 curl -L https://github.com/cladam/imgui/releases/latest/download/libimgui_hica-macos-arm64.a \
-     -o lib/imgui/lib/libimgui_hica.a
+  -o vendor/imgui/lib/libimgui_hica.a
 
 # Linux x86-64:
 # curl -L https://github.com/cladam/imgui/releases/latest/download/libimgui_hica-linux-x86_64.a \
-#      -o lib/imgui/lib/libimgui_hica.a
+#      -o vendor/imgui/lib/libimgui_hica.a
 ```
 
-Or build from source with `cd lib/imgui && ./build.sh` (requires clang++ and SDL2 dev headers).
+Or build from source in a local clone of [github.com/cladam/imgui](https://github.com/cladam/imgui) and copy `libimgui_hica.a` into `vendor/imgui/lib` (requires clang++ and SDL2 dev headers).
 
 **Step 2 — configure `hica.hml`:**
 
 ```hml
 @koka {
-    include: "./lib/imgui/src"
-    flags: "--cclinkopts=-L./lib/imgui/lib --cclinkopts=-L/opt/homebrew/opt/sdl2/lib --cclib=imgui_hica --cclib=SDL2 --cclinkopts=-lc++ --cclinkopts=-framework --cclinkopts=OpenGL"
+  flags: "--cclinkopts=-L./vendor/imgui/lib --cclinkopts=-L/opt/homebrew/opt/sdl2/lib --cclib=imgui_hica --cclib=SDL2 --cclinkopts=-lc++ --cclinkopts=-framework --cclinkopts=OpenGL"
 }
 ```
 
@@ -301,7 +300,7 @@ Run `sdl2-config --libs` to find the correct SDL2 lib path on your machine. Linu
 **Quick start:**
 
 ```hica
-import "../../lib/imgui/src/imgui"
+import "imgui"
 
 fun main() {
   var count = 0
