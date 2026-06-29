@@ -30,6 +30,17 @@ Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 - **Predictable memory management** – inherited from Koka's Perceus reference counting; no GC pauses, no manual allocation.
 - **Familiar syntax** – curly braces, `let`, `fun`, `match`, `if`, and the `=>` expression-bodied shorthand.
 
+## Built with hica
+
+[**tbdflow-ui**](https://github.com/cladam/tbdflow-ui) — a desktop dashboard for [tbdflow](https://github.com/cladam/tbdflow), a Trunk-Based Development CLI with thousands of downloads and a [listing on trunkbaseddevelopment.com](https://trunkbaseddevelopment.com/committing-straight-to-the-trunk/#tooling-support). The UI is a multi-panel ImGui app written entirely in hica.
+
+Its build instructions say it plainly:
+
+```sh
+hica run     # compile and launch
+hica build   # compile to binary only
+```
+
 ## Install
 
 **Linux / macOS / Chromebook:**
