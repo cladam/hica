@@ -60,6 +60,17 @@ cd hica
 make release
 ```
 
+## Why hica?
+
+hica aims to combine:
+
+- the readability of Python,
+- the safety mindset of Rust,
+- the ergonomics of F#,
+- and the algebraic effects of Koka,
+
+while keeping a familiar curly-brace syntax.
+
 ## Quick Start
 
 Create a file `hello.hc`:
@@ -184,20 +195,9 @@ Run `hica help <command>` for details on any command.
 
 ## Status
 
-hica is under active development.
+hica is under active development and moving fast — new features land regularly and contributions are welcome.
 
-The language is usable today for experimentation and personal projects, but some features and APIs may change between releases.
-
-## Why hica?
-
-hica aims to combine:
-
-- the readability of Python,
-- the safety mindset of Rust,
-- the ergonomics of F#,
-- and the algebraic effects of Koka,
-
-while keeping a familiar curly-brace syntax.
+The language is usable today for experimentation and personal projects.
 
 ## Compilation Pipeline
 
