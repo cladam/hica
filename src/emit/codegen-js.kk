@@ -50,8 +50,8 @@ pub fun js-runtime-preamble() : string
   "  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toPrecision(17).replace(/0+$/, '').replace(/\\\\.$/, '.0');\n" ++
   "  if (Array.isArray(v) && v.__tuple) return '(' + v.map(show_list_elem).join(',') + ')';\n" ++
   "  if (Array.isArray(v)) return '[' + v.map(show_list_elem).join(',') + ']';\n" ++
-  "  if (typeof v === 'object' && v.__tag === 'Ok') return 'Ok(' + show_list_elem(v.value) + ')';\n" ++
-  "  if (typeof v === 'object' && v.__tag === 'Err') return 'Err(' + show_list_elem(v.value) + ')';\n" ++
+  "  if (typeof v === 'object' && v.__tag === 'Ok') return 'Ok(' + show(v.value) + ')';\n" ++
+  "  if (typeof v === 'object' && v.__tag === 'Err') return 'Err(' + show(v.value) + ')';\n" ++
   "  if (typeof v === 'object' && v.__tag) return v.__tag + (v.__args && v.__args.length > 0 ? '(' + v.__args.map(show).join(', ') + ')' : '');\n" ++
   "  if (typeof v === 'object' && v.__show) return v.__show();\n" ++
   "  if (typeof v === 'object') return JSON.stringify(v);\n" ++
@@ -59,8 +59,8 @@ pub fun js-runtime-preamble() : string
   "}\n" ++
   "function show_maybe(v) { return v === null ? 'None' : 'Some(' + show(v) + ')'; }\n" ++
   "function show_result(r) {\n" ++
-  "  if (r && r.__tag === 'Ok') return 'Ok(' + show_list_elem(r.value) + ')';\n" ++
-  "  if (r && r.__tag === 'Err') return 'Err(' + show_list_elem(r.value) + ')';\n" ++
+  "  if (r && r.__tag === 'Ok') return 'Ok(' + show(r.value) + ')';\n" ++
+  "  if (r && r.__tag === 'Err') return 'Err(' + show(r.value) + ')';\n" ++
   "  return show(r);\n" ++
   "}\n" ++
   "function show_list_elem(v) {\n" ++
