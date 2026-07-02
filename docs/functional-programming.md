@@ -231,7 +231,7 @@ Without `flat_map` you would get `[[1, 10], [2, 20], [3, 30]]` and `filter` woul
 
 ### The same idea applies to Maybe
 
-The pattern — *apply a function that produces a wrapped value, then flatten the wrapping* — appears with Maybe too. `map_maybe` transforms the value inside a `Maybe`. But if the function itself returns `Maybe`, you'd end up with `Maybe<Maybe<x>>`. `and_then` prevents that by flattening the extra layer automatically:
+The pattern: *apply a function that produces a wrapped value, then flatten the wrapping*, appears with Maybe too. `map_maybe` transforms the value inside a `Maybe`. But if the function itself returns `Maybe`, you'd end up with `Maybe<Maybe<x>>`. `and_then` prevents that by flattening the extra layer automatically:
 
 ```hica
 fun parse_pos(s: string) : maybe<int> {
@@ -255,7 +255,7 @@ fun main() {
 }
 ```
 
-`flat_map` for lists and `and_then` for Maybe are the same idea with different names. Functional programmers call this operation *bind*. Knowing the pattern — "map over a wrapped value with a function that itself returns a wrapped value, and don't double-wrap" — is the thing to take away, whatever the type.
+`flat_map` for lists and `and_then` for Maybe are the same idea with different names. Functional programmers call this operation *bind*. Knowing the pattern: "map over a wrapped value with a function that itself returns a wrapped value, and don't double-wrap", is the thing to take away, whatever the type.
 
 ## Composition with |>
 
@@ -425,7 +425,7 @@ fun main() {
 
 ### Chaining with combinators
 
-Nested `match` for every step gets unwieldy fast. Combinators keep the chain flat. There is also a subtlety: when the function you want to apply itself returns `Maybe`, using `map_maybe` would give you `Maybe<Maybe<x>>`. `and_then` prevents the double-wrapping by flattening one level — the same job `flat_map` does for lists:
+Nested `match` for every step gets unwieldy fast. Combinators keep the chain flat. There is also a subtlety: when the function you want to apply itself returns `Maybe`, using `map_maybe` would give you `Maybe<Maybe<x>>`. `and_then` prevents the double-wrapping by flattening one level, the same job `flat_map` does for lists:
 
 ```hica
 fun main() {
@@ -551,7 +551,7 @@ Letter grade: C
 | Composition | `\|>` pipe operator |
 | Transforming lists | `map`, `filter`, `fold` |
 | Flattening / expanding | `concat` (flatten), `flat_map` (map + flatten) |
-| Chaining wrapped values | `and_then` (Maybe), `and_then_result` (Result) — same idea as `flat_map` |
+| Chaining wrapped values | `and_then` (Maybe), `and_then_result` (Result), same idea as `flat_map` |
 | Recursive data | `type Tree { Leaf, Node(...) }` |
 | Safe failures | `Maybe` (`Some`/`None`) and `Result` (`Ok`/`Err`) |
 | Exhaustive matching | `match` with compiler-checked variants |
