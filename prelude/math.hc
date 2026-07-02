@@ -25,6 +25,16 @@ fun pow(base: int, exp: int) : int => if exp <= 0 { 1 } else { base * pow(base, 
 // Sign function: returns -1, 0, or 1
 fun sign(n: int) : int => if n > 0 { 1 } else if n < 0 { -1 } else { 0 }
 
+// Range [lo, hi) — lo inclusive, hi exclusive (like Python range)
+// Used by the [lo..hi] list range literal
+fun range(lo: int, hi: int) : list<int> =>
+  if lo >= hi { [] } else { [lo] + range(lo + 1, hi) }
+
+// Range [lo, hi] — both ends inclusive
+// Used by the [lo..=hi] list range literal
+fun range_inc(lo: int, hi: int) : list<int> =>
+  if lo > hi { [] } else { [lo] + range_inc(lo + 1, hi) }
+
 // Integer square root (floor) — Newton's method, no float arithmetic needed
 fun isqrt(n: int) : int {
   if n <= 0 { 0 } else {

@@ -181,9 +181,23 @@ fun parse-prefix() : <div,parser> node
           Node(Span(start-tok.span.start, end-tok.span.end), EList([]))
         _ ->
           val first = parse-expr()
-          val rest = parse-list-rest()
-          val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
-          Node(Span(start-tok.span.start, end-tok.span.end), EList(Cons(first, rest)))
+          match peek()
+            TkDotDot ->
+              advance()
+              val last = parse-expr()
+              val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+              val callee = Node(Span(start-tok.span.start, end-tok.span.end), Var("range"))
+              Node(Span(start-tok.span.start, end-tok.span.end), Call(callee, [first, last]))
+            TkDotDotEq ->
+              advance()
+              val last = parse-expr()
+              val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+              val callee = Node(Span(start-tok.span.start, end-tok.span.end), Var("range_inc"))
+              Node(Span(start-tok.span.start, end-tok.span.end), Call(callee, [first, last]))
+            _ ->
+              val rest = parse-list-rest()
+              val end-tok = expect("]", fn(k) match k { TkRBracket -> True; _ -> False })
+              Node(Span(start-tok.span.start, end-tok.span.end), EList(Cons(first, rest)))
     TkLBrace ->
       // Lookahead: { "key" : ... } is a map literal
       // Also: { : } is an empty map

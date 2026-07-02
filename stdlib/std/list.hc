@@ -8,18 +8,6 @@
 //
 // See https://github.com/cladam/hica/blob/main/LICENSE for license information
 
-// --- Generation ---
-
-// Range [lo, hi) — lo inclusive, hi exclusive (Python-style)
-pub fun range(lo: int, hi: int) : list<int> =>
-  if lo >= hi { [] }
-  else { [lo] + range(lo + 1, hi) }
-
-// Range [lo, hi] — both ends inclusive
-pub fun range_inc(lo: int, hi: int) : list<int> =>
-  if lo > hi { [] }
-  else { [lo] + range_inc(lo + 1, hi) }
-
 // --- Transformations ---
 
 pub fun intersperse(xs, sep) => match xs {

@@ -838,19 +838,21 @@ fun main() {
 **With `result<T,E>`:** if the value is `Ok(v)`, `?` evaluates to `v`; if it is `Err(e)`, the enclosing function returns `Err(e)` immediately, propagating the error up the call chain.
 
 ```hica
-fun parse_int(s: string) : result<int, string> {
-  if s == "" { Err("empty input") }
-  else { Ok(42) }   // simplified
+fun read_config(path: string) : result<string, string> {
+  let content = read_file(path)?   // Err → return Err early
+  let trimmed = trim(content)
+  Ok(trimmed)
 }
 
 fun double_parsed(s: string) : result<int, string> {
-  let n = parse_int(s)?    // Err → return Err early
+  // parse_int returns maybe<int>; convert to result before using ?
+  let n = match parse_int(s) { Some(n) => Ok(n), None => Err("not a number") }?
   Ok(n * 2)
 }
 
 fun main() {
   match double_parsed("42") {
-    Ok(n) => println(n),     // 84
+    Ok(n)  => println(n),    // 84
     Err(e) => println(e)
   }
 }
@@ -861,9 +863,9 @@ Without `?`, the same logic requires nesting:
 ```hica
 fun add_strings(a: string, b: string) : maybe<int> {
   match parse_int(a) {
-    None => None,
+    None    => None,
     Some(x) => match parse_int(b) {
-      None => None,
+      None    => None,
       Some(y) => Some(x + y)
     }
   }
@@ -872,7 +874,9 @@ fun add_strings(a: string, b: string) : maybe<int> {
 
 Rules:
 - The expression before `?` must be of type `maybe<T>` or `result<T,E>`.
-- The enclosing function must return the same wrapper type (so early-return is type-safe).
+- The enclosing function's **return type annotation is required** — `?` forces an early return and the compiler must know the return type to emit it correctly. Without an annotation, inference may fail.
+- The enclosing function must return the **same wrapper type**: `maybe<...>` inside a `maybe`-returning function, `result<...,E>` inside a `result`-returning function. You cannot use `?` on a `maybe` value inside a function that returns `result`, or vice versa.
+- `?` cannot be used in `main()` — `main()` returns `()`, which is neither `maybe` nor `result`. Move fallible logic into a helper function and call it from `main()` with a `match`.
 - `?` is a postfix operator and binds tighter than binary operators, so `parse_int(a)? + parse_int(b)?` works as expected.
 
 ## Testing

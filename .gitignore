@@ -22,6 +22,10 @@ documentation/lsp-plan.md
 documentation/building-lisp-in-hica.md
 documentation/building-sml-in-hica.md
 documentation/library-wishlist.md
+documentation/cleanBookI.pdf
+
+docs/functional-programming.md
+examples/functional.hc
 
 .koka/
 .hica/
