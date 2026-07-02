@@ -119,7 +119,7 @@ count = count + 1   // reassignment (no `let`/`var` on reassignment)
 
 **String interpolation**: `"value is {expr}"` — escape literal braces with `\{` and `\}`
 
-**String and list slicing**: `s[n:]`, `s[:m]`, `s[n:m]` are valid — indices are `int`. Works on both `string` and `list<T>`. Returns `string` or `list<T>` respectively. **Use colons, not dots** — `s[n..m]` is a parse error (the parser interprets `..` as a spread/range token, not a slice separator).
+**String and list slicing**: `s[n:]`, `s[:m]`, `s[n:m]` are valid — indices are `int`. Works on both `string` and `list<T>`. Returns `string` or `list<T>` respectively. **Use colons, not dots** — `s[n..m]` is a parse error; `..` between two expressions inside `[ ]` is a **range literal** (`[1..10]`), not a slice separator. Write `s[n:m]` for slicing.
 
 **String concatenation**: `+` (NOT `++`)
 
@@ -212,6 +212,11 @@ let squares = map(nums, (x) => x * x)
 let evens   = filter(nums, (x) => x % 2 == 0)
 let total   = fold(nums, 0, (acc, x) => acc + x)
 
+// Range list literals (prelude built-in, no import needed)
+let a = [1..10]    // [1,2,3,4,5,6,7,8,9]     — exclusive upper bound (like Python range)
+let b = [1..=10]   // [1,2,3,4,5,6,7,8,9,10]  — inclusive upper bound (like Rust)
+let evens2 = [1..=10] |> filter((x) => x % 2 == 0)  // [2,4,6,8,10]
+
 // List patterns in match
 fun sum(xs: list<int>) : int => match xs {
   []           => 0,
@@ -268,7 +273,7 @@ Rule of thumb:
 
 ### Imports and Modules
 
-**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `str_length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
+**Prelude** (always available, no import needed): `println`, `eprintln`, `show`, `show_fixed`, `print`, `length`, `str_length`, `map`, `filter`, `fold`, `foreach`, `zip`, `head`, `tail`, `reverse`, `sort`, `range`, `range_inc`, `is_empty`, `max`, `min`, `abs`, `parse_int`, `parse_float`, `split`, `trim`, `to_upper`, `to_lower`, `starts_with`, `ends_with`, `contains`, `replace`, `join`, `lines`, `Some`, `None`, `Ok`, `Err`, `unwrap`, `unwrap_or`, `unwrap_maybe_or`, `is_some`, `is_none`, `is_ok`, `is_err`, `map_maybe`, `and_then`, `map_result`, `and_then_result`, `map_err`, `exit`, `get_args`, `get_env`.
 
 **`length`**: works on both `list<T>` and `string`. `length(xs)` returns the number of elements; `length(s)` returns the number of characters. `str_length(s)` is an alias and still works.
 
@@ -397,7 +402,7 @@ Use `assert(bool_expr)` — do NOT pipe into `assert` or use `assert(match ...)`
 | `head(xs)` as an `int` seed value | `head` returns `maybe<T>` not `T` — use `match xs { [] => 0, [x, ..rest] => ... }` or `head_or(xs, 0)` from `std/list` |
 | `type Cursor = (string, int)` (type alias) | hica has NO type aliases. `type X = Y` is not valid syntax. Use a named `struct` instead: `struct Cursor { s: string, pos: int }`, or just pass tuples directly without naming them. |
 | `c1.pos` — named field access on a tuple | Tuples only support positional access: `.0`, `.1`, `.2`. Named field access requires a `struct`. If you used `type Cursor = (string, int)`, the field `pos` does not exist — use `c1.1` or refactor to `struct Cursor { s: string, pos: int }` and access `c1.pos`. |
-| `s[n..m]` slice syntax (dots instead of colon) | **Parse error** — hica uses colon syntax for slices: `s[n:m]`, `s[n:]`, `s[:m]`. The `..` token is reserved for list spread patterns (`[x, ..rest]`) and is NOT valid inside `[ ]` as a slice separator. Every `s[pos..pos+1]` in a parser must be written `s[pos:pos+1]`. |
+| `s[n..m]` slice syntax (dots instead of colon) | **Parse error** — hica uses colon syntax for slices: `s[n:m]`, `s[n:]`, `s[:m]`. `..` inside `[ ]` is valid ONLY as a range literal `[lo..hi]` (both sides must be expressions, not a slice of an existing variable). `s[n..m]` is still a parse error — write `s[n:m]`. Every `s[pos..pos+1]` in a parser must be written `s[pos:pos+1]`. |
 | `contains("charset_string", s[n:])` to check a multi-char slice against a set | `contains(haystack, needle)` checks if `needle` is a **substring** of `haystack`. When `needle` is a multi-character slice (e.g. `s[4:]`), this almost always returns false even when the intent is to check if the first character is in the set. Always extract a single character first: `contains("abcdef...", s[4:5])`. |
 | Returning a cursor pointing AT a closing delimiter without consuming it | When a recursive string/array/object parser sees the closing character and returns, the cursor still points AT it. The next parser step then sees a stray delimiter. Fix: always return the position PAST the closing char (`pos + 1` or `advance(c, 1)`). **Applies to ALL delimiters — `"`, `]`, `}`**. Most common mistake in string parsers: `"\"" => Ok((acc, pos))` — should be `Ok((acc, pos + 1))`. In object parsers, if `parse_string_content` returns position AT the closing `"`, the caller then does `skip_ws(s, key_end)` which sees `"` instead of `:` and returns `Err("expected ':'")` for every object. |
 | `parse_number` returning `float` instead of `Json` when used inside `parse_value`, and ALL other sub-parsers with mismatched inner types | `parse_value` returns `result<(Json, int), string>`. **Every** sub-parser that returns a different inner type must be wrapped. This applies to ALL FOUR cases simultaneously — the most common mistake is wrapping the "obvious" ones (string, number) and forgetting the "obvious" collection ones (array, object): `parse_string_val` → `result<(string, int), string>` needs `JString`; `parse_number` → `result<(float, int), string>` needs `JNumber`; `parse_array` → `result<(list<Json>, int), string>` needs `JArray`; `parse_object` → `result<(list<(string,Json)>, int), string>` needs `JObject`. Only `parse_literal` returns `result<(Json, int), string>` directly. The failure mode for forgetting `parse_array`/`parse_object` is: the match arm type-unifies `list<Json>` with `Json`, causing the ENTIRE `parse_value` match to fail with cascading mismatches. Explicit wrap pattern for all four:
