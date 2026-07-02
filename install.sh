@@ -29,11 +29,7 @@ main() {
   esac
 
   artifact="hica-${os}-${arch}"
-  #local url="https://github.com/${REPO}/releases/latest/download/${artifact}.tar.gz"
-  local url="https://github.com/cladam/hica/releases/download/v0.38.0/hica-macos-arm64.tar.gz"
-
-  echo $artifact
-  echo $url
+  local url="https://github.com/${REPO}/releases/latest/download/${artifact}.tar.gz"
 
   echo "Installing hica..."
   echo "  os:      $os"
