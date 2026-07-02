@@ -10,9 +10,12 @@ fun main() {
   println(greet("cladam"))       // Hello, cladam
 
   // Pipe + filter + map + fold
-  let result = [1..=10]
+  let result = [1..10]
     |> filter((x) => x % 2 == 0)
     |> map((x) => x * x)
     |> fold(0, (acc, x) => acc + x)
   println(result)   // 220
+
+  let result2 = fold(map(filter([1..10], (x) => x % 2 == 0), (x) => x * x), 0, (acc, x) => acc + x)
+  println(result2)
 }
