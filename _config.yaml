@@ -38,3 +38,4 @@ exclude:
   - .gitmodules
   - .tbdflow.yml
   - Gemfile.lock
+  - CNAME
