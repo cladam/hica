@@ -195,6 +195,8 @@ fun emit-show-call( t : hica-type, expr-str : string ) : div string
     TString -> expr-str
     TStruct(sn) -> sn.struct-type-name ++ "/show(" ++ expr-str ++ ")"
     TEnum(en)   -> en.to-lower ++ "/show(" ++ expr-str ++ ")"
+    TMaybe(inner) -> "hc-show-maybe(" ++ expr-str ++ ", fn(x) " ++ emit-show-call(inner, "x") ++ ")"
+    TResult(ok, err) -> "hc-show-result(" ++ expr-str ++ ", fn(x) " ++ emit-show-call(ok, "x") ++ ", fn(e) " ++ emit-show-call(err, "e") ++ ")"
     _       -> expr-str ++ ".show"
 
 // ---------------------------------------------------------------------------
@@ -247,6 +249,8 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val get-env-helper = if program-uses-get-env(p) then get-env-helper-code else ""
   val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
   val assert-helper = assert-helper-code
+  val show-maybe-helper = show-maybe-helper-code
+  val show-result-helper = show-result-helper-code
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
@@ -278,6 +282,8 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   set-env-helper ++
   readline-helper ++
   assert-helper ++
+  show-maybe-helper ++
+  show-result-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   global-defs ++ global-sep ++
@@ -545,8 +551,8 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TFloat)  -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TBool)   -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
             Just(TChar)   -> "println(" ++ emit-expr(arg, declared) ++ ".string)"
-            Just(TMaybe(_)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
-            Just(TResult(_, _)) -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
+            Just(TMaybe(inner)) -> "println(hc-show-maybe(" ++ emit-expr(arg, declared) ++ ", fn(x) " ++ emit-show-call(inner, "x") ++ "))"
+            Just(TResult(ok, err)) -> "println(hc-show-result(" ++ emit-expr(arg, declared) ++ ", fn(x) " ++ emit-show-call(ok, "x") ++ ", fn(e) " ++ emit-show-call(err, "e") ++ "))"
             Just(TStruct(sn))  -> "println(" ++ sn.struct-type-name ++ "/show(" ++ emit-expr(arg, declared) ++ "))"
             Just(TEnum(en))    -> "println(" ++ en.to-lower ++ "/show(" ++ emit-expr(arg, declared) ++ "))"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
@@ -1698,6 +1704,20 @@ val assert-helper-code : string =
   "  if !b then throw(\"assertion failed\")\n" ++
   "\n"
 
+val show-maybe-helper-code : string =
+  "fun hc-show-maybe(m, show-a)\n" ++
+  "  match m\n" ++
+  "    Nothing -> \"None\"\n" ++
+  "    Just(x) -> \"Some(\" ++ show-a(x) ++ \")\"\n" ++
+  "\n"
+
+val show-result-helper-code : string =
+  "fun hc-show-result(r, show-a, show-e)\n" ++
+  "  match r\n" ++
+  "    Right(x) -> \"Ok(\" ++ show-a(x) ++ \")\"\n" ++
+  "    Left(e)  -> \"Err(\" ++ show-e(e) ++ \")\"\n" ++
+  "\n"
+
 // Emitted when the program uses input() — provides a flushing, EOF-safe stdin reader.
 // Fixes two problems with the naive `print(p); readline()` approach:
 //   1. stdout is buffered on macOS/Darwin: fflush() makes the prompt appear before blocking.
@@ -2012,6 +2032,8 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code
+  val show-maybe-helper = show-maybe-helper-code
+  val show-result-helper = show-result-helper-code
   val exit-extern = "extern hica-exit( code : int ) : a\n  c inline \"(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())\"\n\n"
   val get-env-helper = if program-uses-get-env(p) then get-env-helper-code else ""
   val set-env-helper = if program-uses-set-env(p) then set-env-helper-code else ""
@@ -2057,6 +2079,8 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   sort-helper ++
   readline-helper ++
   assert-helper ++
+  show-maybe-helper ++
+  show-result-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
   decls-code ++ decls-sep ++

@@ -245,13 +245,13 @@ fun main() {
     |> and_then((s) => parse_int(s))     // parse string → maybe<int>
     |> and_then((n) => parse_pos(show(n)))
     |> map_maybe((n) => n * 2)
-  println(result)   // Just(84)
+  println(result)   // Some(84)
 
   let bad = Some("-5")
     |> and_then((s) => parse_int(s))
     |> and_then((n) => parse_pos(show(n)))
     |> map_maybe((n) => n * 2)
-  println(bad)   // Nothing
+  println(bad)   // None
 }
 ```
 
@@ -431,19 +431,19 @@ Nested `match` for every step gets unwieldy fast. Combinators keep the chain fla
 fun main() {
   // map_maybe transforms the value inside, leaves None alone
   let x = Some(21) |> map_maybe((n) => n * 2)
-  println(x)   // Just(42)
+  println(x)   // Some(42)
 
   // and_then chains a function that itself returns Maybe
   let y = Some("42")
     |> and_then((s) => parse_int(s))
     |> map_maybe((n) => n + 1)
-  println(y)   // Just(43)
+  println(y)   // Some(43)
 
   // Short-circuits at the first None
   let z = Some("nope")
     |> and_then((s) => parse_int(s))
     |> map_maybe((n) => n + 1)
-  println(z)   // Nothing
+  println(z)   // None
 }
 ```
 
@@ -464,11 +464,11 @@ fun main() {
   let result = safe_divide(100, 4)
     |> and_then_result((n) => validate_positive(n))
     |> map_result((n) => n * 2)
-  println(result)   // Right(50)
+  println(result)   // Ok(50)
 
   let bad = safe_divide(100, 0)
     |> and_then_result((n) => validate_positive(n))
-  println(bad)   // Left("division by zero")
+  println(bad)   // Err("division by zero")
 }
 ```
 
@@ -484,8 +484,8 @@ fun add_strings(a: string, b: string) : maybe<int> {
 }
 
 fun main() {
-  println(add_strings("10", "32"))    // Just(42)
-  println(add_strings("10", "oops"))  // Nothing
+  println(add_strings("10", "32"))    // Some(42)
+  println(add_strings("10", "oops"))  // None
 }
 ```
 
