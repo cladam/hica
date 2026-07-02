@@ -170,9 +170,9 @@ pub fun main() : io ()
 
     itest("run try operator example")
       val out = hica("run examples/try.hc")
-      assert/is-true(out.contains("Just(7)"))
-      assert/is-true(out.contains("Nothing"))
-      assert/is-true(out.contains("Just(5)"))
+      assert/is-true(out.contains("Some(7)"))
+      assert/is-true(out.contains("None"))
+      assert/is-true(out.contains("Some(5)"))
 
     // --- Fmt ---
 
