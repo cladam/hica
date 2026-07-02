@@ -171,6 +171,92 @@ fun my_max(xs)    => fold(xs, 0, (acc, x) => if x > acc { x } else { acc })
 fun my_reverse(xs) => fold(xs, [], (acc, x) => [x] + acc)
 ```
 
+## flatten and flat_map
+
+`map` transforms every element. But sometimes the function you pass to `map` itself returns a list. The result is a list of lists, which is usually not what you want:
+
+```hica
+fun main() {
+  let sentences = ["hello world", "foo bar", "one two three"]
+  let split_words = map(sentences, (s) => split(s, " "))
+  println(split_words)
+  // [["hello", "world"], ["foo", "bar"], ["one", "two", "three"]]
+}
+```
+
+You wanted a flat list of all words. Two functions solve this.
+
+### concat: collapse one level of nesting
+
+```hica
+fun main() {
+  let nested = [[1, 2], [3, 4], [5, 6]]
+  println(concat(nested))   // [1, 2, 3, 4, 5, 6]
+}
+```
+
+`concat` takes a list of lists and collapses one level. (Other languages call this `flatten`.)
+
+### flat_map: map and flatten in one step
+
+`flat_map` applies a function to each element and joins all the resulting lists together. It is `map` followed by `concat`, but written as one step:
+
+```hica
+fun main() {
+  let sentences = ["hello world", "foo bar", "one two three"]
+  let all_words = flat_map(sentences, (s) => split(s, " "))
+  println(all_words)
+  // ["hello", "world", "foo", "bar", "one", "two", "three"]
+}
+```
+
+You reach for `flat_map` whenever the function you are mapping returns a list.
+
+### Expanding elements in a pipe
+
+`flat_map` fits naturally in a pipe. Use it at the step where a single element becomes multiple elements:
+
+```hica
+fun expand(n) => [n, n * 10]   // each element fans out to two
+
+fun main() {
+  let result = [1, 2, 3]
+    |> flat_map(expand)           // [1, 10, 2, 20, 3, 30]
+    |> filter((x) => x > 5)      // [10, 20, 30]
+  println(result)
+}
+```
+
+Without `flat_map` you would get `[[1, 10], [2, 20], [3, 30]]` and `filter` would be operating on lists, not numbers.
+
+### The same idea applies to Maybe
+
+The pattern — *apply a function that produces a wrapped value, then flatten the wrapping* — appears with Maybe too. `map_maybe` transforms the value inside a `Maybe`. But if the function itself returns `Maybe`, you'd end up with `Maybe<Maybe<x>>`. `and_then` prevents that by flattening the extra layer automatically:
+
+```hica
+fun parse_pos(s: string) : maybe<int> {
+  let n = parse_int(s)?
+  if n > 0 { Some(n) } else { None }
+}
+
+fun main() {
+  // and_then chains steps that each return Maybe — no nesting, no nested match
+  let result = Some("42")
+    |> and_then((s) => parse_int(s))     // parse string → maybe<int>
+    |> and_then((n) => parse_pos(show(n)))
+    |> map_maybe((n) => n * 2)
+  println(result)   // Just(84)
+
+  let bad = Some("-5")
+    |> and_then((s) => parse_int(s))
+    |> and_then((n) => parse_pos(show(n)))
+    |> map_maybe((n) => n * 2)
+  println(bad)   // Nothing
+}
+```
+
+`flat_map` for lists and `and_then` for Maybe are the same idea with different names. Functional programmers call this operation *bind*. Knowing the pattern — "map over a wrapped value with a function that itself returns a wrapped value, and don't double-wrap" — is the thing to take away, whatever the type.
+
 ## Composition with |>
 
 The pipe operator `|>` feeds the result of one expression into the next function. It reads left to right, matching the order of operations:
@@ -339,25 +425,25 @@ fun main() {
 
 ### Chaining with combinators
 
-Nested `match` for every step gets unwieldy fast. Combinators keep the chain flat:
+Nested `match` for every step gets unwieldy fast. Combinators keep the chain flat. There is also a subtlety: when the function you want to apply itself returns `Maybe`, using `map_maybe` would give you `Maybe<Maybe<x>>`. `and_then` prevents the double-wrapping by flattening one level — the same job `flat_map` does for lists:
 
 ```hica
 fun main() {
   // map_maybe transforms the value inside, leaves None alone
   let x = Some(21) |> map_maybe((n) => n * 2)
-  println(x)   // Some(42)
+  println(x)   // Just(42)
 
   // and_then chains a function that itself returns Maybe
   let y = Some("42")
     |> and_then((s) => parse_int(s))
     |> map_maybe((n) => n + 1)
-  println(y)   // Some(43)
+  println(y)   // Just(43)
 
   // Short-circuits at the first None
   let z = Some("nope")
     |> and_then((s) => parse_int(s))
     |> map_maybe((n) => n + 1)
-  println(z)   // None
+  println(z)   // Nothing
 }
 ```
 
@@ -378,11 +464,11 @@ fun main() {
   let result = safe_divide(100, 4)
     |> and_then_result((n) => validate_positive(n))
     |> map_result((n) => n * 2)
-  println(result)   // Ok(50)
+  println(result)   // Right(50)
 
   let bad = safe_divide(100, 0)
     |> and_then_result((n) => validate_positive(n))
-  println(bad)   // Err("division by zero")
+  println(bad)   // Left("division by zero")
 }
 ```
 
@@ -398,8 +484,8 @@ fun add_strings(a: string, b: string) : maybe<int> {
 }
 
 fun main() {
-  println(add_strings("10", "32"))    // Some(42)
-  println(add_strings("10", "oops"))  // None
+  println(add_strings("10", "32"))    // Just(42)
+  println(add_strings("10", "oops"))  // Nothing
 }
 ```
 
@@ -464,6 +550,8 @@ Letter grade: C
 | Closures | `fun make_adder(n) => (x) => x + n` |
 | Composition | `\|>` pipe operator |
 | Transforming lists | `map`, `filter`, `fold` |
+| Flattening / expanding | `concat` (flatten), `flat_map` (map + flatten) |
+| Chaining wrapped values | `and_then` (Maybe), `and_then_result` (Result) — same idea as `flat_map` |
 | Recursive data | `type Tree { Leaf, Node(...) }` |
 | Safe failures | `Maybe` (`Some`/`None`) and `Result` (`Ok`/`Err`) |
 | Exhaustive matching | `match` with compiler-checked variants |
