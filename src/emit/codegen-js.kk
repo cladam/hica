@@ -88,6 +88,8 @@ pub fun js-runtime-preamble() : string
   "function length(xs) { return xs.length; }\n" ++
   "function reverse(xs) { return [...xs].reverse(); }\n" ++
   "function sort(xs) { return [...xs].sort((a,b) => a < b ? -1 : a > b ? 1 : 0); }\n" ++
+  "function range(lo, hi) { const r = []; for (let i = lo; i < hi; i++) r.push(i); return r; }\n" ++
+  "function range_inc(lo, hi) { const r = []; for (let i = lo; i <= hi; i++) r.push(i); return r; }\n" ++
   "function map(xs, f) { return xs.map(f); }\n" ++
   "function filter(xs, f) { return xs.filter(f); }\n" ++
   "function fold(xs, init, f) { return xs.reduce((acc, x) => f(acc, x), init); }\n" ++

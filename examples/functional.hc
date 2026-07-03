@@ -1,21 +1,7 @@
-// Hica — functional programming scratch tests
-import "std/list"
-fun apply_int(f, x: int) => f(x)
+fun make_multiplier(factor) => (x) => x * factor
 
 fun main() {
-  // First-class functions
-  let double = (x) => x * 2
-  let greet  = (name) => "Hello, " + name
-  println(apply_int(double, 5))  // 10
-  println(greet("cladam"))       // Hello, cladam
-
-  // Pipe + filter + map + fold
-  let result = [1..10]
-    |> filter((x) => x % 2 == 0)
-    |> map((x) => x * x)
-    |> fold(0, (acc, x) => acc + x)
-  println(result)   // 220
-
-  let result2 = fold(map(filter([1..10], (x) => x % 2 == 0), (x) => x * x), 0, (acc, x) => acc + x)
-  println(result2)
+  let triple = make_multiplier(3)
+  let nums = [1..5]
+  println(map(nums, triple))   // [3, 6, 9, 12, 15]
 }
