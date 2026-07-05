@@ -34,12 +34,17 @@ Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 
 [**tbdflow-ui**](https://github.com/cladam/tbdflow-ui) — a desktop dashboard for [tbdflow](https://github.com/cladam/tbdflow), a Trunk-Based Development CLI with thousands of downloads and a [listing on trunkbaseddevelopment.com](https://trunkbaseddevelopment.com/committing-straight-to-the-trunk/#tooling-support). The UI is a multi-panel ImGui app written entirely in hica.
 
-Its build instructions say it plainly:
+[**HML**](https://github.com/cladam/hml) — Hica Markup Language, a structured document and configuration format. The parser and API library are written in hica and published as a reusable package. Demonstrates multi-file libraries, recursive data types, and pattern matching on tree-shaped data.
 
-```sh
-hica run     # compile and launch
-hica build   # compile to binary only
-```
+[**yml2hml**](https://www.hica.dev/docs/yml2hml/) — a standalone CLI tool that converts YAML files to HML format. A practical example of real-world parsing, recursive data structures, and formatted output — all in under 300 lines of hica.
+
+## Concurrency
+
+hica currently targets scripting, tooling, and single-threaded programs. OS threads and async I/O are not in scope yet.
+
+That said, Koka's algebraic effect system provides the right primitives for structured concurrency. Named effect handlers can express cooperative patterns (coroutines, generators, and actor-like message passing) without needing language-level async/await. The [`counter-actor` example](examples/counter-actor.hc) demonstrates the actor pattern today. Structured concurrency via named handlers is the direction the runtime is heading.
+
+For I/O-bound parallelism in the meantime, `exec()` and `exec_args()` let you shell out to external processes.
 
 ## Install
 
