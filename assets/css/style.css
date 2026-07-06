@@ -127,7 +127,6 @@ a {
 
 /* --- Main Content Area --- */
 .main-content {
-    grid-area: main;
     padding: 40px;
     max-width: 1024px;
     box-sizing: border-box;
