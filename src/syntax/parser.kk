@@ -1034,10 +1034,13 @@ fun parse-struct-decl() : <div,parser> struct-def
   val name = match peek()
     TkIdent(n) -> { advance(); n }
     _          -> { parse-error("expected struct name"); "_" }
+  val is-opaque = match peek()
+    TkPriv -> { advance(); True }
+    _      -> False
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
   val fields = parse-struct-def-fields()
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  Struct-def(Span(t.span.start, end-tok.span.end), name, fields, is-pub = False)
+  Struct-def(Span(t.span.start, end-tok.span.end), name, fields, is-pub = False, is-opaque = is-opaque)
 
 // Parse struct definition fields: name: type, ...
 fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
@@ -1173,6 +1176,15 @@ pub fun parse-program() : <div,parser> program
   // Parse remaining declarations
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
+      TkOpaque ->
+        advance()
+        match peek()
+          TkStruct ->
+            val sd = parse-struct-decl()
+            structs := Cons(sd(is-opaque = True), structs)
+          _ ->
+            parse-error("expected 'struct' after 'opaque'")
+            ()
       TkStruct -> structs := Cons(parse-struct-decl(), structs)
       TkType   -> types := Cons(parse-type-decl(), types)
       TkTest   -> tests := Cons(parse-test-decl(), tests)
@@ -1335,6 +1347,11 @@ pub fun parse-repl-input() : <div,parser> repl-input
         TkType   -> { advance(); ReplType(parse-type-decl()(is-pub = True)) }
         TkImport -> ReplImport(parse-import-decl())
         _        -> ReplDecl(parse-fun-decl())
+    TkOpaque ->
+      advance()
+      match peek()
+        TkStruct -> ReplStruct(parse-struct-decl()(is-opaque = True))
+        _        -> { parse-error("expected 'struct' after 'opaque'"); ReplExpr(parse-expr()) }
     TkStruct -> ReplStruct(parse-struct-decl())
     TkType   -> ReplType(parse-type-decl())
     TkImport -> ReplImport(parse-import-decl())

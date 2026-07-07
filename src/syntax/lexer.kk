@@ -47,6 +47,8 @@ pub type token-kind
   TkImport
   TkFrom
   TkPub
+  TkOpaque
+  TkPriv
   TkExtern
   TkTest
   TkTrue
@@ -130,6 +132,8 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkImport     -> "import"
     TkFrom       -> "from"
     TkPub        -> "pub"
+    TkOpaque     -> "opaque"
+    TkPriv       -> "priv"
     TkExtern     -> "extern"
     TkTest       -> "test"
     TkTrue       -> "true"
@@ -284,6 +288,8 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "import" -> TkImport
     "from"   -> TkFrom
     "pub"    -> TkPub
+    "opaque" -> TkOpaque
+    "priv"   -> TkPriv
     "extern" -> TkExtern
     "test"   -> TkTest
     "true"   -> TkBool(True)

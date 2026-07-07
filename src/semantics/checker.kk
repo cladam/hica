@@ -764,6 +764,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           emit-error(n.span, "unknown struct: " ++ sname)
           (s, n(typ = Just(fresh-tvar())))
         Just(sd) ->
+          if sd.is-opaque then
+            emit-error(n.span, "cannot construct opaque struct '" ++ sname ++ "' — use its module's constructor function")
           // Check that all fields are provided and no extras
           val def-names = sd.fields.map(fn((nm, _t)) nm)
           val lit-names = lit-fields.map(fn((nm, _v)) nm)
@@ -788,6 +790,8 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           emit-error(n.span, "unknown struct: " ++ sname)
           (s, n(typ = Just(fresh-tvar())))
         Just(sd) ->
+          if sd.is-opaque then
+            emit-error(n.span, "cannot update opaque struct '" ++ sname ++ "' — use its module's constructor function")
           // Infer the base expression and ensure it's the right struct type
           val (s1, base') = infer(env, s, base)
           val base-type = apply-subst(s1, get-type(base'))
@@ -1180,8 +1184,14 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 // skip-kw-check: number of leading declarations (prelude + imports) to skip
 // for Koka keyword warnings. These are trusted code, not user-authored.
 pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [] ) : <div,diag,fresh> program
+  // For opaque structs: imported ones (indices < skip-kw-structs) retain is-opaque so
+  // that StructLit/StructUpdate can reject them. The user's own opaque structs (indices
+  // >= skip-kw-structs) have is-opaque cleared so construction is allowed within the
+  // defining module.
+  val structs-for-check = p.structs.take(skip-kw-structs) ++
+    p.structs.drop(skip-kw-structs).map(fn(sd) sd(is-opaque = False))
   with handler
-    fun get-structs() p.structs
+    fun get-structs() structs-for-check
   with handler
     fun get-types() p.types
   with handler

@@ -380,13 +380,15 @@ pub fun global-decl/show( g : global-decl ) : div string
   "let " ++ g.name ++ " = " ++ g.body.show
 
 pub struct struct-def
-  span   : span
-  name   : string
-  fields : list<(string, hica-type)>
-  is-pub : bool = False
+  span      : span
+  name      : string
+  fields    : list<(string, hica-type)>
+  is-pub    : bool = False
+  is-opaque : bool = False
 
 pub fun struct-def/show( d : struct-def ) : div string
-  "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
+  val opaque-str = if d.is-opaque then "opaque " else ""
+  opaque-str ++ "struct " ++ d.name ++ " { " ++ d.fields.map(fn((n, t)) n ++ ": " ++ t.show).join(", ") ++ " }"
 
 pub struct variant-def
   name   : string

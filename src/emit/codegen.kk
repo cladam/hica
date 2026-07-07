@@ -100,7 +100,8 @@ fun marshal-field( fname : string ) : string
 fun emit-struct-def( sd : struct-def ) : div string
   val tname = sd.name.struct-type-name
   val pub-str = if sd.is-pub then "pub " else ""
-  val struct-str = pub-str ++ "struct " ++ tname ++ "\n" ++
+  val abstract-str = if sd.is-opaque then "abstract " else ""
+  val struct-str = pub-str ++ abstract-str ++ "struct " ++ tname ++ "\n" ++
     sd.fields.map(fn((fname, ftype)) "  " ++ marshal-field(fname) ++ " : " ++ emit-type(ftype)).join("\n")
   // Emit a show function for the struct
   val show-parts = sd.fields.map fn((fname, ftype))

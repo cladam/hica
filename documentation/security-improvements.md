@@ -1,9 +1,3 @@
-Updated todo list
-
-Here's the analysis — just as a response, no file needed:
-
----
-
 ## Hica improvements needed for compile-time security boundaries
 
 ### 1. Opaque / newtype wrappers

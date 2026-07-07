@@ -1312,6 +1312,29 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
 
+    // --- Opaque / private-constructor structs (P1 + P2) ---
+    dtest("opaque struct emits Koka abstract struct")
+      val code = emit-typed-program("opaque struct Token { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
+      assert/is-true(code.contains("abstract struct token"))
+
+    dtest("opaque struct: construction allowed in same module")
+      val ds = check-diagnostics("opaque struct Token { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
+      val errors = ds.filter(fn(d) d.message.contains("opaque"))
+      assert/is-true(errors.length == 0)
+
+    dtest("pub struct priv emits Koka pub abstract struct")
+      val code = emit-typed-program("pub struct Token priv { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
+      assert/is-true(code.contains("pub abstract struct token"))
+
+    dtest("pub struct priv: construction allowed in same module")
+      val ds = check-diagnostics("pub struct Token priv { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
+      val errors = ds.filter(fn(d) d.message.contains("opaque"))
+      assert/is-true(errors.length == 0)
+
+    dtest("opaque struct: field access allowed in same module")
+      val code = emit-typed-program("opaque struct Token { data: string } fun get_data(t: Token) : string => t.data fun main() => 0")
+      assert/is-true(code.contains("t.data"))
+
     // --- Match exhaustiveness checking ---
     dtest("exhaustive maybe match emits no warning")
       val ds = check-diagnostics("fun main() { let x = Some(1); match x { Some(n) => n, None => 0 } }")
