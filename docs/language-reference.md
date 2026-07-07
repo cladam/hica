@@ -502,6 +502,48 @@ fun main() {
 
 The original value is unchanged (structs are immutable). The compiler checks that override fields exist in the struct and have the right types.
 
+#### Opaque structs — type-safe boundaries
+
+By default any module can construct a struct directly. Opaque structs lock the constructor to the defining module, forcing callers to go through a public *smart constructor* that can enforce invariants.
+
+**`opaque struct`** — both the type name and the constructor are private to the defining module:
+
+```hica
+opaque struct Token { data: string }
+
+// Only this module can build a Token:
+pub fun make_token(s: string) : Token => Token { data: s }
+pub fun token_str(t: Token) : string => t.data
+```
+
+**`pub struct … priv`** — the type name is public (usable in signatures across modules) but the constructor is private:
+
+```hica
+pub struct SqlParam priv { data: string }
+
+// The only way to obtain a SqlParam:
+pub fun param(s: string) : SqlParam => SqlParam { data: s }
+pub fun param_value(p: SqlParam) : string => p.data
+```
+
+Attempting to construct an opaque struct from another module is a compile-time error:
+
+```
+error: cannot construct opaque struct 'SqlParam'
+       — use its module's constructor function
+```
+
+**Rule of thumb:**
+
+| Keyword | Type name visible externally | Constructor visible externally |
+|---|---|---|
+| `struct Foo {}` | ✓ | ✓ |
+| `opaque struct Foo {}` | ✗ | ✗ |
+| `pub struct Foo {}` | ✓ | ✓ |
+| `pub struct Foo priv {}` | ✓ | ✗ |
+
+Use `opaque struct` for internal handles. Use `pub struct … priv` when callers need to name the type in their own signatures (e.g. as function parameters) but must not be able to forge values.
+
 #### Struct destructuring in match
 
 Use struct patterns to destructure a struct in `match` arms:

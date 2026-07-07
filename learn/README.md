@@ -54,6 +54,7 @@ Each lesson is a standalone `.hc` file you can run:
 | 38 | `38-math-extras.hc`    | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
 | 39 | `39-datetime.hc` | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` |
 | 40 | `40-glob.hc`     | Glob matching & char classification | `is_digit`, `is_alpha`, `is_upper`, `is_lower`, `all_digits`, `all_upper`, `glob_match`, `glob_match_path` |
+| 41 | `41-opaque-struct.hc` | Opaque structs               | `opaque struct`, `pub struct … priv`, smart constructors, type-safe boundaries |
 
 ## Language features shown
 
@@ -95,6 +96,9 @@ Each lesson is a standalone `.hc` file you can run:
 | Struct definitions             | `21-structs.hc`                       |
 | Struct construction            | `21-structs.hc`                       |
 | Field access (`.field`)        | `21-structs.hc`                       |
+| `opaque struct`                | `41-opaque-struct.hc`                 |
+| `pub struct … priv`            | `41-opaque-struct.hc`                 |
+| Smart constructors             | `41-opaque-struct.hc`                 |
 | `get_args()`                   | `22-env.hc`                           |
 | `get_env(key)`                 | `22-env.hc`                           |
 | `eprintln` (stderr output)     | `22-env.hc`                           |

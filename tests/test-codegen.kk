@@ -1322,12 +1322,12 @@ pub fun main() : io ()
       val errors = ds.filter(fn(d) d.message.contains("opaque"))
       assert/is-true(errors.length == 0)
 
-    dtest("pub struct priv emits Koka pub abstract struct")
-      val code = emit-typed-program("pub struct Token priv { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
-      assert/is-true(code.contains("pub abstract struct token"))
+    dtest("pub struct priv emits Koka abstract struct")
+      val code = emit-typed-program("pub struct Token priv { data: string } fun make_token(s: string) : Token => Token { data: s } fun main() => 0")
+      assert/is-true(code.contains("abstract struct token"))
 
     dtest("pub struct priv: construction allowed in same module")
-      val ds = check-diagnostics("pub struct Token priv { raw: string } fun make_token(s: string) : Token => Token { raw: s } fun main() => 0")
+      val ds = check-diagnostics("pub struct Token priv { data: string } fun make_token(s: string) : Token => Token { data: s } fun main() => 0")
       val errors = ds.filter(fn(d) d.message.contains("opaque"))
       assert/is-true(errors.length == 0)
 
