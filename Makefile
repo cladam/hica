@@ -11,21 +11,33 @@ CURL_LIB   = $(if $(filter Windows_NT,$(OS)),libcurl,curl)
 
 .PHONY: all build release bundle bundle-prelude bundle-stdlib test test-lexer \
         test-parser test-codegen test-cli test-js test-repl playground clean \
-		choreo-cli choreo-repl
+		choreo-cli choreo-repl submodules
 
 # ── Default ──────────────────────────────────────────────────────────────────
 
 all: build
 
+# ── Submodules ────────────────────────────────────────────────────────────────
+
+## Initialise and update all git submodules (klap, kunit, …)
+submodules:
+	git submodule update --init --recursive
+
+## Guard: abort with a helpful message if klap is not initialised
+check-submodules:
+	@test -f $(KLAP)/klap.kk || \
+	  (echo "ERROR: submodule lib/klap is missing." && \
+	   echo "Run: git submodule update --init --recursive" && exit 1)
+
 # ── Build ─────────────────────────────────────────────────────────────────────
 
 ## Debug build (fast, no optimisations)
-build:
+build: check-submodules
 	$(KOKA) -i$(KLAP) -i$(SRC) --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 
 ## Optimised release build
-release:
+release: check-submodules
 	$(KOKA) -O2 -i$(KLAP) -i$(SRC) -v0 --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) $(SRC_MAIN) -o hica
 	chmod +x $(HICA)
 

@@ -71,10 +71,13 @@ irm https://www.hica.dev/install.ps1 | iex
 Requires [Koka](https://koka-lang.github.io/koka/doc/book.html#install) ≥ 3.2.
 
 ```sh
-git clone https://github.com/cladam/hica.git
+git clone --recurse-submodules https://github.com/cladam/hica.git
 cd hica
 make release
 ```
+
+> **Already cloned without `--recurse-submodules`?**
+> Run `git submodule update --init --recursive` inside the repo before building.
 
 ## Why hica?
 
