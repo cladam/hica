@@ -5,7 +5,7 @@ title: Standard Library - hica
 
 # Standard Library
 
-Hica's standard library has two layers:
+hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
 - **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`) – opt-in via `import "std/..."`.
@@ -565,7 +565,7 @@ fun main() {
 
 ## Datetime (`std/datetime`, `import "std/datetime"` required) — v0.1.0
 
-> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. Hica supports validation, decomposition, comparison, and epoch-based duration helpers. For obtaining the current time use the built-in `now_unix()`, `now_iso()`, and `unix_to_iso()` primitives (no import needed).
+> **Note:** This is a string-based datetime implementation. All datetimes are represented as plain strings in ISO 8601 format. No rich datetime types or timezone database. hica supports validation, decomposition, comparison, and epoch-based duration helpers. For obtaining the current time use the built-in `now_unix()`, `now_iso()`, and `unix_to_iso()` primitives (no import needed).
 
 Written in hica itself. Import with `import "std/datetime"`. Supports the four ISO 8601 datetime variants:
 
@@ -662,7 +662,7 @@ fun main() {
 
 ### Internal Helpers
 
-These are implementation details exposed as `pub` due to Hica's flat module model. They are available after `import "std/datetime"` but are not part of the stable public API:
+These are implementation details exposed as `pub` due to hica's flat module model. They are available after `import "std/datetime"` but are not part of the stable public API:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|

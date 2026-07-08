@@ -1,7 +1,7 @@
 # Level 10. Testing: Did It Work?
 
 You've built a little machine (a function). But how do you **know** it works?
-You test it! In Hica, you write `test` blocks right next to your functions.
+You test it! In hica, you write `test` blocks right next to your functions.
 
 ### Your first test
 

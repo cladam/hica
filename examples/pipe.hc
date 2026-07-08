@@ -1,4 +1,4 @@
-// Hica — pipe operator
+// hica — pipe operator
 // a |> f desugars to f(a)
 
 fun double(n) => n * 2

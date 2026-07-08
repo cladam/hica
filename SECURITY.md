@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Hica is pre-1.0 software. Security fixes are applied to the latest release only.
+hica is pre-1.0 software. Security fixes are applied to the latest release only.
 
 | Version | Supported |
 |---------|-----------|
@@ -23,7 +23,7 @@ You can expect an acknowledgement within a few days. We will work with you to un
 
 ## Scope
 
-Hica is a language compiler — the primary security concern is in the compiler's handling of untrusted `.hc` source files and its code generation output.
+hica is a language compiler — the primary security concern is in the compiler's handling of untrusted `.hc` source files and its code generation output.
 
 Areas of particular interest:
 

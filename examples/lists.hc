@@ -1,4 +1,4 @@
-// Hica — list literals and operations
+// hica — list literals and operations
 fun main() {
   let nums = [1, 2, 3, 4, 5]
   println(nums)

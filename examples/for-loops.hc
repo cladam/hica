@@ -1,4 +1,4 @@
-// Hica — for loops
+// hica — for loops
 // Range loops and collection loops.
 
 fun fizzbuzz(n) =>

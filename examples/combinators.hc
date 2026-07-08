@@ -1,4 +1,4 @@
-// Hica — Maybe and Result combinators
+// hica — Maybe and Result combinators
 //
 // Combinators let you chain operations on Maybe and Result
 // without nesting match expressions.

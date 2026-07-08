@@ -1,4 +1,4 @@
-# Retrospective: TOML Library in Hica
+# Retrospective: TOML Library in hica
 
 ## What Went Well
 
@@ -19,7 +19,7 @@
 | No early return | 6-7 levels deep match/if chains in parser code | **Fixed**: `?` operator shipped |
 | Compile times | Full dependency tree recompiled per test file | Koka limitation |
 
-## Lessons for Hica Development
+## Lessons for hica Development
 
 1. Build one feature at a time, test immediately.
 2. Keep all library functions `pub`.
@@ -28,4 +28,4 @@
 
 ## Verdict
 
-Hica is viable for real library development. 930-line parser with full TOML v1.1.0 coverage. Rough edges are predictable once known — all in codegen, not language design.
+hica is viable for real library development. 930-line parser with full TOML v1.1.0 coverage. Rough edges are predictable once known — all in codegen, not language design.

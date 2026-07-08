@@ -1,4 +1,4 @@
-// Hica — nested let bindings
+// hica — nested let bindings
 fun triple(n) => n * 3
 
 fun main() {

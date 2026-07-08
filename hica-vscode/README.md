@@ -1,6 +1,6 @@
-# Hica for VS Code
+# hica for VS Code
 
-Syntax highlighting and language support for the [Hica](https://github.com/cladam/hica) programming language.
+Syntax highlighting and language support for the [hica](https://github.com/cladam/hica) programming language.
 
 ## Features
 

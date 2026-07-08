@@ -1,5 +1,5 @@
 /**
- * Tree-sitter grammar for Hica (.hc)
+ * Tree-sitter grammar for hica (.hc)
  *
  * Generate parser:
  *   npm install && npx tree-sitter generate

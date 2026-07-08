@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Hica vs. Rust - hica
+title: hica vs. Rust - hica
 ---
 
-# Hica vs Rust
+# hica vs Rust
 
 hica and Rust share values like immutability, expression-oriented design, `match` as a core feature, and `Result`/`Option` types. They diverge in how much complexity they expose to achieve control and performance.
 

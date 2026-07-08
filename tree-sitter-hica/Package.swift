@@ -8,7 +8,7 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        .target(name: "TreeSitterHica",
+        .target(name: "TreeSitterhica",
                 path: ".",
                 exclude: [
                     "Cargo.toml",

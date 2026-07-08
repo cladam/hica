@@ -1,4 +1,4 @@
-; Tree-sitter indent queries for Hica
+; Tree-sitter indent queries for hica
 ; Tells the editor when to indent/dedent.
 
 ; Increase indent inside braces and brackets

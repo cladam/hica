@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Hica for Beginners - hica
+title: hica for Beginners - hica
 ---
 
-# Hica for Beginners
+# hica for Beginners
 
 Welcome! This guide walks you through hica by building small programs, one concept at a time. By the end you'll have written functions, used pattern matching, worked with lists, and combined everything into a real program.
 

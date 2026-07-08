@@ -9,7 +9,7 @@ Imagine a pizza-making process:
 2. `add_toppings()` — puts cheese on top
 3. `bake()` — cooks it in the oven
 
-Each step is its own little machine. In Hica, you build machines with `fun`:
+Each step is its own little machine. In hica, you build machines with `fun`:
 
 ```hica
 fun double(n) => n * 2

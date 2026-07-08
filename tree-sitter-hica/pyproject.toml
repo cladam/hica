@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-hica"
-description = "Hica grammar for tree-sitter"
+description = "hica grammar for tree-sitter"
 version = "0.0.1"
 keywords = ["incremental", "parsing", "tree-sitter", "hica"]
 classifiers = [

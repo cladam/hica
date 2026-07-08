@@ -1,4 +1,4 @@
-; Tree-sitter highlight queries for Hica
+; Tree-sitter highlight queries for hica
 ; Used by Neovim (nvim-treesitter), Helix, Zed, etc.
 ;
 ; Capture names follow the nvim-treesitter standard:

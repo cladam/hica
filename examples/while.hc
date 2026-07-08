@@ -1,4 +1,4 @@
-// Hica — while loops with mutable variables
+// hica — while loops with mutable variables
 // var declares a mutable variable, while loops until condition is false.
 
 fun main() {

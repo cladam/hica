@@ -16,7 +16,7 @@
 
 **What I still need to build:** see [backlog.md](backlog.md)
 
-**The tradeoff:** this language is constrained by what Koka can express. But given that Hica's design pillars — algebraic effects, Perceus memory, expression-oriented, strong inference — are exactly what Koka already provides, that constraint costs me almost nothing. Hica is essentially a syntax skin and a type-checking layer on top of Koka's full runtime.
+**The tradeoff:** this language is constrained by what Koka can express. But given that hica's design pillars — algebraic effects, Perceus memory, expression-oriented, strong inference — are exactly what Koka already provides, that constraint costs me almost nothing. hica is essentially a syntax skin and a type-checking layer on top of Koka's full runtime.
 
 The practical route for me going forward: get the parser and emitter solid, write me some real `.hc` programs, and iterate on the type checker in parallell. 
 

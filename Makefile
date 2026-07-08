@@ -1,4 +1,4 @@
-# Hica Makefile
+# hica Makefile
 # Common targets for building, bundling, testing, and the playground.
 
 KOKA       = koka

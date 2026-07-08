@@ -1,6 +1,6 @@
 # Level 4. Your First Program — Hello, World!
 
-The classic first program. In Hica, it's just two lines:
+The classic first program. In hica, it's just two lines:
 
 ```hica
 fun main() {
@@ -16,7 +16,7 @@ that prints a greeting.
 ./hica run hello.hc
 ```
 
-There are actually several ways to write the same thing in Hica:
+There are actually several ways to write the same thing in hica:
 
 ```hica
 // Block body with println

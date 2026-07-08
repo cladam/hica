@@ -32,7 +32,7 @@ enough to figure it out. But sometimes it helps to be explicit.
 
 ### The Last Line Rule
 
-In Hica, you don't need to say "return." The computer just looks at the **very
+In hica, you don't need to say "return." The computer just looks at the **very
 last line** of a block `{ }` and says, "That's the answer!"
 
 ```hica

@@ -1,4 +1,4 @@
-// Hica — building pipelines
+// hica — building pipelines
 //
 // Pipe (|>), UFCS, closures, and enums combine to create
 // fluent, script-like processing chains — no macros or

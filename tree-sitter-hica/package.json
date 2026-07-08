@@ -1,7 +1,7 @@
 {
   "name": "tree-sitter-hica",
   "version": "0.1.0",
-  "description": "Tree-sitter grammar for the Hica programming language",
+  "description": "Tree-sitter grammar for the hica programming language",
   "keywords": [
     "tree-sitter",
     "hica",

@@ -1,8 +1,8 @@
-# Hica for Kids: The Language with the Magic Arrow `=>`
+# hica for Kids: The Language with the Magic Arrow `=>`
 
-<img src="images/hica-mascot.png" alt="Hica mascot" class="mascot" />
+<img src="images/hica-mascot.png" alt="hica mascot" class="mascot" />
 
-Welcome to **Hica**! Hica is a programming language designed to be fast like a
+Welcome to **hica**! hica is a programming language designed to be fast like a
 racing car but easy to read like a story. It's built using **Koka** and turns
 your code into **C**, the same language used to build the world's most powerful
 software.

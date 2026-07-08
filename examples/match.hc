@@ -1,4 +1,4 @@
-// Hica — match expressions
+// hica — match expressions
 fun describe(x) => match x {
   0 => "zero",
   1 => "one",

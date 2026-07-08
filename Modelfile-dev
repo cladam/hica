@@ -25,8 +25,8 @@ You write **Koka** (the compiler implementation language) and **hica** (the lang
 | `src/semantics/checker.kk` | Hindley-Milner type inference + unification |
 | `src/semantics/prelude.kk` | Extern function signatures (Koka-backed stdlib) |
 | `src/transform/desugar.kk` | AST-to-AST rewrites (range/bit patterns → guards) |
-| `src/emit/codegen.kk` | Hica AST → Koka source emission |
-| `src/emit/codegen-js.kk` | Hica AST → JavaScript source emission |
+| `src/emit/codegen.kk` | hica AST → Koka source emission |
+| `src/emit/codegen-js.kk` | hica AST → JavaScript source emission |
 | `src/diagnostics/diagnostics.kk` | Error collection and rendering |
 | `src/main.kk` | CLI entry point, build pipeline, prelude loading |
 

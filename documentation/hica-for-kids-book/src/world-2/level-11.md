@@ -1,13 +1,13 @@
 # Level 11. Making Decisions (The Fork in the Road)
 
-In Hica, an `if` expression is like a fork in the road. You go left or right
+In hica, an `if` expression is like a fork in the road. You go left or right
 depending on a condition, and both paths must lead to a value.
 
 ```hica
 fun negate(x) => if x < 0 { -x } else { x }
 ```
 
-Notice the `-x`. Hica can negate numbers directly! No need to write `0 - x`.
+Notice the `-x`. hica can negate numbers directly! No need to write `0 - x`.
 
 You can even use it to set a variable:
 
@@ -18,7 +18,7 @@ fun main() {
 }
 ```
 
-Both sides of the fork **must** give back a value. Hica won't let you leave
+Both sides of the fork **must** give back a value. hica won't let you leave
 one path empty. That way nothing ever gets lost!
 
 ### Chaining decisions

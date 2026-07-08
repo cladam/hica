@@ -1,6 +1,6 @@
 # hica-nvim
 
-Neovim support for the [Hica programming language](https://github.com/cladam/hica).
+Neovim support for the [hica programming language](https://github.com/cladam/hica).
 
 ## Features
 

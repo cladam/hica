@@ -1,4 +1,4 @@
-// Hica — string interpolation
+// hica — string interpolation
 fun greet(name) => "hello, {name}!"
 
 fun main() {

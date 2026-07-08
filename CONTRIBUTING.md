@@ -1,4 +1,4 @@
-# Contributing to Hica
+# Contributing to hica
 
 Thanks for your interest in contributing! This document covers the essentials. The full step-by-step guide is in [documentation/developer-guide.md](documentation/developer-guide.md).
 

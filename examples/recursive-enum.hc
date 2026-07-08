@@ -1,4 +1,4 @@
-// Hica — Recursive enum types (algebraic data types)
+// hica — Recursive enum types (algebraic data types)
 
 // A user-defined linked list — like OCaml's intlist
 type IntList {

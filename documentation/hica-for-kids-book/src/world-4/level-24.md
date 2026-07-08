@@ -1,7 +1,7 @@
 # Level 24. Maps: The Lookup Book
 
 Imagine a **dictionary**, you look up a word and find its meaning. Or a **phone book**, you look up a name and find a number. 
-In Hica, this is called a **map**.
+In hica, this is called a **map**.
 
 ### Making a map
 

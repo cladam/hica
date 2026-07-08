@@ -1,4 +1,4 @@
-feature "Hica CLI — core commands"
+feature "hica CLI — core commands"
 
 import "shared/hica_tasks.chor"
 
@@ -42,7 +42,7 @@ scenario "Version and help output" {
 # ─────────────────────────────────────────────
 # Scenario 2: Running programs
 # ─────────────────────────────────────────────
-scenario "Running Hica programs" {
+scenario "Running hica programs" {
 
     test RunHello "hica run prints Hello, world!" {
         given:

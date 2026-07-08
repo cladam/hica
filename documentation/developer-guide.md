@@ -1,4 +1,4 @@
-# Hica Developer Guide
+# hica Developer Guide
 
 Step-by-step guide for developing a new feature in hica.
 
@@ -32,8 +32,8 @@ Understanding how hica compiles a `.hc` file:
 | `src/semantics/checker.kk` | Type inference (Hindley-Milner + unification) |
 | `src/semantics/prelude.kk` | Extern function signatures (Koka-backed stdlib) |
 | `src/transform/desugar.kk` | AST-to-AST rewrites (range/bit patterns → guards) |
-| `src/emit/codegen.kk` | Hica AST → Koka source emission |
-| `src/emit/codegen-js.kk` | Hica AST → JavaScript source emission |
+| `src/emit/codegen.kk` | hica AST → Koka source emission |
+| `src/emit/codegen-js.kk` | hica AST → JavaScript source emission |
 | `src/emit/codegen-js-repl.kk` | JS REPL mode emission |
 | `src/diagnostics/diagnostics.kk` | Error collection and rendering |
 | `src/main.kk` | CLI entry point, build pipeline, prelude loading |

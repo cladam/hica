@@ -1,4 +1,4 @@
-// Hica — chained function calls
+// hica — chained function calls
 fun double(n) => n * 2
 
 fun square(n) => n * n

@@ -62,7 +62,7 @@ fun main() {
 }
 ```
 
-Hica has `gcd` built in! It works by repeatedly asking: "What's the remainder?"
+hica has `gcd` built in! It works by repeatedly asking: "What's the remainder?"
 until there's nothing left. That "nothing left" is the base case.
 
 ### The golden rule: always have a base case!
@@ -109,7 +109,7 @@ fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
   which calls `check_odd(1)`, which calls `check_even(0)` → `true`!
 - They keep bouncing back and forth, making the number smaller each time.
 
-Hica figures out that these functions call each other. You don't need to
+hica figures out that these functions call each other. You don't need to
 do anything special.
 
 **🎯 Try it:** Trace `check_odd(3)` on paper. What does each call look like?

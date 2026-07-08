@@ -1,5 +1,5 @@
-" Vim syntax file for Hica (.hc)
-" Language:    Hica
+" Vim syntax file for hica (.hc)
+" Language:    hica
 " Maintainer:  cladam
 " URL:         https://github.com/cladam/hica
 

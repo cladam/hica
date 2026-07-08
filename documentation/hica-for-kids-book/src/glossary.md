@@ -106,8 +106,8 @@
 | `pub import` | Import and re-share — pass functions along to your importers |
 | `: int` | A type annotation — labels a variable or parameter with its type |
 | block `{ }` | A group of steps; the last line is the answer |
-| `.hc` | The file extension for Hica source code |
-| Koka | The language Hica is built in and translates to |
+| `.hc` | The file extension for hica source code |
+| Koka | The language hica is built in and translates to |
 | Perceus | The smart memory cleaner — no garbage collector needed |
 
 

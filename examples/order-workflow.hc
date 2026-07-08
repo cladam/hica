@@ -1,9 +1,9 @@
-// Hica — AWS Step Functions modelled as typed state machines
+// hica — AWS Step Functions modelled as typed state machines
 //
 // An order processing workflow that mirrors the structure of an AWS
 // Step Functions state machine, but with compile-time type safety.
 //
-//   Step Functions concept  |  Hica equivalent
+//   Step Functions concept  |  hica equivalent
 //   ------------------------|----------------------------------
 //   State machine           |  type OrderState (enum)
 //   Task state              |  fun returning StepResult

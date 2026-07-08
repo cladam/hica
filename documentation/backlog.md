@@ -1,4 +1,4 @@
-# Hica Backlog
+# hica Backlog
 
 Consolidated backlog of language features, CLI improvements, and tooling.
 Items are grouped by area and roughly ordered by complexity within each group.
@@ -109,6 +109,10 @@ Legend: **done** = shipped, **—** = not started
 | Prelude (`prelude.hc`) | **done** | Low | Auto-load & prepend stdlib fns (abs, min, max …) before user code; no module system needed |
 | `import "mymodule"` | **done** | High | Multi-file compilation, module graph. Three forms: `import "path"` (all pub items), `from "path" import { names }` (selective), `pub import "path"` (re-export). File resolution relative to importer, cycle detection, each module compiled to own Koka module |
 | `pub` visibility | **done** | Medium | Emit Koka `pub` |
+| `opaque struct Foo {}` | **done** | Medium | Hides both type name and constructor from all other modules. Only the defining module can construct the type. Emits Koka `abstract struct`. See `examples/opaque-struct.hc`, `learn/41-opaque-struct.hc` |
+| `pub struct Foo priv {}` | **done** | Medium | Type name is public (usable in external signatures), constructor is private. Emits Koka `abstract struct`. Same enforcement as `opaque struct` but lighter syntax for APIs where callers name the type |
+| User-facing algebraic effect definitions (`effect` / `handle`) | **—** | High | Surface Koka's effect system in Hica syntax. Allows library authors to define capability interfaces: `effect Db { fun query(sql: string, params: list<SqlParam>) : Rows }`. The type checker enforces at call sites that the `Db` effect is handled. Primary use case: typed capability-based security (sandbox model where handlers intercept operations). Requires: new `effect-def` AST node, `effect`/`handle` keywords in lexer + parser, effect operation type checking in checker, Koka `effect`/`handler` codegen. Planned as a multi-milestone feature: parse+codegen passthrough first, then checker enforcement. See `documentation/security-type-boundaries.md` for motivation |
+| Effect-row polymorphic function types | **—** | High | Allow effect annotations in Hica function type syntax: `fun with_sqlite(path: string, f: (Db) -> <db> ()) : result<bool, string>`. Without this, sandbox callbacks silently accept any effect. Requires: new `hica-type` variant for effect rows, effect inference or annotation passthrough in checker, effect-annotated Koka type codegen. Dependent on user-facing effect definitions (P3) being complete. A short-term workaround is to allow raw Koka effect annotations via `extern` type stubs. See `documentation/security-type-boundaries.md` |
 | Parser state record (reduce parameter threading) | **—** | Medium | Recursive-descent parsers currently thread state as extra parameters (e.g. `text_elems`, `dotted_names`). Adding a new piece of state means touching every recursive call in multiple functions. A `struct ParserState { ... }` passed-and-returned would reduce this friction. HML retro: "Parameter threading is brutal — 30% of session time" |
 
 ---
@@ -384,7 +388,7 @@ Issues that exist today but are not yet fixed:
   let x = process_messages(0, [Inc, Dec], counter_receive)      // OK: int
   let y = process_messages("even", [1,2,3], (s, n) => ...)      // ERROR: expected int
   ```
-  Root cause: Hica lacks let-polymorphism — each function gets one concrete type.
+  Root cause: hica lacks let-polymorphism — each function gets one concrete type.
   **Workaround:** use `fold` directly at each call site, or keep all usages
   at the same type.
 - **~~`div` effect leakage through non-recursive wrappers~~** — Fixed. Codegen

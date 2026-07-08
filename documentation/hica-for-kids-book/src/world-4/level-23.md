@@ -8,7 +8,7 @@ at full speed. But `Result` is like a **"Caution!" sign** on the road. When
 something goes wrong, the program slows down safely, reads the sign, and
 decides what to do next instead of crashing.
 
-Hica has a **result** type for this. A result is either:
+hica has a **result** type for this. A result is either:
 
 - `Ok(value)` — "it worked! Here's the answer"
 - `Err(error)` — "something went wrong, here's what happened"

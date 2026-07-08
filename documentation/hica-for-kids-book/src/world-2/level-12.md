@@ -1,6 +1,6 @@
 # Level 12. The Match Game
 
-Sometimes you have many choices. Instead of nested `if` statements, Hica uses
+Sometimes you have many choices. Instead of nested `if` statements, hica uses
 `match`. It's like a sorting machine: drop a value in, and it lands in the
 right slot!
 

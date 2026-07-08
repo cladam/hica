@@ -4,12 +4,12 @@ Imagine you have a treasure map, and you're looking for files that match a
 pattern, like "all the text files" or "any picture in any folder". That's what
 **glob matching** does!
 
-Hica has built-in functions for this, plus helpers that tell you what kind of
+hica has built-in functions for this, plus helpers that tell you what kind of
 character you're looking at.
 
 ### What Kind of Character Is It?
 
-Every character has a type. Hica can check it for you:
+Every character has a type. hica can check it for you:
 
 ```hica
 fun main() {

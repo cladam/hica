@@ -1,5 +1,5 @@
-" Vim indent file for Hica (.hc)
-" Language:    Hica
+" Vim indent file for hica (.hc)
+" Language:    hica
 " Maintainer:  cladam
 
 if exists("b:did_indent")
@@ -7,10 +7,10 @@ if exists("b:did_indent")
 endif
 let b:did_indent = 1
 
-setlocal indentexpr=HicaIndent(v:lnum)
+setlocal indentexpr=hicaIndent(v:lnum)
 setlocal indentkeys=0{,0},0),0],!^F,o,O,e
 
-function! HicaIndent(lnum) abort
+function! hicaIndent(lnum) abort
   let prev_lnum = prevnonblank(a:lnum - 1)
   if prev_lnum == 0
     return 0

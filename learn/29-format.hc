@@ -2,7 +2,7 @@
 // Lesson 29: Formatted Output
 // ============================================================
 //
-// Hica has functions for formatted text output:
+// hica has functions for formatted text output:
 //
 // **Padding (alignment):**
 //   pad_left(s, width, fill)   — right-align s in a field

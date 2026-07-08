@@ -1,6 +1,6 @@
 # Level 6. Data Types: What Goes in the Box?
 
-Different boxes hold different things. Hica has five main types right now:
+Different boxes hold different things. hica has five main types right now:
 
 ### Integers (`int`)
 

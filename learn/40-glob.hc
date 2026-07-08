@@ -2,7 +2,7 @@
 // Lesson 40: Glob Matching & Character Classification
 // ============================================================
 //
-// Hica has built-in character classifiers and glob matching.
+// hica has built-in character classifiers and glob matching.
 //
 // Character classifiers work on `char` values:
 //   is_digit(c)   — true for '0'..'9'

@@ -1,6 +1,6 @@
 # Level 9. The Magic Arrow (`=>`)
 
-When a function does just one thing, you can use the **Hica Arrow** instead of
+When a function does just one thing, you can use the **hica Arrow** instead of
 writing curly braces. Think of it as: *"this goes in, that comes out."*
 
 ```hica

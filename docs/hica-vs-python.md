@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Hica vs. Python - hica
+title: hica vs. Python - hica
 ---
 
-# Hica vs Python
+# hica vs Python
 
 If you're looking for a first programming language, whether for yourself, your kids, or your students, Python and hica are both excellent choices. But they take very different paths to the same goal: making programming accessible, with different trade-offs between simplicity, safety, and explicitness.
 

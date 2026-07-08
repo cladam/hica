@@ -1,4 +1,4 @@
-// Hica — multi-step computation
+// hica — multi-step computation
 fun square(n) => n * n
 
 fun twice(n) => n * 2

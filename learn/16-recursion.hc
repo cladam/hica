@@ -9,7 +9,7 @@
 //   1. A base case - when to stop
 //   2. A recursive case - break the problem down
 //
-// Hica also supports mutual recursion: two or more functions
+// hica also supports mutual recursion: two or more functions
 // that call each other. The compiler detects the cycle
 // automatically.
 //

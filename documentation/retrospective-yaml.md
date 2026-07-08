@@ -1,4 +1,4 @@
-# Retrospective: YAML Library in Hica
+# Retrospective: YAML Library in hica
 
 ## What Worked Well
 
@@ -32,9 +32,9 @@ This constraint shapes code architecture in ways that aren't intuitive.
 
 ## Error Reporting
 
-- Hica parse errors give byte offsets, not line numbers — requires `head -c N | tail` to locate
+- hica parse errors give byte offsets, not line numbers — requires `head -c N | tail` to locate
 - Koka type errors reference generated `.kk` files, not `.hc` source — mental translation required
-- Two-phase compilation means you debug Hica syntax or Koka types, never both at once
+- Two-phase compilation means you debug hica syntax or Koka types, never both at once
 
 ## Verdict
 

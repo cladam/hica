@@ -1,10 +1,10 @@
 (function () {
-  function registerHica() {
+  function registerhica() {
     if (!window.hljs) return;
 
     hljs.registerLanguage('hica', function (hljs) {
       return {
-        name: 'Hica',
+        name: 'hica',
         aliases: ['hc'],
         keywords: {
           keyword:
@@ -79,8 +79,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', registerHica);
+    document.addEventListener('DOMContentLoaded', registerhica);
   } else {
-    registerHica();
+    registerhica();
   }
 })();

@@ -1,4 +1,4 @@
-# cimgui Integration for Hica — Design Exploration
+# cimgui Integration for hica — Design Exploration
 
 > Goal: let hica users spin up a native GUI window as easily and naturally as they spin up a CLI.
 > The user should not have to think about event loops, frame calls, or C backends.
@@ -106,7 +106,7 @@ pub fun gui-window( title: string, w: int, h: int, frame: () -> io () ) : io ()
   hk-gui-run(title, w, h, frame)
 ```
 
-### Layer 3: Hica user side
+### Layer 3: hica user side
 
 hica imports the Koka module via `extern import` (pass-through, no `.hc` compilation):
 

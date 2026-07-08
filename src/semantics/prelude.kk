@@ -11,11 +11,11 @@ module semantics/prelude
 import syntax/ast
 
 // ---------------------------------------------------------------------------
-// Extern environment: Koka stdlib functions that cannot be written in Hica
+// Extern environment: Koka stdlib functions that cannot be written in hica
 // ---------------------------------------------------------------------------
 
 // Type signatures for Koka built-ins.  Everything that *can* be written
-// in Hica lives in prelude/*.hc instead.  `println` uses a TVar param
+// in hica lives in prelude/*.hc instead.  `println` uses a TVar param
 // so it accepts any type — the codegen auto-wraps non-string arguments
 // with `.show`.  `show` likewise uses a TVar so `show(true)` works.
 // TVars in extern signatures are freshened on each lookup (see

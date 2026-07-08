@@ -45,7 +45,7 @@ This is different from tuples, which *can* hold different types.
 
 ### Doing things with lists
 
-Hica gives you three super-powers for working with lists:
+hica gives you three super-powers for working with lists:
 
 **`map`. Transform every element**
 
@@ -88,7 +88,7 @@ println(total)   // 10
 
 ### More list tools
 
-Hica has a few more handy tools for lists:
+hica has a few more handy tools for lists:
 
 **`length`: how many items?**
 

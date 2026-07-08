@@ -1,6 +1,6 @@
 # Level 14. Repeating Things
 
-Sometimes you want to do something more than once. Hica has `repeat` for that:
+Sometimes you want to do something more than once. hica has `repeat` for that:
 
 ```hica
 fun main() {

@@ -45,6 +45,6 @@ piece its own name.
 * Grouping coordinates: `(x, y)`
 * Keeping a pair of related data together without inventing a new type
 
-**🎯 Try it:** Make a tuple `("Hica", 2026)` and print both parts using `.0`
+**🎯 Try it:** Make a tuple `("hica", 2026)` and print both parts using `.0`
 and `.1`.
 

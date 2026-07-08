@@ -1,4 +1,4 @@
-// Hica — Uniform Function Call Syntax (UFCS)
+// hica — Uniform Function Call Syntax (UFCS)
 // a.f(b) desugars to f(a, b)
 // Enables fluent method-style chains on any function.
 

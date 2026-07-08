@@ -4,7 +4,7 @@ Have you ever spoken **Pig Latin**? It's a fun word game where you scramble
 English words into a secret-sounding language. "Pig" becomes **igpay**. "Latin"
 becomes **atinlay**. "Elephant" becomes **elephantyay**.
 
-Let's build a Pig Latin translator in Hica!
+Let's build a Pig Latin translator in hica!
 
 ## The Rules
 

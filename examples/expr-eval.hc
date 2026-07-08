@@ -1,4 +1,4 @@
-// Hica — Expression evaluator (recursive enum)
+// hica — Expression evaluator (recursive enum)
 // Classic algebraic data type example from CS3110
 
 type Expr {

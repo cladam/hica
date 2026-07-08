@@ -601,7 +601,7 @@ const tabs      = document.querySelectorAll('.tab');
 const highlight = document.getElementById('highlight-layer');
 
 // --- Syntax highlighting (from hica TextMate grammar) ---
-function highlightHica(code) {
+function highlighthica(code) {
   // Tokenize line by line, handling multi-char constructs
   const lines = code.split('\n');
   return lines.map(line => tokenizeLine(line)).join('\n');
@@ -739,7 +739,7 @@ function esc(s) {
 
 function updateHighlight() {
   // Add trailing newline so the pre matches textarea scroll height
-  highlight.innerHTML = highlightHica(editor.value) + '\n';
+  highlight.innerHTML = highlighthica(editor.value) + '\n';
 }
 
 function syncScroll() {

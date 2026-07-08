@@ -25,7 +25,7 @@
       var btn = document.createElement("button");
       btn.className = "playground-btn";
       btn.textContent = "▶ Run";
-      btn.title = "Run this code in the embedded Hica Playground";
+      btn.title = "Run this code in the embedded hica Playground";
 
       // Create collapsible iframe container (hidden initially)
       var wrapper = document.createElement("div");

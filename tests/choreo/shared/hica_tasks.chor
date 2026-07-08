@@ -1,5 +1,5 @@
-# Shared Choreo tasks for testing the Hica compiler
-# Import this file in any .chor test that needs common Hica operations.
+# Shared Choreo tasks for testing the hica compiler
+# Import this file in any .chor test that needs common hica operations.
 # Run choreo from the project root: choreo run -f tests/choreo/test-hica-cli.chor
 
 var PROJECT_ROOT = "../.."

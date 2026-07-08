@@ -1,4 +1,4 @@
-# Actors in Hica — Ideation
+# Actors in hica — Ideation
 
 Inspired by [Aether](https://github.com/aether-lang-org/aether) (Paul Hammant et al.) and the classic actor model (Erlang/OTP, Pony, Akka).
 
@@ -6,7 +6,7 @@ Inspired by [Aether](https://github.com/aether-lang-org/aether) (Paul Hammant et
 
 Aether compiles to C with a native multi-core scheduler, lock-free mailboxes, and a runtime actor system. It's fast systems programming.
 
-Hica has a different superpower: **Koka's algebraic effect handlers**. Effects give us actors that are:
+hica has a different superpower: **Koka's algebraic effect handlers**. Effects give us actors that are:
 - **Type-safe at compile time** — the type system tracks which messages an actor can send/receive
 - **Composable** — handlers compose freely; no monad transformer headaches
 - **Semantically clean** — an actor is *just* a handler with state, receive is *just* pattern matching on effect operations
@@ -17,7 +17,7 @@ This means we could have actors where **unhandled messages are a compile error**
 
 ## Proposed Syntax
 
-### Message types (already supported — just Hica enums)
+### Message types (already supported — just hica enums)
 
 ```rust
 type CounterMsg {
@@ -99,7 +99,7 @@ fun counter-handler(action) {
 
 ### What this buys you
 
-| Property | Aether (runtime) | Hica (effect-based) |
+| Property | Aether (runtime) | hica (effect-based) |
 |----------|------------------|---------------------|
 | Unhandled message | Runtime panic or dead letter | **Compile error** (non-exhaustive match) |
 | Message type safety | Compile-time types | Compile-time types + effect row |
@@ -113,7 +113,7 @@ fun counter-handler(action) {
 
 ### Phase 1: Sequential actors (effect handlers, no real concurrency)
 
-This is achievable **now** with Hica's existing features + a small syntax addition:
+This is achievable **now** with hica's existing features + a small syntax addition:
 - `actor` keyword → generates an effect + handler
 - `send`/`ask` → effect operations
 - `spawn` → installs the handler (scoped)
@@ -148,7 +148,7 @@ Koka's roadmap includes async/parallel primitives. When those land:
    - Async reply (callbacks, futures) = Phase 2+
 
 3. **Supervision / error handling?**
-   - Hica already has `Result`/`Maybe` — actor death = `Err` propagation
+   - hica already has `Result`/`Maybe` — actor death = `Err` propagation
    - OTP-style supervisors = a handler that restarts child handlers
 
 4. **Actor state visibility?**
@@ -161,7 +161,7 @@ Koka's roadmap includes async/parallel primitives. When those land:
 
 ---
 
-## What Hica Already Has That Helps
+## What hica Already Has That Helps
 
 - `type` enums → message types ✓
 - `match` with exhaustiveness → receive blocks ✓
@@ -216,7 +216,7 @@ fun main() {
 
 ## Comparison with Aether
 
-| | Aether | Hica |
+| | Aether | hica |
 |---|--------|------|
 | **Target** | C (native) | Koka (effects → C/JS/WASM) |
 | **Scheduling** | Multi-core, work-stealing | Effect handlers (cooperative) |
@@ -232,7 +232,7 @@ fun main() {
 
 1. **Effect-typed actors are novel** — no mainstream language does this. Frank (Edinburgh) and some academic papers explore it, but no one ships it in a beginner-friendly surface.
 
-2. **Hica's teaching mission** — actors are a great pedagogical tool (state machines + message passing = how distributed systems actually work). Making them type-safe lowers the learning cliff.
+2. **hica's teaching mission** — actors are a great pedagogical tool (state machines + message passing = how distributed systems actually work). Making them type-safe lowers the learning cliff.
 
 3. **Paul's TBD angle** — actors with typed messages + exhaustive receive = fewer runtime surprises = trunk-based development is safer. You catch protocol violations at compile time, not in production.
 
@@ -254,7 +254,7 @@ fun main() {
 
 ## Findings from mental-process.hc Translation (20 May 2026)
 
-Translated a Koka program with `effect brain` + `effect weekend` (custom effects with `ctl`/`resume`) to Hica using Phase 1 actor model. See `examples/mental-process.hc` and `src/actors/lab-journal.md` Step 6.
+Translated a Koka program with `effect brain` + `effect weekend` (custom effects with `ctl`/`resume`) to hica using Phase 1 actor model. See `examples/mental-process.hc` and `src/actors/lab-journal.md` Step 6.
 
 ### What worked
 - Effect → actor mapping (message types + state struct + receive function) is natural
@@ -265,7 +265,7 @@ Translated a Koka program with `effect brain` + `effect weekend` (custom effects
 - **Non-resuming control effects** (`ctl step-away()` with no `resume`) have no actor equivalent — had to inline the terminal side effects
 - **Type unification**: two `process_messages` calls with different actor types in one function body fail — generic gets pinned to first type
 - **Return value leaking**: receive functions return state, but when the orchestrator doesn't need it, the value leaks to main's return (prints `WeekendState(sunny: True)`)
-- **Explicit return type + effects**: annotating `: BrainState` on a receive function that does `println` fails — must omit and let Hica infer
+- **Explicit return type + effects**: annotating `: BrainState` on a receive function that does `println` fails — must omit and let hica infer
 
 ### Design implications
 - A `send(actor_state, msg, receive_fn)` that returns `()` would fix the return-value leak

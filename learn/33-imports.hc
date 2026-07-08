@@ -3,7 +3,7 @@
 // ============================================================
 //
 // As programs grow, you'll want to split code across files.
-// Hica's import system lets you do this cleanly.
+// hica's import system lets you do this cleanly.
 //
 // Three forms:
 //

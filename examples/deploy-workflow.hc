@@ -1,4 +1,4 @@
-// Hica — typed workflow state machine
+// hica — typed workflow state machine
 //
 // A deploy → health-check → rollback workflow modelled as an explicit
 // state machine. States are enum variants; each step is a function that

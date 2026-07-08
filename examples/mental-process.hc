@@ -1,7 +1,7 @@
 // Mental process simulator — Weekend Edition
 //
 // Original: Koka with algebraic effect handlers (brain + weekend).
-// Hica version: two actors as state machines with message types.
+// hica version: two actors as state machines with message types.
 //
 // Two actors cooperate:
 //   - Brain: manages the thought stack, can flush its buffer

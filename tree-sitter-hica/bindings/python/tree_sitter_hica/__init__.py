@@ -1,4 +1,4 @@
-"Hica grammar for tree-sitter"
+"hica grammar for tree-sitter"
 
 from ._binding import language
 

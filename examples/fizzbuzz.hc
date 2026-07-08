@@ -1,4 +1,4 @@
-// Hica — fizzbuzz
+// hica — fizzbuzz
 fun fizzbuzz(n) =>
   if n % 15 == 0 { "fizzbuzz" }
   else if n % 3 == 0 { "fizz" }

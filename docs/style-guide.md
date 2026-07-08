@@ -15,7 +15,7 @@ Consistency within a single file is *the most* important. However, know when
 to be inconsistent. Sometimes a rule just doesn't fit. When in doubt, look at
 the surrounding code and match its style. Readability always wins.
 
-### 1. The Hica Philosophy
+### 1. The hica Philosophy
 
  - **Be Explicit with Data, Implicit with Types:** Lean on type inference for local variables, but use names that describe the *content*, not the type.
  - **Flow over Nesting:** Prefer the pipe operator `|>` or UFCS (dot-notation) over deeply nested function calls.
@@ -141,7 +141,7 @@ The `=>` arrow separates a function's signature from its body. Consistent placem
 
 ### 6. Pattern Matching (match)
 
-Pattern matching is where Hica code can get "busy." Formatting is key to keeping it safe.
+Pattern matching is where hica code can get "busy." Formatting is key to keeping it safe.
 
  - **Align the Arrows:** For better readability, try to align the => in match arms.
    ```hica

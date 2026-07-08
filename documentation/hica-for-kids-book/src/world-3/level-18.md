@@ -1,6 +1,6 @@
 # Level 18. Building Strings
 
-Sometimes you want to build a message from pieces. Hica gives you two ways.
+Sometimes you want to build a message from pieces. hica gives you two ways.
 
 ### Gluing strings with `+`
 
@@ -16,7 +16,7 @@ fun main() {
 
 ### String interpolation with `{}`
 
-Even easier: put `{expr}` right inside a string, and Hica fills in the value:
+Even easier: put `{expr}` right inside a string, and hica fills in the value:
 
 ```hica
 fun greet(name) => "hello, {name}!"
@@ -53,7 +53,7 @@ turned into text and dropped into the string.
 
 ### String tools
 
-Hica comes with built-in tools for working with strings: no imports needed:
+hica comes with built-in tools for working with strings: no imports needed:
 
 ```hica
 fun main() {
@@ -98,7 +98,7 @@ Think of these like tools in a toolbox:
 ### Special characters (escape sequences)
 
 What if you want to put a double-quote *inside* a string? You can't just
-write `"She said "hi""`. Hica would think the string ends at the second `"`.
+write `"She said "hi""`. hica would think the string ends at the second `"`.
 
 The trick: put a backslash `\` before the special character. The backslash
 says "the next character is literal, not magic":

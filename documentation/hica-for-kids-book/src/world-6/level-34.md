@@ -1,6 +1,6 @@
 # Level 34. Dates & Times: What Day Is It?
 
-Hica has functions for working with dates and times in the `std/datetime` library.
+hica has functions for working with dates and times in the `std/datetime` library.
 You need to import it at the top of your program:
 
 ```hica
@@ -28,7 +28,7 @@ fun main() {
 }
 ```
 
-Hica knows about **leap years** too:
+hica knows about **leap years** too:
 
 ```hica
 import "std/datetime"

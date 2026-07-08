@@ -1,4 +1,4 @@
-// Hica — if/else expressions
+// hica — if/else expressions
 fun negate(x) => if x < 0 { 0 - x } else { x }
 
 fun main() {

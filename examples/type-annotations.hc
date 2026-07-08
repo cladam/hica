@@ -1,4 +1,4 @@
-// Hica — type annotations
+// hica — type annotations
 // Type annotations are optional — the compiler infers types.
 // But you can add them for clarity or when inference needs help.
 

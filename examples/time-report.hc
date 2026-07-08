@@ -54,7 +54,7 @@ fun main() {
 
   row("Y2K          (" + unix_to_iso(y2k)     + ")", age_label(days_since(y2k)))
   row("Unix 10^9    (" + unix_to_iso(billion)  + ")", age_label(days_since(billion)))
-  row("Hica v0.1    (" + unix_to_iso(hica_v0)  + ")", age_label(days_since(hica_v0)))
+  row("hica v0.1    (" + unix_to_iso(hica_v0)  + ")", age_label(days_since(hica_v0)))
   println("")
 
   header("── Duration Math ───────────────────────────")

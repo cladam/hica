@@ -1,4 +1,4 @@
-// Hica — expression-bodied functions
+// hica — expression-bodied functions
 fun double(x) => x * 2
 
 fun main() {

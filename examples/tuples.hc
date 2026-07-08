@@ -1,4 +1,4 @@
-// Hica — tuples
+// hica — tuples
 fun main() {
   let point = (10, 20)
   println("{point.0}")

@@ -1,4 +1,4 @@
-// Hica — Enum types (algebraic data types)
+// hica — Enum types (algebraic data types)
 
 // Simple enum — no data, just named variants
 type Color {

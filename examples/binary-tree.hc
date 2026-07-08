@@ -1,4 +1,4 @@
-// Hica — Binary tree (recursive enum)
+// hica — Binary tree (recursive enum)
 
 type Tree {
   Leaf,

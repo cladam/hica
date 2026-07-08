@@ -1,4 +1,4 @@
-// Hica — result type: Ok, Err, and ? propagation
+// hica — result type: Ok, Err, and ? propagation
 fun safe_divide(a, b) =>
   if b == 0 { Err("division by zero") }
   else { Ok(a / b) }

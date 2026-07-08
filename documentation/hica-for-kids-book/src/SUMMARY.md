@@ -5,8 +5,8 @@
 [Playground](playground.md)
 
 - [World 1: The Training Grounds](world-1/index.md)
-  - [Level 1. What is Hica?](world-1/level-01.md)
-  - [Level 2. Why Hica for Kids?](world-1/level-02.md)
+  - [Level 1. What is hica?](world-1/level-01.md)
+  - [Level 2. Why hica for Kids?](world-1/level-02.md)
   - [Level 3. Getting Started](world-1/level-03.md)
   - [Level 4. Your First Program – Hello, World!](world-1/level-04.md)
   - [Level 5. Variables: Labelled Boxes](world-1/level-05.md)

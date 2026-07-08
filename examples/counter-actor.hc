@@ -1,4 +1,4 @@
-// Hica — Actor pattern: Counter
+// hica — Actor pattern: Counter
 //
 // Demonstrates the actor-as-state-machine pattern:
 //   1. Define message types as enums

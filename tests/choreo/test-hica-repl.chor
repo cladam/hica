@@ -1,4 +1,4 @@
-feature "Hica REPL — user-perspective choreography tests"
+feature "hica REPL — user-perspective choreography tests"
 
 import "shared/hica_tasks.chor"
 

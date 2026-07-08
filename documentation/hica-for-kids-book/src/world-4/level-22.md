@@ -3,7 +3,7 @@
 Sometimes a value might exist, or it might not. Like looking for your keys —
 they're either in your pocket, or they're not!
 
-Hica has a special type called **maybe** for this. A maybe value is either:
+hica has a special type called **maybe** for this. A maybe value is either:
 
 - `Some(value)` — "yes, here it is!"
 - `None` — "nope, nothing here"
@@ -59,7 +59,7 @@ fun main() {
 
 ### Helpers: working with maybe without match
 
-Sometimes you don't want to write a whole `match` just to peek inside. Hica
+Sometimes you don't want to write a whole `match` just to peek inside. hica
 has helper functions (called **combinators**) that work like little machines
 you can pipe through:
 

@@ -1,4 +1,4 @@
-// Hica — six ways to say hello
+// hica — six ways to say hello
 //
 // 1. Shortest: arrow body (implicit return)
 //    fun main() => "Hello, world!"

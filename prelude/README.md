@@ -1,16 +1,16 @@
-# Hica Prelude
+# hica Prelude
 
-The prelude is Hica's built-in standard library. Every function defined here
-is automatically available in every Hica program — no imports needed.
+The prelude is hica's built-in standard library. Every function defined here
+is automatically available in every hica program — no imports needed.
 
-This is how Hica bootstraps itself: the standard library is written *in Hica*.
+This is how hica bootstraps itself: the standard library is written *in hica*.
 
 ## What's included
 
 ### Extern functions (Koka built-ins)
 
 These functions are provided by the Koka runtime and cannot be written in
-Hica. Their type signatures are declared in the compiler
+hica. Their type signatures are declared in the compiler
 (`src/semantics/prelude.kk`).
 
 #### I/O & display
@@ -93,7 +93,7 @@ Hica. Their type signatures are declared in the compiler
 
 ### `math.hc` — numeric helpers
 
-Written in Hica. Source: [`prelude/math.hc`](math.hc)
+Written in hica. Source: [`prelude/math.hc`](math.hc)
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -110,7 +110,7 @@ Written in Hica. Source: [`prelude/math.hc`](math.hc)
 
 Higher-level string functions built on top of the string primitives.
 
-Written in Hica. Source: [`prelude/strings.hc`](strings.hc)
+Written in hica. Source: [`prelude/strings.hc`](strings.hc)
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -149,7 +149,7 @@ API documentation for each module.
 
 **1. Write your function in a `.hc` file inside `prelude/`.**
 
-Use any Hica feature that the compiler already supports. Prelude files go
+Use any hica feature that the compiler already supports. Prelude files go
 through the same pipeline as user code: lex → parse → check → emit.
 
 ```hica
@@ -177,7 +177,7 @@ bash scripts/bundle-prelude.sh
 koka -ilib/kunit -ilib/klap -isrc -e tests/test-codegen.kk
 ```
 
-That's it. The function is now available to every Hica program.
+That's it. The function is now available to every hica program.
 
 ## How it works
 

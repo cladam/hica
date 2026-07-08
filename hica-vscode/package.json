@@ -1,7 +1,7 @@
 {
   "name": "hica",
-  "displayName": "Hica",
-  "description": "Language support for the Hica programming language",
+  "displayName": "hica",
+  "description": "Language support for the hica programming language",
   "version": "0.1.0",
   "publisher": "cladam",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "languages": [
       {
         "id": "hica",
-        "aliases": ["Hica", "hica"],
+        "aliases": ["hica", "hica"],
         "extensions": [".hc"],
         "configuration": "./language-configuration.json",
         "icon": {

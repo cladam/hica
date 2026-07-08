@@ -1,6 +1,6 @@
 # 🚀 Hica for Kids: The Language with the Magic Arrow
 
-Welcome to **Hica**! Hica is a programming language designed to be fast like a
+Welcome to **hica**! hica is a programming language designed to be fast like a
 racing car but easy to read like a story. It's built using **Koka** and turns
 your code into **C** — the same language used to build the world's most powerful
 software.
@@ -11,8 +11,8 @@ software.
 
 ### 🏕️ World 1: The Training Grounds
 
-1. [What is Hica?](#level-1-what-is-hica)
-2. [Why Hica for Kids?](#level-2-why-hica-for-kids)
+1. [What is hica?](#level-1-what-is-hica)
+2. [Why hica for Kids?](#level-2-why-hica-for-kids)
 3. [Getting Started](#level-3-getting-started)
 4. [Your First Program — Hello, World!](#level-4-your-first-program--hello-world)
 5. [Variables: Labelled Boxes](#level-5-variables-labelled-boxes)
@@ -74,32 +74,32 @@ software.
 
 ---
 
-### Level 1. What is Hica?
+### Level 1. What is hica?
 
-Hica is a programming language — a way of giving instructions to a computer.
-You write your instructions in a `.hc` file, and Hica turns them into a
+hica is a programming language — a way of giving instructions to a computer.
+You write your instructions in a `.hc` file, and hica turns them into a
 program your computer can run.
 
-What makes Hica special?
+What makes hica special?
 
 - It reads almost like English.
 - Everything you write gives back a **value** — there are no "void" surprises.
 - Your code gets translated into **C**, one of the fastest languages in the
   world, so your programs run really fast.
 
-Think of it this way: **you** write the easy version, and Hica's translator
+Think of it this way: **you** write the easy version, and hica's translator
 turns it into the hardcore version for the computer.
 
 ---
 
-### Level 2. Why Hica for Kids?
+### Level 2. Why hica for Kids?
 
 | Reason | What it means |
 | --- | --- |
-| **Easy to read** | Hica code looks almost like plain English |
+| **Easy to read** | hica code looks almost like plain English |
 | **No boilerplate** | No more `public static void main(String[] args)` — just `fun main()` |
 | **Fast programs** | Your code becomes a real executable, not just a script |
-| **Smart memory** | Hica uses a trick called **Perceus** to clean up after itself — no garbage collector slowdowns |
+| **Smart memory** | hica uses a trick called **Perceus** to clean up after itself — no garbage collector slowdowns |
 | **Everything is an expression** | `if`, `match`, and blocks all give back values |
 | **Learn real concepts** | The ideas you learn (functions, expressions, pattern matching) work in every language |
 
@@ -164,7 +164,7 @@ Don't want to install anything? The [hica Playground](https://www.hica.dev/playg
 
 ### Level 4. Your First Program — Hello, World!
 
-The classic first program. In Hica, it's just two lines:
+The classic first program. In hica, it's just two lines:
 
 ```rust
 fun main() {
@@ -180,7 +180,7 @@ that prints a greeting.
 ./hica run hello.hc
 ```
 
-There are actually several ways to write the same thing in Hica:
+There are actually several ways to write the same thing in hica:
 
 ```rust
 // Block body with println
@@ -242,7 +242,7 @@ enough to figure it out — but sometimes it helps to be explicit.
 
 ### The Last Line Rule
 
-In Hica, you don't need to say "return." The computer just looks at the **very
+In hica, you don't need to say "return." The computer just looks at the **very
 last line** of a block `{ }` and says, "That's the answer!"
 
 ```rust
@@ -284,7 +284,7 @@ update a value — like counting things in a loop (you'll see this later!).
 
 ### Level 6. Data Types: What Goes in the Box?
 
-Different boxes hold different things. Hica has five main types right now:
+Different boxes hold different things. hica has five main types right now:
 
 ### Integers (`int`)
 
@@ -428,7 +428,7 @@ Imagine a pizza-making process:
 2. `add_toppings()` — puts cheese on top
 3. `bake()` — cooks it in the oven
 
-Each step is its own little machine. In Hica, you build machines with `fun`:
+Each step is its own little machine. In hica, you build machines with `fun`:
 
 ```rust
 fun double(n) => n * 2
@@ -461,7 +461,7 @@ fun main() {
 
 ### Level 9. The Magic Arrow (`=>`)
 
-When a function does just one thing, you can use the **Hica Arrow** instead of
+When a function does just one thing, you can use the **hica Arrow** instead of
 writing curly braces. Think of it as: *"this goes in, that comes out."*
 
 ```rust
@@ -489,7 +489,7 @@ fun add_ten(n) {
 ### Level 10. Testing: Did It Work?
 
 You've built a little machine (a function). But how do you **know** it works?
-You test it! In Hica, you write `test` blocks right next to your functions.
+You test it! In hica, you write `test` blocks right next to your functions.
 
 ### Your first test
 
@@ -575,14 +575,14 @@ test "triple works" {
 
 ### Level 11. Making Decisions (The Fork in the Road)
 
-In Hica, an `if` expression is like a fork in the road. You go left or right
+In hica, an `if` expression is like a fork in the road. You go left or right
 depending on a condition — and both paths must lead to a value.
 
 ```rust
 fun negate(x) => if x < 0 { -x } else { x }
 ```
 
-Notice the `-x` — Hica can negate numbers directly! No need to write `0 - x`.
+Notice the `-x` — hica can negate numbers directly! No need to write `0 - x`.
 
 You can even use it to set a variable:
 
@@ -593,7 +593,7 @@ fun main() {
 }
 ```
 
-Both sides of the fork **must** give back a value — Hica won't let you leave
+Both sides of the fork **must** give back a value — hica won't let you leave
 one path empty. That way nothing ever gets lost!
 
 ### Chaining decisions
@@ -622,7 +622,7 @@ It's like a chain of doors — you check each one until you find the right room.
 
 ### Level 12. The Match Game
 
-Sometimes you have many choices. Instead of nested `if` statements, Hica uses
+Sometimes you have many choices. Instead of nested `if` statements, hica uses
 `match`. It's like a sorting machine — drop a value in, and it lands in the
 right slot!
 
@@ -810,7 +810,7 @@ a ticket?" Both must be true to get in.
 
 ### Level 14. Repeating Things
 
-Sometimes you want to do something more than once. Hica has `repeat` for that:
+Sometimes you want to do something more than once. hica has `repeat` for that:
 
 ```rust
 fun main() {
@@ -1074,7 +1074,7 @@ Hint: use `var i = 0`, increment it each time, and break when `i > 5`.
 
 ### Level 18. Building Strings
 
-Sometimes you want to build a message from pieces. Hica gives you two ways.
+Sometimes you want to build a message from pieces. hica gives you two ways.
 
 ### Gluing strings with `+`
 
@@ -1090,7 +1090,7 @@ fun main() {
 
 ### String interpolation with `{}`
 
-Even easier: put `{expr}` right inside a string, and Hica fills in the value:
+Even easier: put `{expr}` right inside a string, and hica fills in the value:
 
 ```rust
 fun greet(name) => "hello, {name}!"
@@ -1127,7 +1127,7 @@ turned into text and dropped into the string.
 
 ### String tools
 
-Hica comes with built-in tools for working with strings — no imports needed:
+hica comes with built-in tools for working with strings — no imports needed:
 
 ```rust
 fun main() {
@@ -1172,7 +1172,7 @@ Think of these like tools in a toolbox:
 ### Special characters (escape sequences)
 
 What if you want to put a double-quote *inside* a string? You can't just
-write `"She said "hi""` — Hica would think the string ends at the second `"`.
+write `"She said "hi""` — hica would think the string ends at the second `"`.
 
 The trick: put a backslash `\` before the special character. The backslash
 says "the next character is literal, not magic":
@@ -1421,7 +1421,7 @@ piece its own name.
 * Grouping coordinates: `(x, y)`
 * Keeping a pair of related data together without inventing a new type
 
-**🎯 Try it:** Make a tuple `("Hica", 2026)` and print both parts using `.0`
+**🎯 Try it:** Make a tuple `("hica", 2026)` and print both parts using `.0`
 and `.1`.
 
 ---
@@ -1473,7 +1473,7 @@ This is different from tuples, which *can* hold different types.
 
 ### Doing things with lists
 
-Hica gives you three super-powers for working with lists:
+hica gives you three super-powers for working with lists:
 
 **`map` — transform every element**
 
@@ -1516,7 +1516,7 @@ println(total)   // 10
 
 ### More list tools
 
-Hica has a few more handy tools for lists:
+hica has a few more handy tools for lists:
 
 **`length` — how many items?**
 
@@ -1648,7 +1648,7 @@ print just the first element using `head`.
 Sometimes a value might exist, or it might not. Like looking for your keys —
 they're either in your pocket, or they're not!
 
-Hica has a special type called **maybe** for this. A maybe value is either:
+hica has a special type called **maybe** for this. A maybe value is either:
 
 - `Some(value)` — "yes, here it is!"
 - `None` — "nope, nothing here"
@@ -1704,7 +1704,7 @@ fun main() {
 
 ### Helpers: working with maybe without match
 
-Sometimes you don't want to write a whole `match` just to peek inside. Hica
+Sometimes you don't want to write a whole `match` just to peek inside. hica
 has helper functions (called **combinators**) that work like little machines
 you can pipe through:
 
@@ -1738,7 +1738,7 @@ at full speed. But `Result` is like a **"Caution!" sign** on the road. When
 something goes wrong, the program slows down safely, reads the sign, and
 decides what to do next instead of crashing.
 
-Hica has a **result** type for this. A result is either:
+hica has a **result** type for this. A result is either:
 
 - `Ok(value)` — "it worked! Here's the answer"
 - `Err(error)` — "something went wrong, here's what happened"
@@ -1866,7 +1866,7 @@ that uses `find(xs, (n) => n > 0)?` to find the first positive number.
 ### Level 24. Maps: The Lookup Book
 
 Imagine a **dictionary**, you look up a word and find its meaning. Or a **phone book**, you look up a name and find a number. 
-In Hica, this is called a **map**.
+In hica, this is called a **map**.
 
 ### Making a map
 
@@ -2036,7 +2036,7 @@ fun main() {
 }
 ```
 
-Hica has `gcd` built in! It works by repeatedly asking: "What's the remainder?"
+hica has `gcd` built in! It works by repeatedly asking: "What's the remainder?"
 until there's nothing left. That "nothing left" is the base case.
 
 ### The golden rule: always have a base case!
@@ -2083,7 +2083,7 @@ fun check_odd(n) => if n == 0 { false } else { check_even(n - 1) }
   which calls `check_odd(1)`, which calls `check_even(0)` → `true`!
 - They keep bouncing back and forth, making the number smaller each time.
 
-Hica figures out that these functions call each other — you don't need to
+hica figures out that these functions call each other — you don't need to
 do anything special.
 
 **🎯 Try it:** Trace `check_odd(3)` on paper. What does each call look like?
@@ -2647,7 +2647,7 @@ choice. Use `match` to decide who wins!
 
 ### Level 31. Under the Hood: The Translator
 
-This is the coolest part of Hica. When you run your program, three things
+This is the coolest part of hica. When you run your program, three things
 happen behind the scenes:
 
 ```
@@ -2656,7 +2656,7 @@ Your code (.hc)  →  Koka (.kk)  →  C  →  Your computer runs it!
 
 | Layer | What it is |
 | --- | --- |
-| **Hica** (`.hc`) | The "Human Language" — easy for you to read and write |
+| **hica** (`.hc`) | The "Human Language" — easy for you to read and write |
 | **Koka** (`.kk`) | The "Translator" — converts your code into something lower-level |
 | **C** | The "Robot Language" — super fast, used to build operating systems |
 
@@ -2668,7 +2668,7 @@ serious, optimised C code. You get the **easy** writing experience and the
 
 When your program creates values (boxes), it uses memory. Some languages need a
 "garbage collector" that pauses your program to clean up — like stopping a race
-car to pick up litter. Hica uses **Perceus** instead: it counts exactly how
+car to pick up litter. hica uses **Perceus** instead: it counts exactly how
 many times each box is used and cleans it up the instant nobody needs it
 anymore. No pauses, no slowdowns.
 
@@ -2851,7 +2851,7 @@ sound!
 
 ### Level 34. Dates & Times: What Day Is It?
 
-Hica has built-in functions for working with dates and times. They use
+hica has built-in functions for working with dates and times. They use
 **strings** that look like this:
 
 - A **date**: `"2026-05-15"` — year, month, day, separated by dashes
@@ -2871,7 +2871,7 @@ fun main() {
 }
 ```
 
-Hica knows about **leap years** too:
+hica knows about **leap years** too:
 
 ```rust
 fun main() {
@@ -2938,12 +2938,12 @@ Imagine you have a treasure map, and you're looking for files that match a
 pattern — like "all the text files" or "any picture in any folder". That's what
 **glob matching** does!
 
-Hica has built-in functions for this, plus helpers that tell you what kind of
+hica has built-in functions for this, plus helpers that tell you what kind of
 character you're looking at.
 
 ### What Kind of Character Is It?
 
-Every character has a type. Hica can check it for you:
+Every character has a type. hica can check it for you:
 
 ```rust
 fun main() {
@@ -3130,8 +3130,8 @@ and `chars` together!
 | `pub import` | Import and re-share — pass functions along to your importers |
 | `: int` | A type annotation — labels a variable or parameter with its type |
 | block `{ }` | A group of steps; the last line is the answer |
-| `.hc` | The file extension for Hica source code |
-| Koka | The language Hica is built in and translates to |
+| `.hc` | The file extension for hica source code |
+| Koka | The language hica is built in and translates to |
 | Perceus | The smart memory cleaner — no garbage collector needed |
 
 ---

@@ -1,4 +1,4 @@
-# Hica Niche Exploration
+# hica Niche Exploration
 
 A creative exploration of differentiated focus areas beyond table-stakes HTTP servers.
 
@@ -6,7 +6,7 @@ A creative exploration of differentiated focus areas beyond table-stakes HTTP se
 
 ## Why a niche matters
 
-Many languages compete for general-purpose mindshare and lose. The ones that break through often own a specific domain first: Lua owns game scripting, R owns statistics, Erlang owns telecom reliability, SQL owns relational queries. Hica's combination of **effect types + Perceus/no-GC + WASM target** is unusual enough that it can own something specific — the question is what.
+Many languages compete for general-purpose mindshare and lose. The ones that break through often own a specific domain first: Lua owns game scripting, R owns statistics, Erlang owns telecom reliability, SQL owns relational queries. hica's combination of **effect types + Perceus/no-GC + WASM target** is unusual enough that it can own something specific — the question is what.
 
 ---
 
@@ -45,7 +45,7 @@ First concrete slice:
   - symbolic data and tree recursion
   - mini evaluator core (environment + eval/apply subset)
 - Add side-by-side ports for one lesson in hica
-- Publish as "SICP Distilled: HiLisp to Hica"
+- Publish as "SICP Distilled: HiLisp to hica"
 
 Success signal:
 - A learner can complete one chapter and explain both:
@@ -60,13 +60,13 @@ The 2026 problem nobody has solved at the language level: **"What can this agent
 
 Python agents call APIs you didn't expect, read files you didn't want, execute processes you never audited. MCP tool schemas are declarative but not verified against the implementation — the agent can diverge from its schema.
 
-Hica's effect types are compile-time proof. A function's effect signature IS its capability declaration, and the compiler verifies it matches the implementation. An agent typed with only `network` and `file-read` effects literally cannot delete a file — the compiler rejects it.
+hica's effect types are compile-time proof. A function's effect signature IS its capability declaration, and the compiler verifies it matches the implementation. An agent typed with only `network` and `file-read` effects literally cannot delete a file — the compiler rejects it.
 
 Combined with WASM: the compile-time claim becomes a hardware-enforced sandbox.
 
 **Tagline:** *"Build AI agents where the compiler is the security policy."*
 
-Why no one else has this: Python has no effect system. Rust is too hard for agent code. TypeScript has no effects. Haskell has them but is inaccessible. Hica has the right difficulty level AND the effect system.
+Why no one else has this: Python has no effect system. Rust is too hard for agent code. TypeScript has no effects. Haskell has them but is inaccessible. hica has the right difficulty level AND the effect system.
 
 ---
 
@@ -79,7 +79,7 @@ Edge compute in 2026 (Cloudflare Workers, Fastly Compute@Edge, WasmEdge, Deno De
 
 Current tools: JavaScript (dynamic, no effect guarantees), Python (not WASM-native), Rust (too verbose for scripting), Bash (no types, not portable).
 
-Hica fits precisely: compiles to WASM, no GC, effect types declare what a script touches. Deploy a hica binary to Cloudflare Workers and the edge platform can see from the effect signature: this function only makes outbound HTTP calls and reads environment variables.
+hica fits precisely: compiles to WASM, no GC, effect types declare what a script touches. Deploy a hica binary to Cloudflare Workers and the edge platform can see from the effect signature: this function only makes outbound HTTP calls and reads environment variables.
 
 **Tagline:** *"Typed scripts for the edge. No runtime. No surprises."*
 
@@ -98,15 +98,15 @@ What choreo implicitly models:
 
 **The leap**: what if this model moved from *testing* to *production*?
 
-Hica could be the language where you define system workflows as explicit, typed state machines — and the compiler proves they're correct before they run.
+hica could be the language where you define system workflows as explicit, typed state machines — and the compiler proves they're correct before they run.
 
 ---
 
 ## Deep dive: Typed Workflow Choreography
 
-### From Choreo to Hica Choreography
+### From Choreo to hica Choreography
 
-| Choreo today | Hica choreography vision |
+| Choreo today | hica choreography vision |
 |---|---|
 | BDD test runner | Behavioral workflow specification + execution |
 | `.chor` files interpreted at runtime | `.hc` files compiled to WASM |
@@ -181,11 +181,11 @@ The compiler:
 
 **Temporal/Durable Functions**: Python or TypeScript SDKs. No effect tracking. Runtime errors, not compile-time proofs. Requires running a Temporal cluster.
 
-**TLA+/Alloy**: Formal spec tools that don't execute. Hica specs run.
+**TLA+/Alloy**: Formal spec tools that don't execute. hica specs run.
 
 **Choreo**: Test runner, not production runtime. No type system for effects.
 
-Hica would be the only language where:
+hica would be the only language where:
 1. Workflows are typed state machines verified by the compiler
 2. Each step's capabilities are declared as effects (no hidden side effects)
 3. The output is a WASM binary that runs on any modern edge runtime
@@ -215,7 +215,7 @@ These two niches reinforce each other:
 
 The compound positioning:
 
-> **Hica is the language for typed workflow choreography at the edge.**
+> **hica is the language for typed workflow choreography at the edge.**
 > Write system workflows as state machines. The compiler proves they're correct.
 > Deploy to any WASM runtime. No surprises at 3am.
 
@@ -228,7 +228,7 @@ The story also has a natural public origin: "I built Choreo for testing CLI tool
 Choreo proved the concept: human-readable scripted system interactions with a typed actor model. It's a great foundation for the idea. The evolution:
 
 - Choreo: *test that your system behaves correctly*
-- Hica choreography: *define how your system behaves, compile-time verified, production-ready*
+- hica choreography: *define how your system behaves, compile-time verified, production-ready*
 
 The `.chor` DSL could eventually be a frontend that compiles to hica, or hica could offer a choreo-compatible import mode for testing. Either way, the intellectual lineage is clear and worth documenting publicly — it's a good story.
 

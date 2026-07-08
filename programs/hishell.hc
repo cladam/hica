@@ -1,7 +1,7 @@
 // hishell — a history-aware interactive shell
 //
 // Inspired by rlwrap: demonstrates command history, recall,
-// and persistence — core readline-wrapper concepts in Hica.
+// and persistence — core readline-wrapper concepts in hica.
 //
 // History commands:
 //   !!           repeat last command

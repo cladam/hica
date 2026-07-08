@@ -5,7 +5,7 @@ title: JavaScript Target - hica
 
 # JavaScript Target
 
-Hica can compile `.hc` files to self-contained JavaScript instead of Koka. This enables running hica programs in Node.js or in a browser-based playground without needing the Koka compiler at runtime.
+hica can compile `.hc` files to self-contained JavaScript instead of Koka. This enables running hica programs in Node.js or in a browser-based playground without needing the Koka compiler at runtime.
 
 ```sh
 hica build examples/hello.hc --target=js
@@ -66,7 +66,7 @@ Key runtime functions provided:
 
 ## REPL
 
-Hica includes an interactive REPL powered by the JS backend:
+hica includes an interactive REPL powered by the JS backend:
 
 ```sh
 hica repl

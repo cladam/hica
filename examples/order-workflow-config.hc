@@ -1,4 +1,4 @@
-// Hica — Config-driven workflow engine
+// hica — Config-driven workflow engine
 //
 // Workflow graph is loaded from HML config at runtime.
 // Task logic (what each step does) lives here in typed hica code.

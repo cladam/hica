@@ -1,4 +1,4 @@
-// Hica — maybe type: Some and None
+// hica — maybe type: Some and None
 
 // A function that might not find what you want
 fun find_positive(n) =>
@@ -28,7 +28,7 @@ fun main() {
   }
 
   // Maybe with strings
-  let name = Some("Hica")
+  let name = Some("hica")
   match name {
     Some(n) => println("language: {n}"),
     None    => println("unknown")

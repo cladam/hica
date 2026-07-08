@@ -1,4 +1,4 @@
-// Hica — floating-point numbers
+// hica — floating-point numbers
 fun circle_area(r) => 3.14159 * r * r
 
 fun main() {

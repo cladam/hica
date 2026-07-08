@@ -25,7 +25,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 | Tool | Issue | Notes |
 |------|-------|-------|
-| **micro** | 319 | Modern, keybinding-friendly terminal editor. Hica LSP / editor integration goal aligns here. |
+| **micro** | 319 | Modern, keybinding-friendly terminal editor. hica LSP / editor integration goal aligns here. |
 | **Vim / extend Vim** | 258, 263 | Plugin ecosystem tutorial; relevant for hica-nvim strategy. |
 | **VEM** | 293 | Vim with a more ergonomic keymap. Interesting minimal Vim clone as a hica example. |
 
@@ -36,7 +36,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 | Tool | Issue | Notes |
 |------|-------|-------|
 | **bottom** | 299 | `htop` replacement in Rust. Layout and interactivity design to study. |
-| **Glances** | 262 | Python-based cross-platform system monitor. Hica equivalent could use Koka's IO. |
+| **Glances** | 262 | Python-based cross-platform system monitor. hica equivalent could use Koka's IO. |
 | **s-tui** | 279 | Stress-test and monitor CPU in terminal. Good for a hica `sysmon` example. |
 | **WTF console** | 257 | Modular terminal dashboard. Interesting layout/widget design pattern. |
 | **VisiData** | 298 | Spreadsheet-like TUI for CSV/JSON/etc. Very ambitious, but hica's tabular output could learn from its UX. |
@@ -88,7 +88,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 | Tool | Issue | Notes |
 |------|-------|-------|
-| **McFly** | 252 | Intelligent shell history search. Hica `history` integration idea. |
+| **McFly** | 252 | Intelligent shell history search. hica `history` integration idea. |
 | **Fuzzy finder (fzf)** | 287 | The canonical interactive filter. A `fzf`-wrapper in hica would make many scripts more interactive. |
 | **Espanso** | 268 | Text expansion tool. Shows daemon + hotkey pattern; interesting for hica scripting. |
 | **Liquid Prompt** | 242 | Smart adaptive shell prompt. Design inspiration for a `hica prompt` command. |
@@ -118,13 +118,13 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ---
 
-## Key Themes for Hica
+## Key Themes for hica
 
 1. **File IO is central** — many of these tools (todo, bookmarks, RSS, music) are fundamentally
-   about reading/writing structured files. Hica's stdlib needs solid file + path APIs.
+   about reading/writing structured files. hica's stdlib needs solid file + path APIs.
 
 2. **Exec + subprocess** — tools like Gopass and Croc are thin wrappers over external binaries.
-   Hica's `exec`/`run` facilities should make this pattern ergonomic.
+   hica's `exec`/`run` facilities should make this pattern ergonomic.
 
 3. **Structured output** — VisiData and Glances show that tabular/tree rendering matters.
    A hica `table` stdlib function (like `rich` in Python) would unlock many of these.
@@ -147,12 +147,12 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Data Viewing and Querying
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **csvlens** | CSV viewer like `less` | A hica `csvlens` example would exercise streaming output + column alignment |
 | **tabiew** | TUI for tabular data (CSV/TSV/Parquet/JSON) | Target UX for a hica `table` stdlib output function |
 | **jless** | Command-line JSON viewer (foldable tree) | Shows what hica's `json pretty-print` could look like with folding |
-| **jnv** | Interactive JSON filter using jq | Hica + jq-like DSL is an interesting direction for data scripts |
+| **jnv** | Interactive JSON filter using jq | hica + jq-like DSL is an interesting direction for data scripts |
 | **fx** | Terminal JSON viewer + processor | Minimal and hackable — similar spirit to hica |
 | **otree** | View JSON/YAML/TOML as TUI tree | Natural fit once hica has a TOML/YAML stdlib |
 | **visidata** | Terminal spreadsheet multitool | Gold standard for terminal data UX; study its keybindings |
@@ -164,7 +164,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Notes, Journals, and Writing
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **jrnl** | Collect thoughts and notes from the command line | Simple append-to-file + date tagging — very achievable in hica |
 | **rucola** | Terminal markdown note manager | Markdown-first notes with tagging; natural hica example |
@@ -180,7 +180,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Time, Tasks, and Finance
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **omm** | Keyboard-driven task manager | Clean UX design to emulate for a hica `tasks` example |
 | **dooit** | TUI todo manager | More feature-rich than Todo.txt; comparison target |
@@ -200,14 +200,14 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Presentations and Markdown Rendering
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **slides** | Terminal presentation tool (markdown) | Shows how markdown → terminal rendering works |
 | **presenterm** | TUI markdown slideshow | Most polished of the group; sets the bar |
 | **patat** | Terminal presentations using Pandoc | Pandoc dependency interesting; hica could target similar output |
 | **mdp** | Command-line markdown presentation | Minimal implementation to study |
 | **kyma** | Terminal presentations with animated transitions | Motivates terminal animation via ANSI escape sequences |
-| **glow** | Render markdown on CLI with pizzazz | Hica's `--help` output could learn from glow's rendering style |
+| **glow** | Render markdown on CLI with pizzazz | hica's `--help` output could learn from glow's rendering style |
 | **frogmouth** | Markdown browser for terminal | Navigation + rendering; what hica docs browsing could look like |
 | **mdcat** | Fancy cat for markdown | Simpler version of glow — good model for a hica `hcat` command |
 
@@ -215,7 +215,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Git and Version Control
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **lazygit** | Simple terminal UI for git commands | The canonical lazy-* TUI pattern; study its workflow model |
 | **gitui** | Blazing fast TUI for git in Rust | Performance-first design; comparison target for hica-speed claims |
@@ -230,7 +230,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Calculators and Math
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **eva** | Calculator REPL similar to bc | A hica `calc` REPL is very achievable — exercises the parser |
 | **fend** | Arbitrary-precision unit-aware calculator | Unit conversions; motivates a hica units stdlib |
@@ -242,7 +242,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### HTTP / API Clients
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **posting** | Powerful HTTP client in terminal | Postman-like TUI — shows what hica's HTTP stdlib enables |
 | **atac** | API client (Postman-like) in terminal | Collection-based API testing; hica equivalent would use `.hc` files |
@@ -256,7 +256,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Log Viewing and Processing
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **lnav** | ncurses-based log file viewer | Feature-rich; sets expectations for what log viewing looks like |
 | **tailspin** | Log file highlighter | Simple pattern-based coloring — achievable as a hica `highlight` util |
@@ -268,7 +268,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Regex and Text Processing
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **rexi** | Terminal UI for regex testing | A hica `rexi` would make a fun REPL example program |
 | **grex** | Generate regex from user-provided test cases | Shows reverse-engineering approach; motivates hica regex stdlib |
@@ -281,11 +281,11 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Shell Productivity and Pipelines
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **up** | Write Linux pipes with instant live preview | Motivates hica's pipeline-friendly design |
 | **rura** | Interactive TUI scratchpad for shell pipelines | Shows interactive pipeline building — hica REPL territory |
-| **navi** | Interactive cheatsheet tool | Hica `hica help` could learn from navi's discoverability model |
+| **navi** | Interactive cheatsheet tool | hica `hica help` could learn from navi's discoverability model |
 | **pet** | Simple command-line snippet manager | Snippet storage + fuzzy retrieval; achievable hica example |
 | **hoard** | CLI command organizer | Similar to pet but different UX; compare both |
 | **just** | Command runner (Makefile alternative) | Similar niche to hica scripts; interesting positioning comparison |
@@ -296,7 +296,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Terminal Multiplexers and Workspace
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **zellij** | Terminal workspace with batteries included | Most modern multiplexer; shows plugin/layout architecture |
 | **tmux** | The standard terminal multiplexer | Any hica TUI that wants persistent sessions needs tmux awareness |
@@ -307,7 +307,7 @@ programs, or as tools that hica itself could eventually replicate or wrap.
 
 ### Fun and Creative
 
-| Tool | Description | Hica relevance |
+| Tool | Description | hica relevance |
 |------|-------------|----------------|
 | **cmatrix** | Matrix-like effect in terminal | Classic; a hica `cmatrix` would show off ANSI escape code control |
 | **durdraw** | Versatile ASCII and ANSI art editor | Shows the full extent of terminal drawing APIs |
@@ -339,7 +339,7 @@ These tools suggest features the hica standard library should prioritize:
 
 ---
 
-## Suggested Hica Example Programs (ordered by effort)
+## Suggested hica Example Programs (ordered by effort)
 
 | Program | Inspired by | Effort |
 |---------|-------------|--------|

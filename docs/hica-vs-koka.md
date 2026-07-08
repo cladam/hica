@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Hica vs. Koka - hica
+title: hica vs. Koka - hica
 ---
 
-# Hica vs Koka
+# hica vs Koka
 
 hica transpiles to Koka, so everything hica does ultimately *is* Koka. The question isn't "which is more powerful?" (Koka will always win that). The question is: **why add a layer on top?**
 

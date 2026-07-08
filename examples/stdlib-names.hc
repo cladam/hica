@@ -1,4 +1,4 @@
-// Hica — names that clash with Koka stdlib (abs, max, min)
+// hica — names that clash with Koka stdlib (abs, max, min)
 // These would fail without name marshalling (hc_ prefix)
 fun abs(x) => if x < 0 { 0 - x } else { x }
 

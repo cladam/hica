@@ -1,4 +1,4 @@
-// Hica — closures
+// hica — closures
 // Closures are anonymous functions that capture their environment.
 
 // A function that returns a closure

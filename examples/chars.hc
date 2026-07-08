@@ -1,4 +1,4 @@
-// Hica — Characters
+// hica — Characters
 //
 // Characters use single quotes: 'a', 'Z', '!', '7'
 // Strings use double quotes: "hello"
