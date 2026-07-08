@@ -1223,7 +1223,17 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
       Nothing     -> t
     val env' = env-acc.extend(g.name, t')
     (s', env', Cons(g(body = body', typ = Just(t')), checked))
-  val (s1, env1, decls') = infer-decls(global-env, s0, p.decls)
+  // Two-phase decl checking:
+  //   Phase 1 — prelude + imported decls: opaque constructors are allowed here because
+  //     these bodies ARE the defining module. Override get-structs() to clear all
+  //     is-opaque flags so no false positives fire in library function bodies.
+  //   Phase 2 — user decls: enforce opaque restrictions using structs-for-check.
+  val structs-all-clear = p.structs.map(fn(sd) sd(is-opaque = False))
+  val (s-imp, env-imp, decls-imp) =
+    with handler fun get-structs() structs-all-clear
+    infer-decls(global-env, s0, p.decls.take(skip-kw-check))
+  val (s1, env1, decls-usr) = infer-decls(env-imp, s-imp, p.decls.drop(skip-kw-check))
+  val decls' = decls-imp ++ decls-usr
   val tests' = infer-tests(env1, s1, p.tests)
   Program(p.structs, types = p.types, decls = decls', globals = globals'.reverse, tests = tests')
 
