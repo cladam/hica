@@ -503,7 +503,7 @@ Always available with no import needed. Written in hica itself:
 
 Provides the `Trusted` type: a string that has explicitly crossed a validation boundary. The constructor is private to `std/trusted`, so the only way to obtain a `Trusted` value is through one of the validators or the explicit `trust()` escape hatch. Functions that require validated data declare their parameters as `Trusted` instead of `string`, making it a compile-time error to pass a raw string.
 
-See also: [`opaque struct` / `pub struct … priv`](/language-reference#opaque-structs--type-safe-boundaries) in the language reference.
+See also: [`opaque struct` / `pub struct … priv`](/docs/language-reference#opaque-structs--type-safe-boundaries) in the language reference.
 
 ### Core
 
