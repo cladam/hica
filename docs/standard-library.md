@@ -8,7 +8,7 @@ title: Standard Library - hica
 hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -498,6 +498,60 @@ Always available with no import needed. Written in hica itself:
 | `pad_right(s, width, ch)` | `(string, int, string) -> string` | Pad on the right to `width` |
 | `center(s, width, ch)` | `(string, int, string) -> string` | Center `s` in `width`, padding with `ch` |
 | `removeprefix(s, pre)` | `(string, string) -> string` | Remove prefix if present |
+
+## Trust Boundaries (`std/trusted`, `import "std/trusted"` required)
+
+Provides the `Trusted` type: a string that has explicitly crossed a validation boundary. The constructor is private to `std/trusted`, so the only way to obtain a `Trusted` value is through one of the validators or the explicit `trust()` escape hatch. Functions that require validated data declare their parameters as `Trusted` instead of `string`, making it a compile-time error to pass a raw string.
+
+See also: [`opaque struct` / `pub struct … priv`](/language-reference#opaque-structs--type-safe-boundaries) in the language reference.
+
+### Core
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `trust(s)` | `(string) -> Trusted` | Explicit trust marker — wrap a string you have manually verified is safe |
+| `trusted_value(t)` | `(Trusted) -> string` | Unwrap the inner string from a `Trusted` value |
+
+### Validators
+
+Each validator returns `Some(Trusted)` on success, `None` on failure.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `validate_nonempty(s)` | `(string) -> maybe<Trusted>` | Accept any non-empty string |
+| `validate_maxlen(s, n)` | `(string, int) -> maybe<Trusted>` | Accept strings whose length does not exceed `n` |
+| `validate_alnum(s)` | `(string) -> maybe<Trusted>` | Accept non-empty strings containing only `[A-Za-z0-9]` |
+| `validate_with(s, pred)` | `(string, (string) -> bool) -> maybe<Trusted>` | Accept strings that satisfy a custom predicate |
+
+### Combinators
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `validate_and(a, b)` | `(maybe<Trusted>, maybe<Trusted>) -> maybe<Trusted>` | Both validators must pass |
+| `trusted_or(t, fallback)` | `(maybe<Trusted>, string) -> Trusted` | Unwrap or use fallback (the fallback is implicitly trusted) |
+
+```hica
+import "std/trusted"
+
+// Only Trusted values may reach this function — enforced at compile time.
+fun audit_log(event: string, actor: Trusted) {
+  println("[AUDIT] " + event + " actor=" + trusted_value(actor))
+}
+
+fun handle_request(raw_actor: string) {
+  let actor = validate_and(
+    validate_nonempty(raw_actor),
+    validate_alnum(raw_actor)        // rejects spaces, control chars, metacharacters
+  )
+  match actor {
+    Some(a) => audit_log("login", a),
+    None    => println("rejected: invalid actor")
+  }
+
+  // This does NOT compile — raw string cannot be passed where Trusted is required:
+  // audit_log("login", raw_actor)
+}
+```
 
 ## Extended String Helpers (`std/string`, `import "std/string"` required)
 

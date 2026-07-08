@@ -544,6 +544,8 @@ error: cannot construct opaque struct 'SqlParam'
 
 Use `opaque struct` for internal handles. Use `pub struct … priv` when callers need to name the type in their own signatures (e.g. as function parameters) but must not be able to forge values.
 
+For a ready-made validated-string type that works across library boundaries, see [`std/trusted`](standard-library.html#trust-boundaries-stdtrusted-import-stdtrusted-required) in the standard library.
+
 #### Struct destructuring in match
 
 Use struct patterns to destructure a struct in `match` arms:
