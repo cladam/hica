@@ -47,6 +47,9 @@ static bool kk_hica_node_alive(kk_context_t* ctx) {
 #include <signal.h>
 #include <sys/wait.h>
 
+/* Forward-declared here; defined in the platform-independent section below */
+static int hica_pipe_mode;
+
 static FILE* hica_node_in  = NULL;
 static FILE* hica_node_out = NULL;
 static pid_t hica_node_pid = 0;
@@ -66,6 +69,9 @@ static kk_integer_t kk_hica_node_start(kk_string_t script_str, kk_context_t* ctx
     kk_string_drop(script_str, ctx);
     return kk_integer_from_int(-1, ctx);
   }
+
+  /* Ignore SIGPIPE so writes to a dead pipe return EPIPE instead of killing the process */
+  signal(SIGPIPE, SIG_IGN);
 
   pid_t pid = fork();
   if (pid < 0) {
@@ -107,13 +113,22 @@ static kk_integer_t kk_hica_node_start(kk_string_t script_str, kk_context_t* ctx
 
 /*
  * Send a line to the Node.js subprocess stdin.
+ * If the write fails with EPIPE (subprocess died), close the pipes and
+ * set pipe_mode to 0 so callers fall back to file-based evaluation.
  */
 static kk_unit_t kk_hica_node_send_line(kk_string_t line_str, kk_context_t* ctx) {
   if (hica_node_in != NULL) {
     const char* line = kk_string_cbuf_borrow(line_str, NULL, ctx);
-    fputs(line, hica_node_in);
-    fputc('\n', hica_node_in);
-    fflush(hica_node_in);
+    int write_ok = (fputs(line, hica_node_in) != EOF);
+    if (write_ok) write_ok = (fputc('\n', hica_node_in) != EOF);
+    if (write_ok) write_ok = (fflush(hica_node_in) == 0);
+    if (!write_ok) {
+      /* Node.js subprocess died — close pipes and disable pipe mode */
+      fclose(hica_node_in);
+      hica_node_in = NULL;
+      if (hica_node_out != NULL) { fclose(hica_node_out); hica_node_out = NULL; }
+      hica_pipe_mode = 0;
+    }
   }
   kk_string_drop(line_str, ctx);
   return kk_Unit;

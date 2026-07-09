@@ -722,15 +722,24 @@ fun cmd-repl-with-file( file : maybe<string> )
   if !is-wrapped && stdin-isatty() then
     println("Tip: install rlwrap for tab completion and history")
   println("")
-  // Start persistent Node.js subprocess
-  val res = node-start(node-repl-script)
-  if res != 0 then
+  // Check if Node.js is available — required for expression evaluation
+  val node-ok = run-system("which node" ++ dev-null()) == 0
+  if !node-ok then
+    println("  warning: 'node' not found — expression evaluation unavailable")
+    println("  install Node.js to enable the REPL evaluator")
+    println("")
     set-pipe-mode(False)
     fallback-js-clear()
   else
-    set-pipe-mode(True)
-  // Send runtime preamble
-  repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
+    // Start persistent Node.js subprocess
+    val res = node-start(node-repl-script)
+    if res != 0 then
+      set-pipe-mode(False)
+      fallback-js-clear()
+    else
+      set-pipe-mode(True)
+    // Send runtime preamble
+    repl-send-js(js-runtime-preamble() ++ "var _ = undefined;\n")
   val prelude = load-prelude()
   // Write completions file for manual rlwrap usage
   write-completions(prelude)
@@ -772,7 +781,7 @@ fun repl-load-file( filepath : string, prelude : program, state : repl-state )
         check-program(desugared, skip-n, prelude.structs.length + state.structs.length, prelude.types.length + state.types.length)
     // Emit JS for the file's declarations (skip main)
     val prelude-n = prelude.decls.length + state.decls.length
-    val file-decls = typed-prog.decls.drop(prelude-n).filter(fn(d) d.name != "main")
+    val file-decls = typed-prog.decls.drop(prelude-n)
     val file-structs = parsed.structs
     val file-types = parsed.types
     val js-structs = file-structs.map(fn(sd) emit-js-repl-struct(sd)).join("\n")
@@ -1126,8 +1135,12 @@ fun repl-run-js( js-code : string )
     // Send each line, then the eval sentinel
     js-code.lines.foreach(fn(l) node-send-line(l))
     node-send-line("__HICA_EVAL_END__")
-    // Read output lines until done sentinel
-    repl-read-node-output()
+    // Check if the subprocess died during the send (kk_hica_node_send_line sets pipe_mode=0 on EPIPE)
+    if !repl-pipe-mode() then
+      println("  error: node subprocess died — expression evaluation unavailable")
+    else
+      // Read output lines until done sentinel
+      repl-read-node-output()
   else
     // Fallback: write full JS (preamble + defs + snippet) to temp file and run node
     val full = fallback-js() ++ js-code
