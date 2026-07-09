@@ -73,6 +73,9 @@ Legend: **done** = shipped, **—** = not started
 | Maybe/Result combinators (`unwrap_or`, `map_maybe`, `and_then`) | **done** | Medium | `unwrap(result)` → value or throw; `unwrap_or(result, default)` → value or default. Maybe/Result combinators: `map_maybe`, `and_then`, `or_else`, `map_result`, `map_err` |
 | `?` operator on `maybe<T>` (early return on None) | **done** | High | Postfix `?` on `maybe<T>` — unwraps `Some(v)` or returns `None` early. Implemented via Koka algebraic effects (`hica-early-maybe`). Lesson 36 in learn/ |
 | `?` operator on `result<T,E>` (early return on Err) | **done** | Medium | Postfix `?` on `result<T,E>` — unwraps `Ok(v)` or returns `Err(e)` early, analogous to Rust's `?`. Implement as `hica-early-result` effect alongside `hica-early-maybe`. Checker distinguishes `TResult` from `TMaybe` and emits the right handler. Functions using `?` on result must have `result<T,E>` return type. Eliminates nested `match` chains that bubble `Err(e)` — the single biggest source of parser boilerplate in hica today. |
+| Struct spread update `{ ...s, f: v }` | **—** | Medium | Allow partial struct updates: `Point { ...p, x: 5 }` copies all fields from `p` then overrides `x`. Parser supports `...expr` inside struct literal; checker validates the base expression is the same struct type; codegen expands to a full constructor call reading unmentioned fields. Currently users must reconstruct the struct fully. High usability impact whenever models evolve. Prerequisite for practical optics. Inspired by Arrow Optics' immutable data story. |
+| `Validated` type (accumulating errors) | **—** | Medium | A sum type `type Validated { Valid(value), Invalid(errors) }` that accumulates ALL errors instead of short-circuiting on the first. Unlike `result<T,E>` with `?`, a `Validated` pipeline collects every failure before returning. Primary use case: form/config validation that reports all problems at once. `zip_validated(v1, v2, f)` runs both validations and combines results or merges error lists. Can be implemented as a library (no language changes needed) but benefits from `&?` syntax sugar. Inspired by Arrow's `Validated`/`zipOrAccumulate`. |
+| `&?` operator (validated accumulation) | **—** | High | Postfix `&?` on `Validated<T>` — accumulates errors across multiple validation steps instead of short-circuiting. Mirrors what `?` does for `Result`. Requires new AST node, lexer token, checker inference, and Koka effect codegen using `hica-validated` effect. Dependent on `Validated` type being available as a stdlib type. Inspired by Arrow's `zipOrAccumulate` DSL. |
 | Environment (`get_args()`, `get_env(key)`, `eprintln`) | **done** | Low | `get_args()` → `list<string>`, `get_env(key)` → `maybe<string>`, `eprintln` → stderr via `trace` |
 | Mutable variables (`var x = 10; x = 5`) | **done** | Medium | `var` declares mutable local; `x = expr` reassigns. Emits Koka `var x := 10` / `x := 5`. Effect-safe via Koka's algebraic `local-var` — can't leak scope |
 
@@ -111,8 +114,8 @@ Legend: **done** = shipped, **—** = not started
 | `pub` visibility | **done** | Medium | Emit Koka `pub` |
 | `opaque struct Foo {}` | **done** | Medium | Hides both type name and constructor from all other modules. Only the defining module can construct the type. Emits Koka `abstract struct`. See `examples/opaque-struct.hc`, `learn/41-opaque-struct.hc` |
 | `pub struct Foo priv {}` | **done** | Medium | Type name is public (usable in external signatures), constructor is private. Emits Koka `abstract struct`. Same enforcement as `opaque struct` but lighter syntax for APIs where callers name the type |
-| User-facing algebraic effect definitions (`effect` / `handle`) | **—** | High | Surface Koka's effect system in Hica syntax. Allows library authors to define capability interfaces: `effect Db { fun query(sql: string, params: list<SqlParam>) : Rows }`. The type checker enforces at call sites that the `Db` effect is handled. Primary use case: typed capability-based security (sandbox model where handlers intercept operations). Requires: new `effect-def` AST node, `effect`/`handle` keywords in lexer + parser, effect operation type checking in checker, Koka `effect`/`handler` codegen. Planned as a multi-milestone feature: parse+codegen passthrough first, then checker enforcement. See `documentation/security-type-boundaries.md` for motivation |
-| Effect-row polymorphic function types | **—** | High | Allow effect annotations in Hica function type syntax: `fun with_sqlite(path: string, f: (Db) -> <db> ()) : result<bool, string>`. Without this, sandbox callbacks silently accept any effect. Requires: new `hica-type` variant for effect rows, effect inference or annotation passthrough in checker, effect-annotated Koka type codegen. Dependent on user-facing effect definitions (P3) being complete. A short-term workaround is to allow raw Koka effect annotations via `extern` type stubs. See `documentation/security-type-boundaries.md` |
+| User-facing algebraic effect definitions (`effect` / `handle`) | **—** | High | Surface Koka's effect system in hica syntax. Allows library authors to define capability interfaces: `effect Db { fun query(sql: string, params: list<SqlParam>) : Rows }`. The type checker enforces at call sites that the `Db` effect is handled. Primary use case: typed capability-based security (sandbox model where handlers intercept operations). Requires: new `effect-def` AST node, `effect`/`handle` keywords in lexer + parser, effect operation type checking in checker, Koka `effect`/`handler` codegen. Planned as a multi-milestone feature: parse+codegen passthrough first, then checker enforcement. See `documentation/security-type-boundaries.md` for motivation |
+| Effect-row polymorphic function types | **—** | High | Allow effect annotations in hica function type syntax: `fun with_sqlite(path: string, f: (Db) -> <db> ()) : result<bool, string>`. Without this, sandbox callbacks silently accept any effect. Requires: new `hica-type` variant for effect rows, effect inference or annotation passthrough in checker, effect-annotated Koka type codegen. Dependent on user-facing effect definitions (P3) being complete. A short-term workaround is to allow raw Koka effect annotations via `extern` type stubs. See `documentation/security-type-boundaries.md` |
 | Parser state record (reduce parameter threading) | **—** | Medium | Recursive-descent parsers currently thread state as extra parameters (e.g. `text_elems`, `dotted_names`). Adding a new piece of state means touching every recursive call in multiple functions. A `struct ParserState { ... }` passed-and-returned would reduce this friction. HML retro: "Parameter threading is brutal — 30% of session time" |
 
 ---
@@ -255,6 +258,21 @@ pure functions are written in hica itself.
 | `random_float()` | `() -> float` | **done** (extern) | Random float in `[0.0, 1.0)`. Koka `srandom-float64`. `ndet` effect |
 | `random_shuffle(xs)` | `(list<a>) -> list<a>` | **—** (hica) | Fisher-Yates shuffle using `random`. Returns new shuffled list. `ndet` effect |
 
+### Function Combinators (`prelude/fun.hc` or `std/fun`)
+
+Arrow's `arrow-functions` library surfaces patterns that hica users write ad-hoc today. Pure functions, no language changes required.
+
+| Function | Type | Impl | Notes |
+|----------|------|------|-------|
+| `compose(f, g)` | `((b) -> c, (a) -> b) -> (a) -> c` | **—** (hica) | Right-to-left composition: `compose(f, g)(x)` = `f(g(x))`. Hica has `\|>` for left-to-right pipelines but no stdlib compose. |
+| `flip(f)` | `((a, b) -> c) -> (b, a) -> c` | **—** (hica) | Swap argument order: `flip(f)(b, a)` = `f(a, b)`. Useful when piping into a 2-arg function with a fixed second arg. |
+| `identity(x)` | `(a) -> a` | **—** (hica) | Returns its argument unchanged. Useful as a default transform in higher-order combinators. |
+| `const_fn(x)` | `(a) -> (b) -> a` | **—** (hica) | Returns a function that always returns `x` regardless of its argument. |
+| `curry2(f)` | `((a, b) -> c) -> (a) -> (b) -> c` | **—** (hica) | Convert a 2-arg function into a chain of 1-arg functions: `curry2(add)(1)(2)` = `add(1, 2)`. |
+| `uncurry2(f)` | `((a) -> (b) -> c) -> (a, b) -> c` | **—** (hica) | Inverse of `curry2`. |
+| `tap(x, f)` | `(a, (a) -> ()) -> a` | **—** (hica) | Apply `f` to `x` for its side effect, then return `x` unchanged. Useful for debug logging inside a pipe chain. |
+| `pipe_if(x, cond, f)` | `(a, bool, (a) -> a) -> a` | **—** (hica) | Apply `f(x)` only when `cond` is true; otherwise return `x` unchanged. Cleans up conditional transform chains. |
+
 ### System / Environment (prelude additions)
 
 | Function | Type | Impl | Notes |
@@ -315,11 +333,21 @@ importable module following the multi-file pattern established by the yaml libra
 
 Inspired by common crate categories seen in Rust ecosystems (choreo, tbdflow, etc.).
 
+### Functional Utilities (Arrow-inspired)
+
+| Library | Status | Complexity | Notes |
+|---------|--------|------------|-------|
+| **nel** | **—** | Low | Non-empty list type. `type Nel { Nel(head, tail) }` — guaranteed at least one element at the type level. Functions: `nel_of(x)`, `nel_to_list(n)`, `nel_map(n, f)`, `nel_head(n)`, `nel_concat(a, b)`. Serves as the error-list type for `Validated` — an `Invalid` can never have zero errors. Pure hica, no language changes required. Inspired by Arrow's `NonEmptyList`. |
+| **validated** | **—** | Medium | Error-accumulating validation. `type Validated { Valid(value), Invalid(errors) }` where `errors` is `nel<string>`. Functions: `valid(x)`, `invalid(msg)`, `zip_validated(v1, v2, f)` (run both validations, combine results or merge error lists), `map_validated(v, f)`, `validate_all(validators)`, `as_result(v)`, `from_result(r)`. Unlike `result<T,E>` with `?`, all paths are evaluated so every error surfaces. Primary use case: form/config validation that shows all problems at once. Depends on `nel`. Inspired by Arrow's `Validated`/`zipOrAccumulate`. |
+| **retry** | **—** | Medium | Resilience primitives for IO operations. `retry(n, f)` retries `f` up to `n` times on `Err`, returning the last `Err` if all attempts fail. `retry_exponential(max_attempts, base_ms, f)` doubles the wait between each attempt. `retry_with_delay(n, delay_ms, f)` retries with fixed delay. `repeat_until(f, pred)` repeats until result satisfies `pred`. Uses recursion + `var`; IO effects propagate naturally from `f`. Primary use case: HTTP calls, file writes, external process invocations. Inspired by Arrow's `Schedule`. |
+| **collectors** | **—** | Medium | Single-traversal aggregation. Computes multiple metrics over a list in one pass. `type Collector { Collector(init, step, finish) }`. Built-in collectors: `sum_collector()`, `avg_collector()`, `min_collector()`, `max_collector()`, `count_collector()`, `stats_collector()` (all four in one pass). `collect(xs, c)` runs the fold. `parallel_collect(xs, c1, c2)` combines two collectors. Useful for data processing scripts where repeated traversals are costly. Inspired by Arrow's `arrow-collectors`. |
+| **optics** | **—** | High | Lenses, prisms, and traversals for deeply nested immutable data. `type Lens { Lens(get, set) }`. Functions: `lens(get, set)`, `get(l, s)`, `set(l, s, v)`, `over(l, s, f)`, `compose_lens(outer, inner)`. Prisms for enum variants: `prism(review, preview)`, `preview(p, s)` returns `maybe<a>`. Traversals for updating all elements in a collection at once. Removes the pain of fully reconstructing nested structs on every update. Depends on struct spread `{ ...s, f: v }` being implemented first. Inspired by Arrow Optics / Monocle. |
+
 ### Data Formats
 
 | Library | Status | Complexity | Notes |
 |---------|--------|------------|-------|
-| **json** | **—** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel. **#1 priority** — every HTTP API response is JSON |
+| **json** | **done** | Medium | Parse/emit JSON. Natural companion to the yaml library — same API shape (`parse`, `at`, `as_str`, `as_int`, `as_array`). Multi-file: `types.hc`, `parser.hc`, `api.hc`, `json.hc` barrel. **#1 priority** — every HTTP API response is JSON. [github.com/cladam/json](https://github.com/cladam/json) |
 | **csv** | **done** | Low | RFC 4180 CSV parser and serializer. `CsvTable` type with named column access, filtering, mapping, and round-trip serialization. Custom delimiters (TSV, semicolon), optional header rows, quoted fields, doubled-quote escaping. [github.com/cladam/csv](https://github.com/cladam/csv) v1.0.0 |
 | **xml** | **—** | High | XML parsing. Less common but still needed for configs, feeds, legacy APIs |
 
