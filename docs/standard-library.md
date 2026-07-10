@@ -520,6 +520,7 @@ Each validator returns `Some(Trusted)` on success, `None` on failure.
 |----------|-----------|-------------|
 | `validate_nonempty(s)` | `(string) -> maybe<Trusted>` | Accept any non-empty string |
 | `validate_maxlen(s, n)` | `(string, int) -> maybe<Trusted>` | Accept strings whose length does not exceed `n` |
+| `validate_range(s, min, max)` | `(string, int, int) -> maybe<Trusted>` | Accept strings whose length is between `min` and `max` (inclusive) |
 | `validate_alnum(s)` | `(string) -> maybe<Trusted>` | Accept non-empty strings containing only `[A-Za-z0-9]` |
 | `validate_with(s, pred)` | `(string, (string) -> bool) -> maybe<Trusted>` | Accept strings that satisfy a custom predicate |
 

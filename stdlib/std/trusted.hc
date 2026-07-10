@@ -5,11 +5,26 @@
 //
 // Usage: import "std/trusted"
 //
-// Pattern:
-//   1. Raw strings arrive from external sources (user input, env vars, …)
-//   2. They pass through a validate_* function, which returns maybe<Trusted>
-//   3. Functions that need verified data accept Trusted, not plain string
-//   4. Callers cannot forge a Trusted value — the constructor is opaque
+// ── The validation ladder ────────────────────────────────────────────────
+//
+// Apply validators in this order (cheapest first) to keep rejection fast
+// and deny attackers the expensive steps:
+//
+//   1. Origin      — does this come from a trusted source? (app-level)
+//   2. Size        — validate_range / validate_maxlen  (constant time)
+//   3. Characters  — validate_alnum / validate_with    (scan, no parse)
+//   4. Format      — validate_with(s, regex_pred)      (parser / regex)
+//   5. Semantic    — DB / state check                  (app-level)
+//
+// std/trusted covers rungs 2-4. Rungs 1 and 5 are intentionally left to
+// application code because they require external context (network origin,
+// database state). This is by design: those checks are expensive, and the
+// type system ensures callers consciously perform them.
+//
+// Once a value is Trusted, `trusted_value(t)` is the only way to read it
+// back. That explicit unwrap is the right place to decide whether to log the
+// raw string — you almost never should (log the fact of rejection, not the
+// rejected input itself).
 //
 // This source file is part of the hica open source project
 // Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
@@ -37,17 +52,27 @@ pub fun validate_nonempty(s: string) : maybe<Trusted> =>
   else { None }
 
 // Accept a string whose length does not exceed `max` characters.
+// Rung 2 of the validation ladder: size upper bound.
 pub fun validate_maxlen(s: string, max: int) : maybe<Trusted> =>
   if str_length(s) <= max { Some(Trusted { data: s }) }
   else { None }
 
+// Accept a string whose length is between `min` and `max` (inclusive).
+// Rung 2 of the validation ladder: both size bounds at once.
+// Prefer this over chaining validate_nonempty + validate_maxlen.
+pub fun validate_range(s: string, min_len: int, max_len: int) : maybe<Trusted> =>
+  if str_length(s) >= min_len && str_length(s) <= max_len { Some(Trusted { data: s }) }
+  else { None }
+
 // Accept a non-empty string containing only alphanumeric characters (a-z A-Z 0-9).
+// Rung 3 of the validation ladder: character-set check (any order, no parsing).
 // Useful for identifiers, tokens, and simple keys.
 pub fun validate_alnum(s: string) : maybe<Trusted> =>
   if all_alnum(s) { Some(Trusted { data: s }) }
   else { None }
 
 // Accept a string that satisfies a caller-supplied predicate.
+// Rung 3 (character check) or Rung 4 (format/regex) depending on the predicate.
 // This is the escape hatch for custom validation logic:
 //
 //   let t = validate_with(input, (s) => starts_with(s, "usr_"))

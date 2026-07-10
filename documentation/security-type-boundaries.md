@@ -222,15 +222,63 @@ deliberately.
 
 ### Available validators
 
-| Function | Accepts | Returns |
-|---|---|---|
-| `trust(s)` | Any string — explicit "I vouch for this" | `Trusted` |
-| `validate_nonempty(s)` | Non-empty string | `maybe<Trusted>` |
-| `validate_maxlen(s, n)` | String with `len ≤ n` | `maybe<Trusted>` |
-| `validate_alnum(s)` | All alphanumeric characters | `maybe<Trusted>` |
-| `validate_with(s, pred)` | Custom predicate | `maybe<Trusted>` |
-| `validate_and(a, b)` | Both validators pass | `maybe<Trusted>` |
-| `trusted_or(t, fallback)` | Fallback on None | `Trusted` |
+`std/trusted` covers rungs 2–4 of the validation ladder (see §5.1 below). Rungs 1 and 5
+are left to application code by design — they require external context.
+
+| Ladder rung | Function | Accepts | Returns |
+|---|---|---|---|
+| 2 — size | `validate_maxlen(s, n)` | String with `len ≤ n` | `maybe<Trusted>` |
+| 2 — size | `validate_range(s, min, max)` | String with `min ≤ len ≤ max` | `maybe<Trusted>` |
+| 2 — size | `validate_nonempty(s)` | Non-empty string | `maybe<Trusted>` |
+| 3 — characters | `validate_alnum(s)` | All alphanumeric characters | `maybe<Trusted>` |
+| 3/4 — chars/format | `validate_with(s, pred)` | Custom predicate | `maybe<Trusted>` |
+| — | `trust(s)` | Any string — explicit "I vouch for this" | `Trusted` |
+| — | `validate_and(a, b)` | Both validators pass | `maybe<Trusted>` |
+| — | `trusted_or(t, fallback)` | Fallback on None | `Trusted` |
+
+### 5.1 The validation ladder
+
+This ordering principle is credited to security researcher Dr. John Vilander. The
+core idea is **asymmetric cost**: rejection should be cheap for the defender and
+expensive for the attacker.
+
+```
+Rung 1 — Origin     Does this come from a trusted source?
+                    (API key, token claim, allow-listed IP)
+                    ↓ reject early: no cost to open the payload
+
+Rung 2 — Size       Is the input within expected length bounds?
+                    validate_range / validate_maxlen   (constant time)
+                    ↓ eliminates oversized payloads without parsing
+
+Rung 3 — Characters Does it contain only the allowed character set?
+                    validate_alnum / validate_with     (linear scan)
+                    ↓ no regex backtracking; very fast
+
+Rung 4 — Format     Is the ordering of characters correct?
+                    validate_with(s, regex_or_parser)  (expensive)
+                    ↓ regex backtracking exploitable — run this last
+
+Rung 5 — Semantic   Does this make sense in the current system state?
+                    DB look-up, session check           (most expensive)
+```
+
+In hica, `validate_and` composes rungs 2–4 in the correct order:
+
+```hica
+import "std/trusted"
+
+// Room number: 3-5 chars, rung 2; then letter+digit format, rung 3/4
+fun validate_room(s: string) : maybe<Trusted> =>
+  validate_and(
+    validate_range(s, 3, 5),               // rung 2: size
+    validate_with(s, (r) =>                // rung 3/4: format
+      all_upper(r[:1]) && all_digits(r[1:]))
+  )
+```
+
+Rungs 1 and 5 are intentionally outside `std/trusted` — they require external context
+(network origin, database state) that a pure validation library cannot hold.
 
 ### Worked example — user input handling
 
@@ -299,7 +347,93 @@ The raw string passes through two independent gates: `std/trusted` (length check
 `email` (structural check). Both must pass for an `Email` value to exist. Neither gate
 can be bypassed through the type system.
 
-## 6. Threat Model and Boundaries
+### 5.2 Logging discipline
+
+> *"Log the fact of rejection, not the rejected value."* — Secure by Design
+
+Logging raw user input is itself a security risk (log injection, data exposure,
+Log4Shell-style second-order attacks). `std/trusted` helps here in a subtle way:
+`trusted_value(t)` is the **only** way to read a string back out of a `Trusted` value.
+That explicit call is the natural decision point:
+
+```hica
+// ✓ — log the event, not the raw input
+println("[AUDIT] login attempt rejected: input failed size check")
+
+// ✗ — do not log raw_input verbatim
+// println("[AUDIT] rejected: " + raw_input)
+
+// If you really need the raw value in a secure vault:
+// store it in a separate, heavily access-controlled store
+// and log only a reference ID
+```
+
+Because functions that do security-sensitive work accept `Trusted` — not `string` —
+they cannot accidentally log the raw input without an explicit `trusted_value()` call,
+which appears visibly in code review.
+
+## 6. Numeric Domain Primitives
+
+The same pattern applies beyond strings. Any primitive type that carries a domain
+meaning — integer quantities, monetary amounts, identifiers — benefits from an opaque
+wrapper.
+
+### The Quantity example
+
+A shopping cart quantity is conceptually an integer, but not *any* integer. Using a
+plain `int` silently permits negative quantities, which can produce negative totals
+(a real class of e-commerce vulnerability):
+
+```hica
+// ✗ fragile — nothing prevents cart.add(item, -10)
+fun cart_total(qty: int, price: int) : int => qty * price
+```
+
+```hica
+// ✓ safe — negative quantities rejected at the trust boundary
+opaque struct Quantity { n: int }
+
+pub fun make_quantity(n: int) : maybe<Quantity> =>
+  if n > 0 && n <= 1000 { Some(Quantity { n: n }) } else { None }
+
+pub fun quantity_value(q: Quantity) : int => q.n
+```
+
+Any function that receives a `Quantity` holds a **certificate** that the value is
+positive and within range. No downstream re-validation needed.
+
+### Semantic separation prevents argument-order bugs
+
+When `Quantity` and `Price` are distinct types, the compiler catches transposed
+arguments:
+
+```hica
+fun total(q: Quantity, p: Price) : int => quantity_value(q) * price_cents(p)
+
+// total(my_price, my_qty)  ← compile-time error: Price ≠ Quantity
+```
+
+This eliminates an entire class of bugs that are invisible in dynamically typed code
+and easy to miss in code review.
+
+### Preventing meaningless operations
+
+You cannot add two bus numbers to each other:
+
+```hica
+opaque struct BusNumber { n: int }
+
+// No addition operator defined — BusNumber + BusNumber is simply not possible
+// in hica without an explicit function that the module author controls.
+```
+
+In a plain-integer system, `bus_a + bus_b` compiles and produces a plausible-looking
+integer that is semantically nonsense. With opaque wrapping, the operation does not exist.
+
+See [`examples/domain-primitives.hc`](../examples/domain-primitives.hc) for runnable
+examples of `Quantity`, `Price`, and `RoomNumber`.
+
+## 7. Threat Model and Boundaries
 
 ### What these features prevent (guaranteed at compile time)
 
@@ -310,6 +444,8 @@ can be bypassed through the type system.
 | Log injection via unvalidated user input | `audit_log` requires `Trusted` | ✓ Prevented |
 | Bypass of validation by direct struct construction | Compiler rejects foreign `StructLit` | ✓ Prevented |
 | Accidental use of wrong string variable | Type mismatch at compile time | ✓ Prevented |
+| Negative quantity / discount exploit | `Quantity` constructor rejects `n ≤ 0` | ✓ Prevented |
+| Transposed `(price, qty)` arguments | `Price ≠ Quantity` — compiler type error | ✓ Prevented |
 
 ### What these features do NOT prevent
 
@@ -356,18 +492,19 @@ declaration, with no ability to "opt out" from outside the module. In Java, you 
 always call `new SqlParam("injection")` if the constructor is `public`. In hica, there is
 no equivalent mechanism once `opaque` or `priv` is used.
 
-## 8. Implementation Status
+## 9. Implementation Status
 
 | Feature | Status | Koka codegen |
 |---|---|---|
 | `opaque struct Foo {}` | ✓ Shipped | `abstract struct foo` |
 | `pub struct Foo priv {}` | ✓ Shipped | `abstract struct foo` |
-| `import "std/trusted"` | ✓ Shipped | n/a (hica stdlib) |
+| `import "std/trusted"` (string validation) | ✓ Shipped | n/a (Hica stdlib) |
+| Numeric domain primitive pattern (`Quantity`, `Price`) | ✓ Documented | `examples/domain-primitives.hc` |
 | Checker enforcement (user code) | ✓ Active | Dual: hica + Koka |
 | Effect definitions (`effect` / `handle`) | Planned (P3) | — |
 | Effect-row polymorphic function types | Planned (P4) | — |
 
-## 9. Auditing Checklist for Security Reviewers
+## 10. Auditing Checklist for Security Reviewers
 
 When reviewing a hica codebase that uses these features, concentrate on:
 
@@ -393,7 +530,7 @@ entire call graph.
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ```hica
 // P1: completely private — other modules cannot name the type or construct it
