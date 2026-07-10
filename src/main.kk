@@ -32,7 +32,7 @@ import stdlib-bundle
 import deps
 import http
 
-val version = "0.41.2" 
+val version = "0.41.3" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -1391,7 +1391,10 @@ fun parse-kk-extern-env( kk-file : path )
             Cons(_, Cons(s, _)) -> s
             _ -> ""
           val params-str = after-open.split(")").head-or("")
-          val param-types = parse-kk-param-types(params-str)
+          // Strip params with Koka default values (e.g. `timeout : int = 0`) so the
+          // registered TFun uses minimum (required) arity, not maximum arity.
+          val req-params-str = params-str.split(",").filter(fn(p) p.split("=").length == 1).join(",")
+          val param-types = parse-kk-param-types(req-params-str)
           val after-close = match after-open.split(")")
             Cons(_, Cons(s, _)) -> s.trim
             _ -> ""
