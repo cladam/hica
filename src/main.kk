@@ -32,7 +32,7 @@ import stdlib-bundle
 import deps
 import http
 
-val version = "0.41.1" 
+val version = "0.41.2" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -1361,9 +1361,14 @@ fun resolve-import( imp-path : string, base-dir : path, include-dirs : list<stri
 // NOTE: Must use string concatenation before converting to path — Koka's path / path
 // operator normalizes each operand independently, which eliminates leading ".." components
 // before they can traverse into the base-dir. String concat lets the OS normalise together.
-fun resolve-kk-extern( imp-path : string, base-dir : path ) : path
+fun resolve-kk-extern( imp-path : string, base-dir : path, include-dirs : list<string> = [] ) : <fsys> path
   if imp-path.starts-with("/").bool then (imp-path ++ ".kk").path
-  else (base-dir.string ++ "/" ++ imp-path ++ ".kk").path
+  else
+    val candidate = (base-dir.string ++ "/" ++ imp-path ++ ".kk").path
+    if is-file(candidate) then candidate
+    else match include-dirs.find(fn(d) is-file((d ++ "/" ++ imp-path ++ ".kk").path))
+      Just(d) -> (d ++ "/" ++ imp-path ++ ".kk").path
+      Nothing -> candidate
 
 // Parse `pub extern` declarations from a Koka .kk file and return
 // a type-env usable by the hica checker.
@@ -1373,9 +1378,12 @@ fun parse-kk-extern-env( kk-file : path )
     val content = read-text-file(kk-file)
     content.lines.foldl([], fn(acc, raw-line)
       val line = raw-line.trim
-      if !line.starts-with("pub extern ").bool then acc
+      val is-extern  = line.starts-with("pub extern ").bool
+      val is-pub-fun = line.starts-with("pub fun ").bool
+      if !is-extern && !is-pub-fun then acc
       else
-        val rest = line.slice.sslice/drop(11).string.trim   // after "pub extern "
+        val prefix-len = if is-extern then 11 else 8   // "pub extern " = 11, "pub fun " = 8
+        val rest = line.slice.sslice/drop(prefix-len).string.trim
         val name = rest.split("(").head-or("").trim
         if name.is-empty then acc
         else
@@ -1444,9 +1452,12 @@ fun parse-kk-effectful-names( kk-file : path )
     val content = read-text-file(kk-file)
     content.lines.foldl([], fn(acc, raw-line)
       val line = raw-line.trim
-      if !line.starts-with("pub extern ").bool then acc
+      val is-extern  = line.starts-with("pub extern ").bool
+      val is-pub-fun = line.starts-with("pub fun ").bool
+      if !is-extern && !is-pub-fun then acc
       else
-        val rest = line.slice.sslice/drop(11).string.trim
+        val prefix-len = if is-extern then 11 else 8
+        val rest = line.slice.sslice/drop(prefix-len).string.trim
         val name = rest.split("(").head-or("").trim
         if name.is-empty then acc
         else
@@ -1464,7 +1475,7 @@ fun parse-kk-effectful-names( kk-file : path )
 fun collect-extern-effectful-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [] )
   imp-list.foldl([], fn(acc, imp)
     if imp.is-extern then
-      val kk-path = resolve-kk-extern(imp.path, base-dir)
+      val kk-path = resolve-kk-extern(imp.path, base-dir, include-dirs)
       acc ++ parse-kk-effectful-names(kk-path)
     elif imp.path.starts-with("std/").bool then acc
     else
@@ -1486,7 +1497,7 @@ fun collect-extern-effectful( imports : list<import-decl>, base-dir : path, incl
 fun collect-extern-env-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [] )
   imp-list.foldl([], fn(acc, imp)
     if imp.is-extern then
-      val kk-path = resolve-kk-extern(imp.path, base-dir)
+      val kk-path = resolve-kk-extern(imp.path, base-dir, include-dirs)
       acc ++ parse-kk-extern-env(kk-path)
     elif imp.path.starts-with("std/").bool then acc
     else

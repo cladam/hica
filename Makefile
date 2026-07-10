@@ -62,15 +62,15 @@ test:
 
 ## Lexer unit tests
 test-lexer:
-	$(KOKA) -i$(KUNIT) -i$(SRC) -v0 -e tests/test-lexer.kk
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-lexer.kk
 
 ## Parser unit tests
 test-parser:
-	$(KOKA) -i$(KUNIT) -i$(SRC) -v0 -e tests/test-parser.kk
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-parser.kk
 
 ## Codegen unit tests
 test-codegen:
-	$(KOKA) -i$(KUNIT) -i$(SRC) -v0 -e tests/test-codegen.kk
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-codegen.kk
 
 ## End-to-end CLI tests (requires a built binary)
 test-cli: $(HICA)
