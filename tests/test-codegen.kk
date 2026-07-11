@@ -2305,3 +2305,20 @@ pub fun main() : io ()
       val code = emit-typed-program(src)
       // Absence of the infinite-type pattern is verified by Koka compilation succeeding
       assert/is-true(code.contains("hc_countdown__work"))
+
+    // Mixed-SCC: one function uses ?, its cycle-partner uses plain match
+    dtest("? in mixed-SCC: non-? partner also gets __work treatment")
+      // a uses plain match, calls b; b uses ?, calls a — both mutually recursive
+      val src = "fun step(n: int) : result<int, string> => if n < 0 { Err(\"neg\") } else { Ok(n) }\nfun a(n: int) : result<int, string> {\n  if n == 0 { Ok(0) } else { match step(n) { Err(e) => Err(e), Ok(v) => b(v - 1) } }\n}\nfun b(n: int) : result<int, string> {\n  let v = step(n)?\n  a(v - 1)\n}\nfun main() { match a(6) { Ok(v) => println(show(v)), Err(e) => println(e) } }"
+      val code = emit-typed-program(src)
+      // Both a and b get __work variants
+      assert/is-true(code.contains("fun hc_a__work("))
+      assert/is-true(code.contains("fun hc_b__work("))
+      // __work variants call each other, not the outer wrappers
+      assert/is-true(code.contains("hc_b__work("))
+      assert/is-true(code.contains("hc_a__work("))
+
+    dtest("? in mixed-SCC compiles via Koka")
+      val src = "fun step(n: int) : result<int, string> => if n < 0 { Err(\"neg\") } else { Ok(n) }\nfun a(n: int) : result<int, string> {\n  if n == 0 { Ok(0) } else { match step(n) { Err(e) => Err(e), Ok(v) => b(v - 1) } }\n}\nfun b(n: int) : result<int, string> {\n  let v = step(n)?\n  a(v - 1)\n}\nfun main() { match a(6) { Ok(v) => println(show(v)), Err(e) => println(e) } }"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("hc_a__work"))
