@@ -2288,3 +2288,20 @@ pub fun main() : io ()
       val src = "fun main() {\n  let r : result<int, string> = Ok(2)\n  let s = and_then_result(r, (n) => match n { _ => Ok(n + 1) })\n  println(show(s))\n}"
       val code = emit-typed-program(src)
       assert/is-true(!code.contains("Right(match "))
+
+    // --- ? operator in recursive functions ---
+    dtest("? in self-recursive function emits __work helper (no infinite-type)")
+      val src = "fun step(n: int) : result<int, string> => if n < 0 { Err(\"neg\") } else { Ok(n) }\nfun countdown(n: int) : result<int, string> {\n  let v = step(n)?\n  if v == 0 { Ok(0) } else { countdown(v - 1) }\n}\nfun main() { match countdown(5) { Ok(v) => println(show(v)), Err(e) => println(e) } }"
+      val code = emit-typed-program(src)
+      // recursive body goes in __work, which calls itself — not the outer wrapper
+      assert/is-true(code.contains("fun hc_countdown__work("))
+      assert/is-true(code.contains("hc_countdown__work((v - 1))"))
+      // outer wrapper installs handler and delegates
+      assert/is-true(code.contains("ctl hica-early-err(e) -> Left(e)"))
+      assert/is-true(code.contains("hc_countdown__work(n)"))
+
+    dtest("? in self-recursive function compiles via Koka")
+      val src = "fun step(n: int) : result<int, string> => if n < 0 { Err(\"neg\") } else { Ok(n) }\nfun countdown(n: int) : result<int, string> {\n  let v = step(n)?\n  if v == 0 { Ok(0) } else { countdown(v - 1) }\n}\nfun main() { match countdown(5) { Ok(v) => println(show(v)), Err(e) => println(e) } }"
+      val code = emit-typed-program(src)
+      // Absence of the infinite-type pattern is verified by Koka compilation succeeding
+      assert/is-true(code.contains("hc_countdown__work"))

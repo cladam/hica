@@ -32,7 +32,7 @@ import stdlib-bundle
 import deps
 import http
 
-val version = "0.41.3" 
+val version = "0.41.4" 
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
