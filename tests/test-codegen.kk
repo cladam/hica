@@ -2341,3 +2341,24 @@ pub fun main() : io ()
       val src = "fun peek(s: string, pos: int) : string { s[pos:pos+1] }\nfun parse_key(s: string, pos: int) : result<(string, int), string> { if pos >= str_length(s) { Err(\"eof\") } else { Ok((peek(s, pos), pos + 1)) } }\nfun parse_key_path(s: string, pos: int) : result<(list<string>, int), string> {\n  let (key, p2) = parse_key(s, pos)?\n  if peek(s, p2) == \".\" { let (rest, p3) = parse_key_path(s, p2 + 1)?\n    Ok(([key] + rest, p3)) }\n  else { Ok(([key], p2)) }\n}\nfun collect_text_run(s: string, pos: int) : (list<string>, int) {\n  if pos >= str_length(s) { ([], pos) }\n  else { match parse_key_path(s, pos) { Ok((keys, p2)) => { let (rest, p3) = collect_text_run(s, p2)\n        (keys + rest, p3) }, Err(_) => ([], pos) } }\n}\nfun main() { let (t, p) = collect_text_run(\"a.b.c\", 0)\n  println(\"ok\") }"
       val code = emit-typed-program(src)
       assert/is-true(code.contains("hc_collect_text_run"))
+
+    // --- flat_map / sort_by with a multiline (match-body) lambda ---
+    // A wrapping `)` after a multiline lambda body is absorbed by Koka's layout
+    // parser (`unexpected ")"`). These HOFs must fall back to trailing-lambda form.
+    dtest("flat_map with match-body lambda uses trailing-lambda form")
+      val src = "type N { A(x: int), B }\nfun expand(ns: list<N>) : list<int> {\n  flat_map(ns, (n) => match n { A(x) => [x], B => [] })\n}\nfun main() { println(show(expand([A(1), B]))) }"
+      val code = emit-typed-program(src)
+      // trailing-lambda form: `.flatmap fn(` with no wrapping paren
+      assert/is-true(code.contains(".flatmap fn("))
+      assert/is-true(!code.contains(".flatmap(fn("))
+
+    dtest("flat_map with match-body lambda compiles via Koka")
+      val src = "type N { A(x: int), B }\nfun expand(ns: list<N>) : list<int> {\n  flat_map(ns, (n) => match n { A(x) => [x], B => [] })\n}\nfun main() { println(show(expand([A(1), B]))) }"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("flatmap"))
+
+    dtest("flat_map with simple lambda keeps paren form")
+      val src = "fun main() { println(show(flat_map([1, 2], (n) => [n, n]))) }"
+      val code = emit-typed-program(src)
+      // non-multiline lambda: keep the compact `.flatmap(fn(` form
+      assert/is-true(code.contains(".flatmap(fn("))

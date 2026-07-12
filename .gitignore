@@ -40,6 +40,8 @@ hica
 
 examples/*
 !examples/*.hc
+examples/scratches/*
+!examples/scratches/*.hc
 
 programs/*
 !programs/*.hc

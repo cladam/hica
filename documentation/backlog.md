@@ -506,24 +506,27 @@ Issues that exist today but are not yet fixed:
   are emitted normally and call the handler-installing wrapper, which discharges the
   effect. 2 regression tests added. Discovered by the HML library team during FP
   idiom refactoring.
-- **Trailing lambda with `match` body causes Koka parse error in certain HOF calls** —
-  When the last argument to a higher-order function (e.g. `flat_map`) is a lambda
+- **~~Trailing lambda with `match` body causes Koka parse error in certain HOF calls~~** —
+  Fixed. When the last argument to a higher-order function (e.g. `flat_map`) is a lambda
   whose body is a `match` expression with multiple arms, the closing `)` of the outer
-  call is absorbed into the match body by Koka's layout parser:
+  call was absorbed into the match body by Koka's layout parser:
   ```hica
-  // Fails — Koka: parse error: invalid syntax, unexpected ")"
+  // Was failing — Koka: parse error: invalid syntax, unexpected ")"
   flat_map(nodes, (node) => match node {
     Foo(x) => [x],
     _ => []
   })
   ```
-  Note: the related bug "match as the body of a non-trailing lambda argument" was fixed
-  by adding `Match` to `is-multiline`. That fix IIFE-hoists non-trailing multiline args.
-  The trailing-lambda case is explicitly left to Koka's trailing-lambda syntax, which
-  does not handle a `match` body cleanly when it ends with `})` on a new line.
-  **Workaround:** extract the lambda into a named `pub fun` helper and pass it
-  point-free: `flat_map(nodes, my_helper)`.
-  Discovered by the HML library team during FP idiom refactoring.
+  Root cause: `flat_map` and `sort_by` were special-cased in codegen and unconditionally
+  wrapped the lambda argument in `.flatmap( ... )` / `hc-sort-by(xs, ...)`, bypassing the
+  general Call path's trailing-lambda logic. When the lambda body was multiline (a
+  `match`/`if`/`let` block), the appended `)` landed on the same layout line as the last
+  arm (`[])`), which Koka rejects. Fix: both HOFs now detect a multiline lambda
+  (`is-fun-multiline`) and emit trailing-lambda form (`xs.flatmap fn(...) ...`,
+  `hc-sort-by(xs) fn(...) ...`) with no wrapping paren; the compact paren form is kept
+  for simple lambdas. `map`/`filter`/`find` were already correct — they flow through the
+  general Call path. 3 regression tests added. Discovered by the HML library team during
+  FP idiom refactoring.
 
 
 ---

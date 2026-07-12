@@ -853,9 +853,22 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("last"), [xs]) ->
           emit-expr(xs, declared) ++ ".last"
         (Var("flat_map"), [xs, f]) ->
-          emit-expr(xs, declared) ++ ".flatmap(" ++ emit-expr(f, declared) ++ ")"
+          val xs-code = emit-expr(xs, declared)
+          val f-code = emit-expr(f, declared)
+          if f.expr.is-fun-multiline then
+            // Trailing-lambda form: a wrapping `)` placed after a multiline lambda
+            // body (match/if/let block) is absorbed by Koka's layout parser
+            // (`unexpected ")"`). Emitting `xs.flatmap fn(...) ...` avoids the paren.
+            xs-code ++ ".flatmap " ++ f-code
+          else
+            xs-code ++ ".flatmap(" ++ f-code ++ ")"
         (Var("sort_by"), [xs, f]) ->
-          "hc-sort-by(" ++ emit-expr(xs, declared) ++ ", " ++ emit-expr(f, declared) ++ ")"
+          val xs-code = emit-expr(xs, declared)
+          val f-code = emit-expr(f, declared)
+          if f.expr.is-fun-multiline then
+            "hc-sort-by(" ++ xs-code ++ ") " ++ f-code
+          else
+            "hc-sort-by(" ++ xs-code ++ ", " ++ f-code ++ ")"
 
         // Float math
         (Var("sqrt"), [x]) ->

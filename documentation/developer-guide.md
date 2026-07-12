@@ -35,7 +35,12 @@ Understanding how hica compiles a `.hc` file:
 | `src/emit/codegen.kk` | hica AST → Koka source emission |
 | `src/emit/codegen-js.kk` | hica AST → JavaScript source emission |
 | `src/emit/codegen-js-repl.kk` | JS REPL mode emission |
+| `src/format/formatter.kk` | Source formatter (`hica fmt`) |
 | `src/diagnostics/diagnostics.kk` | Error collection and rendering |
+| `src/deps.kk` | Dependency resolution / package manager (`add`/`remove`/`fetch`) |
+| `src/http.kk` | HTTP client (curl-backed FFI) |
+| `src/repl-docs.kk` | REPL help/documentation content |
+| `src/playground.kk` | Browser playground JS entry point |
 | `src/main.kk` | CLI entry point, build pipeline, prelude loading |
 
 ## Step-by-Step: Adding a New Feature
@@ -147,8 +152,8 @@ make test
 
 If the feature adds standard library functions written in hica:
 
-- Add to the appropriate file in `prelude/` (`math.hc`, `strings.hc`, `operators.hc`, `cli.hc`, `io.hc`)
-- Or create a new prelude file and register it in `src/main.kk` (load order matters)
+- Add to the appropriate file in `prelude/` (`math.hc`, `glob.hc`, `strings.hc`)
+- Or create a new prelude file and register it in `scripts/bundle-prelude.sh` (load order matters)
 - After any prelude change, re-bundle and rebuild:
   ```bash
   make bundle-prelude release
@@ -199,8 +204,10 @@ All common operations are available via `make`. Run `make` with no target for a 
 | `make test-codegen` | Codegen unit tests |
 | `make test-cli` | End-to-end CLI tests |
 | `make test-js` | JS backend tests |
+| `make test-repl` | REPL choreography tests |
 | `make choreo-cli` | ATDD CLI acceptance tests |
 | `make choreo-repl` | ATDD REPL acceptance tests |
+| `make submodules` | Initialise/update git submodules (klap, kunit) |
 | `make playground` | Build the browser playground |
 | `make playground-serve` | Build + serve playground on `localhost:8080` |
 | `make clean` | Remove binary and clear stdlib runtime cache |
@@ -210,10 +217,16 @@ Raw hica commands:
 | Command | Purpose |
 |---------|--------|
 | `./hica --version` | Verify build |
-| `./hica run <file>.hc` | Compile and run a hica program |
-| `./hica build <file>.hc` | Compile only |
-| `./hica check <file>.hc` | Type-check only |
-| `./hica clean` | Clean build artifacts |
+| `./hica run <file>.hc` (`r`) | Compile and run a hica program |
+| `./hica build <file>.hc` (`b`) | Compile only (`-o` sets binary name, `--target=js`) |
+| `./hica check <file>.hc` (`c`) | Type-check only |
+| `./hica fmt <file>.hc` (`f`) | Format a source file (`--check` to verify only) |
+| `./hica test <file>.hc` (`t`) | Run tests in a `.hc` file |
+| `./hica clean [--cache]` | Clean build artifacts (`--cache` clears `~/.hica/stdlib`) |
+| `./hica repl` | Start the interactive REPL |
+| `./hica new <name>` / `./hica init` | Scaffold a new project / init in current dir |
+| `./hica add <spec>` | Add a dependency (`host/owner/repo@tag` or `path:../dir`) |
+| `./hica remove <name>` / `./hica fetch` | Remove / fetch project dependencies |
 
 ## Scripts Reference
 
@@ -245,6 +258,7 @@ bash scripts/bundle-stdlib.sh
 Modules bundled:
 - `std/term`, `std/ops`, `std/list`, `std/string`
 - `std/io`, `std/actor`, `std/datetime`, `std/cli`, `std/env`
+- `std/dotenv`, `std/log`, `std/trusted`
 
 Run this whenever you edit a stdlib file, then rebuild the binary and clear the cache:
 
@@ -264,8 +278,9 @@ bash scripts/build-playground.sh
 Steps performed:
 1. Compiles `src/playground.kk` with Koka's `--target=js` backend.
 2. Bundles the output into `playground/hica-compiler.js` via `esbuild`.
-3. Generates `playground/prelude-sources.js` (browser-safe prelude subset).
+3. Generates `playground/prelude-sources.js` (browser-safe prelude subset — `math.hc` + `glob.hc` char classification).
 4. Generates `playground/stdlib-sources.js` (`std/ops`, `std/list`, `std/string`, `std/term`).
+5. Reports raw and gzipped bundle sizes.
 
 Prerequisites: `koka` and `npx` (esbuild) must be available on `$PATH`.
 
@@ -277,6 +292,67 @@ open http://localhost:8080
 ```
 
 > Note: `std/io`, `std/actor`, `std/cli`, and `std/env` are excluded from the playground build — they rely on Node.js/native APIs not available in the browser.
+
+## Package Manager & Project Manifest
+
+hica has a lightweight package manager (`src/deps.kk`) built around a project manifest written in HML: `hica.hml`.
+
+### Manifest layout (`hica.hml`)
+
+Scaffolded by `hica new <name>` / `hica init`:
+
+```hml
+@project {
+    name: "my-app"
+    version: "0.1.0"
+    license: "MIT"
+    entry: "main.hc"
+}
+
+@dependencies {
+}
+
+@description {
+    summary: "A hica project"
+    author: ""
+    homepage: ""
+    repository: ""
+}
+```
+
+Blocks read by the compiler:
+
+| Block | Purpose |
+|-------|---------|
+| `@project` | `name`, `version`, `license`, and `entry` (default source file for bare `hica run`/`build`) |
+| `@dependencies` | One `name: "<spec>"` line per dependency (see below) |
+| `@description` | `summary`, `author`, `homepage`, `repository` metadata |
+| `@koka` | Optional: `include` (`;`-separated dirs) and `flags` passed through to Koka; relative paths resolve against the manifest's own directory |
+
+### Dependency commands
+
+| Command | Effect |
+|---------|--------|
+| `hica add <spec>` | Append a dependency to `@dependencies`, fetch it, and update `hica.lock` |
+| `hica remove <name>` | Remove a dependency from the manifest |
+| `hica fetch` | Fetch all declared dependencies and regenerate `hica.lock` |
+
+### Dependency spec formats
+
+Parsed by `parse-deps-section` / `parse-dep-line` in `src/deps.kk`:
+
+| Form | Meaning |
+|------|---------|
+| `name: "github.com/owner/repo@tag"` | Git dependency pinned to a tag/ref (`GitDep`) |
+| `name: "github.com/owner/repo"` | Git dependency, defaults to the `main` branch |
+| `name: "path:../local-dir"` | Local path dependency (`PathDep`) |
+| `name: "0.1.0"` | Registry version (`RegistryDep`) — reserved for the future `pkg.hica.dev` registry, not yet implemented |
+
+### Resolution & caching
+
+- Git/registry dependencies are cached under `~/.hica/cache`.
+- On fetch, if a dependency contains a `src/` directory it is added to the Koka include path automatically.
+- `hica add` and `hica fetch` write a `hica.lock` (`[[package]]` entries, auto-generated — do not edit).
 
 ## CI Pipeline
 
