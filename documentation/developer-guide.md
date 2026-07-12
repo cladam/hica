@@ -337,6 +337,20 @@ Blocks read by the compiler:
 | `hica remove <name>` | Remove a dependency from the manifest |
 | `hica fetch` | Fetch all declared dependencies and regenerate `hica.lock` |
 
+### Package inspection (`hica pkg`)
+
+The `pkg` namespace keeps the top-level CLI focused on the compiler while giving
+package management room to grow. Dispatched by `cmd-pkg` in `src/main.kk`; logic
+lives in `src/deps.kk`.
+
+| Command | Effect |
+|---------|--------|
+| `hica pkg list` (alias `ls`) | List declared dependencies with source and cache status (offline) |
+| `hica pkg info <name>` | Show registry metadata (version, tarball, checksum) from `pkg.hica.dev` |
+| `hica pkg search <query>` | Search locally-cached packages (the registry has no server-side index yet) |
+| `hica pkg tree` | Render the dependency graph, recursing into each cached dependency's own `hica.hml` |
+| `hica pkg update` (alias `up`) | Re-resolve `latest` registry deps to concrete versions and pin them in `hica.lock` (manifest untouched) |
+
 ### Dependency spec formats
 
 Parsed by `parse-deps-section` / `parse-dep-line` in `src/deps.kk`:
@@ -346,7 +360,8 @@ Parsed by `parse-deps-section` / `parse-dep-line` in `src/deps.kk`:
 | `name: "github.com/owner/repo@tag"` | Git dependency pinned to a tag/ref (`GitDep`) |
 | `name: "github.com/owner/repo"` | Git dependency, defaults to the `main` branch |
 | `name: "path:../local-dir"` | Local path dependency (`PathDep`) |
-| `name: "0.1.0"` | Registry version (`RegistryDep`) — reserved for the future `pkg.hica.dev` registry, not yet implemented |
+| `name: "0.1.0"` | Registry version pinned to `pkg.hica.dev` (`RegistryDep`) |
+| `name: "latest"` | Registry dependency resolved to the newest published version (`RegistryDep`) |
 
 ### Resolution & caching
 

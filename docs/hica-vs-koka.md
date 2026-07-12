@@ -313,14 +313,14 @@ hica has a purpose-built configuration library: [HML](https://github.com/cladam/
 }
 ```
 
-Add it as a submodule and import:
+Add it with the package manager and import:
 
 ```sh
-git submodule add https://github.com/cladam/hml.git lib/hml
+hica add hml
 ```
 
 ```hica
-import "./lib/hml/src/hml"
+import "hml"
 ```
 
 Koka has no companion config format; you would reach for JSON or YAML and write your own parsing layer.

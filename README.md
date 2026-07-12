@@ -200,6 +200,10 @@ fun fizzbuzz(n) =>
 | `test`   | Run tests in a file                  |
 | `new`    | Create a new project                 |
 | `repl`   | Start an interactive shell           |
+| `add`    | Add a dependency                     |
+| `remove` | Remove a dependency                  |
+| `fetch`  | Fetch all dependencies               |
+| `pkg`    | Manage packages (list, info, search, tree, update) |
 
 Run `hica help <command>` for details on any command.
 

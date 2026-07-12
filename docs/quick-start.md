@@ -93,6 +93,7 @@ Hello, world!
 | `hica add <dep>` | Add a dependency |
 | `hica remove <dep>` | Remove a dependency |
 | `hica fetch` | Fetch all dependencies |
+| `hica pkg <sub>` | Manage packages (list, info, search, tree, update) |
 | `hica clean` | Remove generated build artifacts |
 | `hica help <command>` | Show help for a command |
 

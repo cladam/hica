@@ -31,6 +31,7 @@ Commands:
   add                    Add a dependency
   remove                 Remove a dependency
   fetch                  Fetch all dependencies
+  pkg                    Manage packages (list, info, search, tree, update)
   repl                   Start an interactive REPL
   help                   Show help for a command
 ```
@@ -166,6 +167,132 @@ Initialise a hica project in the current directory:
 ```sh
 mkdir my-project && cd my-project
 hica init
+```
+
+### Dependencies
+
+hica has a built-in package manager. Dependencies are declared in the
+`@dependencies` block of `hica.hml` and cached under `~/.hica/cache`.
+
+#### `hica add`
+
+Add a dependency, fetch it, and record it in `hica.hml` + `hica.lock`:
+
+```sh
+hica add json                          # registry package (latest)
+hica add json@0.1.0                    # registry package (pinned version)
+hica add github.com/cladam/yaml@v1.0.0 # git dependency
+hica add path:../local-lib             # local path dependency
+```
+
+#### `hica remove`
+
+Remove a dependency from the manifest:
+
+```sh
+hica remove json
+```
+
+#### `hica fetch`
+
+Fetch all declared dependencies and regenerate `hica.lock`:
+
+```sh
+hica fetch
+```
+
+### `hica pkg`
+
+Package-management subcommands, kept out of the top-level namespace so the
+compiler commands stay uncluttered:
+
+```
+$ hica pkg --help
+
+Usage: hica pkg [SUBCOMMAND] [ARG]
+Manage packages
+
+Commands:
+  list, ls               List declared dependencies and cache status
+  info                   Show registry metadata for a package
+  search                 Search cached packages
+  tree                   Show the dependency graph
+  update, up             Re-resolve dependencies and refresh hica.lock
+```
+
+#### `hica pkg list` (alias `ls`)
+
+List declared dependencies with their source and cache status. Works offline; a
+`*` marks packages already present in `~/.hica/cache`:
+
+```sh
+hica pkg list
+```
+
+```
+Dependencies (2):
+  * imgui             registry  latest
+  * json              registry  latest
+
+  * = present in local cache (~/.hica/cache)
+```
+
+#### `hica pkg info`
+
+Show registry metadata (version, tarball, checksum) for a package from
+`pkg.hica.dev`:
+
+```sh
+hica pkg info json
+```
+
+```
+json (0.1.0)
+  tarball:      https://pkg.hica.dev/json/json-0.1.0.tar.gz
+  checksum:     sha256:49fc1f82…
+
+  install with: hica add json
+```
+
+#### `hica pkg search`
+
+Search locally-cached packages by substring. The registry has no server-side
+search index yet, so this searches packages already downloaded to the cache:
+
+```sh
+hica pkg search json
+```
+
+#### `hica pkg tree`
+
+Render the dependency graph, recursing into each cached dependency's own
+`hica.hml`:
+
+```sh
+hica pkg tree
+```
+
+```
+.
+├─ imgui (latest)
+└─ json (latest)
+```
+
+#### `hica pkg update` (alias `up`)
+
+Re-resolve `latest` registry dependencies to concrete versions and pin them in
+`hica.lock`. The manifest is left untouched, so `latest` remains as declared
+intent:
+
+```sh
+hica pkg update
+```
+
+```
+Resolving dependencies...
+  imgui: latest -> 0.5.0
+  json: latest -> 0.1.0
+updated hica.lock (2 packages, 4 include paths)
 ```
 
 ### `hica repl`
