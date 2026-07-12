@@ -420,21 +420,24 @@ pub fun pkg-info( name : string ) : io ()
           print-meta-field(meta, "repository", "repository")
           print-meta-field(meta, "license", "license")
           print-meta-field(meta, "tarball", "tarball")
+          print-meta-field(meta, "checksum", "checksum")
           println("")
           println("  install with: hica add " ++ safe)
 
-// Search the registry index for packages matching a query substring.
+// Search locally-cached registry packages for a substring match.
+// The registry has no server-side search index yet, so this searches the
+// packages already downloaded under ~/.hica/cache/pkg.hica.dev.
 pub fun pkg-search( query : string ) : io ()
-  val index = http-get("https://pkg.hica.dev/index.json")
-  if index.is-empty || looks-like-html(index) then
-    println("error: registry search is unavailable (no index at pkg.hica.dev)")
+  val reg-dir = hica-cache-dir() / "pkg.hica.dev".path
+  if !is-directory(reg-dir) then
+    println("no cached packages to search")
+    println("(the registry has no server-side search index yet — try 'hica pkg info <name>')")
   else
-    val names = index.split("\"name\": \"")
-      .drop(1)
-      .map(fn(chunk) chunk.split("\"").head.default(""))
+    val names = list-directory(reg-dir)
+      .map(fn(p) p.stemname)
       .filter(fn(n) !n.is-empty && n.contains(query))
     if names.is-nil then
-      println("no packages match '" ++ query ++ "'")
+      println("no cached packages match '" ++ query ++ "'")
     else
-      println("Packages matching '" ++ query ++ "':")
+      println("Cached packages matching '" ++ query ++ "':")
       names.foreach(fn(n) println("  " ++ n))
