@@ -161,6 +161,7 @@ fun hica-cli() : command
     .subcommand("add", "Add a dependency")
     .subcommand("remove", "Remove a dependency")
     .subcommand("fetch", "Fetch all dependencies")
+    .subcommand("pkg", "Manage packages (list, info, search)")
     .subcommand("repl", "Start an interactive REPL")
     .subcommand("help", "Show help for a command")
 
@@ -222,6 +223,15 @@ fun fetch-cli() : command
   command("hica fetch")
     .about("Fetch all dependencies")
 
+fun pkg-cli() : command
+  command("hica pkg")
+    .about("Manage packages")
+    .arg(positional("SUBCOMMAND").help("list, info, or search").required)
+    .arg(positional("ARG").help("Package name or search query"))
+    .subcommand("list, ls", "List declared dependencies and cache status")
+    .subcommand("info", "Show registry metadata for a package")
+    .subcommand("search", "Search the registry for packages")
+
 // Split a list at the first "--" element. Returns (before, after).
 fun split-at-double-dash( args : list<string> ) : (list<string>, list<string>)
   match args
@@ -236,6 +246,11 @@ fun main()
 
 fun main-cli( raw-args : list<string> )
   val (hica-args, user-args) = split-at-double-dash(raw-args)
+  match hica-args
+    Cons("pkg", rest) -> cmd-pkg(rest)
+    _ -> main-dispatch(hica-args, user-args)
+
+fun main-dispatch( hica-args : list<string>, user-args : list<string> )
   val m = hica-cli().parse-or-exit(hica-args)
   val cmd  = m.get-one-or("COMMAND", "")
   val file = m.get-one("FILE")
@@ -562,6 +577,43 @@ fun cmd-fetch()
       val paths = fetch-all-deps(dep-list, ".".path)
       write-lockfile(dep-list)
       println("fetched " ++ paths.length.show ++ " dependencies")
+
+fun cmd-pkg( args : list<string> )
+  match args
+    Nil ->
+      println(pkg-cli().format-help)
+    Cons(sub, rest) ->
+      match sub
+        "list" -> pkg-list-cmd()
+        "ls"   -> pkg-list-cmd()
+        "info" -> pkg-info-cmd(rest.head)
+        "search" -> pkg-search-cmd(rest.head)
+        "help" -> println(pkg-cli().format-help)
+        other ->
+          println("error: no such pkg subcommand: `" ++ other ++ "`\n")
+          println(pkg-cli().format-help)
+
+fun pkg-list-cmd()
+  if !is-file(manifest-name.path) then
+    println("error: no hica.hml found (run 'hica init' first)")
+  else
+    val content = read-text-file(manifest-name.path)
+    val dep-list = parse-deps-section(content)
+    pkg-list(dep-list, ".".path)
+
+fun pkg-info-cmd( name-arg : maybe<string> )
+  match name-arg
+    Nothing ->
+      println("error: missing package name")
+      println("Usage: hica pkg info <NAME>")
+    Just(name) -> pkg-info(name)
+
+fun pkg-search-cmd( query-arg : maybe<string> )
+  match query-arg
+    Nothing ->
+      println("error: missing search query")
+      println("Usage: hica pkg search <QUERY>")
+    Just(query) -> pkg-search(query)
 
 // Resolve dependency include paths from hica.ini [dependencies] section
 fun resolve-dep-includes()

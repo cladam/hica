@@ -356,3 +356,85 @@ pub fun parse-dep-spec( spec : string ) : div dep-spec
         else
           // registry package, latest
           Dep-spec(spec.trim, RegistryDep("latest"))
+
+// ---------------------------------------------------------------------------
+// pkg subcommands: list / info / search
+// ---------------------------------------------------------------------------
+
+// Right-pad a string to at least `n` characters with spaces.
+fun pad-to( s : string, n : int ) : string
+  val gap = n - s.count
+  if gap <= 0 then s else s ++ list(1, gap).map(fn(_) ' ').string
+
+// Check whether a dependency is already present in the local cache,
+// WITHOUT fetching it. Mirrors the cache paths used by fetch-*.
+pub fun dep-is-cached( d : dep-spec, base-dir : path ) : io bool
+  match d.source
+    GitDep(url, tag) ->
+      match safe-shell-arg(url)
+        Just(u) -> is-directory(hica-cache-dir() / u.path / tag.path)
+        Nothing -> False
+    PathDep(p) -> is-directory(base-dir / p.path)
+    RegistryDep(_) ->
+      match safe-shell-arg(d.name)
+        Just(n) -> is-directory(hica-cache-dir() / "pkg.hica.dev".path / n.path)
+        Nothing -> False
+
+// Print the declared dependencies with their source and cache status.
+pub fun pkg-list( dep-list : list<dep-spec>, base-dir : path ) : io ()
+  if dep-list.is-nil then
+    println("no dependencies declared in hica.hml")
+  else
+    println("Dependencies (" ++ dep-list.length.show ++ "):")
+    dep-list.foreach fn(d)
+      val (kind, detail) = match d.source
+        GitDep(url, tag)     -> ("git", url ++ "@" ++ tag)
+        PathDep(p)           -> ("path", p)
+        RegistryDep(version) -> ("registry", version)
+      val mark = if dep-is-cached(d, base-dir) then "*" else " "
+      println("  " ++ mark ++ " " ++ pad-to(d.name, 18) ++ pad-to(kind, 10) ++ detail)
+    println("")
+    println("  * = present in local cache (~/.hica/cache)")
+
+// Print one metadata field from registry JSON if present.
+fun print-meta-field( meta : string, label : string, key : string ) : io ()
+  match json-get-str(meta, key)
+    Just(v) -> if !v.is-empty then println("  " ++ pad-to(label ++ ":", 14) ++ v)
+    Nothing -> ()
+
+// Query the registry for a package's latest version and metadata.
+pub fun pkg-info( name : string ) : io ()
+  match safe-shell-arg(name)
+    Nothing -> println("error: package name '" ++ name ++ "' contains unsafe characters")
+    Just(safe) ->
+      val latest = http-get("https://pkg.hica.dev/" ++ safe ++ "/latest").trim
+      if !is-valid-registry-version(latest) then
+        println("error: package '" ++ safe ++ "' not found in registry")
+      else
+        val meta = http-get("https://pkg.hica.dev/" ++ safe ++ "/" ++ latest ++ ".json")
+        if meta.is-empty then
+          println("error: no metadata for '" ++ safe ++ "@" ++ latest ++ "'")
+        else
+          println(safe ++ " (" ++ latest ++ ")")
+          print-meta-field(meta, "description", "description")
+          print-meta-field(meta, "repository", "repository")
+          print-meta-field(meta, "license", "license")
+          print-meta-field(meta, "tarball", "tarball")
+          println("")
+          println("  install with: hica add " ++ safe)
+
+// Search the registry index for packages matching a query substring.
+pub fun pkg-search( query : string ) : io ()
+  val index = http-get("https://pkg.hica.dev/index.json")
+  if index.is-empty || looks-like-html(index) then
+    println("error: registry search is unavailable (no index at pkg.hica.dev)")
+  else
+    val names = index.split("\"name\": \"")
+      .drop(1)
+      .map(fn(chunk) chunk.split("\"").head.default(""))
+      .filter(fn(n) !n.is-empty && n.contains(query))
+    if names.is-nil then
+      println("no packages match '" ++ query ++ "'")
+    else
+      println("Packages matching '" ++ query ++ "':")
+      names.foreach(fn(n) println("  " ++ n))
