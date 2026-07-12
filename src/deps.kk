@@ -441,3 +441,102 @@ pub fun pkg-search( query : string ) : io ()
     else
       println("Cached packages matching '" ++ query ++ "':")
       names.foreach(fn(n) println("  " ++ n))
+
+// ---------------------------------------------------------------------------
+// pkg tree: render the dependency graph
+// ---------------------------------------------------------------------------
+
+val manifest-file = "hica.hml"
+
+// Locate a cached dependency's hica.hml, WITHOUT fetching. Returns Nothing if
+// the dependency is not present locally or ships no manifest.
+fun dep-manifest-path( d : dep-spec, base-dir : path ) : io maybe<path>
+  val root = match d.source
+    GitDep(url, tag) ->
+      match safe-shell-arg(url)
+        Just(u) -> Just(hica-cache-dir() / u.path / tag.path)
+        Nothing -> Nothing
+    PathDep(p) -> Just(base-dir / p.path)
+    RegistryDep(version) ->
+      match safe-shell-arg(d.name)
+        Nothing -> Nothing
+        Just(n) ->
+          val pkg-dir = hica-cache-dir() / "pkg.hica.dev".path / n.path
+          if version != "latest" && !version.is-empty then
+            Just(pkg-dir / version.path)
+          elif is-directory(pkg-dir) then
+            match list-directory(pkg-dir)
+              Cons(v, _) -> Just(v)
+              Nil        -> Nothing
+          else Nothing
+  match root
+    Just(r) ->
+      val m = r / manifest-file.path
+      if is-file(m) then Just(m) else Nothing
+    Nothing -> Nothing
+
+// Print the dependency tree rooted at the current project's declared deps.
+pub fun pkg-tree( dep-list : list<dep-spec>, base-dir : path ) : io ()
+  if dep-list.is-nil then
+    println("no dependencies declared in hica.hml")
+  else
+    println(".")
+    print-dep-tree(dep-list, base-dir, "", [])
+
+fun print-dep-tree( deps : list<dep-spec>, base-dir : path, pre : string, visited : list<string> ) : io ()
+  match deps
+    Nil -> ()
+    Cons(d, rest) ->
+      val is-last = rest.is-nil
+      val branch  = if is-last then "└─ " else "├─ "
+      val detail  = match d.source
+        GitDep(url, tag)     -> " (" ++ url ++ "@" ++ tag ++ ")"
+        PathDep(p)           -> " (path:" ++ p ++ ")"
+        RegistryDep(version) -> " (" ++ version ++ ")"
+      if visited.any(fn(x) x == d.name) then
+        println(pre ++ branch ++ d.name ++ detail ++ " (*)")
+      else
+        println(pre ++ branch ++ d.name ++ detail)
+        val child-prefix = pre ++ (if is-last then "   " else "│  ")
+        match dep-manifest-path(d, base-dir)
+          Just(mpath) ->
+            val sub-deps = parse-deps-section(read-text-file(mpath))
+            print-dep-tree(sub-deps, base-dir, child-prefix, Cons(d.name, visited))
+          Nothing -> ()
+      print-dep-tree(rest, base-dir, pre, visited)
+
+// ---------------------------------------------------------------------------
+// pkg update: re-resolve registry deps and refresh hica.lock
+// ---------------------------------------------------------------------------
+
+// Resolve a dependency to a concrete version for pinning in the lockfile.
+// Registry deps declared as "latest" are resolved to their current version.
+fun resolve-dep-for-lock( d : dep-spec ) : io dep-spec
+  match d.source
+    RegistryDep(version) ->
+      if version == "latest" then
+        match safe-shell-arg(d.name)
+          Nothing -> d
+          Just(safe) ->
+            val v = http-get("https://pkg.hica.dev/" ++ safe ++ "/latest").trim
+            if is-valid-registry-version(v) then
+              println("  " ++ d.name ++ ": latest -> " ++ v)
+              Dep-spec(d.name, RegistryDep(v))
+            else
+              println("  warning: could not resolve latest for '" ++ d.name ++ "'")
+              d
+      else d
+    _ -> d
+
+// Re-resolve dependencies, fetch them, and rewrite hica.lock with pinned versions.
+// The manifest (hica.hml) is left untouched so "latest" stays as declared intent.
+pub fun pkg-update( dep-list : list<dep-spec>, base-dir : path ) : io ()
+  if dep-list.is-nil then
+    println("no dependencies to update")
+  else
+    println("Resolving dependencies...")
+    val resolved = dep-list.map(resolve-dep-for-lock)
+    val paths = fetch-all-deps(resolved, base-dir)
+    write-lockfile(resolved)
+    println("updated hica.lock (" ++ resolved.length.show ++ " packages, " ++ paths.length.show ++ " include paths)")
+
