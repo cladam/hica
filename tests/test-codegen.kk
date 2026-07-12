@@ -2322,3 +2322,22 @@ pub fun main() : io ()
       val src = "fun step(n: int) : result<int, string> => if n < 0 { Err(\"neg\") } else { Ok(n) }\nfun a(n: int) : result<int, string> {\n  if n == 0 { Ok(0) } else { match step(n) { Err(e) => Err(e), Ok(v) => b(v - 1) } }\n}\nfun b(n: int) : result<int, string> {\n  let v = step(n)?\n  a(v - 1)\n}\nfun main() { match a(6) { Ok(v) => println(show(v)), Err(e) => println(e) } }"
       val code = emit-typed-program(src)
       assert/is-true(code.contains("hc_a__work"))
+
+    // One-directional caller: a recursive tuple-returning function that calls a
+    // `?`-using recursive function (but is never called back) must NOT be pulled
+    // into the early-result group. Otherwise its wrapper installs a
+    // `ctl hica-early-err(e) -> Left(e)` handler that forces an `either` return
+    // type, clashing with its real `(list<string>, int)` tuple type.
+    dtest("? one-directional tuple caller not pulled into early-result group")
+      val src = "fun peek(s: string, pos: int) : string { s[pos:pos+1] }\nfun parse_key(s: string, pos: int) : result<(string, int), string> { if pos >= str_length(s) { Err(\"eof\") } else { Ok((peek(s, pos), pos + 1)) } }\nfun parse_key_path(s: string, pos: int) : result<(list<string>, int), string> {\n  let (key, p2) = parse_key(s, pos)?\n  if peek(s, p2) == \".\" { let (rest, p3) = parse_key_path(s, p2 + 1)?\n    Ok(([key] + rest, p3)) }\n  else { Ok(([key], p2)) }\n}\nfun collect_text_run(s: string, pos: int) : (list<string>, int) {\n  if pos >= str_length(s) { ([], pos) }\n  else { match parse_key_path(s, pos) { Ok((keys, p2)) => { let (rest, p3) = collect_text_run(s, p2)\n        (keys + rest, p3) }, Err(_) => ([], pos) } }\n}\nfun main() { let (t, p) = collect_text_run(\"a.b.c\", 0)\n  println(\"ok\") }"
+      val code = emit-typed-program(src)
+      // parse_key_path (uses ?) still gets the __work + handler treatment
+      assert/is-true(code.contains("fun hc_parse_key_path__work("))
+      // collect_text_run (plain tuple return) is a normal fun — no __work, no handler
+      assert/is-true(!code.contains("hc_collect_text_run__work"))
+      assert/is-true(code.contains("fun hc_collect_text_run("))
+
+    dtest("? one-directional tuple caller compiles via Koka")
+      val src = "fun peek(s: string, pos: int) : string { s[pos:pos+1] }\nfun parse_key(s: string, pos: int) : result<(string, int), string> { if pos >= str_length(s) { Err(\"eof\") } else { Ok((peek(s, pos), pos + 1)) } }\nfun parse_key_path(s: string, pos: int) : result<(list<string>, int), string> {\n  let (key, p2) = parse_key(s, pos)?\n  if peek(s, p2) == \".\" { let (rest, p3) = parse_key_path(s, p2 + 1)?\n    Ok(([key] + rest, p3)) }\n  else { Ok(([key], p2)) }\n}\nfun collect_text_run(s: string, pos: int) : (list<string>, int) {\n  if pos >= str_length(s) { ([], pos) }\n  else { match parse_key_path(s, pos) { Ok((keys, p2)) => { let (rest, p3) = collect_text_run(s, p2)\n        (keys + rest, p3) }, Err(_) => ([], pos) } }\n}\nfun main() { let (t, p) = collect_text_run(\"a.b.c\", 0)\n  println(\"ok\") }"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("hc_collect_text_run"))

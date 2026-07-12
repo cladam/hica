@@ -1221,23 +1221,45 @@ fun compute-div-names( decls : list<fun-decl> ) : div list<string>
         changed := True
   div-names
 
-// Expand a seed list of function names to the full mutual-recursion SCC.
-// Starting from seed (all is-recursive functions with `?`), iteratively adds any
-// is-recursive function whose body calls something already in the set.
-// This ensures every member of the SCC receives the __work treatment so that the
-// handler-wrapper functions are not themselves part of the recursive cycle Koka sees.
-fun expand-try-rec-names( decls : list<fun-decl>, seed : list<string> ) : div list<string>
-  if seed.is-nil then return []
-  var names := seed
+// Compute the set of decl names reachable from `starts` through the call graph
+// (transitive closure over direct calls). The starts themselves are included.
+fun reachable-from( decls : list<fun-decl>, starts : list<string> ) : div list<string>
+  var seen := starts
   var changed := True
   while { changed }
     changed := False
     decls.foreach fn(d)
-      val already = names.any(fn(n) n == d.name)
-      if !already && d.is-recursive && body-calls-any(d.body, names) then
-        names := Cons(d.name, names)
-        changed := True
-  names
+      if seen.any(fn(nm) nm == d.name) then
+        decls.foreach fn(e)
+          if !seen.any(fn(nm) nm == e.name) && body-calls-any(d.body, [e.name]) then
+            seen := Cons(e.name, seen)
+            changed := True
+  seen
+
+// Expand a seed list of function names to the full mutual-recursion SCC.
+// Starting from seed (all is-recursive functions with `?`), adds any is-recursive
+// function that lies on a *cycle* with the seed: the seed can reach it AND it can
+// reach back to the seed. Every member of the SCC receives the __work treatment so
+// that the handler-wrapper functions are not themselves part of the recursive cycle.
+//
+// A one-directional caller (e.g. a tuple-returning function that merely calls a
+// `?`-using function without being called back) is deliberately excluded: it must
+// call the handler-installing wrapper and must NOT be given a result-returning
+// handler, which would corrupt its non-result return type
+// (`either<_a,_b>` vs `(list<T>, int)`).
+fun expand-try-rec-names( decls : list<fun-decl>, seed : list<string> ) : div list<string>
+  if seed.is-nil then return []
+  // Functions the seed can reach (forward reachability through the call graph).
+  val forward = reachable-from(decls, seed)
+  decls.filter(fn(d)
+    val in-seed = seed.any(fn(nm) nm == d.name)
+    if in-seed then True
+    elif !d.is-recursive then False
+    else
+      val seed-reaches-d = forward.any(fn(nm) nm == d.name)
+      val d-reaches-seed = reachable-from(decls, [d.name]).any(fn(nm) seed.any(fn(s) s == nm))
+      seed-reaches-d && d-reaches-seed
+  ).map(fn(d) d.name)
 
 // Map a 0-based tuple index to Koka's named accessor.
 fun tuple-field-name( idx : int ) : string

@@ -479,6 +479,51 @@ Issues that exist today but are not yet fixed:
   it to `val hc__argN` inside `(fn() ... )()`, so Koka's layout parser cannot absorb
   `, nextArg)` into the lambda body. Trailing multiline lambdas continue to use Koka's
   trailing-lambda syntax unchanged. 2 regression tests added.
+- **~~`?` operator in a recursive function leaks its effect to callers~~** — Fixed.
+  When a recursive function uses `?`, the `hica-early-result` effect handler it
+  generates propagates transitively through the call stack. Callers that return a
+  plain tuple (not a `result`) are contaminated and fail to type-check:
+  ```hica
+  // Fails — Koka: type error: inferred either<_a,_b>, expected (list<Node>, int)
+  pub fun parse_key_path(s: string, pos: int) : result<(list<string>, int), string> {
+    let (key, p2) = parse_key(s, pos)?       // ? in a recursive function
+    if peek(s, p2) == "." {
+      let (rest, p3) = parse_key_path(s, p2 + 1)?
+      Ok(([key] + rest, p3))
+    }
+    else { Ok(([key], p2)) }
+  }
+  ```
+  Note: `?` with tuple destructuring (`let (a, b) = expr?`) works correctly in
+  non-recursive functions — the root cause is specifically the recursive context.
+  Root cause: `expand-try-rec-names` in codegen used forward reachability, so any
+  recursive function that merely *called* a `?`-using function (e.g. `collect_text_run`
+  calling `parse_key_path`) was pulled into the early-result group and given a
+  `ctl hica-early-err(e) -> Left(e)` handler wrapper — forcing an `either` return
+  type onto its real tuple return type. Fix: the group now only includes functions
+  on a genuine *cycle* with the seed (the seed reaches them AND they reach back to
+  the seed), computed via a new `reachable-from` helper. One-directional callers
+  are emitted normally and call the handler-installing wrapper, which discharges the
+  effect. 2 regression tests added. Discovered by the HML library team during FP
+  idiom refactoring.
+- **Trailing lambda with `match` body causes Koka parse error in certain HOF calls** —
+  When the last argument to a higher-order function (e.g. `flat_map`) is a lambda
+  whose body is a `match` expression with multiple arms, the closing `)` of the outer
+  call is absorbed into the match body by Koka's layout parser:
+  ```hica
+  // Fails — Koka: parse error: invalid syntax, unexpected ")"
+  flat_map(nodes, (node) => match node {
+    Foo(x) => [x],
+    _ => []
+  })
+  ```
+  Note: the related bug "match as the body of a non-trailing lambda argument" was fixed
+  by adding `Match` to `is-multiline`. That fix IIFE-hoists non-trailing multiline args.
+  The trailing-lambda case is explicitly left to Koka's trailing-lambda syntax, which
+  does not handle a `match` body cleanly when it ends with `})` on a new line.
+  **Workaround:** extract the lambda into a named `pub fun` helper and pass it
+  point-free: `flat_map(nodes, my_helper)`.
+  Discovered by the HML library team during FP idiom refactoring.
 
 
 ---
