@@ -240,7 +240,14 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
     val pub-str = if imp.is-pub then "pub " else ""
     pub-str ++ "import " ++ koka-mod ++ "\n"
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
-  val extra-kk-imports = extra-imports.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-imports.is-nil then "" else "\n")
+  // Koka treats repeated unqualified imports of a module as separate candidates,
+  // making its names ambiguous. Deduplicate the transitive extern-module imports
+  // against the module's own imports and against each other.
+  val hica-mod-names = p.imports.map(fn(imp) safe-module-name(imp.path.import-basename))
+  val extra-dedup = extra-imports.foldl([], fn(acc, m)
+    if acc.any(fn(a) a == m) || hica-mod-names.any(fn(a) a == m) then acc else acc ++ [m]
+  )
+  val extra-kk-imports = extra-dedup.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-dedup.is-nil then "" else "\n")
   val has-brk = program-has-break(p)
   val has-cont = program-has-continue(p)
   val has-try-r = program-has-try-result(p)
@@ -2128,7 +2135,14 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
     val pub-str = if imp.is-pub then "pub " else ""
     pub-str ++ "import " ++ koka-mod ++ "\n"
   ).join("") ++ (if p.imports.is-nil then "" else "\n")
-  val extra-kk-imports = extra-imports.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-imports.is-nil then "" else "\n")
+  // Koka treats repeated unqualified imports of a module as separate candidates,
+  // making its names ambiguous. Deduplicate the transitive extern-module imports
+  // against the module's own imports and against each other.
+  val hica-mod-names = p.imports.map(fn(imp) safe-module-name(imp.path.import-basename))
+  val extra-dedup = extra-imports.foldl([], fn(acc, m)
+    if acc.any(fn(a) a == m) || hica-mod-names.any(fn(a) a == m) then acc else acc ++ [m]
+  )
+  val extra-kk-imports = extra-dedup.map(fn(m) "import " ++ m ++ "\n").join("") ++ (if extra-dedup.is-nil then "" else "\n")
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
   val type-defs = p.types.map(fn(td) emit-type-def(td, p.structs, p.types)).join("\n\n")

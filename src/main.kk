@@ -32,7 +32,7 @@ import stdlib-bundle
 import deps
 import http
 
-val version = "0.41.6"
+val version = "0.42.0"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -1443,13 +1443,43 @@ fun resolve-kk-extern( imp-path : string, base-dir : path, include-dirs : list<s
       Just(d) -> (d ++ "/" ++ imp-path ++ ".kk").path
       Nothing -> candidate
 
+// Net change in parenthesis depth across a line: +1 per '(', -1 per ')'.
+fun paren-delta( s : string ) : int
+  s.list.foldl(0, fn(d, c) if c == '(' then d + 1 elif c == ')' then d - 1 else d)
+
+// Join multi-line Koka `pub fun` / `pub extern` signatures into single logical
+// lines so the line-by-line signature parser sees the full parameter list.
+// A signature whose `(` opens on one line and closes several lines later is
+// merged (with spaces) up to and including the line that balances the parens.
+// Non-signature lines and single-line signatures pass through unchanged.
+fun join-kk-signatures( lines : list<string> ) : div list<string>
+  join-kk-sig-loop(lines, "", 0, [])
+
+fun join-kk-sig-loop( lines : list<string>, pending : string, depth : int, acc : list<string> ) : div list<string>
+  match lines
+    Nil ->
+      val acc2 = if pending.is-empty then acc else Cons(pending, acc)
+      acc2.reverse
+    Cons(cur, rest) ->
+      val line = cur.trim
+      if depth > 0 then
+        val merged = pending ++ " " ++ line
+        val d = depth + paren-delta(line)
+        if d <= 0 then join-kk-sig-loop(rest, "", 0, Cons(merged, acc))
+        else join-kk-sig-loop(rest, merged, d, acc)
+      else
+        val is-sig = line.starts-with("pub fun ").bool || line.starts-with("pub extern ").bool
+        if is-sig && paren-delta(line) > 0
+          then join-kk-sig-loop(rest, line, paren-delta(line), acc)
+          else join-kk-sig-loop(rest, "", 0, Cons(line, acc))
+
 // Parse `pub extern` declarations from a Koka .kk file and return
 // a type-env usable by the hica checker.
 fun parse-kk-extern-env( kk-file : path )
   if !is-file(kk-file) then []
   else
     val content = read-text-file(kk-file)
-    content.lines.foldl([], fn(acc, raw-line)
+    content.lines.join-kk-signatures.foldl([], fn(acc, raw-line)
       val line = raw-line.trim
       val is-extern  = line.starts-with("pub extern ").bool
       val is-pub-fun = line.starts-with("pub fun ").bool
@@ -1526,7 +1556,7 @@ fun parse-kk-effectful-names( kk-file : path )
   if !is-file(kk-file) then []
   else
     val content = read-text-file(kk-file)
-    content.lines.foldl([], fn(acc, raw-line)
+    content.lines.join-kk-signatures.foldl([], fn(acc, raw-line)
       val line = raw-line.trim
       val is-extern  = line.starts-with("pub extern ").bool
       val is-pub-fun = line.starts-with("pub fun ").bool
@@ -1661,7 +1691,14 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
         // treated as user-re-exported symbols.
         val mod-priv-stdlib = mod-prog.imports.filter(fn(i) !i.is-pub && i.path.starts-with("std/").bool)
         val (stdlib-decls, stdlib-structs, stdlib-types, _, _) = compile-imports(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited), include-dirs)
-        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types, prev-names ++ filtered-names ++ re-names, prev-kk-paths ++ mod-kk-paths ++ re-kk-paths)
+        // Likewise pull in pub symbols from this module's private LOCAL imports so the
+        // checker can resolve references inside pub-decls (e.g. router.hc's pub funs
+        // calling response_status defined in a privately-imported http_server.hc).
+        // These are added to the checker env but NOT to imp-names, so they are never
+        // treated as user-re-exported symbols (transitive imports are not re-exported).
+        val mod-priv-local = mod-prog.imports.filter(fn(i) !i.is-pub && !i.is-extern && !i.path.starts-with("std/").bool)
+        val (local-decls, local-structs, local-types, _, _) = compile-imports(mod-priv-local, imp-dir, Cons(imp-path-str, visited), include-dirs)
+        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls ++ local-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs ++ local-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types ++ local-types, prev-names ++ filtered-names ++ re-names, prev-kk-paths ++ mod-kk-paths ++ re-kk-paths)
   )
 
 // Compile a single imported module to a .kk file.
