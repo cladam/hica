@@ -454,7 +454,7 @@ fun cmd-test( file : string )
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
-      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes))
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes))
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path, dep-includes ++ extra-includes) ++ dep-includes ++ extra-includes
@@ -1394,7 +1394,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, extra-includes), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, extra-includes))
+      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, extra-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, extra-includes))
       write-kk-if-changed(out-kk, koka-code, file)
       print("  => compiling...")
       flush-stdout()
@@ -1502,7 +1502,7 @@ fun parse-kk-extern-env( kk-file : path )
             Cons(_, Cons(s, _)) -> s.trim
             _ -> ""
           val ret-str = kk-parse-ret(after-close)
-          val ret-type = kk-type-to-hica(ret-str)
+          val ret-type = kk-type-to-hica(ret-str, "_r")
           Cons((name, TFun(param-types, ret-type)), acc)
     )
 
@@ -1519,7 +1519,7 @@ fun kk-parse-ret( after-close : string ) : string
 
 // Parse a Koka param list "label : string, min : int" → list of hica types.
 // Each unknown type gets a unique TVar so the checker doesn't over-unify.
-fun parse-kk-param-types( params-str : string ) : list<hica-type>
+fun parse-kk-param-types( params-str : string ) : div list<hica-type>
   if params-str.trim.is-empty then []
   else
     val params = params-str.split(",").filter(fn(p) !p.trim.is-empty)
@@ -1530,20 +1530,37 @@ fun parse-kk-param-types( params-str : string ) : list<hica-type>
         _ -> p.trim   // no colon → treat the whole thing as a type (e.g. "@hica:" style)
       val tp = if type-str == "fun" || type-str == "any"
         then TVar("_a" ++ idx.show)
-        else kk-type-to-hica(type-str)
+        else kk-type-to-hica(type-str, "_p" ++ idx.show)
       (idx + 1, Cons(tp, acc))
     )
     result.reverse
 
-// Map a Koka type keyword to a hica-type.
-fun kk-type-to-hica( t : string ) : hica-type
-  match t.trim.split(" ").head-or("")
+// Map a Koka type to a hica-type. Constructed types (maybe<T>, list<T>) are
+// parsed structurally so their element types are concrete; opaque/unknown types
+// map to a fresh type variable whose name is supplied by the caller (`fresh`) so
+// that distinct positions in a signature never accidentally share a variable.
+fun kk-type-to-hica( t : string, fresh : string = "_a" ) : div hica-type
+  val tt = t.trim
+  match tt.split(" ").head-or("")
     "string"  -> TString
     "int"     -> TInt
     "bool"    -> TBool
     "float64" -> TFloat
     "()"      -> TUnit
-    _         -> TVar("_a")
+    _ ->
+      if tt.starts-with("maybe<").bool && tt.ends-with(">").bool then
+        TMaybe(kk-type-to-hica(kk-strip-generic(tt, 6), fresh ++ "m"))
+      elif tt.starts-with("list<").bool && tt.ends-with(">").bool then
+        TList(kk-type-to-hica(kk-strip-generic(tt, 5), fresh ++ "l"))
+      else TVar(fresh)
+
+// Strip `prefix-len` leading chars (the "maybe<"/"list<" head) and the single
+// trailing ">" from a Koka generic type, leaving the inner type text.
+fun kk-strip-generic( tt : string, prefix-len : int ) : string
+  val inner = tt.slice.sslice/drop(prefix-len).string
+  if inner.ends-with(">").bool
+    then inner.slice.sslice/extend(0 - 1).string.trim
+    else inner.trim
 
 fun head-or( xs : list<string>, default : string ) : string
   match xs
@@ -1783,7 +1800,7 @@ fun compile-module( imp-file : path, visited : list<string>, include-dirs : list
     val imp-type-count = imp-types.length
     val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
     val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
-    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, include-dirs), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, include-dirs))
+    val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, include-dirs) ++ compute-div-names(imp-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, include-dirs))
     // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
     write-kk-if-changed(out-kk, koka-code, imp-file.show)
     Cons(out-kk, sub-kk-paths)

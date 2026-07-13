@@ -1229,8 +1229,18 @@ fun body-calls-any( n : node, names : list<string> ) : div bool
 // Compute the transitive closure of div-needing names.
 // Seed: all self-recursive functions. Then iteratively add any function whose
 // body calls a div-needing function, until no new names are added.
-fun compute-div-names( decls : list<fun-decl> ) : div list<string>
-  var div-names := decls.filter(fn(d) d.is-recursive).map(fn(d) d.name)
+pub fun compute-div-names( decls : list<fun-decl> ) : div list<string>
+  // Seed with functions that are intrinsically divergent. Recursion is detected
+  // STRUCTURALLY from the call graph rather than via the `is-recursive` flag,
+  // because imported decls (parsed fresh) have not had that flag assigned yet.
+  // A function is divergent if it contains a `while` loop, calls itself directly,
+  // or lies on a call cycle (mutual recursion).
+  val all-names = decls.map(fn(d) d.name)
+  var div-names := decls.filter(fn(d)
+    node-has-while(d.body) ||
+    reachable-from(decls, all-names.filter(fn(nm) body-calls-any(d.body, [nm])))
+      .any(fn(nm) nm == d.name)
+  ).map(fn(d) d.name)
   var changed := True
   while { changed }
     changed := False
