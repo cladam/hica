@@ -423,6 +423,27 @@ Issues that exist today but are not yet fixed:
 - **~~`div` effect leakage through non-recursive wrappers~~** — Fixed. Codegen
   now computes transitive `div` names via fixpoint: any function that calls a
   `div`-needing function (directly or transitively) gets `div` annotated.
+  Extended: recursion is now detected **structurally** from the call graph
+  (self-calls and mutual-recursion cycles) rather than relying on the
+  `is-recursive` flag — which imported decls (parsed fresh) don't have set — and
+  `while` loops now seed the div set. `div`-ness of **imported library**
+  functions is propagated into the importer, so a user function annotated with a
+  concrete return type (e.g. `: ServerResponse`) that calls a `div` library
+  function (`parse_json`, `json_emit`, …) correctly omits its total-forcing Koka
+  return annotation instead of failing with an effect mismatch.
+- **~~Transitive imports don't resolve~~** — Fixed. When module A imports B and B
+  privately imports C, B's own `pub` functions can now call C's functions. The
+  checker previously loaded only a direct import's `pub` decls plus its
+  `pub import` re-exports and private stdlib imports — private **local** imports
+  were skipped, so an imported module's dependency calls reported "undefined
+  variable". Transitive imports are still not re-exported to A unless B uses
+  `pub import` (re-export semantics are unchanged).
+- **~~Extern signatures collapse distinct unknown types to one type variable~~** —
+  Fixed. `parse-kk-extern-env`/`kk-type-to-hica` mapped every unrecognised Koka
+  type to the same `TVar("_a")`, so `query_int(req: request) : maybe<int>`
+  registered as `(_a, string) -> _a`, wrongly unifying the parameter with the
+  return type. Now `maybe<T>`/`list<T>` are parsed structurally and each
+  parameter/return position gets a unique type variable.
 - **~~`""`.split(`""`) causes infinite loop~~** — Fixed. Codegen now guards
   empty separator: splits into characters instead of calling Koka's `.split("")`
   which loops infinitely.
