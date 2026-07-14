@@ -240,6 +240,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
+  val file-read-helper = if program-uses-file-io(p) then file-read-helper-code else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val readline-helper = if program-uses-input(p) then readline-helper-code else ""
@@ -306,6 +307,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   get-env-helper ++
   set-env-helper ++
   readline-helper ++
+  file-read-helper ++
   assert-helper ++
   show-maybe-helper ++
   show-result-helper ++
@@ -671,7 +673,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("input"), [prompt]) ->
           "hica-readline-prompt(" ++ emit-expr(prompt, declared) ++ ")"
         (Var("read_file"), [p]) ->
-          "(match try({ read-text-file(" ++ emit-expr(p, declared) ++ ".path) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) })"
+          "hc-file-read(" ++ emit-expr(p, declared) ++ ".path)"
         (Var("write_file"), [p, content]) ->
           "(match try({ write-text-file(" ++ emit-expr(p, declared) ++ ".path, " ++ emit-expr(content, declared) ++ ") }) { Ok(_) -> Right(()); Error(hc__e) -> Left(hc__e.message) })"
         (Var("exec"), [cmd]) ->
@@ -1571,6 +1573,7 @@ fun program-uses-env( p : program ) : div bool
 // that require `import std/os/file` and `import std/os/path`.
 fun program-uses-file-io( p : program ) : div bool
   p.decls.any(fn(d) node-uses-file-io(d.body))
+  || p.tests.any(fn(t) node-uses-file-io(t.body))
 
 fun node-uses-file-io( n : node ) : div bool
   match n.expr
@@ -1937,6 +1940,20 @@ fun node-uses-set-env( n : node ) : div bool
     TupleIndex(t, _)           -> node-uses-set-env(t)
     _                          -> False
 
+// File-IO helper with `io` effect so lambdas calling read_file can be
+// stored as route handlers (which expect `(request) -> io response`).  The
+// inline `try({ read-text-file(...) })` infers a CLOSED `<fsys>` effect
+// because `read-text-file` has monomorphic closed `<exn,fsys>` type and a
+// free effect row variable in the return annotation is not well-quantified
+// without also appearing in a parameter type.  Annotating the helper as `io`
+// makes the effect concrete and correct: `<fsys> ⊆ io` so Koka accepts the
+// body, and callers in an `io` context (e.g. route handlers) get a matching
+// effect without any unification problem.
+val file-read-helper-code : string =
+  "fun hc-file-read(hc__p : path) : io either<string,string>\n" ++
+  "  match try({ read-text-file(hc__p) }) { Ok(hc__c) -> Right(hc__c); Error(hc__e) -> Left(hc__e.message) }\n" ++
+  "\n"
+
 val sort-helper-code : string =
   "fun hc-merge-with( xs, ys, cmp )\n" ++
   "  match xs\n" ++
@@ -2130,6 +2147,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
   val env-import = if program-uses-env(p) then "import std/os/env\n\n" else ""
   val file-import = if program-uses-file-io(p) then "import std/os/file\nimport std/os/path\n\n" else ""
+  val file-read-helper = if program-uses-file-io(p) then file-read-helper-code else ""
   val exec-import = if program-uses-exec(p) then "import std/os/process\n\n" else ""
   val readline-import = if program-uses-input(p) then "import std/os/readline\n\n" else ""
   val readline-helper = if program-uses-input(p) then readline-helper-code else ""
@@ -2201,6 +2219,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   try-maybe-effect ++
   sort-helper ++
   readline-helper ++
+  file-read-helper ++
   assert-helper ++
   show-maybe-helper ++
   show-result-helper ++
