@@ -1473,6 +1473,17 @@ fun join-kk-sig-loop( lines : list<string>, pending : string, depth : int, acc :
           then join-kk-sig-loop(rest, line, paren-delta(line), acc)
           else join-kk-sig-loop(rest, "", 0, Cons(line, acc))
 
+// Strip Koka inline-hint modifiers (noinline/inline/fip/fbip) that may appear
+// between `pub` and `fun`/`extern`, so the signature parsers still recognise the
+// declaration (e.g. `pub noinline fun f(...)` -> `pub fun f(...)`).
+fun kk-strip-inline-mods( line : string ) : string
+  line.replace-all("pub noinline fun ", "pub fun ")
+      .replace-all("pub inline fun ", "pub fun ")
+      .replace-all("pub noinline extern ", "pub extern ")
+      .replace-all("pub inline extern ", "pub extern ")
+      .replace-all("pub fip fun ", "pub fun ")
+      .replace-all("pub fbip fun ", "pub fun ")
+
 // Parse `pub extern` declarations from a Koka .kk file and return
 // a type-env usable by the hica checker.
 fun parse-kk-extern-env( kk-file : path )
@@ -1480,7 +1491,7 @@ fun parse-kk-extern-env( kk-file : path )
   else
     val content = read-text-file(kk-file)
     content.lines.join-kk-signatures.foldl([], fn(acc, raw-line)
-      val line = raw-line.trim
+      val line = kk-strip-inline-mods(raw-line.trim)
       val is-extern  = line.starts-with("pub extern ").bool
       val is-pub-fun = line.starts-with("pub fun ").bool
       if !is-extern && !is-pub-fun then acc
@@ -1574,7 +1585,7 @@ fun parse-kk-effectful-names( kk-file : path )
   else
     val content = read-text-file(kk-file)
     content.lines.join-kk-signatures.foldl([], fn(acc, raw-line)
-      val line = raw-line.trim
+      val line = kk-strip-inline-mods(raw-line.trim)
       val is-extern  = line.starts-with("pub extern ").bool
       val is-pub-fun = line.starts-with("pub fun ").bool
       if !is-extern && !is-pub-fun then acc
