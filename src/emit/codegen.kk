@@ -19,7 +19,7 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
   "raw", "inline", "include", "co", "rec", "open", "extend", "behind",
   "linear", "value", "reference", "named", "scoped", "context", "initially",
-  "finally", "override", "path"]
+  "finally", "override", "path", "raw"]
 
 pub fun safe-module-name( name : string ) : string
   if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
@@ -91,9 +91,18 @@ fun emit-type( t : hica-type ) : div string
 fun struct-type-name( name : string ) : string
   name.to-lower
 
+// Koka builtins that are polymorphic over *any* type (e.g. `id : forall a. a -> a`).
+// A struct field with such a name makes `p.field` ambiguous, because both the
+// generated accessor (`item/id`) and the builtin (`id`) apply to the struct.
+// Fields matching these are marshalled like keywords to avoid the clash.
+// (Monomorphic builtins such as `show`/`length` don't collide — they only apply
+// to their own types, so the accessor is the sole candidate.)
+val koka-polymorphic-builtins = ["id"]
+
 // Marshal a struct/enum field name to avoid Koka keyword clashes.
 fun marshal-field( fname : string ) : string
   if koka-keywords.any(fn(k) k == fname) || koka-reserved-names.any(fn(r) r == fname)
+    || koka-polymorphic-builtins.any(fn(b) b == fname)
     then "hc-" ++ fname
   else fname
 

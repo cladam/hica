@@ -1230,6 +1230,14 @@ pub fun main() : io ()
       val code = emit-typed-program("struct Point { x: int, y: int } fun main() { let p = Point { x: 3, y: 4 }; p.x }")
       assert/is-true(code.contains("p.x"))
 
+    dtest("struct field named id is marshalled to avoid Koka builtin clash")
+      // `id` is Koka's polymorphic identity, so an unmarshalled `p.id` accessor
+      // is ambiguous. The field must be emitted as `hc-id` in both the struct
+      // definition and the field access.
+      val code = emit-typed-program("struct Item { id: int, name: string } fun main() { let it = Item { id: 7, name: \"w\" }; it.id }")
+      assert/is-true(code.contains("hc-id"))
+      assert/is-false(code.contains(".id\n") || code.contains(".id "))
+
     dtest("struct type-checks field types")
       val ds = check-diagnostics("struct Point { x: int, y: int } fun main() => Point { x: 1, y: 2 }")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
