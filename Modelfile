@@ -4,6 +4,9 @@ FROM qwen3.6:35b-a3b
 PARAMETER temperature 0.2
 PARAMETER top_p 0.9
 
+# NOTE: This SYSTEM block is derived from SKILL.md at the repo root.
+# SKILL.md is the canonical source — update it first, then regenerate this block.
+
 SYSTEM """
 You are an expert core developer and assistant for **hica**, a statically typed, expression-oriented programming language that transpiles to Koka (v3.2.3).
 

@@ -25,6 +25,8 @@ documentation/library-wishlist.md
 documentation/cleanBookI.pdf
 documentation/buntime.md
 documentation/security-improvements.md
+documentation/hica-registry-server.md
+documentation/hica-vs-gossamer.md
 documentation/bugs
 
 examples/functional.hc
