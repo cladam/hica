@@ -68,9 +68,20 @@ pub fun js-runtime-preamble() : string
   "  if (typeof v === 'string') return '\"' + v + '\"';\n" ++
   "  return show(v);\n" ++
   "}\n" ++
+  "\n// Prelude: math\n" ++
   "function abs(n) { return Math.abs(n); }\n" ++
   "function min(a, b) { return Math.min(a, b); }\n" ++
   "function max(a, b) { return Math.max(a, b); }\n" ++
+  "function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }\n" ++
+  "function sign(n) { return n > 0 ? 1 : n < 0 ? -1 : 0; }\n" ++
+  "function pow(base, exp) { let r = 1; for (let i = 0; i < exp; i++) r *= base; return r; }\n" ++
+  "function gcd(a, b) { while (b !== 0) { const t = b; b = a % b; a = t; } return Math.abs(a); }\n" ++
+  "function lcm(a, b) { return (a === 0 || b === 0) ? 0 : Math.abs(a * b) / gcd(a, b); }\n" ++
+  "function isqrt(n) { if (n <= 0) return 0; let x = Math.floor(Math.sqrt(n)); while (x * x > n) x--; while ((x+1)*(x+1) <= n) x++; return x; }\n" ++
+  "function sqrt(x) { return Math.sqrt(x); }\n" ++
+  "function floor(x) { return Math.floor(x); }\n" ++
+  "function ceil(x) { return Math.ceil(x); }\n" ++
+  "function round(x) { return Math.round(x); }\n" ++
   "function str_length(s) { return s.length; }\n" ++
   "function contains(s, sub) { return s.includes(sub); }\n" ++
   "function split(s, sep) { return sep === '' ? [...s] : s.split(sep); }\n" ++
