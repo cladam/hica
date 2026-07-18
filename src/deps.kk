@@ -182,31 +182,55 @@ fun fetch-registry-install( safe-name : string, version : string, dep-dir : path
   val meta     = http-get(meta-url)
   if meta.is-empty then
     println("error: package '" ++ safe-name ++ "@" ++ version ++ "' not found in registry")
+    flush-stdout()
     Nothing
   else
     match json-get-str(meta, "tarball")
       Nothing ->
         println("error: malformed registry metadata for '" ++ safe-name ++ "'")
+        flush-stdout()
         Nothing
       Just(tarball-url) ->
         val tmp-tar = "/tmp/hica-" ++ safe-name ++ "-" ++ version ++ ".tar.gz"
         println("  fetching " ++ safe-name ++ " (" ++ version ++ ") from registry")
+        flush-stdout()
         val dl-code = http-download(tarball-url, tmp-tar)
         if dl-code != 0 then
           println("error: failed to download '" ++ safe-name ++ "' from " ++ tarball-url)
+          flush-stdout()
           Nothing
         else
-          val quoted-dir = "\"" ++ dep-dir.show ++ "\""
-          val mkdir-exit = run-system("mkdir -p " ++ quoted-dir)
+          // Extract to a temporary directory first so that a failed extraction does not leave
+          // an empty dep-dir behind. An empty dep-dir would cause is-directory() to return
+          // true on the next run, silently skipping the download and producing incomplete
+          // packages (e.g. missing .c inline files that are referenced by .kk FFI modules).
+          val tmp-dir-str  = dep-dir.show ++ ".tmp"
+          val quoted-tmp   = "\"" ++ tmp-dir-str ++ "\""
+          val quoted-dir   = "\"" ++ dep-dir.show ++ "\""
+          // Clean up any leftover temp dir from a previous failed attempt.
+          val _ = run-system("rm -rf " ++ quoted-tmp)
+          val mkdir-exit = run-system("mkdir -p " ++ quoted-tmp)
           if mkdir-exit != 0 then
-            println("error: failed to create cache directory for '" ++ safe-name ++ "'")
+            println("error: failed to create staging directory for '" ++ safe-name ++ "'")
+            flush-stdout()
             Nothing
           else
-            val tar-exit = run-system("tar -xzf " ++ tmp-tar ++ " -C " ++ quoted-dir)
+            val tar-exit = run-system("tar -xzf " ++ tmp-tar ++ " -C " ++ quoted-tmp)
             if tar-exit != 0 then
+              // Clean up the incomplete staging dir so future runs can retry.
+              val _ = run-system("rm -rf " ++ quoted-tmp)
               println("error: failed to extract '" ++ safe-name ++ "'")
+              flush-stdout()
               Nothing
-            else Just(dep-dir)
+            else
+              // Atomically move the staging dir to the final location.
+              val mv-exit = run-system("mv " ++ quoted-tmp ++ " " ++ quoted-dir)
+              if mv-exit != 0 then
+                val _ = run-system("rm -rf " ++ quoted-tmp)
+                println("error: failed to install '" ++ safe-name ++ "'")
+                flush-stdout()
+                Nothing
+              else Just(dep-dir)
 
 // Reject strings containing shell metacharacters to prevent command injection.
 fun safe-shell-arg( s : string ) : maybe<string>
