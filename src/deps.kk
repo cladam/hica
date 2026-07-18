@@ -15,6 +15,9 @@ import std/os/path
 import std/os/process
 import http
 
+extern flush-stdout() : io ()
+  c inline "fflush(stdout)"
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
