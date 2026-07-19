@@ -11,9 +11,6 @@
 //   stream(xs).filter(f).map(g).take(n).collect()
 //   ─────────────────────────── single pass ──────
 //
-// NOTE: std/stream is not yet implemented. This file is the API design
-// that drives the implementation.
-//
 // Import with: import "std/stream"
 
 import "std/stream"

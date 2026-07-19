@@ -8,7 +8,7 @@ title: Standard Library - hica
 hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`, `std/stream`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -232,6 +232,69 @@ fun main() {
     Some(w) => println(w),               // hi
     None => println("empty")
   }
+}
+```
+
+## Lazy Streams (`std/stream`, `import "std/stream"` required)
+
+Lazy streams compose transformation steps into a single traversal pass, avoiding intermediate list allocations and enabling early termination (stopping the generator as soon as required conditions are met).
+
+A `Stream<a>` is represented as a thunk-linked list structure. Lazy transformations (like `filter`, `map`, etc.) wrap and delay evaluation until a terminator (such as `collect`, `fold`, or `foreach`) is called to run the pipeline.
+
+### Entry Point & Transformations
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `stream(xs)` | `(list<a>) -> stream_t<a>` | Create a lazy stream from an eager list |
+| `filter(s, pred)` | `(stream_t<a>, (a) -> bool) -> stream_t<a>` | Keep only elements where the predicate returns true |
+| `map(s, f)` | `(stream_t<a>, (a) -> b) -> stream_t<b>` | Transform each element using function `f` |
+| `flat_map(s, f)` | `(stream_t<a>, (a) -> stream_t<b>) -> stream_t<b>` | Map each element to a stream, then flatten into a single stream |
+| `take(s, n)` | `(stream_t<a>, int) -> stream_t<a>` | Limit the stream to the first `n` elements; stops the generator early |
+| `take_while(s, pred)` | `(stream_t<a>, (a) -> bool) -> stream_t<a>` | Yield elements while the predicate holds; terminates on the first failure |
+| `drop_while(s, pred)` | `(stream_t<a>, (a) -> bool) -> stream_t<a>` | Skip elements while the predicate holds, then yield the rest |
+| `zip(s1, s2)` | `(stream_t<a>, stream_t<b>) -> stream_t<(a, b)>` | Pair elements element-by-element; terminates when either stream ends |
+| `enumerate(s)` | `(stream_t<a>) -> stream_t<(int, a)>` | Pair each element with its 0-based index |
+
+### Terminators (Forces Stream Evaluation)
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `collect(s)` | `(stream_t<a>) -> list<a>` | Materialise the stream back into an eager list |
+| `fold(s, init, f)` | `(stream_t<a>, b, (b, a) -> b) -> b` | Reduce the stream to a single value without building any intermediate lists |
+| `foreach(s, f)` | `(stream_t<a>, (a) -> ()) -> ()` | Call `f` on each element for side effects (inherits and infers any effects like `io` from `f`) |
+
+```hica
+import "std/stream"
+import "std/list"
+
+fun main() {
+  // 1. Basic pipeline with zero intermediate list allocations:
+  let lazy_result = stream([1..20])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(5)
+    .collect()
+  println("stream: {lazy_result}") // [4, 16, 36, 64, 100]
+
+  // 2. Early termination (source stops generating after finding 3 matches):
+  let first_threes = stream([1..1000])
+    .filter((x) => x % 7 == 0)
+    .take(3)
+    .collect()
+  println("first 3 multiples of 7: {first_threes}") // [7, 14, 21]
+
+  // 3. Fold without materialising lists:
+  let sum_squares = stream([1..1000])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(10)
+    .fold(0, (acc, x) => acc + x)
+  println("sum: {sum_squares}") // 1540
+
+  // 4. Zip and Enumerate:
+  let words = ["hello", "hica"]
+  let indexed = stream(words).enumerate().collect()
+  println(indexed) // [(0, "hello"), (1, "hica")]
 }
 ```
 
