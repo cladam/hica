@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 40 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 42 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 hica run learn/01-hello.hc
@@ -54,6 +54,8 @@ hica run learn/02-arrow.hc
 | 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `lcm`, `pow`, `sign`, `sqrt`, `floor`, `ceil`, `round`, `to_float`, `chars`, `from_chars` |
 | 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `is_valid_date`, `datetime_kind`, `date_parts`, `time_parts`, `is_before`, `day_of_week`, `offset_to_minutes` (`import "std/datetime"`) |
 | 40 | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)     | Glob matching & char classification | `is_digit`, `is_alpha`, `is_upper`, `is_lower`, `all_digits`, `all_upper`, `glob_match`, `glob_match_path` |
+| 41 | [`41-opaque-struct.hc`](https://github.com/cladam/hica/blob/main/learn/41-opaque-struct.hc) | Opaque Structs | `opaque struct`, `pub struct ... priv`, private constructors, type-safe boundaries |
+| 42 | [`42-streams.hc`](https://github.com/cladam/hica/blob/main/learn/42-streams.hc) | Lazy Streams | `stream`, lazy pipelines (`filter`, `map`, `take`), terminators (`collect`, `fold`), zero-allocation efficiency |
 
 ## Language features shown
 
