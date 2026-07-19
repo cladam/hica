@@ -119,6 +119,8 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
       TMaybe(apply-subst(s, elem))
     TResult(ok, err) ->
       TResult(apply-subst(s, ok), apply-subst(s, err))
+    TStream(elem) ->
+      TStream(apply-subst(s, elem))
     TStruct(_) -> t
     TEnum(_)   -> t
     _ -> t
@@ -161,6 +163,7 @@ fun occurs-in( name : string, t : hica-type ) : div bool
     TList(elem)      -> occurs-in(name, elem)
     TMaybe(elem)     -> occurs-in(name, elem)
     TResult(ok, err) -> occurs-in(name, ok) || occurs-in(name, err)
+    TStream(elem)    -> occurs-in(name, elem)
     TStruct(_)       -> False
     TEnum(_)         -> False
     _                -> False
@@ -198,6 +201,8 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
       val s1 = unify(o1, o2, sp)
       val s2 = unify(apply-subst(s1, e1), apply-subst(s1, e2), sp)
       compose-subst(s2, s1)
+    (TStream(e1), TStream(e2)) ->
+      unify(e1, e2, sp)
     (TFun(ps1, r1), TFun(ps2, r2)) ->
       if ps1.length != ps2.length then
         emit-error(sp, "function arity mismatch: expected " ++ ps1.length.show ++ " params, got " ++ ps2.length.show)
@@ -266,6 +271,7 @@ fun collect-tvars( t : hica-type ) : div list<string>
     TList(elem)      -> collect-tvars(elem)
     TMaybe(elem)     -> collect-tvars(elem)
     TResult(ok, err) -> collect-tvars(ok) ++ collect-tvars(err)
+    TStream(elem)    -> collect-tvars(elem)
     _                -> []
 
 // Replace TVars according to a mapping.
@@ -280,6 +286,7 @@ fun apply-rename( mapping : list<(string, hica-type)>, t : hica-type ) : div hic
     TList(elem)     -> TList(apply-rename(mapping, elem))
     TMaybe(elem)    -> TMaybe(apply-rename(mapping, elem))
     TResult(ok, err) -> TResult(apply-rename(mapping, ok), apply-rename(mapping, err))
+    TStream(elem)   -> TStream(apply-rename(mapping, elem))
     TEnum(_)        -> t
     _               -> t
 
@@ -311,6 +318,18 @@ fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div
 // ---------------------------------------------------------------------------
 // Type inference
 // ---------------------------------------------------------------------------
+
+// Helper to infer generic calls (not intercepted by stream or other dispatch)
+fun infer-generic-call( env : type-env, s : subst, callee : node, args : list<node>, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
+  val (s1, callee') = infer(env, s, callee)
+  val (s2, args') = infer-args(env, s1, args)
+  val callee-type = apply-subst(s2, get-type(callee'))
+  val arg-types = args'.map(fn(a) apply-subst(s2, get-type(a)))
+  val ret-var = fresh-tvar()
+  val expected = TFun(arg-types, ret-var)
+  val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
+  val result-type = apply-subst(s3, ret-var)
+  (s3, Node(n.span, Call(callee', args'), Just(result-type)))
 
 // Infer a node inside a loop body context (sets in-loop to True).
 fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
@@ -433,17 +452,98 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
               val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
               val result-type = apply-subst(s3, ret-var)
               (s3, Node(n.span, Call(callee', [arg']), Just(result-type)))
+        // --- Stream dispatch ---
+        // When the first argument is stream<a>, redirect to stream operations.
+        // These share names with list operations; Koka resolves by type.
+        (Var("filter"), [src, pred]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val (s2, pred') = infer(env, s1, pred)
+              val s3 = compose-subst(unify(get-type(pred'), TFun([apply-subst(s2, elem)], TBool), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', pred']), Just(TStream(apply-subst(s3, elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, pred], n)
+        (Var("map"), [src, f]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val ret-elem = fresh-tvar()
+              val (s2, f') = infer(env, s1, f)
+              val s3 = compose-subst(unify(get-type(f'), TFun([apply-subst(s2, elem)], ret-elem), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', f']), Just(TStream(apply-subst(s3, ret-elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, f], n)
+        (Var("take"), [src, cnt]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val (s2, cnt') = infer(env, s1, cnt)
+              val s3 = compose-subst(unify(get-type(cnt'), TInt, n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', cnt']), Just(TStream(apply-subst(s3, elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, cnt], n)
+        (Var("take_while"), [src, pred]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val (s2, pred') = infer(env, s1, pred)
+              val s3 = compose-subst(unify(get-type(pred'), TFun([apply-subst(s2, elem)], TBool), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', pred']), Just(TStream(apply-subst(s3, elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, pred], n)
+        (Var("drop_while"), [src, pred]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val (s2, pred') = infer(env, s1, pred)
+              val s3 = compose-subst(unify(get-type(pred'), TFun([apply-subst(s2, elem)], TBool), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', pred']), Just(TStream(apply-subst(s3, elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, pred], n)
+        (Var("flat_map"), [src, f]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val ret-elem = fresh-tvar()
+              val (s2, f') = infer(env, s1, f)
+              val s3 = compose-subst(unify(get-type(f'), TFun([apply-subst(s2, elem)], TStream(ret-elem)), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', f']), Just(TStream(apply-subst(s3, ret-elem)))))
+            _ -> infer-generic-call(env, s, callee, [src, f], n)
+        (Var("zip"), [s1arg, s2arg]) ->
+          val (s1, s1arg') = infer(env, s, s1arg)
+          match apply-subst(s1, get-type(s1arg'))
+            TStream(elem1) ->
+              val elem2 = fresh-tvar()
+              val (s2, s2arg') = infer(env, s1, s2arg)
+              val s3 = compose-subst(unify(get-type(s2arg'), TStream(elem2), n.span), s2)
+              val pair-type = TTuple([apply-subst(s3, elem1), apply-subst(s3, elem2)])
+              (s3, Node(n.span, Call(callee, [s1arg', s2arg']), Just(TStream(pair-type))))
+            _ -> infer-generic-call(env, s, callee, [s1arg, s2arg], n)
+        (Var("enumerate"), [src]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              (s1, Node(n.span, Call(callee, [src']), Just(TStream(TTuple([TInt, apply-subst(s1, elem)])))))
+            _ -> infer-generic-call(env, s, callee, [src], n)
+        (Var("fold"), [src, init, f]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val acc-type = fresh-tvar()
+              val (s2, init') = infer(env, s1, init)
+              val s3 = compose-subst(unify(get-type(init'), acc-type, n.span), s2)
+              val (s4, f') = infer(env, s3, f)
+              val acc' = apply-subst(s4, acc-type)
+              val elem' = apply-subst(s4, elem)
+              val s5 = compose-subst(unify(get-type(f'), TFun([acc', elem'], acc'), n.span), s4)
+              (s5, Node(n.span, Call(callee, [src', init', f']), Just(apply-subst(s5, acc-type))))
+            _ -> infer-generic-call(env, s, callee, [src, init, f], n)
+        (Var("foreach"), [src, f]) ->
+          val (s1, src') = infer(env, s, src)
+          match apply-subst(s1, get-type(src'))
+            TStream(elem) ->
+              val (s2, f') = infer(env, s1, f)
+              val s3 = compose-subst(unify(get-type(f'), TFun([apply-subst(s2, elem)], TUnit), n.span), s2)
+              (s3, Node(n.span, Call(callee, [src', f']), Just(TUnit)))
+            _ -> infer-generic-call(env, s, callee, [src, f], n)
         _ ->
-          // Generic handler
-          val (s1, callee') = infer(env, s, callee)
-          val (s2, args') = infer-args(env, s1, args)
-          val callee-type = apply-subst(s2, get-type(callee'))
-          val arg-types = args'.map(fn(a) apply-subst(s2, get-type(a)))
-          val ret-var = fresh-tvar()
-          val expected = TFun(arg-types, ret-var)
-          val s3 = compose-subst(unify(callee-type, expected, n.span), s2)
-          val result-type = apply-subst(s3, ret-var)
-          (s3, Node(n.span, Call(callee', args'), Just(result-type)))
+          infer-generic-call(env, s, callee, args, n)
 
     // --- Binary operators ---
     Binary(op, lhs, rhs) ->

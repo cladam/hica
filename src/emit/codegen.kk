@@ -22,7 +22,7 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "finally", "override", "path", "raw", "prefix"]
 
 pub fun safe-module-name( name : string ) : string
-  if koka-keywords.any(fn(k) k == name) then "hc-" ++ name
+  if name == "stream" || koka-keywords.any(fn(k) k == name) then "hc-" ++ name
   else match name.list
     Cons(c, _) | c.is-digit -> "hc" ++ name
     _                       -> name
@@ -74,6 +74,9 @@ fun emit-type( t : hica-type ) : div string
       val ok-str = emit-type(o)
       val err-str = emit-type(e)
       if ok-str == "" || err-str == "" then "" else "either<" ++ err-str ++ ", " ++ ok-str ++ ">"
+    TStream(e) ->
+      val inner = emit-type(e)
+      if inner == "" then "" else "hc-stream/stream-t<" ++ inner ++ ">"
     TFun(ps, r) ->
       val param-strs = ps.map(fn(p) emit-type(p))
       val ret-str = emit-type(r)
@@ -515,6 +518,11 @@ fun fix-string-escapes( s : string ) : string
    .replace-all("\\b",  "\\x08")   // typed \b escape    → \x08
    .replace-all("\\f",  "\\x0c")   // typed \f escape    → \x0c
 
+fun is-tstream( mt : maybe<hica-type> ) : bool
+  match mt
+    Just(TStream(_)) -> True
+    _                -> False
+
 fun emit-expr( n : node, declared : list<string> ) : div string
   match n.expr
     Literal(LitInt(i))      -> i.show
@@ -608,7 +616,10 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Just(TEnum(en))    -> "println(" ++ en.to-lower ++ "/show(" ++ emit-expr(arg, declared) ++ "))"
             _             -> "println(" ++ emit-expr(arg, declared) ++ ".show)"
         (Var("enumerate"), [arg]) ->
-          emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
+          if arg.typ.is-tstream then
+            "hc-stream/enumerate(" ++ emit-expr(arg, declared) ++ ")"
+          else
+            emit-expr(arg, declared) ++ ".map-indexed(fn(hc__i, hc__x) (hc__i, hc__x))"
         // --- String utilities ---
         (Var("str_length"), [s]) ->
           emit-expr(s, declared) ++ ".count"
@@ -873,13 +884,19 @@ fun emit-expr( n : node, declared : list<string> ) : div string
         (Var("flat_map"), [xs, f]) ->
           val xs-code = emit-expr(xs, declared)
           val f-code = emit-expr(f, declared)
-          if f.expr.is-fun-multiline then
-            // Trailing-lambda form: a wrapping `)` placed after a multiline lambda
-            // body (match/if/let block) is absorbed by Koka's layout parser
-            // (`unexpected ")"`). Emitting `xs.flatmap fn(...) ...` avoids the paren.
-            xs-code ++ ".flatmap " ++ f-code
+          if xs.typ.is-tstream then
+            if f.expr.is-fun-multiline then
+              xs-code ++ " .hc-stream/flat-map " ++ f-code
+            else
+              "hc-stream/flat-map(" ++ xs-code ++ ", " ++ f-code ++ ")"
           else
-            xs-code ++ ".flatmap(" ++ f-code ++ ")"
+            if f.expr.is-fun-multiline then
+              // Trailing-lambda form: a wrapping `)` placed after a multiline lambda
+              // body (match/if/let block) is absorbed by Koka's layout parser
+              // (`unexpected ")"`). Emitting `xs.flatmap fn(...) ...` avoids the paren.
+              xs-code ++ ".flatmap " ++ f-code
+            else
+              xs-code ++ ".flatmap(" ++ f-code ++ ")"
         (Var("sort_by"), [xs, f]) ->
           val xs-code = emit-expr(xs, declared)
           val f-code = emit-expr(f, declared)
@@ -902,7 +919,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 
         // Char/string conversions
         (Var("chars"), [s]) ->
-          emit-expr(s, declared) ++ ".list"
+          emit-expr(s, declared) ++ ".string/list"
         (Var("from_chars"), [cs]) ->
           emit-expr(cs, declared) ++ ".string"
         (Var("chr"), [x]) ->
@@ -914,10 +931,51 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 
         _ ->
           val callee-code = match callee.expr
-            Var("fold")   -> "foldl"
+            Var("fold")   ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/fold"
+                _ -> "foldl"
             Var("length") -> "list/length"
             Var("cons")   -> "Cons"
             Var("show")   -> "show"
+            Var("stream") -> "hc-stream/stream"
+            Var("collect") -> "hc-stream/collect"
+            Var("filter") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/filter"
+                _ -> emit-expr(callee, declared)
+            Var("map") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/map"
+                _ -> emit-expr(callee, declared)
+            Var("take") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/take"
+                _ -> emit-expr(callee, declared)
+            Var("take_while") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/take-while"
+                _ -> emit-expr(callee, declared)
+            Var("drop_while") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/drop-while"
+                _ -> emit-expr(callee, declared)
+            Var("flat_map") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/flat-map"
+                _ -> emit-expr(callee, declared)
+            Var("zip") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/zip"
+                _ -> emit-expr(callee, declared)
+            Var("enumerate") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/enumerate"
+                _ -> emit-expr(callee, declared)
+            Var("foreach") ->
+              match args
+                Cons(h, _) | h.typ.is-tstream -> "hc-stream/foreach"
+                _ -> emit-expr(callee, declared)
             _             -> emit-expr(callee, declared)
           // Use trailing lambda syntax when the last argument is a multiline lambda.
           // For non-trailing multiline args (e.g. `f((fn(n) { let x = ...; x }), 5)`)

@@ -28,12 +28,15 @@ documentation/security-improvements.md
 documentation/hica-registry-server.md
 documentation/hica-vs-gossamer.md
 documentation/bugs
+documentation/notes
 
 examples/functional.hc
 
 .koka/
 .hica/
 .DS_Store
+
+.clinerules
 
 # hica binary
 hica

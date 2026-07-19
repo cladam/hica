@@ -24,6 +24,7 @@ STDLIB_FILES=(
   "std/dotenv:stdlib/std/dotenv.hc"
   "std/log:stdlib/std/log.hc"
   "std/trusted:stdlib/std/trusted.hc"
+  "std/stream:stdlib/std/stream.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."

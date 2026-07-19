@@ -137,7 +137,7 @@ fun foreach_demo() {
   // The stream's foreach therefore also carries `io`.
   stream([1..5])
     .map((x) => x * x)
-    .foreach((x) => println("square: {x}"))
+    .foreach((x) => println("square: {show(x)}"))
 }
 
 // ---------------------------------------------------------------------------

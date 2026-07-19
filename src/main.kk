@@ -29,6 +29,7 @@ import format/formatter
 import klap
 import prelude-bundle
 import stdlib-bundle
+import stream-kk-bundle
 import deps
 import http
 
@@ -1281,6 +1282,17 @@ fun hica-stdlib-dir() : io path
     else get-env-value("HOME").default(".")
   (home ++ "/.hica/stdlib").path
 
+fun extract-kk-stdlib() : io ()
+  val stdlib-dir = hica-stdlib-dir()
+  ensure-dir(stdlib-dir)
+  embedded-kk-stdlib-sources().foreach fn(pair)
+    val name = pair.fst
+    val source = pair.snd
+    val kk-file = stdlib-dir / (name ++ ".kk").path
+    val existing = if is-file(kk-file) then read-text-file(kk-file) else ""
+    if existing != source then
+      write-text-file(kk-file, source)
+
 fun find-stdlib-source( mod-path : string ) : maybe<string>
   match embedded-stdlib-sources().find(fn(pair) pair.fst == mod-path)
     Just(pair) -> Just(pair.snd)
@@ -1892,6 +1904,7 @@ fun compile-koka( file : string, mod-name : string, include-dirs : list<string> 
   // Always include ~/.hica/stdlib so stdlib imports (std/term etc.) resolve
   val stdlib-dir = hica-stdlib-dir()
   ensure-dir(stdlib-dir)
+  extract-kk-stdlib()
   val inc-flags = include-dirs.map(fn(d) " -i" ++ d).join("") ++ " -i" ++ stdlib-dir.show
   val opt-flag = "-O" ++ opt-level
   val extra = if koka-flags.is-empty then "" else " " ++ koka-flags

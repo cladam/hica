@@ -43,6 +43,7 @@ pub type hica-type
   TList( elem : hica-type )
   TMaybe( elem : hica-type )
   TResult( ok-type : hica-type, err-type : hica-type )
+  TStream( elem : hica-type )
   TFun( params : list<hica-type>, result : hica-type )
   TStruct( name : string )
   TEnum( name : string )
@@ -60,6 +61,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TList(e)    -> "list<" ++ e.show ++ ">"
     TMaybe(e)   -> "maybe<" ++ e.show ++ ">"
     TResult(o, e) -> "result<" ++ o.show ++ ", " ++ e.show ++ ">"
+    TStream(e)  -> "stream<" ++ e.show ++ ">"
     TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
     TStruct(n)  -> n
     TEnum(n)    -> n
@@ -78,6 +80,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TList(a), TList(b)) -> a == b
     (TMaybe(a), TMaybe(b)) -> a == b
     (TResult(o1, e1), TResult(o2, e2)) -> o1 == o2 && e1 == e2
+    (TStream(a), TStream(b)) -> a == b
     (TVar(a), TVar(b)) -> a == b
     (TStruct(a), TStruct(b)) -> a == b
     (TEnum(a), TEnum(b)) -> a == b

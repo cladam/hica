@@ -569,6 +569,11 @@ fun parse-type() : <div,parser> hica-type
           val elem = parse-type()
           expect(">", fn(k) match k { TkGt -> True; _ -> False })
           TMaybe(elem)
+        "stream" ->
+          expect("<", fn(k) match k { TkLt -> True; _ -> False })
+          val elem = parse-type()
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          TStream(elem)
         "result" ->
           expect("<", fn(k) match k { TkLt -> True; _ -> False })
           val ok-t = parse-type()
