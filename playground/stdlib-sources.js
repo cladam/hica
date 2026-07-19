@@ -106,6 +106,64 @@ pub fun unique(xs: list<int>) : list<int> => fold(xs, [], (acc, x) => if x in ac
 pub fun chunks(xs, n) => match xs {
   [] => [],
   _ => [take(xs, n)] + chunks(drop(xs, n), n)
+}
+
+// --- Head/Tail helpers ---
+
+// First element or a default value (avoids unwrapping maybe after length check)
+pub fun head_or(xs, default) => match xs {
+  [] => default,
+  [x, ..] => x
+}
+
+// --- Prefix/Suffix predicates ---
+
+// Take elements from the front while predicate holds
+pub fun take_while(xs, pred) => match xs {
+  [] => [],
+  [x, ..rest] => if pred(x) { [x] + take_while(rest, pred) } else { [] }
+}
+
+// Drop elements from the front while predicate holds; return the rest
+pub fun drop_while(xs, pred) => match xs {
+  [] => [],
+  [x, ..rest] => if pred(x) { drop_while(rest, pred) } else { xs }
+}
+
+// --- Counting ---
+
+// Count elements matching predicate
+pub fun count(xs, pred) => fold(xs, 0, (acc, x) => if pred(x) { acc + 1 } else { acc })
+
+// --- Grouping ---
+
+// Internal helper: insert item into existing (key, group) pair list
+pub fun group_by_insert(pairs, key: string, item) => match pairs {
+  [] => [(key, [item])],
+  [p, ..rest] => match p {
+    (k, vs) => if k == key { [(k, vs + [item])] + rest } else { [(k, vs)] + group_by_insert(rest, key, item) }
+  }
+}
+
+// Group elements by key function f(x) -> string; returns list of (key, group) pairs
+pub fun group_by(xs, f) => fold(xs, [], (acc, x) => group_by_insert(acc, f(x), x))
+
+// --- Min/Max by key ---
+
+// Internal helpers (pub required for stdlib modules)
+pub fun pick_min(a, b, ka: int, kb: int) => if ka < kb { a } else { b }
+pub fun pick_max(a, b, ka: int, kb: int) => if ka > kb { a } else { b }
+
+// Element with the smallest int key (None on empty list)
+pub fun min_by(xs, f) => match xs {
+  [] => None,
+  [first, ..rest] => Some(fold(rest, first, (best, x) => pick_min(x, best, f(x), f(best))))
+}
+
+// Element with the largest int key (None on empty list)
+pub fun max_by(xs, f) => match xs {
+  [] => None,
+  [first, ..rest] => Some(fold(rest, first, (best, x) => pick_max(x, best, f(x), f(best))))
 }`],
   ["std/string", `// hica – string stdlib module
 //
@@ -141,7 +199,18 @@ pub fun shout(s: string) : string => to_upper(s) + "!"
 
 pub fun removesuffix(s: string, suf: string) : string =>
   if ends_with(s, suf) { s[:str_length(s) - str_length(suf)] }
-  else { s }`],
+  else { s }
+
+// --- Float formatting ---
+
+// show() for floats inherits Koka's %g formatting which drops the decimal
+// point for whole numbers (1.0 → "1"). show_float always includes it,
+// making it correct for formats like JSON that require 1.0 not "1".
+// Scientific notation (1e+10) is left unchanged — it already signals float.
+pub fun show_float(n: float) : string =>
+  let s = show(n)
+  if contains(s, ".") || contains(s, "e") { s }
+  else { s + ".0" }`],
   ["std/term", `// hica standard library — terminal colors and styles
 //
 // ANSI escape code wrappers for colored/styled terminal output.
@@ -223,7 +292,7 @@ pub fun term_rgb(r: int, g: int, b: int, s: string) : string =>
 // Requires true color terminal support (iTerm2, VS Code, most modern terminals).
 // ---------------------------------------------------------------------------
 
-pub fun ilseon_teal(s: string) : string => term_rgb(0, 191, 165, s)       // #00BFA5  TealAccent — primary action
+pub fun ilseon_teal(s: string) : string => term_rgb(0, 191, 165, s)        // #00BFA5  TealAccent — primary action
 pub fun ilseon_muted_red(s: string) : string => term_rgb(179, 95, 95, s)   // #B35F5F  MutedRed — urgent / priority high
 pub fun ilseon_amber(s: string) : string => term_rgb(192, 138, 62, s)      // #C08A3E  QuietAmber — priority medium
 pub fun ilseon_ochre(s: string) : string => term_rgb(226, 176, 94, s)      // #E2B05E  StatusHigh — warm ochre / high energy
@@ -232,5 +301,9 @@ pub fun ilseon_slate(s: string) : string => term_rgb(125, 133, 151, s)     // #7
 pub fun ilseon_muted_teal(s: string) : string => term_rgb(90, 155, 128, s) // #5A9B80  MutedTeal — green-teal accent
 pub fun ilseon_blue_teal(s: string) : string => term_rgb(76, 154, 155, s)  // #4C9A9B  BlueTeal — secondary highlight
 pub fun ilseon_slate_blue(s: string) : string => term_rgb(94, 109, 126, s) // #5E6D7E  SlateBlue — quiet UI element
-pub fun ilseon_detail(s: string) : string => term_rgb(136, 136, 136, s)    // #888888  MutedDetail — secondary text / low priority`],
+pub fun ilseon_detail(s: string) : string => term_rgb(136, 136, 136, s)    // #888888  MutedDetail — secondary text / low priority
+
+// ----------------------------------------------------------------------------
+// hica unique palette
+// ---------------------------------------------------------------------------- `],
 ];
