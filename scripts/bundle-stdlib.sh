@@ -26,6 +26,8 @@ STDLIB_FILES=(
   "std/trusted:stdlib/std/trusted.hc"
   "std/stream:stdlib/std/stream.hc"
   "std/xform:stdlib/std/xform.hc"
+  "std/nel:stdlib/std/nel.hc"
+  "std/validated:stdlib/std/validated.hc"
 )
 
 echo "Bundling ${#STDLIB_FILES[@]} stdlib file(s) into $OUT ..."

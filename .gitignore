@@ -60,3 +60,5 @@ documentation/hica-for-kids-book/book/
 
 # choreo reports
 reports/
+tests/test-validated-hica.kk
+tests/test-validated-hica
