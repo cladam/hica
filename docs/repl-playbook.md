@@ -98,6 +98,23 @@ hica=> match Green { Red => 0, Green => 1, Blue => 2 }
 1
 ```
 
+## Imports and Modules
+
+You can import standard library modules or local modules directly in the REPL:
+
+```hica
+hica=> import "std/list"
+  imported: std/list
+hica=> head_or([1, 2, 3], 0)
+1
+hica=> import "std/string"
+  imported: std/string
+hica=> capitalise("hello")
+Hello
+```
+
+When loading files containing imports (using `:load <file>`), those imports are also resolved, compiled, and loaded automatically.
+
 ## Pattern Matching
 
 ```hica
