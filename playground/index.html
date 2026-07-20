@@ -786,7 +786,7 @@ function run() {
       let stdlibSources = null;
       const rawStdlib = typeof STDLIB_SOURCES !== 'undefined' ? STDLIB_SOURCES : [];
       for (let i = rawStdlib.length - 1; i >= 0; i--) {
-        stdlibSources = { fst: rawStdlib[i][0], snd: rawStdlib[i][1], tail: stdlibSources };
+        stdlibSources = { head: { fst: rawStdlib[i][0], snd: rawStdlib[i][1] }, tail: stdlibSources };
       }
       const result = hica.compile_to_js(source, preludeSources, stdlibSources);
       const compileMs = (performance.now() - t0).toFixed(0);
