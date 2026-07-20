@@ -31024,21 +31024,21 @@ var __hica = (() => {
     } else if (n_0.expr._tag === 27) {
       return _lp__plus__plus__rp_("const [", _lp__plus__plus__rp_(joinsep(n_0.expr.names, ", "), _lp__plus__plus__rp_("] = ", _lp__plus__plus__rp_(emit_js_expr(n_0.expr.init), _lp__plus__plus__rp_(";\n", emit_js_return(n_0.expr.body))))));
     } else if (n_0.expr._tag === 16) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 14) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 15) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 13) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 17) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 18) {
       return "break;";
     } else if (n_0.expr._tag === 19) {
       return "continue;";
     } else if (n_0.expr._tag === 5) {
-      return emit_js_stmt(n_0);
+      return _lp__plus__plus__rp_(emit_js_stmt(n_0), "\nreturn;");
     } else if (n_0.expr._tag === 10) {
       var s_20_10146 = emit_js_return(n_0.expr.then_expr);
       var v_10011_8 = s_20_10146.split("\n");

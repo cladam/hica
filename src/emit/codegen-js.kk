@@ -263,14 +263,14 @@ fun emit-js-return( n : node ) : div string
       "let " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-return(body)
     LetTuple(names, init, body) ->
       "const [" ++ names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-return(body)
-    While(_, _)     -> emit-js-stmt(n)
-    ForIn(_, _, _, _)  -> emit-js-stmt(n)
-    ForEach(_, _, _)   -> emit-js-stmt(n)
-    Repeat(_, _)    -> emit-js-stmt(n)
-    Loop(_)         -> emit-js-stmt(n)
+    While(_, _)     -> emit-js-stmt(n) ++ "\nreturn;"
+    ForIn(_, _, _, _)  -> emit-js-stmt(n) ++ "\nreturn;"
+    ForEach(_, _, _)   -> emit-js-stmt(n) ++ "\nreturn;"
+    Repeat(_, _)    -> emit-js-stmt(n) ++ "\nreturn;"
+    Loop(_)         -> emit-js-stmt(n) ++ "\nreturn;"
     Break           -> "break;"
     Continue        -> "continue;"
-    Assign(_, _)    -> emit-js-stmt(n)
+    Assign(_, _)    -> emit-js-stmt(n) ++ "\nreturn;"
     If(cond, then-e, else-e) ->
       "if (" ++ emit-js-expr(cond) ++ ") {\n" ++
       indent(emit-js-return(then-e)) ++ "\n} else {\n" ++
