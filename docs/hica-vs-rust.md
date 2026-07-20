@@ -144,17 +144,27 @@ fun main() {
 }
 ```
 
-For `maybe` types, hica also has a `?` operator that works like Rust's: unwrap or return early:
+Both languages also have a `?` operator that works for ergonomic unwrapping and early returns. 
+
+In hica, `?` works on both `maybe` and `result` types, matching Rust's `?` behavior:
 
 ```hica
+// With maybe:
 fun add_strings(a: string, b: string) : maybe<int> {
-  let x = parse_int(a)?   // None → return None
+  let x = parse_int(a)?   // None → return None early
   let y = parse_int(b)?
   Some(x + y)
 }
+
+// With result:
+fun read_config(path: string) : result<string, string> {
+  let content = read_file(path)?   // Err → return Err early
+  let trimmed = trim(content)
+  Ok(trimmed)
+}
 ```
 
-hica's `?` currently works with `maybe` types. Rust's `?` works with both `Result` and `Option` and supports custom `Try` implementations.
+Rust's `?` works with both `Result` and `Option` and supports custom `Try` implementations via traits. hica supports both `maybe` and `result` types directly via built-in compiler support (requiring a return type annotation on the enclosing function).
 
 ## String Operations
 
@@ -454,6 +464,63 @@ fun main() {
 ```
 
 Unlike Rust, hica's dot-call isn't limited to methods defined in `impl` blocks; any function can be called with dot syntax. `a.f(b)` desugars to `f(a, b)`.
+
+## Lazy Streams & Reusable Pipelines
+
+Both languages support lazy processing of sequences to avoid intermediate list allocations.
+
+**Rust** uses iterators. Chain transformations with `.iter()`, `.map()`, `.filter()`, etc., and materialise the result with `.collect()`:
+
+```rust
+let result: Vec<i32> = vec![1, 2, 3, 4, 5]
+    .iter()
+    .filter(|x| *x % 2 == 0)
+    .map(|x| x * 10)
+    .take(2)
+    .collect();
+```
+
+While highly efficient, Rust iterators involve complex types (e.g. `Take<Map<Filter<...>>>`) and can require careful handling of ownership, references vs values (`*x`), and lifetimes.
+
+**hica** has **Lazy Streams** (`std/stream`), providing a clean, zero-allocation pipeline with a simple programming model and automatic reference counting (no borrow-checker overhead):
+
+```hica
+import "std/stream"
+
+fun main() {
+  let result = stream([1, 2, 3, 4, 5])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * 10)
+    .take(2)
+    .collect()
+}
+```
+
+### Pipeline Transducers
+
+Rust iterators are immediately bound to their data source (though you can pass closures or return generic iterator types).
+
+hica goes a step further by offering **Pipeline Transducers** (`std/xform`) to decouple sequence transformations entirely from the underlying source. You can define a transducer query pipeline on its own and apply it to multiple different list sources:
+
+```hica
+import "std/stream"
+import "std/xform"
+
+// Reusable transducer pipeline (no data bound)
+let double_evens =
+  xf_filter((x) => x % 2 == 0)
+  |> xf_map((x) => x * 2)
+  |> xf_take(3)
+
+fun main() {
+  let list1 = [1..10]
+  let list2 = [11..20]
+
+  // Run the same transducer across different collections:
+  println(list1 |> transduce(double_evens)) // [4, 8, 12]
+  println(list2 |> transduce(double_evens)) // [24, 28, 32]
+}
+```
 
 ## Loops
 

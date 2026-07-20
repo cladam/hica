@@ -18,7 +18,7 @@ If you're looking for a first programming language, whether for yourself, your k
 | Error handling | Exceptions (implicit flow) | Result types + combinators (explicit handling) |
 | Data structures | Classes / dataclasses | Structs + enums |
 | Dictionaries | `dict` (built-in, mutable) | Maps (`{"k": v}`, immutable list of tuples) |
-| Lists | List comprehensions | `map`/`filter`/`fold` + pipe |
+| Lists & Streams | List comprehensions / generators | `map`/`filter`/`fold` + Lazy Streams + Transducers |
 | Pattern matching | Added in 3.10, optional | Core feature from day one |
 | Loops | `for`, `while`, `break`, `continue` | `for`, `while`, `repeat`, `loop`, `break`, `continue` |
 | Performance | Interpreted (generally slower) | Compiled to C (generally faster) |
@@ -114,6 +114,62 @@ scores = list(map(double, [1, 2, 3, 4, 5]))
 ```hica
 let double = (x) => x * 2
 let scores = [1, 2, 3, 4, 5] |> map((x) => x * 2)
+```
+
+## Lazy Streams & Reusable Pipelines
+
+When chaining list transformations, standard list processing allocates intermediate collections at each step.
+
+**Python** avoids intermediate allocations using generator expressions:
+
+```python
+# Lazy, single-pass processing via generator
+numbers = range(1, 21)
+even_squares = (x * x for x in numbers if x % 2 == 0)
+
+# Generator syntax can become verbose or nested for early termination:
+import itertools
+first_three = list(itertools.islice(even_squares, 3))
+```
+
+**hica** solves this with **Lazy Streams** (`std/stream`), offering a clean, method-chaining style that integrates lazy operations and early termination natively with zero intermediate allocations:
+
+```hica
+import "std/stream"
+
+fun main() {
+  let first_three = stream([1..20])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(3)
+    .collect() // [4, 16, 36]
+}
+```
+
+### Pipeline Transducers
+
+Additionally, Python has no native way to separate transformation logic from a data source. You have to pass the generator or iterator directly.
+
+hica introduces **Pipeline Transducers** (`std/xform`) to decouple query pipelines entirely from the underlying collection, making them completely reusable across different data sources:
+
+```hica
+import "std/stream"
+import "std/xform"
+
+// Define a completely reusable query pipeline (no data bound yet!)
+let process_evens =
+  xf_filter((x) => x % 2 == 0)
+  |> xf_map((x) => x * 2)
+  |> xf_take(3)
+
+fun main() {
+  let list1 = [1..10]
+  let list2 = [11..20]
+
+  // Apply the same pipeline to different sources:
+  println(list1 |> transduce(process_evens)) // [4, 8, 12]
+  println(list2 |> transduce(process_evens)) // [24, 28, 32]
+}
 ```
 
 ## Error Handling
