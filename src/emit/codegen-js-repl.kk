@@ -21,7 +21,7 @@ import emit/codegen-js
 
 // Emit a function declaration for the REPL — just define it globally
 pub fun emit-js-repl-decl( d : fun-decl ) : div string
-  val params = d.params.join(", ")
+  val params = d.params.map(fn(n) if n == "default" then "default_" else n).join(", ")
   val body = emit-js-body(d.body)
   "function " ++ d.name ++ "(" ++ params ++ ") {\n" ++
   indent(body) ++ "\n" ++

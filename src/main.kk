@@ -845,31 +845,42 @@ fun repl-load-file( filepath : string, prelude : program, state : repl-state )
     // Parse as full program, extract definitions
     val tokens = lex(source)
     val parsed = run-parser-program(tokens, source)
-    val merged-prog = Program(prelude.structs ++ state.structs ++ parsed.structs,
-                              types = prelude.types ++ state.types ++ parsed.types,
-                              decls = prelude.decls ++ state.decls ++ parsed.decls)
+    // Process imports inside the loaded file
+    val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(parsed.imports, filepath.path.dirname.path, [])
+    val merged-prog = Program(prelude.structs ++ state.structs ++ imported-structs ++ parsed.structs,
+                              types = prelude.types ++ state.types ++ imported-types ++ parsed.types,
+                              decls = prelude.decls ++ state.decls ++ imported-decls ++ parsed.decls)
     val desugared = desugar-program(merged-prog)
-    val skip-n = prelude.decls.length + state.decls.length
+    val skip-n = prelude.decls.length + state.decls.length + imported-decls.length
+    val skip-structs = prelude.structs.length + state.structs.length + imported-structs.length
+    val skip-types = prelude.types.length + state.types.length + imported-types.length
     val (typed-prog, _diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-n, prelude.structs.length + state.structs.length, prelude.types.length + state.types.length)
+        check-program(desugared, skip-n, skip-structs, skip-types)
     // Emit JS for the file's declarations (skip main)
-    val prelude-n = prelude.decls.length + state.decls.length
+    val prelude-n = prelude.decls.length + state.decls.length + imported-decls.length
     val file-decls = typed-prog.decls.drop(prelude-n)
     val file-structs = parsed.structs
     val file-types = parsed.types
-    val js-structs = file-structs.map(fn(sd) emit-js-repl-struct(sd)).join("\n")
-    val js-types = file-types.map(fn(td) emit-js-repl-type(td)).join("\n")
-    val js-decls = file-decls.map(fn(d) emit-js-repl-decl(d)).join("\n")
+    // Deduplicate imported definitions against already-defined ones in state/prelude
+    val existing-decls = prelude.decls ++ state.decls
+    val existing-structs = prelude.structs ++ state.structs
+    val existing-types = prelude.types ++ state.types
+    val new-imported-decls = imported-decls.filter(fn(d) !existing-decls.any(fn(ed) ed.name == d.name))
+    val new-imported-structs = imported-structs.filter(fn(sd) !existing-structs.any(fn(esd) esd.name == sd.name))
+    val new-imported-types = imported-types.filter(fn(td) !existing-types.any(fn(etd) etd.name == td.name))
+    val js-structs = (new-imported-structs ++ file-structs).map(fn(sd) emit-js-repl-struct(sd)).join("\n")
+    val js-types = (new-imported-types ++ file-types).map(fn(td) emit-js-repl-type(td)).join("\n")
+    val js-decls = (new-imported-decls ++ file-decls).map(fn(d) emit-js-repl-decl(d)).join("\n")
     val js = js-structs ++ "\n" ++ js-types ++ "\n" ++ js-decls ++ "\n"
     val names = file-decls.map(fn(d) d.name)
     if !names.is-empty then
       println("  loaded: " ++ names.join(", "))
     // Send to persistent subprocess
     repl-send-js(js)
-    state(decls = state.decls ++ file-decls,
-          structs = state.structs ++ file-structs,
-          types = state.types ++ file-types,
+    state(decls = state.decls ++ new-imported-decls ++ file-decls,
+          structs = state.structs ++ new-imported-structs ++ file-structs,
+          types = state.types ++ new-imported-types ++ file-types,
           js-defs = state.js-defs ++ js)
   else
     println("  error: file not found: " ++ filepath)
@@ -1040,9 +1051,24 @@ fun repl-eval( input : string, prelude : program, state : repl-state, silent : b
       if !silent then println("  defined: type " ++ td.name)
       state(types = state.types ++ [td], js-defs = state.js-defs ++ js ++ "\n")
 
-    ReplImport(_id) ->
-      println("  imports not yet supported in REPL")
-      state
+    ReplImport(idef) ->
+      val (imported-decls, imported-structs, imported-types, _, _) = compile-imports([idef], cwd(), [])
+      val existing-decls = prelude.decls ++ state.decls
+      val existing-structs = prelude.structs ++ state.structs
+      val existing-types = prelude.types ++ state.types
+      val new-decls = imported-decls.filter(fn(d) !existing-decls.any(fn(ed) ed.name == d.name))
+      val new-structs = imported-structs.filter(fn(sd) !existing-structs.any(fn(esd) esd.name == sd.name))
+      val new-types = imported-types.filter(fn(td) !existing-types.any(fn(etd) etd.name == td.name))
+      val js-structs = new-structs.map(fn(sd) emit-js-repl-struct(sd)).join("\n")
+      val js-types = new-types.map(fn(td) emit-js-repl-type(td)).join("\n")
+      val js-decls = new-decls.map(fn(d) emit-js-repl-decl(d)).join("\n")
+      val js = js-structs ++ "\n" ++ js-types ++ "\n" ++ js-decls ++ "\n"
+      if !silent then println("  imported: " ++ idef.path)
+      repl-send-js(js)
+      state(decls = state.decls ++ new-decls,
+            structs = state.structs ++ new-structs,
+            types = state.types ++ new-types,
+            js-defs = state.js-defs ++ js ++ "\n")
 
     ReplExpr(enode) ->
       // Detect top-level let binding → store as value decl
@@ -1254,7 +1280,12 @@ fun repl-drain-sentinel()
   val line = node-read-line()
   if line == "__HICA_EVAL_DONE__" then ()
   elif line == "" then ()  // EOF
-  else repl-drain-sentinel()
+  else
+    if line.starts-with("__HICA_ERROR__").bool then
+      println("  evaluation error: " ++ line.slice.drop(14).string)
+    else
+      println("  node: " ++ line)
+    repl-drain-sentinel()
 
 // ---------------------------------------------------------------------------
 // Prelude: parse embedded .hc sources (bundled into the binary)

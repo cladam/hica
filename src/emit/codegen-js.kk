@@ -232,7 +232,7 @@ fun emit-js-global( g : global-decl ) : div string
   "const " ++ g.name ++ " = " ++ emit-js-expr(g.body) ++ ";"
 
 fun emit-js-decl( d : fun-decl ) : div string
-  val params = d.params.join(", ")
+  val params = d.params.map(fn(n) if n == "default" then "default_" else n).join(", ")
   val body = emit-js-body(d.body)
   "function " ++ d.name ++ "(" ++ params ++ ") {\n" ++
   indent(body) ++ "\n" ++
@@ -286,11 +286,14 @@ fun emit-js-stmts( n : node ) : div string
 fun emit-js-stmt( n : node ) : div string
   match n.expr
     Let(name, _, init, body) ->
-      "const " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
+      val escaped = if name == "default" then "default_" else name
+      "const " ++ escaped ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
     VarDecl(name, _, init, body) ->
-      "let " ++ name ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
+      val escaped = if name == "default" then "default_" else name
+      "let " ++ escaped ++ " = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
     LetTuple(names, init, body) ->
-      "const [" ++ names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
+      val escaped-names = names.map(fn(n') if n' == "default" then "default_" else n')
+      "const [" ++ escaped-names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ ";\n" ++ emit-js-stmt(body)
     Assign(name, value) ->
       name ++ " = " ++ emit-js-expr(value) ++ ";"
     While(cond, body) ->
@@ -320,7 +323,7 @@ pub fun emit-js-expr( n : node ) : div string
     Literal(LitString(s))   -> "\"" ++ s ++ "\""
     Literal(LitChar(c))     -> "'" ++ c ++ "'"
     Var("None")             -> "null"
-    Var(name)               -> name
+    Var(name)               -> if name == "default" then "default_" else name
 
     Binary(op, l, r) ->
       match op
@@ -335,15 +338,19 @@ pub fun emit-js-expr( n : node ) : div string
     Unary(Not, o) -> "(!" ++ emit-js-expr(o) ++ ")"
 
     Let(name, _, init, body) ->
-      "(() => { const " ++ name ++ " = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
+      val escaped = if name == "default" then "default_" else name
+      "(() => { const " ++ escaped ++ " = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
     VarDecl(name, _, init, body) ->
-      "(() => { let " ++ name ++ " = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
+      val escaped = if name == "default" then "default_" else name
+      "(() => { let " ++ escaped ++ " = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
 
     LetTuple(names, init, body) ->
-      "(() => { const [" ++ names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
+      val escaped-names = names.map(fn(n) if n == "default" then "default_" else n)
+      "(() => { const [" ++ escaped-names.join(", ") ++ "] = " ++ emit-js-expr(init) ++ "; return " ++ emit-js-expr(body) ++ "; })()"
 
     Fun(params, body) ->
-      "((" ++ params.join(", ") ++ ") => {\n" ++ indent(emit-js-body(body)) ++ "\n})"
+      val escaped-params = params.map(fn(n) if n == "default" then "default_" else n)
+      "((" ++ escaped-params.join(", ") ++ ") => {\n" ++ indent(emit-js-body(body)) ++ "\n})"
 
     Call(callee, args) ->
       val args-str = args.map(emit-js-expr).join(", ")
@@ -471,7 +478,9 @@ fun emit-js-arm( scrut-var : string, arm : match-arm ) : div string
 fun emit-js-pattern-cond( v : string, pat : pattern ) : div (string, string)
   match pat
     PWild    -> ("true", "")
-    PVar(n)  -> ("true", "const " ++ n ++ " = " ++ v ++ ";")
+    PVar(n)  ->
+      val escaped = if n == "default" then "default_" else n
+      ("true", "const " ++ escaped ++ " = " ++ v ++ ";")
     PLit(LitInt(i))    -> (v ++ " === " ++ i.show, "")
     PLit(LitFloat(f))  -> (v ++ " === " ++ f, "")
     PLit(LitBool(b))   -> (v ++ " === " ++ b.show.to-lower, "")
