@@ -2370,3 +2370,56 @@ pub fun main() : io ()
       val code = emit-typed-program(src)
       // non-multiline lambda: keep the compact `.flatmap(fn(` form
       assert/is-true(code.contains(".flatmap(fn("))
+
+    // --- std/stream & std/xform tests ---
+    dtest("stream basic pipeline type-checks")
+      val ds = check-diagnostics("import \"std/stream\"\nfun main() { let s = stream([1..20]).filter((x) => x % 2 == 0).map((x) => x * x).take(5).collect(); println(s) }")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("stream basic pipeline emits hc-stream calls")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let s = stream([1..20]).filter((x) => x % 2 == 0).map((x) => x * x).take(5).collect(); println(s) }")
+      assert/is-true(code.contains("hc-stream/stream"))
+      assert/is-true(code.contains("hc-stream/filter"))
+      assert/is-true(code.contains("hc-stream/map"))
+      assert/is-true(code.contains("hc-stream/take"))
+      assert/is-true(code.contains("hc-stream/collect"))
+
+    dtest("stream fold type-checks and emits fold")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let total = stream([1..10]).filter((x) => x % 2 == 0).fold(0, (acc, x) => acc + x); println(total) }")
+      assert/is-true(code.contains("hc-stream/fold"))
+
+    dtest("stream take_while and drop_while type-check and emit")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let prefix = stream([1..10]).take_while((x) => x <= 5).collect(); let suffix = stream([1..10]).drop_while((x) => x <= 5).collect(); println(prefix) }")
+      assert/is-true(code.contains("hc-stream/take-while"))
+      assert/is-true(code.contains("hc-stream/drop-while"))
+
+    dtest("stream flat_map type-checks and emits")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let r = stream([1, 2]).flat_map((x) => stream([x, x])).collect(); println(r) }")
+      assert/is-true(code.contains("hc-stream/flat-map"))
+
+    dtest("stream zip type-checks and emits")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let r = stream([1, 2]).zip(stream([\"a\", \"b\"])).collect(); println(r) }")
+      assert/is-true(code.contains("hc-stream/zip"))
+
+    dtest("stream enumerate type-checks and emits")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { let r = stream([\"a\", \"b\"]).enumerate().collect(); println(r) }")
+      assert/is-true(code.contains("hc-stream/enumerate"))
+
+    dtest("stream foreach type-checks and emits")
+      val code = emit-typed-program("import \"std/stream\"\nfun main() { stream([1..5]).foreach((x) => println(x)) }")
+      assert/is-true(code.contains("hc-stream/foreach"))
+
+    dtest("xform transducers pipeline type-checks")
+      val src = "import \"std/stream\"\nimport \"std/xform\"\nfun main() {\n  let double_evens = xf_filter((x) => x % 2 == 0) |> xf_map((x) => x * 2) |> xf_take(5)\n  let r = [1..10] |> transduce(double_evens)\n  println(r)\n}"
+      val ds = check-diagnostics(src)
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(errors.length == 0)
+
+    dtest("xform transducers emit transducer functions and transduce")
+      val src = "import \"std/stream\"\nimport \"std/xform\"\nfun main() {\n  let double_evens = xf_filter((x) => x % 2 == 0) |> xf_map((x) => x * 2) |> xf_take(5)\n  let r = [1..10] |> transduce(double_evens)\n  println(r)\n}"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("xf_filter"))
+      assert/is-true(code.contains("xf_map"))
+      assert/is-true(code.contains("xf_take"))
+      assert/is-true(code.contains("transduce"))
