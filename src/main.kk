@@ -33,7 +33,7 @@ import stream-kk-bundle
 import deps
 import http
 
-val version = "0.42.8"
+val version = "0.43.0"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
