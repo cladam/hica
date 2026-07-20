@@ -26,6 +26,10 @@ pub type stream-t<a>
 // Entry points
 // ---------------------------------------------------------------------------
 
+// Identity function on streams.
+pub fun as-stream( s : stream-t<a> ) : div stream-t<a>
+  s
+
 // Create a stream from a list.
 pub fun stream( xs : list<a> ) : div stream-t<a>
   match xs

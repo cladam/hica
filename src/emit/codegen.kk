@@ -448,6 +448,7 @@ fun emit-stmt( n : node, declared : list<string> ) : div string
   match n.expr
     Let(name, _, init, body) ->
       val ann = match init.typ
+        Just(TFun(_, _)) -> ""
         Just(t) ->
           val ts = emit-type(t)
           if ts == "" then "" else " : " ++ ts
@@ -460,6 +461,7 @@ fun emit-stmt( n : node, declared : list<string> ) : div string
       binding ++ "\n" ++ emit-stmt(body, declared)
     VarDecl(name, _, init, body) ->
       val ann = match init.typ
+        Just(TFun(_, _)) -> ""
         Just(t) ->
           val ts = emit-type(t)
           if ts == "" then "" else " : " ++ ts
@@ -940,6 +942,7 @@ fun emit-expr( n : node, declared : list<string> ) : div string
             Var("show")   -> "show"
             Var("stream") -> "hc-stream/stream"
             Var("collect") -> "hc-stream/collect"
+            Var("as_stream") -> "hc-stream/as-stream"
             Var("filter") ->
               match args
                 Cons(h, _) | h.typ.is-tstream -> "hc-stream/filter"

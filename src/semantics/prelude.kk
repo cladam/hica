@@ -161,4 +161,5 @@ pub fun extern-env() : type-env
     // Stream operations — backed by stdlib/std/stream.kk
     // stream(xs): entry point; other ops dispatched in checker.kk by first-arg type
     ("stream",   TFun([TList(TVar("_a"))], TStream(TVar("_a")))),
-    ("collect",  TFun([TStream(TVar("_a"))], TList(TVar("_a")))) ]
+    ("collect",  TFun([TStream(TVar("_a"))], TList(TVar("_a")))),
+    ("as_stream", TFun([TStream(TVar("_a"))], TStream(TVar("_a")))) ]
