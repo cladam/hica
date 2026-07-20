@@ -72,13 +72,15 @@ fun main() {
 
 ## Inspirations
 
-- [Koka](https://koka-lang.github.io/) - language with algebraic effects and Perceus memory management
-- [Lisette](https://lisette.run/) - Rust-inspired language that compiles to Go
-- C# - the `=>` operator and query expression syntax
-- Python - easy and powerful lists
+- [Koka](https://koka-lang.github.io/) – language with algebraic effects and
+  Perceus memory management
+- [Rust](https://www.rust-lang.org/) – syntax, safety mindset, and the `match` expression
+- [F#](https://fsharp.org/) – functional-first style, pipelines, and type inference ergonomics
+- [C#](https://learn.microsoft.com/en-us/dotnet/csharp/) – the `=>` expression-bodied shorthand and query syntax
+- [Python](https://www.python.org/) – approachable, expressive lists and comprehensions
 
 ## Next Steps
 
-- **[Playground](/hica/playground)**: try hica in the browser, no installation needed.
-- **[Language Reference](/hica/docs/language-reference)**: every syntax detail, for when you need the precise rules.
-- **[Standard Library](/hica/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.
+- **[Playground](/playground)**: try hica in the browser, no installation needed.
+- **[Language Reference](/docs/language-reference)**: every syntax detail, for when you need the precise rules.
+- **[Standard Library](/docs/standard-library)**: all built-in functions covering strings, lists, math, and more.
