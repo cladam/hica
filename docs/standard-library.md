@@ -8,7 +8,7 @@ title: Standard Library - hica
 hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`, `std/stream`, `std/xform`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`, `std/stream`, `std/xform`, `std/nel`, `std/validated`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -268,7 +268,7 @@ import "std/stream"
 import "std/list"
 
 fun main() {
-  // 1. Basic pipeline with zero intermediate list allocations:
+  // Basic pipeline with zero intermediate list allocations:
   let lazy_result = stream([1..20])
     .filter((x) => x % 2 == 0)
     .map((x) => x * x)
@@ -276,14 +276,14 @@ fun main() {
     .collect()
   println("stream: {lazy_result}") // [4, 16, 36, 64, 100]
 
-  // 2. Early termination (source stops generating after finding 3 matches):
+  // Early termination (source stops generating after finding 3 matches):
   let first_threes = stream([1..1000])
     .filter((x) => x % 7 == 0)
     .take(3)
     .collect()
   println("first 3 multiples of 7: {first_threes}") // [7, 14, 21]
 
-  // 3. Fold without materialising lists:
+  // Fold without materialising lists:
   let sum_squares = stream([1..1000])
     .filter((x) => x % 2 == 0)
     .map((x) => x * x)
@@ -291,7 +291,7 @@ fun main() {
     .fold(0, (acc, x) => acc + x)
   println("sum: {sum_squares}") // 1540
 
-  // 4. Zip and Enumerate:
+  // Zip and Enumerate:
   let words = ["hello", "hica"]
   let indexed = stream(words).enumerate().collect()
   println(indexed) // [(0, "hello"), (1, "hica")]
@@ -332,7 +332,7 @@ import "std/stream"
 import "std/xform"
 
 fun main() {
-  // 1. Build a reusable transducer pipeline (no data source is bound yet!)
+  // Build a reusable transducer pipeline (no data source is bound yet!)
   let double_evens =
     xf_filter((x) => x % 2 == 0)
     |> xf_map((x) => x * 2)
@@ -341,20 +341,75 @@ fun main() {
   let list1 = [1..10]
   let list2 = [11..20]
 
-  // 2. Apply the transducer pipeline to multiple sources
+  // Apply the transducer pipeline to multiple sources
   let r1 = list1 |> transduce(double_evens)
   let r2 = list2 |> transduce(double_evens)
 
   println("r1: {r1}") // [4, 8, 12]
   println("r2: {r2}") // [24, 28, 32]
 
-  // 3. Start a transducer with map
+  // Start a transducer with map
   let double_only =
     xf_map_start((x) => x * 2)
     |> xf_filter_with((x) => x > 10)
 
   let r3 = [1..10] |> transduce(double_only)
   println("r3: {r3}") // [12, 14, 16, 18, 20]
+}
+```
+
+## Non-Empty Lists (`std/nel`, `import "std/nel"` required)
+
+Provides a `Nel` (Non-Empty List) of strings, guaranteeing at least one element exists at the type level and preventing out-of-bounds runtime errors.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `nel_of(x)` | `(string) -> Nel` | Create a Non-Empty List with a single element |
+| `nel_to_list(n)` | `(Nel) -> list<string>` | Convert a Non-Empty List to a standard list of strings |
+| `nel_head(n)` | `(Nel) -> string` | Get the first element of the non-empty list |
+| `nel_map(n, f)` | `(Nel, (string) -> string) -> Nel` | Map a function over each element of the non-empty list |
+| `nel_concat(a, b)` | `(Nel, Nel) -> Nel` | Concatenate two Non-Empty Lists into a single list |
+
+## Error-Accumulating Validation (`std/validated`, `import "std/validated"` required)
+
+Provides the `Validated` sum type, representing either a success `Valid(value)` or a failure `Invalid(errors)` containing a `Nel` of error messages. Unlike the `result` or `maybe` types which immediately short-circuit on the first error, `Validated` executes all validation checks and accumulates all failures simultaneously.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `valid(x)` | `(string) -> Validated` | Wrap a success value in `Valid` |
+| `invalid(msg)` | `(string) -> Validated` | Wrap a single error message in `Invalid` |
+| `map_validated(v, f)` | `(Validated, (string) -> string) -> Validated` | Transform the value inside `Valid`; pass `Invalid` through |
+| `zip_validated(v1, v2, f)` | `(Validated, Validated, (string, string) -> string) -> Validated` | Combine two validations; if both are `Valid`, applies `f`; if any are `Invalid`, accumulates all errors |
+| `as_result(v)` | `(Validated) -> result<string, list<string>>` | Convert to a standard `result` type |
+| `from_result(r)` | `(result<string, string>) -> Validated` | Convert a standard `result` to a `Validated` value |
+
+```hica
+import "std/nel"
+import "std/validated"
+
+fun validate_name(s: string) : Validated =>
+  if str_length(s) < 3 { invalid("Name too short") } else { valid(s) }
+
+fun validate_email(s: string) : Validated =>
+  if !contains(s, "@") { invalid("Invalid email format") } else { valid(s) }
+
+fun main() {
+  // Zip/combine multiple validations to accumulate all failures:
+  let outcome = zip_validated(
+    validate_name("jd"),
+    validate_email("invalid-email"),
+    (name, email) => "{name}:{email}"
+  )
+
+  match outcome {
+    Valid(info) => println("Success: {info}"),
+    Invalid(errs) => {
+      println("Failed with errors:")
+      for err in nel_to_list(errs) {
+        println("  - {err}")
+      }
+    }
+  }
 }
 ```
 
