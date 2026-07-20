@@ -759,7 +759,7 @@ Functions, match guards, string interpolation, and a loop, all in a few lines. T
 
 ---
 
-## 40 lessons — one concept at a time
+## 43 lessons — one concept at a time
 
 Each lesson is a standalone `.hc` file you can run and modify:
 

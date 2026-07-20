@@ -693,6 +693,54 @@ let r2 = safe_divide(10, 2)
 
 See the [Standard Library](standard-library) for the full list of combinators.
 
+### Lazy Streams
+
+**Lazy streams** (via `std/stream`) combine sequence transformations (such as `map`, `filter`, and `take`) into a single traversal pass, avoiding intermediate list allocations and stopping evaluation as soon as termination criteria are satisfied.
+
+- **Entry point:** `stream(xs)` converts a list to a lazy stream thunk-linked list structure.
+- **Lazy operations:** `.map()`, `.filter()`, `.take()`, `.take_while()`, `.drop_while()`, `.zip()`, `.enumerate()`. These return a stream immediately without traversing or evaluating.
+- **Terminators (Eager):** `.collect()`, `.fold()`, `.foreach()`. These force evaluation and return the final list, reduced value, or perform side effects.
+
+```hica
+import "std/stream"
+
+fun main() {
+  let result = stream([1..1000])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(5)
+    .collect() // Materialise stream to eager list in one pass
+
+  println(result) // [4, 16, 36, 64, 100]
+}
+```
+
+### Pipeline Transducers
+
+**Transducers** (via `std/xform`) decouple transformations from the underlying data source entirely. This allows you to define a reusable query pipeline as a variable, compose it left-to-right using the `|>` operator, and apply it to multiple different sources.
+
+- **Constructors:** Start with `xf_` (e.g. `xf_filter(pred)`, `xf_map_start(f)`, `xf_map(xf, f)`, `xf_take(xf, n)`).
+- **Application:** Use `transduce(list, xform)` to run a transducer pipeline on a list in a single, zero-allocation pass.
+
+```hica
+import "std/stream"
+import "std/xform"
+
+// Define reusable, decoupled query pipeline
+let process_evens =
+  xf_filter((x) => x % 2 == 0)
+  |> xf_map((x) => x * 2)
+  |> xf_take(3)
+
+fun main() {
+  let list1 = [1..10]
+  let list2 = [11..20]
+
+  println(list1 |> transduce(process_evens)) // [4, 8, 12]
+  println(list2 |> transduce(process_evens)) // [24, 28, 32]
+}
+```
+
 ### User Input
 
 Read a line from stdin with `input(prompt)`. The prompt is printed, and the user's response is returned as a `string`:
