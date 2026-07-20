@@ -298,6 +298,149 @@ fun main() {
 
 This style (naming the function rather than wrapping it in a lambda) is called *point-free*. Use it when the name says more than the lambda would.
 
+## Lazy Streams
+
+When we chain standard list transformations like `map` and `filter`, each step in the pipeline allocates an entirely new list:
+
+```hica
+[1..20] |> filter(is_even) |> map(square) |> take(5)
+```
+
+In this pipeline, `filter` allocates a new list of 10 elements, `map` allocates another list of 10 elements, and `take` finally allocates a list of 5 elements.
+
+**Lazy streams** (provided by `std/stream`) solve this intermediate allocation problem by combining all operations into a single traversal. Elements flow through the pipeline one by one. No intermediate lists are built, and processing stops as soon as the terminal condition is satisfied.
+
+To use lazy streams, import `std/stream` and wrap your list with the `stream` function:
+
+```hica
+import "std/stream"
+
+fun main() {
+  // 1. Zero-Allocation Pipelines
+  let result = stream([1..20])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(5)
+    .collect() // Materialise the stream into a standard list
+
+  println(result) // [4, 16, 36, 64, 100]
+}
+```
+
+### Early Termination
+
+With standard lists, filtering `[1..1000]` runs the predicate function 1000 times. With a stream, the generator halts immediately once its pipeline requirements (like `take(3)`) are satisfied, saving processor cycles:
+
+```hica
+import "std/stream"
+
+fun main() {
+  let first_multiples = stream([1..1000])
+    .filter((x) => x % 7 == 0)
+    .take(3)
+    .collect()
+
+  println(first_multiples) // [7, 14, 21]
+}
+```
+
+### Stream Operations and Terminators
+
+Streams support a variety of transformations and terminating aggregations:
+
+- **Transformations (Lazy):** `map`, `filter`, `take`, `zip`, `enumerate`, and more. They immediately return a new stream without evaluating the elements.
+- **Terminators (Eager):** `collect` (returns a list), `fold` (reduces to a single value), and `foreach` (runs side effects). These force the stream to evaluate.
+
+```hica
+import "std/stream"
+
+fun main() {
+  // Fold a stream directly without intermediate list allocation
+  let sum_of_squares = stream([1..1000])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(10)
+    .fold(0, (acc, x) => acc + x)
+
+  println(sum_of_squares) // 1540
+
+  // Indexing elements lazily with enumerate()
+  let indexed = stream(["a", "b", "c"])
+    .enumerate()
+    .collect()
+
+  println(indexed) // [(0, "a"), (1, "b"), (2, "c")]
+}
+```
+
+## Pipeline Transducers
+
+Lazy streams are great for zero-allocation processing, but they must be bound to a data source immediately. You cannot build a stream transformation pipeline on its own, save it in a variable, and reuse it across different data sources.
+
+**Transducers** (provided by `std/xform`) solve this. They decouple the transformation logic from the underlying data structure, allowing you to define reusable, source-independent query pipelines!
+
+### Defining and Composing Transducers
+
+A transducer is built using transducer constructors that start with `xf_`:
+
+- **Starting constructors:** `xf_filter(pred)`, `xf_map_start(f)`, `xf_take_start(n)`, etc.
+- **Chaining constructors:** `xf_map(xform, f)`, `xf_filter_with(xform, pred)`, `xf_take(xform, n)`, `xf_take_while(xform, pred)`, `xf_drop_while(xform, pred)`, `xf_flat_map(xform, f)`.
+
+Because hica desugars `a |> f(b)` to `f(a, b)`, transducers compose perfectly left-to-right using the pipe operator `|>`:
+
+```hica
+import "std/stream"
+import "std/xform"
+
+// Define a reusable pipeline (no data source is bound yet!)
+let double_evens =
+  xf_filter((x) => x % 2 == 0)
+  |> xf_map((x) => x * 2)
+  |> xf_take(3)
+```
+
+### Applying Transducers with `transduce`
+
+To apply a transducer to a list, use the `transduce(list, xform)` function. This converts the list to a stream, passes it through the transducer pipeline, and collects the result in a single, zero-allocation pass:
+
+```hica
+import "std/stream"
+import "std/xform"
+
+fun main() {
+  let pipeline =
+    xf_filter((x) => x % 2 == 0)
+    |> xf_map((x) => x * 2)
+    |> xf_take(5)
+
+  let numbers1 = [1..10]
+  let numbers2 = [11..20]
+
+  // Apply the same pipeline to different sources!
+  let r1 = numbers1 |> transduce(pipeline)
+  let r2 = numbers2 |> transduce(pipeline)
+
+  println(r1) // [4, 8, 12, 16]
+  println(r2) // [24, 28, 32, 36, 40]
+}
+```
+
+If you want to start your transducer with a mapping function instead of a filter, use `xf_map_start`:
+
+```hica
+import "std/stream"
+import "std/xform"
+
+fun main() {
+  let double_only =
+    xf_map_start((x) => x * 2)
+    |> xf_filter_with((x) => x > 10)
+
+  let r = [1..10] |> transduce(double_only)
+  println(r) // [12, 14, 16, 18, 20]
+}
+```
+
 ## Recursion
 
 FP uses recursion where imperative code uses loops. A recursive function calls itself with a smaller input until it hits a base case:
@@ -552,6 +695,8 @@ Letter grade: C
 | Transforming lists | `map`, `filter`, `fold` |
 | Flattening / expanding | `concat` (flatten), `flat_map` (map + flatten) |
 | Chaining wrapped values | `and_then` (Maybe), `and_then_result` (Result), same idea as `flat_map` |
+| Lazy Streams | `stream(xs)`, chain `.map()`, `.filter()`, etc., terminate with `.collect()`, `.fold()` |
+| Pipeline Transducers | Reusable, decoupled pipelines via `std/xform` (e.g. `xf_filter` \|> `xf_map`) applied with `transduce` |
 | Recursive data | `type Tree { Leaf, Node(...) }` |
 | Safe failures | `Maybe` (`Some`/`None`) and `Result` (`Ok`/`Err`) |
 | Exhaustive matching | `match` with compiler-checked variants |
