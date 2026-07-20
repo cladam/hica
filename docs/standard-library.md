@@ -8,7 +8,7 @@ title: Standard Library - hica
 hica's standard library has two layers:
 
 - **Prelude** (`math.hc`, `glob.hc`, `strings.hc`) – always available, no import needed.
-- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`, `std/stream`) – opt-in via `import "std/..."`.
+- **Stdlib modules** (`std/io`, `std/datetime`, `std/list`, `std/string`, `std/ops`, `std/cli`, `std/actor`, `std/term`, `std/env`, `std/dotenv`, `std/trusted`, `std/stream`, `std/xform`) – opt-in via `import "std/..."`.
 
 ## I/O & Display
 
@@ -295,6 +295,66 @@ fun main() {
   let words = ["hello", "hica"]
   let indexed = stream(words).enumerate().collect()
   println(indexed) // [(0, "hello"), (1, "hica")]
+}
+```
+
+## Pipeline Transducers (`std/xform`, `import "std/xform"` required)
+
+Transducers decouple stream processing and query pipeline transformations from the underlying data source. This allows you to build a reusable query pipeline, save it as a variable, and run it across multiple different data collections or streams using `transduce`.
+
+### Transducer Constructors
+
+Constructors beginning with `xf_` are used to define and chain query transformations:
+
+| Constructor | Signature | Description |
+|-------------|-----------|-------------|
+| `xf_filter(pred)` | `((a) -> bool) -> xform_t<a, a>` | Start a pipeline that filters elements |
+| `xf_filter_with(xf, pred)` | `(xform_t<a, b>, (b) -> bool) -> xform_t<a, b>` | Chain a filtering step to an existing transducer |
+| `xf_map_start(f)` | `((a) -> b) -> xform_t<a, b>` | Start a pipeline that maps/transforms elements |
+| `xf_map(xf, f)` | `(xform_t<a, b>, (b) -> c) -> xform_t<a, c>` | Chain a mapping step to an existing transducer |
+| `xf_take_start(n)` | `(int) -> xform_t<a, a>` | Start a pipeline that limits stream to the first `n` elements |
+| `xf_take(xf, n)` | `(xform_t<a, b>, int) -> xform_t<a, b>` | Chain a limit step to an existing transducer |
+| `xf_take_while_start(pred)` | `((a) -> bool) -> xform_t<a, a>` | Start a pipeline that takes elements while a condition holds |
+| `xf_take_while(xf, pred)` | `(xform_t<a, b>, (b) -> bool) -> xform_t<a, b>` | Chain a take-while step to an existing transducer |
+| `xf_drop_while_start(pred)` | `((a) -> bool) -> xform_t<a, a>` | Start a pipeline that drops elements while a condition holds |
+| `xf_drop_while(xf, pred)` | `(xform_t<a, b>, (b) -> bool) -> xform_t<a, b>` | Chain a drop-while step to an existing transducer |
+| `xf_flat_map_start(f)` | `((a) -> stream_t<b>) -> xform_t<a, b>` | Start a pipeline that flat-maps each element |
+| `xf_flat_map(xf, f)` | `(xform_t<a, b>, (b) -> stream_t<c>) -> xform_t<a, c>` | Chain a flat-map step to an existing transducer |
+
+### Application
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `transduce(xs, xf)` | `(list<a>, xform_t<a, b>) -> list<b>` | Apply a composed transducer to a list, running in a zero-allocation pass |
+
+```hica
+import "std/stream"
+import "std/xform"
+
+fun main() {
+  // 1. Build a reusable transducer pipeline (no data source is bound yet!)
+  let double_evens =
+    xf_filter((x) => x % 2 == 0)
+    |> xf_map((x) => x * 2)
+    |> xf_take(3)
+
+  let list1 = [1..10]
+  let list2 = [11..20]
+
+  // 2. Apply the transducer pipeline to multiple sources
+  let r1 = list1 |> transduce(double_evens)
+  let r2 = list2 |> transduce(double_evens)
+
+  println("r1: {r1}") // [4, 8, 12]
+  println("r2: {r2}") // [24, 28, 32]
+
+  // 3. Start a transducer with map
+  let double_only =
+    xf_map_start((x) => x * 2)
+    |> xf_filter_with((x) => x > 10)
+
+  let r3 = [1..10] |> transduce(double_only)
+  println("r3: {r3}") // [12, 14, 16, 18, 20]
 }
 ```
 

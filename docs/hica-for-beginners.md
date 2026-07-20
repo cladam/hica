@@ -809,6 +809,9 @@ Each lesson is a standalone `.hc` file you can run and modify:
 | 38 | [`38-math-extras.hc`](https://github.com/cladam/hica/blob/main/learn/38-math-extras.hc) | Math & float extras        | `pow`, `sqrt`, `floor`, `ceil`, `round`, `to_float` |
 | 39 | [`39-datetime.hc`](https://github.com/cladam/hica/blob/main/learn/39-datetime.hc) | Dates & times              | `date_parts`, `time_parts`, `day_of_week`, `is_before` (`import "std/datetime"`) |
 | 40 | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)     | Glob matching              | `is_digit`, `is_alpha`, `glob_match`, `glob_match_path` |
+| 41 | [`41-opaque-struct.hc`](https://github.com/cladam/hica/blob/main/learn/41-opaque-struct.hc) | Opaque Structs | `opaque struct`, `pub struct ... priv`, smart constructors, type-safe boundaries |
+| 42 | [`42-streams.hc`](https://github.com/cladam/hica/blob/main/learn/42-streams.hc) | Lazy Streams | `stream(xs)`, zero-allocation pipelines, `.collect()`, `.fold()`, early termination |
+| 43 | [`43-transducers.hc`](https://github.com/cladam/hica/blob/main/learn/43-transducers.hc) | Pipeline Transducers | Reusable pipelines via `std/xform` (e.g., `xf_filter` \|> `xf_map`), applied with `transduce(list, xform)` |
 
 ## Where to go next
 
