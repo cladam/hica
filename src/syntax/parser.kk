@@ -1168,6 +1168,84 @@ fun parse-global-decl() : <div,parser> global-decl
     _           -> ()
   Global-decl(Span(t.span.start, body.span.end), name, body, ann = ann)
 
+fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
+  val t = expect("actor", fn(k) match k { TkActor -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected actor name"); "_" }
+  
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  
+  var state-fields : list<(string, hica-type)> := []
+  
+  while { match peek() { TkVar -> True; _ -> False } }
+    advance() // consume 'var'
+    val var-name = match peek()
+      TkIdent(n) -> { advance(); n }
+      _          -> { parse-error("expected state variable name"); "_" }
+    
+    val ann = parse-optional-type-ann()
+    expect("=", fn(k) match k { TkEq -> True; _ -> False })
+    val init-expr = parse-expr()
+    
+    val vtype = match ann
+      Just(ty) -> ty
+      Nothing  ->
+        match init-expr.expr
+          Literal(LitInt(_)) -> TInt
+          Literal(LitFloat(_)) -> TFloat
+          Literal(LitBool(_)) -> TBool
+          Literal(LitString(_)) -> TString
+          Literal(LitChar(_)) -> TChar
+          _ -> TInt
+          
+    state-fields := Cons((var-name, vtype), state-fields)
+    match peek()
+      TkSemicolon -> { advance(); () }
+      _           -> ()
+      
+  expect("receive", fn(k) match k { TkIdent("receive") -> True; _ -> False })
+  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+  val msg-param = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected message parameter name"); "msg" }
+  val msg-ann = parse-optional-type-ann()
+  expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  
+  val body-start = current-span()
+  val receive-body = match peek()
+    TkArrow ->
+      advance()
+      parse-expr()
+    _ ->
+      parse-block()
+      
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  
+  val sname = name ++ "State"
+  val sdef = Struct-def(Span(t.span.start, end-tok.span.end), sname, state-fields.reverse, is-pub = False, is-opaque = False)
+  
+  var stmt-list : list<node> := []
+  state-fields.reverse.foreach fn((fname, ftype))
+    val access = Node(body-start, FieldAccess(Node(body-start, Var("state")), fname))
+    val vdecl = Node(body-start, VarDecl(fname, Just(ftype), access, Node(body-start, Tuple([]))))
+    stmt-list := Cons(vdecl, stmt-list)
+    
+  stmt-list := Cons(receive-body, stmt-list)
+  
+  val fields-init = state-fields.reverse.map fn((fname, _))
+    (fname, Node(body-start, Var(fname)))
+  val struct-lit = Node(body-start, StructLit(sname, fields-init))
+  stmt-list := Cons(struct-lit, stmt-list)
+  
+  val fdecl-body = Node(Span(body-start.start, end-tok.span.end), Block(stmt-list.reverse))
+  val fn-name = name.to-lower ++ "_receive"
+  val param-names = ["state", msg-param]
+  val param-types = [Just(TStruct(sname)), msg-ann]
+  val fdecl = Fun-decl(Span(t.span.start, end-tok.span.end), fn-name, param-names, fdecl-body, param-anns = param-types, ret-ann = Just(TStruct(sname)), is-pub = False)
+  
+  (sdef, fdecl)
+
 pub fun parse-program() : <div,parser> program
   var decls := []
   var structs := []
@@ -1195,6 +1273,10 @@ pub fun parse-program() : <div,parser> program
       TkTest   -> tests := Cons(parse-test-decl(), tests)
       TkExtern -> imports := Cons(parse-import-decl(), imports)
       TkLet    -> globals := Cons(parse-global-decl(), globals)
+      TkActor  ->
+        val (sdef, fdecl) = parse-actor-decl()
+        structs := Cons(sdef, structs)
+        decls   := Cons(fdecl, decls)
       TkPub    ->
         // pub import "path" — re-export
         match peek-next()

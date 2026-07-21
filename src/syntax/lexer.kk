@@ -44,6 +44,7 @@ pub type token-kind
   TkContinue
   TkStruct
   TkType
+  TkActor
   TkImport
   TkFrom
   TkPub
@@ -129,6 +130,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkContinue   -> "continue"
     TkStruct     -> "struct"
     TkType       -> "type"
+    TkActor      -> "actor"
     TkImport     -> "import"
     TkFrom       -> "from"
     TkPub        -> "pub"
@@ -285,6 +287,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "in"     -> TkIn
     "struct" -> TkStruct
     "type"   -> TkType
+    "actor"  -> TkActor
     "import" -> TkImport
     "from"   -> TkFrom
     "pub"    -> TkPub
