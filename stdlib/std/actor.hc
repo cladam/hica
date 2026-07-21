@@ -17,3 +17,20 @@
 //
 pub fun process_messages(state, messages, receive) =>
   fold(messages, state, receive)
+
+// Send a fire-and-forget message to an actor, discarding the returned state (returns unit / ()).
+// This is useful for messages that trigger side-effects or modify state without leaking it.
+//
+// Usage:
+//   send(state, msg, receive_fn)
+//
+pub fun send(state, msg, receive) =>
+  (receive(state, msg), ()).1
+
+// Send a request message to an actor and return a projected value/reply.
+//
+// Usage:
+//   let val = ask(state, msg, receive_fn, (next_state) => next_state.field)
+//
+pub fun ask(state, msg, receive, project) =>
+  project(receive(state, msg))
