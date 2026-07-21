@@ -757,9 +757,12 @@ To produce high-quality, bug-free, and idiomatic hica code, you must strictly fo
    - Before outputting any hica code, review the **Common Pitfalls** table.
    - Check if you have used any generic functions inside `main()` with more than one concrete type.
    - Verify that all string literals containing literal braces `{` or `}` have them escaped as `\{` and `\}`. This includes all error strings, match patterns, and helper strings.
-   - Verify that you are not using index brackets on collections (e.g., `xs[i]`). All collection lookups must be recursive pattern matches or dot-called helper functions.
+   - Verify that you are not using index brackets on collections (e.g., `xs[i]`). Indexing on lists via brackets raises partial `exn` exception effects in Koka and aborts compilation of pure/total hica functions. All list decompositions must use safe pattern matching like `match list { [p0, p1, p2] => ... }` or `[head, ..tail]` recursion.
 
-3. **Factual API Anchoring**:
+3. **Precedence Warnings**:
+   - **Crucial `|>` Precedence**: `|>` has extremely low precedence (lower than function application and comma arguments). Never write `assert_eq(compare(...) |> unwrap, -1)` or `assert(eq(...) |> unwrap)`. These parse as `assert_eq(compare(...), -1) |> unwrap` and `(assert(eq(...))) |> unwrap`. Always use dot-called `.unwrap()` syntax instead: `assert_eq(compare(...).unwrap(), -1)` or `assert(eq(...).unwrap())`.
+
+4. **Factual API Anchoring**:
    - Do NOT assume any functions or library modules exist unless they are explicitly listed in the **Prelude** or **Stdlib** documentation.
    - There is no `drop_prefix` function—use `s[n:]` slicing syntax instead.
    - There is no `char_at` function—use `s[i:i+1]` slicing syntax instead.

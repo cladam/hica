@@ -47,21 +47,18 @@ fun parse(s: string) : maybe<SemVer> {
   
   // Validate: no leading zeros on numeric parts
   let parts = split(v3, ".")
-  if length(parts) != 3 { None }
-  else {
-    match (
-      parse_int(parts[0]), 
-      parse_int(parts[1]), 
-      parse_int(parts[2])
-    ) {
-      (Some(maj), Some(min), Some(pat)) =>
-        if valid_num(parts[0]) && valid_num(parts[1]) && valid_num(parts[2]) {
-          Some(SemVer { major: maj, minor: min, patch: pat, pre: pre, build: build })
-        } else {
-          None
-        },
-      _ => None
-    }
+  match parts {
+    [p0, p1, p2] =>
+      match (parse_int(p0), parse_int(p1), parse_int(p2)) {
+        (Some(maj), Some(min), Some(pat)) =>
+          if valid_num(p0) && valid_num(p1) && valid_num(p2) {
+            Some(SemVer { major: maj, minor: min, patch: pat, pre: pre, build: build })
+          } else {
+            None
+          },
+        _ => None
+      },
+    _ => None
   }
 }
 
@@ -270,41 +267,41 @@ test "parse allows single zero" {
 }
 
 test "compare: major differs" {
-  assert_eq(compare("1.0.0", "2.0.0") |> unwrap, -1)
-  assert_eq(compare("2.0.0", "1.0.0") |> unwrap, 1)
+  assert_eq(compare("1.0.0", "2.0.0").unwrap(), -1)
+  assert_eq(compare("2.0.0", "1.0.0").unwrap(), 1)
 }
 
 test "compare: minor differs" {
-  assert_eq(compare("1.1.0", "1.2.0") |> unwrap, -1)
-  assert_eq(compare("1.3.0", "1.2.0") |> unwrap, 1)
+  assert_eq(compare("1.1.0", "1.2.0").unwrap(), -1)
+  assert_eq(compare("1.3.0", "1.2.0").unwrap(), 1)
 }
 
 test "compare: patch differs" {
-  assert_eq(compare("1.0.1", "1.0.2") |> unwrap, -1)
-  assert_eq(compare("1.0.3", "1.0.2") |> unwrap, 1)
+  assert_eq(compare("1.0.1", "1.0.2").unwrap(), -1)
+  assert_eq(compare("1.0.3", "1.0.2").unwrap(), 1)
 }
 
 test "compare: equal versions" {
-  assert_eq(compare("1.2.3", "1.2.3") |> unwrap, 0)
+  assert_eq(compare("1.2.3", "1.2.3").unwrap(), 0)
 }
 
 test "compare: prerelease < release" {
-  assert_eq(compare("1.0.0-alpha", "1.0.0") |> unwrap, -1)
-  assert_eq(compare("1.0.0", "1.0.0-alpha") |> unwrap, 1)
+  assert_eq(compare("1.0.0-alpha", "1.0.0").unwrap(), -1)
+  assert_eq(compare("1.0.0", "1.0.0-alpha").unwrap(), 1)
 }
 
 test "compare: prerelease ordering" {
-  assert_eq(compare("1.0.0-alpha", "1.0.0-beta") |> unwrap, -1)
-  assert_eq(compare("1.0.0-beta", "1.0.0-alpha") |> unwrap, 1)
+  assert_eq(compare("1.0.0-alpha", "1.0.0-beta").unwrap(), -1)
+  assert_eq(compare("1.0.0-beta", "1.0.0-alpha").unwrap(), 1)
 }
 
 test "compare: numeric prerelease ids" {
-  assert_eq(compare("1.0.0-1", "1.0.0-2") |> unwrap, -1)
-  assert_eq(compare("1.0.0-2", "1.0.0-1") |> unwrap, 1)
+  assert_eq(compare("1.0.0-1", "1.0.0-2").unwrap(), -1)
+  assert_eq(compare("1.0.0-2", "1.0.0-1").unwrap(), 1)
 }
 
 test "compare: numeric before string in prerelease" {
-  assert_eq(compare("1.0.0-1", "1.0.0-alpha") |> unwrap, -1)
+  assert_eq(compare("1.0.0-1", "1.0.0-alpha").unwrap(), -1)
 }
 
 test "is_prerelease" {
@@ -337,20 +334,20 @@ test "bump functions" {
 }
 
 test "comparison convenience functions" {
-  assert(eq("1.0.0", "1.0.0") |> unwrap)
-  assert(!eq("1.0.0", "2.0.0") |> unwrap)
+  assert(eq("1.0.0", "1.0.0").unwrap())
+  assert(!eq("1.0.0", "2.0.0").unwrap())
   
-  assert(lt("1.0.0", "2.0.0") |> unwrap)
-  assert(!lt("2.0.0", "1.0.0") |> unwrap)
+  assert(lt("1.0.0", "2.0.0").unwrap())
+  assert(!lt("2.0.0", "1.0.0").unwrap())
   
-  assert(gt("2.0.0", "1.0.0") |> unwrap)
-  assert(!gt("1.0.0", "2.0.0") |> unwrap)
+  assert(gt("2.0.0", "1.0.0").unwrap())
+  assert(!gt("1.0.0", "2.0.0").unwrap())
   
-  assert(le("1.0.0", "1.0.0") |> unwrap)
-  assert(le("1.0.0", "2.0.0") |> unwrap)
+  assert(le("1.0.0", "1.0.0").unwrap())
+  assert(le("1.0.0", "2.0.0").unwrap())
   
-  assert(ge("2.0.0", "1.0.0") |> unwrap)
-  assert(ge("1.0.0", "1.0.0") |> unwrap)
+  assert(ge("2.0.0", "1.0.0").unwrap())
+  assert(ge("1.0.0", "1.0.0").unwrap())
 }
 
 test "compare returns Err for invalid input" {
