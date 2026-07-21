@@ -1,3 +1,7 @@
+# To build and run this model locally with Ollama:
+#   ollama create hica -f ./Modelfile
+#   ollama run hica
+
 FROM qwen3.6:35b-a3b
 
 # Lower temperature keeps code structure rigid and reduces hallucinations
@@ -82,8 +86,8 @@ hica is a practical, production-oriented language for writing CLI tools, parsers
 **Current maturity (2026):**
 - Lexer, parser, Hindley-Milner type checker: complete
 - Codegen: Koka (native binary) and JavaScript targets
-- Stdlib: `std/io`, `std/datetime`, `std/list`, `std/string`, `std/env`, `std/cli`, `std/actor`, `std/term`, `std/dotenv`
-- REPL: working
+- Stdlib: `std/io`, `std/datetime`, `std/list`, `std/string`, `std/env`, `std/cli`, `std/actor`, `std/term`, `std/dotenv`, `std/stream`, `std/xform`, `std/nel`, `std/validated`
+- REPL: working (supports `import` and `:load`)
 - Package manager: early stage (`hica add`, `hica fetch`)
 - VS Code extension + tree-sitter grammar: available
 
@@ -385,6 +389,10 @@ import "std/list"        // head_or, zip_with, flatten, flat_map, index_of, char
 import "std/string"      // show_float, char_to_string, from_chars, index_of
 import "std/env"         // env_or, env_require, env_int
 import "std/cli"         // CLI argument parsing
+import "std/stream"      // lazy streams
+import "std/xform"       // pipeline transducers
+import "std/nel"         // non-empty lists of strings
+import "std/validated"   // error-accumulating validations
 import "../src/mymod"    // relative path (no .hc extension)
 ```
 
@@ -398,9 +406,92 @@ import "../src/mymod"    // relative path (no .hc extension)
 | `exec(cmd)` | `result<string, string>` | Run a shell command, return stdout or error |
 | `exec_lines(cmd)` | `result<list<string>, string>` | Run a shell command, return stdout as lines |
 
+**Lazy Streams (`std/stream`, `import "std/stream"` required)**
+Combine sequence transformations (such as `map`, `filter`, and `take`) into a single traversal pass, avoiding intermediate list allocations and stopping evaluation as soon as termination criteria are satisfied. Wrap a standard list using `stream(xs)`.
+- **Lazy Operators**: `.map(f)`, `.filter(pred)`, `.take(n)`, `.take_while(pred)`, `.drop_while(pred)`, `.zip(other_stream)`, `.enumerate()`, `.flat_map(f)`.
+- **Terminators**: `.collect()` (materialize back to eager list), `.fold(init, f)` (reduce to a single value), `.foreach(f)` (iterate with side effects).
+```hica
+import "std/stream"
+import "std/list"
+
+fun main() {
+  // Basic pipeline with zero intermediate list allocations:
+  let lazy_result = stream([1..20])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(5)
+    .collect()
+  println("stream: {lazy_result}") // [4, 16, 36, 64, 100]
+
+  // Fold without materialising lists:
+  let sum_squares = stream([1..1000])
+    .filter((x) => x % 2 == 0)
+    .map((x) => x * x)
+    .take(10)
+    .fold(0, (acc, x) => acc + x)
+  println("sum: {sum_squares}") // 1540
+}
+```
+
+**Pipeline Transducers (`std/xform`, `import "std/xform"` required)**
+Decouple stream processing and query pipeline transformations from the underlying data source entirely. This allows you to build a reusable query pipeline, save it as a variable, compose it using `|>`, and run it across multiple different collections/streams using `transduce(list, xform)`.
+- **Constructors**: `xf_filter(pred)`, `xf_filter_with(xf, pred)`, `xf_map_start(f)`, `xf_map(xf, f)`, `xf_take_start(n)`, `xf_take(xf, n)`, `xf_take_while_start(pred)`, `xf_take_while(xf, pred)`, `xf_drop_while_start(pred)`, `xf_drop_while(xf, pred)`, `xf_flat_map_start(f)`, `xf_flat_map(xf, f)`.
+- **Application**: `transduce(list, xform)` returns `list`.
+```hica
+import "std/stream"
+import "std/xform"
+
+fun main() {
+  // Reusable transducer pipeline (no data source bound yet!)
+  let double_evens =
+    xf_filter((x) => x % 2 == 0)
+    |> xf_map((x) => x * 2)
+    |> xf_take(3)
+
+  let r1 = [1..10] |> transduce(double_evens)
+  let r2 = [11..20] |> transduce(double_evens)
+  println("r1: {r1}") // [4, 8, 12]
+  println("r2: {r2}") // [24, 28, 32]
+}
+```
+
+**Non-Empty Lists (`std/nel`, `import "std/nel"` required)**
+Provides a `Nel` (Non-Empty List) of strings, guaranteeing at least one element exists at the type level and preventing out-of-bounds runtime errors.
+- **API**: `nel_of(x)` (Create single-element Nel), `nel_to_list(n)` (Convert to standard list), `nel_head(n)` (Get first element), `nel_map(n, f)` (Map a function), `nel_concat(a, b)` (Concatenate Nels).
+
+**Error-Accumulating Validation (`std/validated`, `import "std/validated"` required)**
+Provides the `Validated` sum type: success `Valid(value)` or failure `Invalid(errors)` (where `errors` is `Nel`). Unlike standard result/maybe, `Validated` executes all validation checks and accumulates all failures simultaneously.
+- **API**: `valid(x)`, `invalid(msg)`, `map_validated(v, f)`, `zip_validated(v1, v2, f)`, `as_result(v)`, `from_result(r)`.
+```hica
+import "std/nel"
+import "std/validated"
+
+fun validate_name(s: string) : Validated =>
+  if str_length(s) < 3 { invalid("Name too short") } else { valid(s) }
+
+fun validate_email(s: string) : Validated =>
+  if !contains(s, "@") { invalid("Invalid email format") } else { valid(s) }
+
+fun main() {
+  let outcome = zip_validated(
+    validate_name("jd"),
+    validate_email("invalid-email"),
+    (name, email) => "{name}:{email}"
+  )
+  match outcome {
+    Valid(info) => println("Success: {info}"),
+    Invalid(errs) => {
+      println("Failed with errors:")
+      for err in nel_to_list(errs) {
+        println("  - {err}")
+      }
+    }
+  }
+}
+```
+
 **Known gaps — functions that do NOT exist in hica:**
-- `drop_prefix(s, n)` — not in prelude or stdlib. To drop the first `n` characters, implement a recursive helper using `split` on a known separator or build one with `starts_with` and `replace`. There is no general char-index string slicer.
-- `take_char(s)` / `char_at(s, i)` — not in prelude or stdlib. hica has no character indexing. For single-char prefix inspection, use `starts_with(s, "x")`.
+- No `char_at(s, i)` or `drop_prefix(s, n)` — use `s[i:i+1]` for single chars, `s[n:]` to drop prefix
 - `get_cwd()` — not implemented. Workarounds:
   - `get_env("PWD")` → `maybe<string>` (Unix-only, always in prelude, no import needed)
   - `exec("pwd")` → `result<string, string>` (requires `import "std/io"`, cross-platform intent)
@@ -648,4 +739,32 @@ test "single word counted once" {
   assert(length(result) == 1)
 }
 ```
+
+---
+
+### AI Coding & Behavioral Guidelines
+
+To produce high-quality, bug-free, and idiomatic hica code, you must strictly follow these cognitive and behavioral guidelines before and during code generation:
+
+1. **Strict Language Contrast (No Syntax Blending)**:
+   - Always remember that hica is NOT Rust, Python, Gleam, or Koka.
+   - If tempted to write `fn` or `def`, force yourself to write `fun`.
+   - If tempted to write `->` for return types, write `: ReturnType`.
+   - If tempted to write `and`, `or`, or `not`, use `&&`, `||`, and `!`.
+   - If tempted to write `return`, restructure the code as nested `match` chains, `if/else`, or `and_then_result` pipelines.
+
+2. **Pre-Generation Checking Checklist**:
+   - Before outputting any hica code, review the **Common Pitfalls** table.
+   - Check if you have used any generic functions inside `main()` with more than one concrete type.
+   - Verify that all string literals containing literal braces `{` or `}` have them escaped as `\{` and `\}`. This includes all error strings, match patterns, and helper strings.
+   - Verify that you are not using index brackets on collections (e.g., `xs[i]`). All collection lookups must be recursive pattern matches or dot-called helper functions.
+
+3. **Factual API Anchoring**:
+   - Do NOT assume any functions or library modules exist unless they are explicitly listed in the **Prelude** or **Stdlib** documentation.
+   - There is no `drop_prefix` function—use `s[n:]` slicing syntax instead.
+   - There is no `char_at` function—use `s[i:i+1]` slicing syntax instead.
+
+4. **Functional & Pipeline Composition**:
+   - Prefer left-to-right pipelines (`|>`) and dot-called chaining (`.map()`, `.filter()`) over mutable `var` state and complex `while` loops whenever possible.
+   - Keep functions small, pure, and focused on single-responsibility transformations.
 """

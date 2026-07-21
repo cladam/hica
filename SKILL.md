@@ -628,3 +628,31 @@ test "single word counted once" {
 - Spec: the generated `.kk` file (keep with `--generate`) shows exactly what hica emits
 
 The Modelfile at the repo root is the extended version of this card formatted for Ollama/local models. This file is the canonical source.
+
+---
+
+## 19. AI Coding & Behavioral Guidelines
+
+To produce high-quality, bug-free, and idiomatic hica code, you must strictly follow these cognitive and behavioral guidelines before and during code generation:
+
+1. **Strict Language Contrast (No Syntax Blending)**:
+   - Always remember that hica is NOT Rust, Python, Gleam, or Koka.
+   - If tempted to write `fn` or `def`, force yourself to write `fun`.
+   - If tempted to write `->` for return types, write `: ReturnType`.
+   - If tempted to write `and`, `or`, or `not`, use `&&`, `||`, and `!`.
+   - If tempted to write `return`, restructure the code as nested `match` chains, `if/else`, or `and_then_result` pipelines.
+
+2. **Pre-Generation Checking Checklist**:
+   - Before outputting any hica code, review the **Common Pitfalls** section.
+   - Check if you have used any generic functions inside `main()` with more than one concrete type.
+   - Verify that all string literals containing literal braces `{` or `}` have them escaped as `\{` and `\}`. This includes all error strings, match patterns, and helper strings.
+   - Verify that you are not using index brackets on collections (e.g., `xs[i]`). All collection lookups must be recursive pattern matches or dot-called helper functions.
+
+3. **Factual API Anchoring**:
+   - Do NOT assume any functions or library modules exist unless they are explicitly listed in the **Prelude** or **Stdlib** documentation.
+   - There is no `drop_prefix` function—use `s[n:]` slicing syntax instead.
+   - There is no `char_at` function—use `s[i:i+1]` slicing syntax instead.
+
+4. **Functional & Pipeline Composition**:
+   - Prefer left-to-right pipelines (`|>`) and dot-called chaining (`.map()`, `.filter()`) over mutable `var` state and complex `while` loops whenever possible.
+   - Keep functions small, pure, and focused on single-responsibility transformations.

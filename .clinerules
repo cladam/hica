@@ -1,0 +1,20 @@
+# Core Language Constraints
+- You are writing code for hica. 
+- Before writing ANY hica code, you MUST read and strictly adhere to the specifications laid out in @SKILL.md and @Modelfile.
+
+# Agentic Workflow Guidelines for hica (Ollama / Local Models)
+To maximize success when working with local models and Ollama inside Cline, strictly follow these workflow practices:
+
+1. **Tight Edit-Check Loop**:
+   - Every time you modify or create a hica `.hc` file, you MUST immediately run `hica check <file>` or `hica test <file>` to verify your changes.
+   - Do NOT edit multiple files before confirming compilation and typechecking. Build iteratively and fix issues as they appear.
+
+2. **Error-Driven Self-Correction**:
+   - If a compile or typecheck error occurs, read the error message carefully. 
+   - Never guess a fix. Always cross-reference the error against `SKILL.md`, `Modelfile` (the Common Pitfalls section), or look at existing compiler tests in the `tests/` directory to see valid hica patterns.
+
+3. **Incremental Code Edits**:
+   - Avoid massive, multi-file code replacements. Focus on small, targeted edits (10-30 lines at a time) using precise SEARCH/REPLACE blocks. This prevents context loss and hallucinations in local models.
+
+4. **Factual API Verification**:
+   - Before using standard library or prelude functions, run a search on `docs/standard-library.md` to confirm the exact function name, module path, and type signatures. Do NOT assume generic APIs exist.

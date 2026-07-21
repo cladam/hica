@@ -36,8 +36,6 @@ examples/functional.hc
 .hica/
 .DS_Store
 
-.clinerules
-
 # hica binary
 hica
 
