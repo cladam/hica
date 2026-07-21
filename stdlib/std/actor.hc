@@ -1,6 +1,5 @@
 // hica – actor stdlib module
 //
-// Phase 1: sequential actor pattern (state machine model).
 // An actor is modelled as: state + receive function + mailbox.
 // Import with: import "std/actor"
 //
