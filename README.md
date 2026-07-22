@@ -38,11 +38,57 @@ Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 
 [**yml2hml**](https://www.hica.dev/docs/yml2hml/) — a standalone CLI tool that converts YAML files to HML format. A practical example of real-world parsing, recursive data structures, and formatted output.
 
-## Concurrency
+## Concurrency & Actors
 
-hica currently targets scripting, tooling, and single-threaded programs. OS threads and async I/O are not in scope yet.
+hica targets scripting, tooling, and single-threaded programs, but features first-class support for the **Actor Model** and cooperative concurrency via algebraic effects.
 
-That said, Koka's algebraic effect system provides the right primitives for structured concurrency. Named effect handlers can express cooperative patterns (coroutines, generators, and actor-like message passing) without needing language-level async/await. The [`counter-actor` example](examples/counter-actor.hc) demonstrates the actor pattern today. Structured concurrency via named handlers is the direction the runtime is heading.
+### First-Class Actors
+
+With the `actor` keyword and the `"std/actor"` standard library module, you can define, spawn, and interact with stateful actors:
+
+```rust
+import "std/actor"
+
+type BankMsg {
+  Deposit(amount: int),
+  Withdraw(amount: int)
+}
+
+actor BankAccount {
+  var balance = 0
+
+  receive(msg: BankMsg) => match msg {
+    Deposit(amount) => {
+      balance = balance + amount;
+      println("Deposited {amount}. Balance: {balance}")
+    }
+    Withdraw(amount) => {
+      if balance >= amount {
+        balance = balance - amount;
+        println("Withdrew {amount}. Balance: {balance}")
+      }
+    }
+  }
+}
+
+fun main() {
+  var account = BankAccountState { balance: 0 }
+  account = bankaccount_receive(account, Deposit(100))
+}
+```
+
+The standard library `"std/actor"` provides helpers to interact with actors:
+- `send(state, msg, receive)` — Sends a fire-and-forget message, discarding the returned state.
+- `ask(state, msg, receive, project)` — Sends a request message and projects a reply from the updated state.
+- `process_messages(state, messages, receive)` — Runs a fold loop to process lists/mailboxes of messages.
+
+### Cooperative Concurrency
+
+Under the hood, actors compile to Koka's algebraic effect handlers. This enables cooperative patterns (coroutines, generators, and interleaved concurrent actors) with single-threaded schedulers without needing complex language-level async/await.
+
+See the following examples for a deep dive:
+- [`bank-actor` example](examples/bank-actor.hc) — stateful bank account actors using first-class syntax.
+- [`ping-pong-cooperative` example](examples/ping-pong-cooperative.hc) — a concurrent, asynchronous FIFO event-loop scheduler interleaving actors.
 
 For I/O-bound parallelism in the meantime, `exec()` and `exec_args()` let you shell out to external processes.
 
