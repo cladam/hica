@@ -32,6 +32,7 @@ import stdlib-bundle
 import stream-kk-bundle
 import deps
 import http
+import semantics/analyser
 
 val version = "0.44.0"
 
@@ -153,7 +154,8 @@ fun hica-cli() : command
     .arg(option-short("output", 'o').help("Output binary name (build only)"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
-    .subcommand("check, c", "Analyse a .hc file and report errors")
+    .subcommand("check, c", "Type-check a .hc file and report errors")
+    .subcommand("analyse, a", "Analyse a .hc file for FP debt and anti-patterns")
     .subcommand("fmt, f", "Format a .hc file")
     .subcommand("clean", "Remove generated build artifacts")
     .subcommand("test, t", "Run tests in a .hc file")
@@ -181,8 +183,15 @@ fun run-cli() : command
 
 fun check-cli() : command
   command("hica check")
-    .about("Analyse a .hc file and report errors")
+    .about("Type-check a .hc file and report errors")
     .arg(positional("FILE").help("Source .hc file").required)
+
+fun analyse-cli() : command
+  command("hica analyse")
+    .about("Analyse a .hc file for FP debt and anti-patterns")
+    .arg(positional("FILE").help("Source .hc file").required)
+    .arg(option("format").help("Output format: text (default) or markdown"))
+    .arg(option("top").help("Number of top issues to show in markdown format"))
 
 fun clean-cli() : command
   command("hica clean")
@@ -281,6 +290,8 @@ fun main-dispatch( hica-args : list<string>, user-args : list<string> )
             "r"     -> cmd-run(f, user-args, m.get-flag("generate"))
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
+            "analyse" -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"))
+            "a"     -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"))
             "fmt"   -> cmd-fmt(f, m.get-flag("check"))
             "f"     -> cmd-fmt(f, m.get-flag("check"))
             "test"  -> cmd-test(f)
@@ -358,6 +369,36 @@ fun cmd-run( file : string, user-args : list<string>, generate : bool = False )
     run-koka(file, user-args)
   else
     println("aborted: not running stale executable because compilation failed")
+
+fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
+  val dep-includes = resolve-dep-includes()
+  val source = read-text-file(file.path)
+  val tokens = lex(source)
+  val prog   = run-parser-program(tokens, source)
+  val dir    = file.path.dirname
+  val prelude = load-prelude()
+  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes)
+  val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
+  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                       types = prelude.types ++ imported-types ++ prog.types,
+                       decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       globals = prog.globals)
+  val desugared = desugar-program(merged)
+  val skip-decls = prelude.decls.length + imported-decls.length
+  val skip-structs = prelude.structs.length + imported-structs.length
+  val skip-types = prelude.types.length + imported-types.length
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+  
+  // if there are hard errors, we can't analyse
+  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
+    println("analyse: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
+    hica-exit(1)
+  
+  analyse-program(typed-prog)
 
 fun cmd-check( file : string )
   val dep-includes = resolve-dep-includes()
