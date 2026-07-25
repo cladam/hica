@@ -68,6 +68,10 @@ test-lexer:
 test-parser:
 	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-parser.kk
 
+## Analyser unit tests
+test-analyser:
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-analyser.kk
+
 ## Codegen unit tests
 test-codegen:
 	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-codegen.kk

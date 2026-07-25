@@ -25,7 +25,14 @@ pub struct function-score
 pub fun analyse-program(prog: program) : io ()
   val scores = prog.decls.map(analyse-decl)
   val total = scores.map(fn(s) s.items.map(points).sum).sum
-  println("Analysis complete. Processed " ++ prog.decls.length.show ++ " declarations.")
+  
+  scores.foreach fn(score)
+    if !score.items.is-empty then
+      println("Function: " ++ score.name)
+      score.items.foreach fn(item)
+        println("  - [" ++ item.points.show ++ "] " ++ item.message)
+
+  println("\nAnalysis complete. Processed " ++ prog.decls.length.show ++ " declarations.")
   println("Total debt: " ++ total.show)
 
 // Known effectful functions (mirror from main)
@@ -34,7 +41,7 @@ val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
 val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwrite"]
 val ndet-fns    = ["random"]
 
-fun analyse-decl(decl: fun-decl) : div function-score
+pub fun analyse-decl(decl: fun-decl) : div function-score
   var items : list<debt-item> := []
   
   fun add-debt(cat: rule-category, msg: string, pts: int, sp: span)
