@@ -34,7 +34,7 @@ import deps
 import http
 import semantics/analyser
 
-val version = "0.44.0"
+val version = "0.45.0"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
