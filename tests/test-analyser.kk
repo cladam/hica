@@ -16,8 +16,14 @@ import transform/desugar
 import diagnostics/diagnostics
 import std/os/env
 
+extern import
+  c file "test-analyser-helper.c"
+
 extern my-process-exit(code : int) : io ()
-  c inline "extern void _exit(int); _exit(kk_integer_clamp32(#1,kk_context()))"
+  c inline "my_process_exit(kk_integer_clamp32(#1,kk_context()))"
+
+extern keep-alive(scores : a) : ()
+  c inline "hica_keep_alive(#1, kk_context())"
 
 fun get-analyser-scores(source: string) : <div,console> list<function-score>
   val tokens = lex(source)
@@ -27,7 +33,9 @@ fun get-analyser-scores(source: string) : <div,console> list<function-score>
     run-fresh
       check-program(desugared, 0)
   
-  typed-prog.decls.map(fn(d) semantics/analyser/analyse-decl(d, []))
+  val scores = typed-prog.decls.map(fn(d) semantics/analyser/analyse-decl(d, []))
+  keep-alive(scores)
+  scores
 
 pub fun main() : io ()
   println(bold("Analyser tests"))

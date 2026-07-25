@@ -260,9 +260,9 @@ fun fizzbuzz(n) =>
   else { show(n) }
 ```
 
-### Running with a shebang!
+### Running hica with a shebang!
 
-By default, running `hica` transpiles to Koka, emits C, and then compiles a native binary. While this produces high-performance native executables, the C compilation step (gcc/clang) adds startup latency that can feel sluggish for lightweight scripts. Users can run hica code using the JS compiler, (same compiler behind the Playground and REPL) this is acheivable using a standard shebang on a Linux/Mac environment:
+By default, running `hica` transpiles to Koka, emits C, and then compiles a native binary. While this produces high-performance native executables, the C compilation step (gcc/clang) adds startup latency that can feel sluggish for lightweight scripts. Users can instead run `hica` code using the JS compiler for instant results (same compiler that powers the Playground and REPL) this is acheivable using a standard shebang on a Linux/Mac environment:
 
 ```sh
 #!/usr/bin/env hica-js
@@ -278,7 +278,7 @@ chmod +x file.hc
 ./file.hc
 
 # Output
-# Running quickly with JS engine!
+Running quickly with JS engine!
 ```
 
 ## CLI
