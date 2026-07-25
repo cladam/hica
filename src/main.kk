@@ -420,7 +420,8 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
   // Only analyse user declarations, strip prelude and imports
   val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
   val user-prog = typed-prog(decls = user-decls)
-  analyse-program(user-prog, file, source, format-str, top-n-str)
+  val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
+  analyse-program(user-prog, file, source, format-str, top-n-str, extra-effectful)
 
 fun cmd-check( file : string )
   val dep-includes = resolve-dep-includes()

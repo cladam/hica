@@ -129,8 +129,8 @@ pub fun format-markdown(file: string, source: string, scores: list<function-scor
   
   "# Hica Analysis Hotspot: `" ++ file ++ "`\n\n" ++ parts.join("")
 
-pub fun analyse-program(prog: program, file: string, source: string, format: string, top: maybe<string>) : io ()
-  val scores = prog.decls.map(analyse-decl)
+pub fun analyse-program(prog: program, file: string, source: string, format: string, top: maybe<string>, extra-effectful: list<string>) : io ()
+  val scores = prog.decls.map(fn(d) analyse-decl(d, extra-effectful))
   val total = scores.map(fn(s) s.items.map(points).sum).sum
   
   if format == "markdown" || format == "md" then
@@ -155,7 +155,7 @@ val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
 val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwrite"]
 val ndet-fns    = ["random"]
 
-pub fun analyse-decl(decl: fun-decl) : div function-score
+pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div function-score
   var items : list<debt-item> := []
   
   fun add-debt(cat: rule-category, msg: string, pts: int, sp: span)
@@ -229,7 +229,7 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
         // Batch 4: Purity & Effects
         match callee.expr
           Var(name) ->
-            if io-fns.any(fn(f) f == name) || fsys-fns.any(fn(f) f == name) then has-io := True
+            if io-fns.any(fn(f) f == name) || fsys-fns.any(fn(f) f == name) || extra-effectful.any(fn(f) f == name) then has-io := True
             if console-fns.any(fn(f) f == name) then has-console := True
           _ -> ()
 

@@ -27,7 +27,7 @@ fun get-analyser-scores(source: string) : <div,console> list<function-score>
     run-fresh
       check-program(desugared, 0)
   
-  typed-prog.decls.map(semantics/analyser/analyse-decl)
+  typed-prog.decls.map(fn(d) semantics/analyser/analyse-decl(d, []))
 
 pub fun main() : io ()
   println(bold("Analyser tests"))
