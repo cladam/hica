@@ -186,18 +186,18 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
           Nothing -> False
       _ -> False
 
-  fun walk(n: node)
+  fun walk(n: node, in-pipeline: bool)
     match n.expr
       Let(_name, _t, init, body) ->
-        walk(init)
-        walk(body)
+        walk(init, False)
+        walk(body, False)
       VarDecl(_name, _t, init, body) ->
         // Batch 3: Immutability rule (VarDecl)
         add-debt(Immutability, "Mutable 'var' declaration used", 5, n.span)
-        walk(init)
-        walk(body)
+        walk(init, False)
+        walk(body, False)
       Assign(_name, value) ->
-        walk(value)
+        walk(value, False)
       Fun(params, body) ->
         // Batch 3: Lambda Noise rule
         // Only flag as noise if the call is NOT using UFCS dot-notation.
@@ -216,11 +216,14 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
                       add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span)
                 Nothing -> ()
           _ -> ()
-        walk(body)
+        walk(body, False)
       Call(callee, args) ->
         // Batch 4: Pipelines & Allocation
         // Check for eager list pipelines with >2 operations
-        if is-list-op(n) && is-nested-list-call(n, 1) then
+        val is-lop = is-list-op(n)
+        val is-pipe = is-lop && is-nested-list-call(n, 1)
+        val matched-here = is-pipe && !in-pipeline
+        if matched-here then
           add-debt(PipelinesAllocation, "Eager list pipeline with >2 operations (suggest 'std/stream')", 10, n.span)
 
         // Batch 4: Purity & Effects
@@ -230,19 +233,23 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
             if console-fns.any(fn(f) f == name) then has-console := True
           _ -> ()
 
-        walk(callee)
-        args.foreach(walk)
+        walk(callee, False)
+        match args
+          Nil -> ()
+          Cons(first, rest) ->
+            walk(first, is-lop || in-pipeline)
+            rest.foreach(fn(a) walk(a, False))
       Binary(_op, lhs, rhs) ->
-        walk(lhs)
-        walk(rhs)
+        walk(lhs, False)
+        walk(rhs, False)
       Unary(_op, operand) ->
-        walk(operand)
+        walk(operand, False)
       If(cond, then-e, else-e) ->
-        walk(cond)
-        walk(then-e)
-        walk(else-e)
+        walk(cond, False)
+        walk(then-e, False)
+        walk(else-e, False)
       Block(stmts) ->
-        stmts.foreach(walk)
+        stmts.foreach(fn(s) walk(s, False))
       Match(scrut, arms) ->
         // Batch 4: Error Handling (Nested match on Maybe/Result)
         val is-wrapper = match scrut.typ
@@ -263,70 +270,70 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
           if has-nested then
             add-debt(ErrorHandling, "Nested 'match' on maybe/result (suggest '?' operator or combinators)", 8, n.span)
 
-        walk(scrut)
+        walk(scrut, False)
         arms.foreach fn(a)
-          match a.guard { Just(g) -> walk(g); Nothing -> () }
-          walk(a.body)
+          match a.guard { Just(g) -> walk(g, False); Nothing -> () }
+          walk(a.body, False)
       Repeat(count, body) ->
-        walk(count)
-        walk(body)
+        walk(count, False)
+        walk(body, False)
       ForIn(_name, start-e, end-e, body) ->
         // Batch 3: Immutability rule (ForIn)
         add-debt(Immutability, "Imperative 'for' loop used", 5, n.span)
-        walk(start-e)
-        walk(end-e)
-        walk(body)
+        walk(start-e, False)
+        walk(end-e, False)
+        walk(body, False)
       ForEach(_name, coll, body) ->
-        walk(coll)
-        walk(body)
+        walk(coll, False)
+        walk(body, False)
       While(cond, body) ->
         // Batch 3: Immutability rule (While)
         add-debt(Immutability, "Imperative 'while' loop used", 5, n.span)
-        walk(cond)
-        walk(body)
+        walk(cond, False)
+        walk(body, False)
       Loop(body) ->
         add-debt(Immutability, "Imperative 'loop' used", 5, n.span)
-        walk(body)
+        walk(body, False)
       StringInterp(parts) ->
-        parts.foreach(walk)
+        parts.foreach(fn(p) walk(p, False))
       Tuple(elems) ->
-        elems.foreach(walk)
+        elems.foreach(fn(e) walk(e, False))
       EList(elems) ->
-        elems.foreach(walk)
+        elems.foreach(fn(e) walk(e, False))
       MapLit(entries) ->
         entries.foreach fn((k, v))
-          walk(k)
-          walk(v)
+          walk(k, False)
+          walk(v, False)
       ListIndex(lst, idx) ->
-        walk(lst)
-        walk(idx)
+        walk(lst, False)
+        walk(idx, False)
       ListSlice(lst, s, e) ->
-        walk(lst)
-        match s { Just(x) -> walk(x); Nothing -> () }
-        match e { Just(x) -> walk(x); Nothing -> () }
+        walk(lst, False)
+        match s { Just(x) -> walk(x, False); Nothing -> () }
+        match e { Just(x) -> walk(x, False); Nothing -> () }
       TupleIndex(tup, _idx) ->
-        walk(tup)
+        walk(tup, False)
       LetTuple(_names, init, body) ->
-        walk(init)
-        walk(body)
+        walk(init, False)
+        walk(body, False)
       ESome(value) ->
-        walk(value)
+        walk(value, False)
       EOk(value) ->
-        walk(value)
+        walk(value, False)
       EErr(value) ->
-        walk(value)
+        walk(value, False)
       StructLit(_name, fields) ->
         fields.foreach fn((_, v))
-          walk(v)
+          walk(v, False)
       StructUpdate(_name, base, fields, _def-fields) ->
-        walk(base)
+        walk(base, False)
         fields.foreach fn((_, v))
-          walk(v)
+          walk(v, False)
       FieldAccess(obj, _f) ->
-        walk(obj)
+        walk(obj, False)
       _ -> ()
 
-  walk(decl.body)
+  walk(decl.body, False)
 
   if has-io && has-console then
     add-debt(PurityEffects, "Mixed side effects [io/fsys, console] in function (suggest isolating pure core logic)", 8, decl.span)
