@@ -152,6 +152,8 @@ fun hica-cli() : command
     .arg(flag("generate").help("Keep generated .kk files after compilation"))
     .arg(option("target").help("Output target: koka (default) or js"))
     .arg(option-short("output", 'o').help("Output binary name (build only)"))
+    .arg(option("format").help("Output format: text or markdown (analyse only)"))
+    .arg(option("top").help("Number of top issues to show in markdown format (analyse only)"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Type-check a .hc file and report errors")
@@ -397,8 +399,11 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("analyse: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
     hica-exit(1)
-  
-  analyse-program(typed-prog)
+
+  // Only analyse user declarations, strip prelude and imports
+  val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
+  val user-prog = typed-prog(decls = user-decls)
+  analyse-program(user-prog, file, source, format-str, top-n-str)
 
 fun cmd-check( file : string )
   val dep-includes = resolve-dep-includes()

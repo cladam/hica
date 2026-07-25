@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+if [ -f "$1" ]; then
+  # Create a temporary file ending with .hc
+  TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/hica_script_XXXXXX.hc")"
+  trap 'rm -f "$TMP_FILE"' EXIT
+
+  # Comment out the shebang on Line 1 (preserves line numbering)
+  sed '1s/^#!/\/\//' "$1" > "$TMP_FILE"
+
+  SCRIPT_PATH="$1"
+  shift
+  exec hica run --target=js "$TMP_FILE" "$@"
+else
+  exec hica run --target=js "$@"
+fi

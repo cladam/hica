@@ -22,18 +22,124 @@ pub struct function-score
   items : list<debt-item>
   span  : span
 
-pub fun analyse-program(prog: program) : io ()
+// ---------------------------------------------------------------------------
+// Formatters
+// ---------------------------------------------------------------------------
+
+fun score-cmp(a: function-score, b: function-score) : order
+  val a-total = a.items.map(points).sum
+  val b-total = b.items.map(points).sum
+  if a-total > b-total then (Lt : order)
+  elif a-total < b-total then (Gt : order)
+  else (Eq : order)
+
+fun sort-scores(scores: list<function-score>) : list<function-score>
+  fun insert(s: function-score, xs: list<function-score>) : list<function-score>
+    match xs
+      Nil -> [s]
+      Cons(x, rest) ->
+        match score-cmp(s, x)
+          Lt -> Cons(s, xs)
+          Eq -> Cons(s, xs)
+          Gt -> Cons(x, insert(s, rest))
+  
+  scores.foldl([], fn(acc, s) insert(s, acc))
+
+pub fun format-terminal(file: string, source: string, scores: list<function-score>, total: int, num-decls: int) : string
+  val non-empty-scores = scores.filter(fn(s) !s.items.is-empty)
+  // Sort scores by highest debt first
+  val sorted-scores = sort-scores(non-empty-scores)
+
+  var critical-cnt := 0
+  var high-cnt := 0
+  var medium-cnt := 0
+
+  val parts = sorted-scores.map fn(score)
+    val func-total = score.items.map(points).sum
+    val severity-label = 
+      if func-total >= 10 then { critical-cnt := critical-cnt + 1; "\x1b[31m[CRITICAL]\x1b[0m" }
+      elif func-total >= 6 then { high-cnt := high-cnt + 1; "\x1b[33m[HIGH]\x1b[0m" }
+      else { medium-cnt := medium-cnt + 1; "\x1b[36m[MEDIUM]\x1b[0m" }
+
+    // Resolve line number from span
+    val start-pos = score.span.start
+    val line-num = source.slice.extend(start-pos).string.lines.length
+    
+    val p1 = severity-label ++ " " ++ file ++ ":" ++ line-num.show ++ " (score: " ++ func-total.show ++ ")\n  fun " ++ score.name ++ "(...)\n"
+    
+    val p2 = score.items.map(fn(item)
+      val cat-str = match item.category
+        PurityEffects -> "Effects"
+        Immutability -> "Immutability"
+        PipelinesAllocation -> "Allocation"
+        ErrorHandling -> "ErrorHandling"
+        DoubleWrapping -> "DoubleWrapping"
+        ClosureLambdaNoise -> "Style"
+      "  - [" ++ cat-str ++ "] " ++ item.message ++ "\n"
+    ).join("")
+    
+    p1 ++ p2 ++ "\n"
+
+  val q-index = max(0, 100 - total)
+  
+  "=== Hica Code Quality & Functional Debt Report ===\n\n" ++
+  parts.join("") ++
+  "Summary: " ++ file ++ " | " ++ critical-cnt.show ++ " Critical | " ++ high-cnt.show ++ " High | " ++ medium-cnt.show ++ " Medium\n" ++
+  "Total FP Quality Index: " ++ q-index.show ++ "/100\n"
+
+pub fun format-markdown(file: string, source: string, scores: list<function-score>, total: int, num-decls: int, top-n: int) : string
+  val non-empty-scores = scores.filter(fn(s) !s.items.is-empty)
+  // Sort scores by highest debt first
+  val sorted-scores = sort-scores(non-empty-scores)
+  val top-scores = sorted-scores.take(top-n)
+
+  val parts = top-scores.map fn(score)
+    val func-total = score.items.map(points).sum
+    val severity = 
+      if func-total >= 10 then "Critical"
+      elif func-total >= 6 then "High"
+      else "Medium"
+
+    // Resolve line number from span
+    val start-pos = score.span.start
+    val line-num = source.slice.extend(start-pos).string.lines.length
+    
+    val p1 = "## Function Context\n- **Name:** `" ++ score.name ++ "`\n- **Location:** `" ++ file ++ ":" ++ line-num.show ++ "`\n- **Debt Score:** " ++ func-total.show ++ " (" ++ severity ++ ")\n\n## Detected FP Anti-Patterns\n"
+    
+    var idx := 1
+    val p2 = score.items.map(fn(item)
+      val cat-str = match item.category
+        PurityEffects -> "Purity & Effects"
+        Immutability -> "Immutability"
+        PipelinesAllocation -> "Pipelines & Allocation"
+        ErrorHandling -> "Error Handling"
+        DoubleWrapping -> "Double Wrapping"
+        ClosureLambdaNoise -> "Closure & Lambda Noise"
+      val s = idx.show ++ ". **" ++ cat-str ++ ":** " ++ item.message ++ "\n"
+      idx := idx + 1
+      s
+    ).join("")
+    
+    val end-pos = score.span.end
+    val func-source = if start-pos < source.count && end-pos <= source.count && start-pos <= end-pos then
+       source.slice.extend(end-pos).drop(start-pos).string ++ "\n"
+    else ""
+    
+    p1 ++ p2 ++ "\n## Code Snippet\n```hica\n" ++ func-source ++ "```\n\n---\n\n"
+  
+  "# Hica Analysis Hotspot: `" ++ file ++ "`\n\n" ++ parts.join("")
+
+pub fun analyse-program(prog: program, file: string, source: string, format: string, top: maybe<string>) : io ()
   val scores = prog.decls.map(analyse-decl)
   val total = scores.map(fn(s) s.items.map(points).sum).sum
   
-  scores.foreach fn(score)
-    if !score.items.is-empty then
-      println("Function: " ++ score.name)
-      score.items.foreach fn(item)
-        println("  - [" ++ item.points.show ++ "] " ++ item.message)
-
-  println("\nAnalysis complete. Processed " ++ prog.decls.length.show ++ " declarations.")
-  println("Total debt: " ++ total.show)
+  if format == "markdown" || format == "md" then
+    val top-n = match top
+      Just(s) -> match s.parse-int { Just(n) -> n; Nothing -> 1 }
+      Nothing -> 1
+    println(format-markdown(file, source, scores, total, prog.decls.length, top-n))
+  else
+    println(format-terminal(file, source, scores, total, prog.decls.length))
 
 // Known effectful functions (mirror from main)
 val console-fns = ["println", "eprintln"]
@@ -86,13 +192,20 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
         walk(value)
       Fun(params, body) ->
         // Batch 3: Lambda Noise rule
+        // Only flag as noise if the call is NOT using UFCS dot-notation.
+        // If args[0].span is before callee.span, the user wrote `arg.callee()`, which is an intentional style choice.
         match body.expr
-          Call(_callee, args) ->
+          Call(callee, args) ->
             if args.length == params.length && !params.is-empty then
-              val is-noise = args.zip(params).all fn((a, p))
-                match a.expr { Var(name) -> name == p; _ -> False }
-              if is-noise then
-                add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span)
+              match args.head
+                Just(first-arg) ->
+                  val is-ufcs = first-arg.span.start < callee.span.start
+                  if !is-ufcs then
+                    val is-noise = args.zip(params).all fn((a, p))
+                      match a.expr { Var(name) -> name == p; _ -> False }
+                    if is-noise then
+                      add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span)
+                Nothing -> ()
           _ -> ()
         walk(body)
       Call(callee, args) ->

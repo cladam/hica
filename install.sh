@@ -46,7 +46,14 @@ main() {
   mv "$TMP_DIR/hica" "$INSTALL_DIR/hica"
   chmod +x "$INSTALL_DIR/hica"
 
-  echo "hica installed to $INSTALL_DIR/hica"
+  # Create hica-js wrapper script
+    cat << 'EOF' > "$INSTALL_DIR/hica-js"
+#!/bin/sh
+exec hica run --target=js "$@"
+EOF
+    chmod +x "$INSTALL_DIR/hica-js"
+
+    echo "hica and hica-js installed to $INSTALL_DIR"
 
   if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
     echo ""
