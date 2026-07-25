@@ -49,7 +49,23 @@ main() {
   # Create hica-js wrapper script
     cat << 'EOF' > "$INSTALL_DIR/hica-js"
 #!/bin/sh
-exec hica run --target=js "$@"
+set -e
+
+if [ -f "$1" ]; then
+  # Create a temporary file ending with .hc
+  TMP_BASE="$(mktemp -t hica_script)"
+  TMP_FILE="${TMP_BASE}.hc"
+  trap 'rm -f "$TMP_BASE" "$TMP_FILE"' EXIT
+
+  # Comment out the shebang on Line 1 (preserves line numbering)
+  sed '1s/^#!/\/\//' "$1" > "$TMP_FILE"
+
+  SCRIPT_PATH="$1"
+  shift
+  exec hica run --target=js "$TMP_FILE" "$@"
+else
+  exec hica run --target=js "$@"
+fi
 EOF
     chmod +x "$INSTALL_DIR/hica-js"
 

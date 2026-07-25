@@ -288,8 +288,8 @@ fun main-dispatch( hica-args : list<string>, user-args : list<string> )
           match cmd
             "build" -> cmd-build(f, target, output, m.get-flag("generate"))
             "b"     -> cmd-build(f, target, output, m.get-flag("generate"))
-            "run"   -> cmd-run(f, user-args, m.get-flag("generate"))
-            "r"     -> cmd-run(f, user-args, m.get-flag("generate"))
+            "run"   -> cmd-run(f, target, user-args, m.get-flag("generate"))
+            "r"     -> cmd-run(f, target, user-args, m.get-flag("generate"))
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
             "analyse" -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"))
@@ -318,8 +318,9 @@ fun cmd-build( file : string, target : string = "koka", output : maybe<string> =
     val _ = build(file, extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, output=output, generate=generate)
     ()
 
-// Build to JavaScript: lex → parse → check → emit JS
-fun build-js( file : string )
+// Build to JavaScript: lex → parse → check → emit JS and write it to disk.
+// Returns Just(out-js-path) on success, or Nothing on failure.
+fun compile-js( file : string ) : io maybe<path>
   val stem = file.path.stemname
   val mod-name = safe-module-name(stem)
   val dir  = file.path.dirname
@@ -346,6 +347,7 @@ fun build-js( file : string )
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("build: " ++ errors.length.show ++ " type error(s)")
+    Nothing
   else
     // Strip imported decls/structs/types (same as build)
     val prelude-count = prelude.decls.length
@@ -361,16 +363,31 @@ fun build-js( file : string )
     val js-code = emit-js-program(user-prog, mod-name)
     val out-js = dir.path / (mod-name ++ ".js").path
     write-text-file(out-js, js-code)
-    println("compiled " ++ file ++ " -> " ++ out-js.show ++ " (js)")
+    Just(out-js)
 
-fun cmd-run( file : string, user-args : list<string>, generate : bool = False )
-  val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)
-  val dep-includes = resolve-dep-includes()
-  val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, generate=generate)
-  if ok then
-    run-koka(file, user-args)
+// Build to JavaScript and print status
+fun build-js( file : string ) : io ()
+  match compile-js(file)
+    Just(out-js) -> println("compiled " ++ file ++ " -> " ++ out-js.show ++ " (js)")
+    Nothing -> ()
+
+fun cmd-run( file : string, target : string, user-args : list<string>, generate : bool = False )
+  if target == "js" then
+    match compile-js(file)
+      Just(out-js) ->
+        val args-str = if user-args.is-nil then "" else " " ++ user-args.map(shell-escape).join(" ")
+        val exit-code = run-system("node " ++ out-js.show ++ args-str)
+        if exit-code != 0 then hica-exit(exit-code)
+      Nothing ->
+        println("aborted: not running because compilation failed")
   else
-    println("aborted: not running stale executable because compilation failed")
+    val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)
+    val dep-includes = resolve-dep-includes()
+    val ok = build(file, opt-level="0", extra-includes=dep-includes ++ extra-includes, koka-flags=koka-flags, generate=generate)
+    if ok then
+      run-koka(file, user-args)
+    else
+      println("aborted: not running stale executable because compilation failed")
 
 fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
   val dep-includes = resolve-dep-includes()

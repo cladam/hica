@@ -3,8 +3,9 @@ set -e
 
 if [ -f "$1" ]; then
   # Create a temporary file ending with .hc
-  TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/hica_script_XXXXXX.hc")"
-  trap 'rm -f "$TMP_FILE"' EXIT
+  TMP_BASE="$(mktemp -t hica_script)"
+  TMP_FILE="${TMP_BASE}.hc"
+  trap 'rm -f "$TMP_BASE" "$TMP_FILE"' EXIT
 
   # Comment out the shebang on Line 1 (preserves line numbering)
   sed '1s/^#!/\/\//' "$1" > "$TMP_FILE"
