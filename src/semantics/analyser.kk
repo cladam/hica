@@ -141,6 +141,14 @@ pub fun analyse-program(prog: program, file: string, source: string, format: str
   else
     println(format-terminal(file, source, scores, total, prog.decls.length))
 
+fun unwrap-block(n: node) : div node
+  match n.expr
+    Block(stmts) ->
+      match stmts
+        Cons(first, Nil) -> unwrap-block(first)
+        _ -> n
+    _ -> n
+
 // Known effectful functions (mirror from main)
 val console-fns = ["println", "eprintln"]
 val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
@@ -194,7 +202,8 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
         // Batch 3: Lambda Noise rule
         // Only flag as noise if the call is NOT using UFCS dot-notation.
         // If args[0].span is before callee.span, the user wrote `arg.callee()`, which is an intentional style choice.
-        match body.expr
+        val unwrapped-body = unwrap-block(body)
+        match unwrapped-body.expr
           Call(callee, args) ->
             if args.length == params.length && !params.is-empty then
               match args.head
@@ -243,7 +252,8 @@ pub fun analyse-decl(decl: fun-decl) : div function-score
         
         if is-wrapper then
           val has-nested = arms.any fn(a)
-            match a.body.expr
+            val unwrapped-arm-body = unwrap-block(a.body)
+            match unwrapped-arm-body.expr
               Match(inner-scrut, _) ->
                 match inner-scrut.typ
                   Just(TMaybe(_)) -> True

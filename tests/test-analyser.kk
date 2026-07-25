@@ -17,7 +17,7 @@ import diagnostics/diagnostics
 import std/os/env
 
 extern my-process-exit(code : int) : io ()
-  c inline "exit(kk_integer_clamp32(#1,kk_context()))"
+  c inline "_exit(kk_integer_clamp32(#1,kk_context()))"
 
 fun get-analyser-scores(source: string) : <div,console> list<function-score>
   val tokens = lex(source)
