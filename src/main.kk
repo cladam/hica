@@ -40,6 +40,10 @@ val version = "0.44.0"
 extern hica-exit( code : int ) : a
   c inline "(exit(kk_integer_clamp32(#1, kk_context())), kk_box_null())"
 
+// Immediate process exit bypassing standard C library destructors/teardown (bypasses mimalloc free-list corruption)
+extern hica-process-exit(code : int) : io ()
+  c inline "extern void _exit(int); _exit(kk_integer_clamp32(#1,kk_context()))"
+
 // Flush stdout immediately — needed so Koka's buffered print() calls
 // appear before subsequent run-system() writes to the same fd.
 extern flush-stdout() : io ()
@@ -422,6 +426,8 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
   val user-prog = typed-prog(decls = user-decls)
   val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
   analyse-program(user-prog, file, source, format-str, top-n-str, extra-effectful)
+  flush-stdout()
+  hica-process-exit(0)
 
 fun cmd-check( file : string )
   val dep-includes = resolve-dep-includes()

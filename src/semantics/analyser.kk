@@ -16,11 +16,13 @@ pub struct debt-item
   message  : string
   points   : int
   span     : span
+  hint     : string
 
 pub struct function-score
   name  : string
   items : list<debt-item>
   span  : span
+  signature : string
 
 // ---------------------------------------------------------------------------
 // Formatters
@@ -65,7 +67,7 @@ pub fun format-terminal(file: string, source: string, scores: list<function-scor
     val start-pos = score.span.start
     val line-num = source.slice.extend(start-pos).string.lines.length
     
-    val p1 = severity-label ++ " " ++ file ++ ":" ++ line-num.show ++ " (score: " ++ func-total.show ++ ")\n  fun " ++ score.name ++ "(...)\n"
+    val p1 = severity-label ++ " " ++ file ++ ":" ++ line-num.show ++ " (score: " ++ func-total.show ++ ")\n  " ++ score.signature ++ "\n"
     
     val p2 = score.items.map(fn(item)
       val cat-str = match item.category
@@ -75,7 +77,9 @@ pub fun format-terminal(file: string, source: string, scores: list<function-scor
         ErrorHandling -> "ErrorHandling"
         DoubleWrapping -> "DoubleWrapping"
         ClosureLambdaNoise -> "Style"
-      "  - [" ++ cat-str ++ "] " ++ item.message ++ "\n"
+      val base-msg = "  - [" ++ cat-str ++ "] " ++ item.message ++ " (score: +" ++ item.points.show ++ ")\n"
+      val hint-msg = if !item.hint.is-empty then "    └─> Hint: " ++ item.hint ++ "\n" else ""
+      base-msg ++ hint-msg
     ).join("")
     
     p1 ++ p2 ++ "\n"
@@ -104,7 +108,7 @@ pub fun format-markdown(file: string, source: string, scores: list<function-scor
     val start-pos = score.span.start
     val line-num = source.slice.extend(start-pos).string.lines.length
     
-    val p1 = "## Function Context\n- **Name:** `" ++ score.name ++ "`\n- **Location:** `" ++ file ++ ":" ++ line-num.show ++ "`\n- **Debt Score:** " ++ func-total.show ++ " (" ++ severity ++ ")\n\n## Detected FP Anti-Patterns\n"
+    val p1 = "## Function Context\n- **Name:** `" ++ score.name ++ "`\n- **Signature:** `" ++ score.signature ++ "`\n- **Location:** `" ++ file ++ ":" ++ line-num.show ++ "`\n- **Debt Score:** " ++ func-total.show ++ " (" ++ severity ++ ")\n\n## Detected FP Anti-Patterns\n"
     
     var idx := 1
     val p2 = score.items.map(fn(item)
@@ -115,7 +119,8 @@ pub fun format-markdown(file: string, source: string, scores: list<function-scor
         ErrorHandling -> "Error Handling"
         DoubleWrapping -> "Double Wrapping"
         ClosureLambdaNoise -> "Closure & Lambda Noise"
-      val s = idx.show ++ ". **" ++ cat-str ++ ":** " ++ item.message ++ "\n"
+      val s = idx.show ++ ". **" ++ cat-str ++ ":** " ++ item.message ++ " (score: +" ++ item.points.show ++ ")\n" ++
+              (if !item.hint.is-empty then "   - *Hint:* " ++ item.hint ++ "\n" else "")
       idx := idx + 1
       s
     ).join("")
@@ -158,15 +163,15 @@ val ndet-fns    = ["random"]
 pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div function-score
   var items : list<debt-item> := []
   
-  fun add-debt(cat: rule-category, msg: string, pts: int, sp: span)
-    items := Cons(Debt-item(cat, msg, pts, sp), items)
+  fun add-debt(cat: rule-category, msg: string, pts: int, sp: span, hint: string)
+    items := Cons(Debt-item(cat, msg, pts, sp, hint), items)
 
   // Batch 4: Double-wrapping
   match decl.ret-type
     Just(TMaybe(TMaybe(_))) -> 
-      add-debt(DoubleWrapping, "Function returns nested maybe<maybe<T>> (suggest 'and_then'/'flat_map')", 6, decl.span)
+      add-debt(DoubleWrapping, "Function returns nested maybe<maybe<T>>", 6, decl.span, "Use 'and_then' or 'flat_map' to flatten the structure.")
     Just(TResult(TResult(_, _), _)) -> 
-      add-debt(DoubleWrapping, "Function returns nested result<result<T, E>, E> (suggest 'and_then_result')", 6, decl.span)
+      add-debt(DoubleWrapping, "Function returns nested result<result<T, E>, E>", 6, decl.span, "Use 'and_then_result' to flatten the structure.")
     _ -> ()
 
   var has-io := False
@@ -193,7 +198,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         walk(body, False)
       VarDecl(_name, _t, init, body) ->
         // Batch 3: Immutability rule (VarDecl)
-        add-debt(Immutability, "Mutable 'var' declaration used", 5, n.span)
+        add-debt(Immutability, "Mutable 'var' declaration used", 5, n.span, "Suggest using 'map', 'filter', 'fold', or lazy streams instead.")
         walk(init, False)
         walk(body, False)
       Assign(_name, value) ->
@@ -213,7 +218,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
                     val is-noise = args.zip(params).all fn((a, p))
                       match a.expr { Var(name) -> name == p; _ -> False }
                     if is-noise then
-                      add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span)
+                      add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span, "Convert to point-free style (e.g. filter(is_even) instead of filter((x) => is_even(x))).")
                 Nothing -> ()
           _ -> ()
         walk(body, False)
@@ -224,7 +229,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         val is-pipe = is-lop && is-nested-list-call(n, 1)
         val matched-here = is-pipe && !in-pipeline
         if matched-here then
-          add-debt(PipelinesAllocation, "Eager list pipeline with >2 operations (suggest 'std/stream')", 10, n.span)
+          add-debt(PipelinesAllocation, "Eager list pipeline with >2 operations", 10, n.span, "Wrap input with 'stream(xs)' from 'std/stream' or use pipeline transducers from 'std/xform' to eliminate intermediate list allocations.")
 
         // Batch 4: Purity & Effects
         match callee.expr
@@ -268,7 +273,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
                   _ -> False
               _ -> False
           if has-nested then
-            add-debt(ErrorHandling, "Nested 'match' on maybe/result (suggest '?' operator or combinators)", 8, n.span)
+            add-debt(ErrorHandling, "Nested 'match' on maybe/result", 8, n.span, "Suggest using '?' operator or combinators (like 'and_then'/'and_then_result') to reduce nested block depth.")
 
         walk(scrut, False)
         arms.foreach fn(a)
@@ -279,7 +284,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         walk(body, False)
       ForIn(_name, start-e, end-e, body) ->
         // Batch 3: Immutability rule (ForIn)
-        add-debt(Immutability, "Imperative 'for' loop used", 5, n.span)
+        add-debt(Immutability, "Imperative 'for' loop used", 5, n.span, "Refactor to standard list combinators like 'map', 'filter', or 'fold'.")
         walk(start-e, False)
         walk(end-e, False)
         walk(body, False)
@@ -288,11 +293,11 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         walk(body, False)
       While(cond, body) ->
         // Batch 3: Immutability rule (While)
-        add-debt(Immutability, "Imperative 'while' loop used", 5, n.span)
+        add-debt(Immutability, "Imperative 'while' loop used", 5, n.span, "Refactor using tail recursion or standard combinators.")
         walk(cond, False)
         walk(body, False)
       Loop(body) ->
-        add-debt(Immutability, "Imperative 'loop' used", 5, n.span)
+        add-debt(Immutability, "Imperative 'loop' used", 5, n.span, "Refactor using recursive functions.")
         walk(body, False)
       StringInterp(parts) ->
         parts.foreach(fn(p) walk(p, False))
@@ -336,6 +341,19 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
   walk(decl.body, False)
 
   if has-io && has-console then
-    add-debt(PurityEffects, "Mixed side effects [io/fsys, console] in function (suggest isolating pure core logic)", 8, decl.span)
+    add-debt(PurityEffects, "Mixed side effects [io/fsys, console] in function", 8, decl.span, "Encourage isolating pure core logic from impure I/O shell.")
 
-  Function-score(decl.name, items.reverse, decl.span)
+  fun format-params(ps: list<string>, ts: list<hica-type>) : div string
+    match (ps, ts)
+      (Cons(p, prs), Cons(t, trs)) ->
+        val rest = format-params(prs, trs)
+        val sep = if rest.is-empty then "" else ", "
+        p ++ ": " ++ t.show ++ sep ++ rest
+      _ -> ""
+
+  val ret-str = match decl.ret-type
+    Just(t) -> " : " ++ t.show
+    Nothing -> ""
+  val sig = "fun " ++ decl.name ++ "(" ++ format-params(decl.params, decl.param-types) ++ ")" ++ ret-str
+
+  Function-score(decl.name, items.reverse, decl.span, sig)

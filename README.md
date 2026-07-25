@@ -161,9 +161,34 @@ hica build hello.hc -o hello
 # Type-check without emitting
 hica check hello.hc
 
+# Analyse code quality and FP debt
+hica analyse hello.hc
+
 # Format source
 hica fmt hello.hc
 ```
+
+## Static Analysis & Quality Engine
+
+hica includes an integrated static analyzer (`hica analyse` or `hica a`) that inspects code post-typechecking for functional anti-patterns, side-effect hygiene, and allocation bottlenecks:
+
+```sh
+# Terminal quality report with colored score summaries
+hica analyse src/main.hc
+
+# Output Markdown formatted hotspots for AI-assisted refactoring
+hica analyse src/main.hc --format markdown --top 1 | genie "Refactor this hotspot"
+
+```
+
+Tracked anti-patterns include:
+
+* **Purity & Effects**: Mixed or heavy side effects (`io`/`fsys` and `console`) in domain functions.
+* **Immutability**: Imperative `var` declarations and `for`/`while`/`loop` constructs.
+* **Pipelines & Allocations**: Eager list transformation pipelines with >2 operations (recommends `std/stream` or `std/xform`).
+* **Error Handling**: Deeply nested `match` expressions on `Maybe`/`Result` (recommends `?` operator or combinators).
+* **Double Wrapping**: Returning nested structures like `maybe<maybe<T>>` (recommends `and_then`/`flat_map`).
+* **Closure & Lambda Noise**: Redundant wrapper lambdas like `(x) => f(x)` (recommends point-free style).
 
 ## Examples
 
