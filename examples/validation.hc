@@ -26,6 +26,13 @@ fun validate_age(s: string) : Validated =>
       else { valid(s) }
   }
 
+fun signup_sugared(uname: string, email_input: string, age_input: string) : Validated {
+  let u = validate_username(uname)&?
+  let e = validate_email(email_input)&?
+  let a = validate_age(age_input)&?
+  Valid("{u}:{e}:{a}")
+}
+
 fun signup(uname: string, email_input: string, age_input: string) {
   println("----------------------------------------")
   println("Signing up user: {uname}, {email_input}, {age_input}")
@@ -55,11 +62,36 @@ fun signup(uname: string, email_input: string, age_input: string) {
   }
 }
 
+fun run_sugared_signup(uname: string, email_input: string, age_input: string) {
+  println("----------------------------------------")
+  println("Signing up user (sugared &?): {uname}, {email_input}, {age_input}")
+
+  match signup_sugared(uname, email_input, age_input) {
+    Valid(info) => {
+      let parts = split(info, ":")
+      let user = User { username: parts[0], email: parts[1], age: unwrap_maybe_or(parse_int(parts[2]), 0) }
+      println("✓ Validation Succeeded!")
+      println("  User profile created: {user.username}, {user.email}, {user.age}")
+    },
+    Invalid(errs) => {
+      println("✗ Validation Failed! Found {length(nel_to_list(errs))} error(s):")
+      let err_list = nel_to_list(errs)
+      for err in err_list {
+        println("  - {err}")
+      }
+    }
+  }
+}
+
 fun main() {
   println("Hica Error Accumulating Validation Example")
   
   // Success case
   signup("cladam", "claes.adamsson@gmail.com", "46")
+  run_sugared_signup("cladam", "claes.adamsson@gmail.com", "46")
+
+  // Multi-failure case (sugared early-returns on the first failure in sequence)
+  run_sugared_signup("jd", "invalid-email", "15")
 
   // Multi-failure case (all inputs are invalid)
   signup("jd", "invalid-email", "15")

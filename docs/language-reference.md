@@ -971,6 +971,28 @@ Rules:
 - `?` cannot be used in `main()` — `main()` returns `()`, which is neither `maybe` nor `result`. Move fallible logic into a helper function and call it from `main()` with a `match`.
 - `?` is a postfix operator and binds tighter than binary operators, so `parse_int(a)? + parse_int(b)?` works as expected.
 
+### Postfix validated try (`&?`)
+
+The `&?` postfix operator provides syntactic sugar for unwrapping the `Validated` type (defined in `std/validated`). If the value is `Valid(v)`, it unwraps to the success value `v` (of type `string`); if it is `Invalid(errors)`, it performs an early return of `Invalid(errors)` from the enclosing function.
+
+```hica
+import "std/nel"
+import "std/validated"
+
+fun signup_sugared(uname: string, email_input: string, age_input: string) : Validated {
+  let u = validate_username(uname)&?   // Invalid -> return Invalid early
+  let e = validate_email(email_input)&?
+  let a = validate_age(age_input)&?
+  Valid("{u}:{e}:{a}")
+}
+```
+
+Rules:
+- The expression before `&?` must be of type `Validated`.
+- The enclosing function's **return type annotation is required** — `&?` forces an early return and the compiler must know the return type to emit it correctly.
+- The enclosing function must return the `Validated` type.
+- `&?` cannot be used in `main()` — `main()` returns `()`. Move the fallible validation logic into a helper function and call it from `main()` with `match`.
+
 ## Testing
 
 ### Test blocks
