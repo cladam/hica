@@ -378,7 +378,7 @@ for i in 0..10 {
 | `int` | `42`, `-7` | Integer numbers |
 | `float` | `3.14`, `-0.5` | Floating-point numbers |
 | `string` | `"hello"` | Text strings |
-| `char` | `'a'`, `'!'` | Single characters (see `chr`, `ord` in [Standard Library](standard-library.md#char--string-conversions)) |
+| `char` | `'a'`, `'!'` | Single characters (see `chr`, `ord` in [Standard Library](/docs/standard-library#char--string-conversions)) |
 | `bool` | `true`, `false` | Boolean values |
 
 ### Strings
@@ -691,7 +691,7 @@ let r2 = safe_divide(10, 2)
   |> and_then_result((n) => safe_divide(n, 1))             // Ok(5)
 ```
 
-See the [Standard Library](standard-library) for the full list of combinators.
+See the [Standard Library](/docs/standard-library) for the full list of combinators.
 
 ### Lazy Streams
 
@@ -801,7 +801,7 @@ fun main() {
 }
 ```
 
-See the [Standard Library()]for the full list of formatting and string helper functions.
+See the [Standard Library](/docs/standard-library)for the full list of formatting and string helper functions.
 
 ## Operators
 
