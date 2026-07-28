@@ -446,7 +446,7 @@ fun main() {
 }
 ```
 
-See the [Standard Library](standard-library.md) for the full list.
+See the [Standard Library](/docs/language-reference) for the full list.
 
 ### Tuples
 
@@ -801,7 +801,7 @@ fun main() {
 }
 ```
 
-See the [Standard Library](standard-library.md) for the full list of formatting and string helper functions.
+See the [Standard Library()]for the full list of formatting and string helper functions.
 
 ## Operators
 

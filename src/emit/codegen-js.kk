@@ -306,6 +306,8 @@ fun emit-js-stmt( n : node ) : div string
       "for (let __i = 0; __i < " ++ emit-js-expr(count) ++ "; __i++) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
     Loop(body) ->
       "while (true) {\n" ++ indent(emit-js-stmts(body)) ++ "\n}"
+    If(cond, then-e, else-e) ->
+      "if (" ++ emit-js-expr(cond) ++ ") {\n" ++ indent(emit-js-stmts(then-e)) ++ "\n} else {\n" ++ indent(emit-js-stmts(else-e)) ++ "\n}"
     Break -> "break;"
     Continue -> "continue;"
     _ -> emit-js-expr(n) ++ ";"
