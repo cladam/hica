@@ -374,6 +374,9 @@ fun parse-postfix() : <div,parser> node
       TkQuestion ->
         val t = advance()
         result := Node(Span(result.span.start, t.span.end), ETry(result))
+      TkAmpQuest ->
+        val t = advance()
+        result := Node(Span(result.span.start, t.span.end), EValidateTry(result))
       _ -> cont := False
   result
 

@@ -93,3 +93,32 @@ test "Validated: conversions" {
     Err(es) => assert_eq(es, ["bad"])
   }
 }
+
+fun run_validation_success() : Validated {
+  let v = valid("success")
+  let s = v&?
+  Valid(s)
+}
+
+test "Validated: postfix &? operator success" {
+  let res = run_validation_success()
+  match res {
+    Valid(s) => assert_eq(s, "success"),
+    Invalid(_) => assert(false)
+  }
+}
+
+fun run_validation() : Validated {
+  let a = valid("first")&?
+  let b = invalid("second failed")&?
+  let c = valid("third")&?
+  Valid("{a}-{b}-{c}")
+}
+
+test "Validated: postfix &? operator early return on Invalid" {
+  let res = run_validation()
+  match res {
+    Valid(_) => assert(false),
+    Invalid(e) => assert_eq(nel_to_list(e), ["second failed"])
+  }
+}

@@ -85,6 +85,7 @@ pub type token-kind
   TkPipeGt      // |>
   TkBang        // !
   TkQuestion    // ?
+  TkAmpQuest    // &?
   TkDot         // .
   TkDotDot      // ..
   TkDotDotEq    // ..=
@@ -169,6 +170,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkPipeGt     -> "|>"
     TkBang       -> "!"
     TkQuestion   -> "?"
+    TkAmpQuest   -> "&?"
     TkDot        -> "."
     TkDotDot     -> ".."
     TkDotDotEq   -> "..="
@@ -488,6 +490,7 @@ fun lex-punct-interp( cs : list<char>, str-start : int, pos : int, depth : int )
     Cons('<', Cons('=', rem)) -> Cons(Token(TkLe, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('>', Cons('=', rem)) -> Cons(Token(TkGe, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('-', Cons('>', rem)) -> Cons(Token(TkThinArrow, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
+    Cons('&', Cons('?', rem)) -> Cons(Token(TkAmpQuest, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('&', Cons('&', rem)) -> Cons(Token(TkAmpAmp, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('|', Cons('|', rem)) -> Cons(Token(TkPipePipe, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
     Cons('|', Cons('>', rem)) -> Cons(Token(TkPipeGt, Span(pos, pos+2)), lex-interp-expr(rem, str-start, pos+2, depth))
@@ -520,6 +523,7 @@ fun lex-punct( cs : list<char>, pos : int ) : div list<token>
     Cons('<', Cons('=', rest)) -> Cons(Token(TkLe, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('>', Cons('=', rest)) -> Cons(Token(TkGe, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('-', Cons('>', rest)) -> Cons(Token(TkThinArrow, Span(pos, pos+2)), lex-from(rest, pos+2))
+    Cons('&', Cons('?', rest)) -> Cons(Token(TkAmpQuest, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('&', Cons('&', rest)) -> Cons(Token(TkAmpAmp, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('|', Cons('|', rest)) -> Cons(Token(TkPipePipe, Span(pos, pos+2)), lex-from(rest, pos+2))
     Cons('|', Cons('>', rest)) -> Cons(Token(TkPipeGt, Span(pos, pos+2)), lex-from(rest, pos+2))

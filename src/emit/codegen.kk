@@ -267,8 +267,10 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val has-try-m = program-has-try-maybe(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
+  val has-try-v = program-has-try-validated(p)
   val try-result-effect = if has-try-r then "effect hica-early-result<a>\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
+  val try-validated-effect = if has-try-v then "effect hica-validated<a>\n  ctl hica-early-invalid(e : a) : b\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val exit-helper = if program-uses-exit(p) then exit-helper-code else ""
   val get-env-helper = if program-uses-get-env(p) then get-env-helper-code else ""
@@ -305,6 +307,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   cont-effect ++
   try-result-effect ++
   try-maybe-effect ++
+  try-validated-effect ++
   sort-helper ++
   exit-helper ++
   get-env-helper ++
@@ -333,6 +336,7 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   val params-str = emit-typed-params(d.params, d.param-types, declared)
   val has-try-result = node-has-try-result(d.body)
   val has-try-maybe  = node-has-try-maybe(d.body)
+  val has-try-validated = node-has-try-validated(d.body)
   val effectful-prims = [
     // console effect — suppress `: ReturnType` annotation so Koka infers <console|_e>
     "println", "print", "eprintln",
@@ -396,6 +400,8 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
       "  with handler\n    ctl hica-early-err(e) -> Left(e)\n" ++ body-code
     elif has-try-maybe then
       "  with handler\n    ctl hica-early-none() -> Nothing\n" ++ body-code
+    elif has-try-validated then
+      "  with handler\n    ctl hica-early-invalid(e) -> Invalid(e)\n" ++ body-code
     else body-code
     line-comment ++
     pub-prefix ++ "fun " ++ fn-name ++ "(" ++ params-str ++ ")" ++ ret-ann ++ "\n" ++
@@ -1172,6 +1178,9 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     EConstructor(cname, cargs) ->
       if cargs.is-nil then cname
       else cname ++ "(" ++ cargs.map(fn(a) emit-expr(a, declared)).join(", ") ++ ")"
+    EValidateTry(inner) ->
+      val inner-code = emit-expr(inner, declared)
+      "match " ++ inner-code ++ "\n  Valid(hc__v) -> hc__v\n  Invalid(hc__e) -> hica-early-invalid(hc__e)"
 
 fun emit-interp-part( p : node, declared : list<string> ) : div string
   match p.expr
@@ -1283,6 +1292,7 @@ fun body-calls-any( n : node, names : list<string> ) : div bool
     EOk(v)                    -> body-calls-any(v, names)
     EErr(v)                   -> body-calls-any(v, names)
     ETry(v)                   -> body-calls-any(v, names)
+    EValidateTry(v)           -> body-calls-any(v, names)
     FieldAccess(obj, _)       -> body-calls-any(obj, names)
     TupleIndex(t, _)          -> body-calls-any(t, names)
     Tuple(elems)              -> elems.any(fn(e) body-calls-any(e, names))
@@ -2180,11 +2190,31 @@ fun node-has-try-maybe( n : node ) : div bool
     LetTuple(_, init, body) -> node-has-try-maybe(init) || node-has-try-maybe(body)
     _                     -> False
 
+// Check if a node contains EValidateTry (needs hica-validated effect)
+fun node-has-try-validated( n : node ) : div bool
+  match n.expr
+    EValidateTry(_)       -> True
+    Let(_, _, init, body) -> node-has-try-validated(init) || node-has-try-validated(body)
+    VarDecl(_, _, init, body) -> node-has-try-validated(init) || node-has-try-validated(body)
+    Assign(_, value)      -> node-has-try-validated(value)
+    Fun(_, _)             -> False  // nested functions handle their own &?
+    Call(callee, args)    -> node-has-try-validated(callee) || args.any(fn(a) node-has-try-validated(a))
+    Binary(_, lhs, rhs)   -> node-has-try-validated(lhs) || node-has-try-validated(rhs)
+    Unary(_, operand)     -> node-has-try-validated(operand)
+    If(c, t, e)           -> node-has-try-validated(c) || node-has-try-validated(t) || node-has-try-validated(e)
+    Block(stmts)          -> stmts.any(fn(s) node-has-try-validated(s))
+    Match(scrut, arms)    -> node-has-try-validated(scrut) || arms.any(fn(a) node-has-try-validated(a.body))
+    LetTuple(_, init, body) -> node-has-try-validated(init) || node-has-try-validated(body)
+    _                     -> False
+
 fun program-has-try-result( p : program ) : div bool
   p.decls.any(fn(d) node-has-try-result(d.body))
 
 fun program-has-try-maybe( p : program ) : div bool
   p.decls.any(fn(d) node-has-try-maybe(d.body))
+
+fun program-has-try-validated( p : program ) : div bool
+  p.decls.any(fn(d) node-has-try-validated(d.body))
 
 // Wrap loop code with break handler if the body uses break.
 // Uses val _ = ... to scope the handler so it doesn't extend
@@ -2217,10 +2247,12 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val has-cont = program-has-continue(p)
   val has-try-r = program-has-try-result(p)
   val has-try-m = program-has-try-maybe(p)
+  val has-try-v = program-has-try-validated(p)
   val break-effect = if has-brk then "effect hica-brk\n  ctl hica-break() : a\n\n" else ""
   val cont-effect = if has-cont then "effect hica-cont\n  ctl hica-continue() : a\n\n" else ""
   val try-result-effect = if has-try-r then "effect hica-early-result<a>\n  ctl hica-early-err(e : a) : b\n\n" else ""
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
+  val try-validated-effect = if has-try-v then "effect hica-validated<a>\n  ctl hica-early-invalid(e : a) : b\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
   val assert-helper = assert-helper-code
   val show-maybe-helper = show-maybe-helper-code
@@ -2278,6 +2310,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   cont-effect ++
   try-result-effect ++
   try-maybe-effect ++
+  try-validated-effect ++
   sort-helper ++
   readline-helper ++
   file-read-helper ++

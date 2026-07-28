@@ -97,6 +97,7 @@ fun desugar-node( n : node ) : div node
     EConstructor(nm, args) -> EConstructor(nm, args.map(desugar-node))
     StringInterp(parts) -> StringInterp(parts.map(desugar-node))
     ETry(inner) -> ETry(desugar-node(inner))
+    EValidateTry(inner) -> EValidateTry(desugar-node(inner))
     // Leaves — no sub-expressions
     _ -> n.expr
   n( expr = e2 )

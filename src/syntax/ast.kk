@@ -256,6 +256,9 @@ pub type expr
   // expr? — try operator, early return on Err/None
   ETry( inner : node )
 
+  // expr&? — validated try operator, early return on Invalid
+  EValidateTry( inner : node )
+
 pub struct match-arm
   pattern : pattern
   guard   : maybe<node>
@@ -351,6 +354,7 @@ pub fun expr/show( e : expr ) : div string
       if args.is-nil then name
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
     ETry(inner) -> inner.show ++ "?"
+    EValidateTry(inner) -> inner.show ++ "&?"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations

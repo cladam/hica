@@ -856,6 +856,17 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           emit-error(n.span, "? operator requires maybe or result type, got " ++ inner-type.show)
           (s1, Node(n.span, ETry(inner'), Just(fresh-tvar())))
 
+    // --- Postfix &? on Validated ---
+    EValidateTry(inner) ->
+      val (s1, inner') = infer(env, s, inner)
+      val inner-type = apply-subst(s1, get-type(inner'))
+      match inner-type
+        TEnum("Validated") ->
+          (s1, Node(n.span, EValidateTry(inner'), Just(TString)))
+        _ ->
+          emit-error(n.span, "&? operator requires Validated type, got " ++ inner-type.show)
+          (s1, Node(n.span, EValidateTry(inner'), Just(TString)))
+
     // --- Struct literal ---
     StructLit(sname, lit-fields) ->
       val reg = get-structs()
@@ -1421,6 +1432,7 @@ fun body-calls-name( n : node, name : string ) : div bool
     FieldAccess(o, _)       -> body-calls-name(o, name)
     EConstructor(_, cargs)  -> cargs.any(fn(a) body-calls-name(a, name))
     ETry(inner)             -> body-calls-name(inner, name)
+    EValidateTry(inner)     -> body-calls-name(inner, name)
     MapLit(entries)         -> entries.any(fn((k, v)) body-calls-name(k, name) || body-calls-name(v, name))
     StructUpdate(_, base, overrides, _) -> body-calls-name(base, name) || overrides.any(fn((_, v)) body-calls-name(v, name))
     _                       -> False

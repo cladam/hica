@@ -445,6 +445,10 @@ pub fun emit-js-expr( n : node ) : div string
       // Simple null-check early return for playground
       "(() => { const __v = " ++ emit-js-expr(inner) ++ "; if (__v === null) return null; return __v; })()"
 
+    EValidateTry(inner) ->
+      // Simple early return for playground
+      "(() => { const __v = " ++ emit-js-expr(inner) ++ "; if (__v.__tag === 'Invalid') return __v; return __v.value; })()"
+
     _ -> "undefined /* TODO: " ++ n.expr.show ++ " */"
 
 // ---------------------------------------------------------------------------
