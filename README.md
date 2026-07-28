@@ -43,41 +43,7 @@ Visit hica's [website](https://www.hica.dev/) for a tour of the language.
 ## Concurrency & Actors
 
 hica targets scripting, tooling, and single-threaded programs, but features first-class support for the **Actor Model** and cooperative concurrency via algebraic effects.
-
-### First-Class Actors
-
 With the `actor` keyword and the `"std/actor"` standard library module, you can define, spawn, and interact with stateful actors:
-
-```rust
-import "std/actor"
-
-type BankMsg {
-  Deposit(amount: int),
-  Withdraw(amount: int)
-}
-
-actor BankAccount {
-  var balance = 0
-
-  receive(msg: BankMsg) => match msg {
-    Deposit(amount) => {
-      balance = balance + amount;
-      println("Deposited {amount}. Balance: {balance}")
-    }
-    Withdraw(amount) => {
-      if balance >= amount {
-        balance = balance - amount;
-        println("Withdrew {amount}. Balance: {balance}")
-      }
-    }
-  }
-}
-
-fun main() {
-  var account = BankAccountState { balance: 0 }
-  account = bankaccount_receive(account, Deposit(100))
-}
-```
 
 The standard library `"std/actor"` provides helpers to interact with actors:
 - `send(state, msg, receive)` — Sends a fire-and-forget message, discarding the returned state.
