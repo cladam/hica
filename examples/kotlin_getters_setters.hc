@@ -2,6 +2,7 @@
 // Side-by-side verification of how mutable OO state translates to pure functional immutability.
 
 import "std/list"
+import "account_module"
 
 // --- Default Getter & Setter ---
 struct Company { name: string }
@@ -74,4 +75,19 @@ test "Kotlin Custom Setter (with Validation) translation" {
   // Invalid change (ignored/rejected)
   let u3 = user_age_set(u1, -5)
   assert(user_age_get(u3) == 46) // Retains original age!
+}
+
+test "Kotlin Private Setter translation using modules" {
+  let acc = make_account(101, 100)
+
+  // We can read balance using the public getter
+  assert(account_balance_get(acc) == 100)
+
+  // We can use the public deposit function (which uses the private setter inside the module)
+  let acc2 = deposit(acc, 50)
+  assert(account_balance_get(acc2) == 150)
+
+  // Invalid deposit is ignored
+  let acc3 = deposit(acc, -20)
+  assert(account_balance_get(acc3) == 100)
 }

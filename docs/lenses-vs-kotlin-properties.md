@@ -140,6 +140,61 @@ let u2 = user_age_set(u1, 25) // u2.age is 25
 let u3 = user_age_set(u1, -5) // REJECTED! u3.age remains 46
 ```
 
+### 4. Changing Setter Visibility (Private Setters)
+
+In Kotlin, you can restrict who can modify a property by making its setter `private`. This keeps the property public for reading but limits modification to the class itself.
+
+#### Kotlin
+```kotlin
+class Account(id: Int, initialBalance: Int) {
+    val id = id
+    var balance: Int = initialBalance
+        private set // Read-only from the outside, writeable inside the class
+        
+    fun deposit(amount: Int) {
+        if (amount > 0) balance += amount
+    }
+}
+```
+
+#### hica
+In hica, we model private setters elegantly using **Private Constructors** (`pub struct ... priv`) and our module boundaries. 
+By defining our type in a separate module (`account_module.hc`), we export the struct's type and a getter function, but **do not** export a direct setter or allow external modules to construct the struct directly. Instead, callers must use public action functions (like `deposit`) to get a updated struct state!
+
+```hica
+// account_module.hc — separate module file
+// Type is public, but constructor is private ('priv') to this module
+pub struct Account priv { id: int, balance: int }
+
+// Smart constructor — the only way to construct an Account outside this module
+pub fun make_account(id: int, initial_balance: int) : Account =>
+  if initial_balance >= 0 { Account { id: id, balance: initial_balance } }
+  else { Account { id: id, balance: 0 } }
+
+// Public Getter: accessible everywhere
+pub fun account_balance_get(a: Account) : int => a.balance
+
+// Public Action: behaves like deposit(), returning the updated state
+pub fun deposit(a: Account, amount: int) : Account =>
+  if amount > 0 { Account { id: a.id, balance: a.balance + amount } }
+  else { a }
+```
+
+When importing this module into our main application, callers can easily view the property value but are strictly forbidden from raw construction/direct field modifications:
+
+```hica
+import "account_module"
+
+let acc = make_account(101, 100)
+println(account_balance_get(acc)) // Reads balance: 100
+
+// Safe: update via the public action
+let acc2 = deposit(acc, 50) // Balance becomes 150
+
+// COMPILE ERROR: other modules cannot write Account { ... } or manually mutate fields!
+// let acc3 = Account { id: 101, balance: 99999 } 
+```
+
 ## Nested Composition (The Real Power of Lenses)
 
 In Kotlin, updating nested properties looks convenient but relies heavily on mutability:
@@ -175,13 +230,14 @@ hica includes verified tests for these exact patterns. You can view and run the 
 hica test examples/kotlin_getters_setters.hc
 ```
 
-This will run the test suite and confirm that all default, computed, and validating getters and setters compile and pass successfully:
+This will run the test suite and confirm that all default, computed, validating, and private getters and setters compile and pass successfully:
 ```
-running 3 test(s)...
+running 4 test(s)...
 
   ✓ Kotlin Default Getter and Setter translation
   ✓ Kotlin Custom Getter (Computed Property) translation
   ✓ Kotlin Custom Setter (with Validation) translation
+  ✓ Kotlin Private Setter translation using modules
 
-3 test(s) passed
+4 test(s) passed
 ```
