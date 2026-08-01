@@ -41,6 +41,20 @@ pub fun greet(name: string) : string => "Hello, " + name
 
 Functions without `pub` are private to the module.
 
+### `noinline`
+
+The `noinline` modifier tells the Koka compiler not to inline a function. This prevents aggressive inlining that can cause extremely long compile times in large parser or codegen modules:
+
+```hica
+noinline fun parse_expr(tokens: list<string>) : list<string> =>
+  // ...
+
+pub noinline fun parse(src: string) : list<string> =>
+  parse_expr(src.split(" "))
+```
+
+Use `noinline` on hot recursive or mutually-recursive functions in performance-sensitive libraries where Koka's inliner would otherwise unroll deeply. It can be combined with `pub`: `pub noinline fun`.
+
 ### Lambdas / closures
 
 ```hica
