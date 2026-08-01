@@ -17,7 +17,7 @@ import syntax/ast
 val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "then", "return", "with", "handle", "handler", "effect", "type", "struct",
   "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
-  "raw", "inline", "include", "co", "rec", "open", "extend", "behind",
+  "raw", "inline", "noinline", "include", "co", "rec", "open", "extend", "behind",
   "linear", "value", "reference", "named", "scoped", "context", "initially",
   "finally", "override", "path", "raw", "prefix"]
 
@@ -368,7 +368,8 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
       elif needs-div then ""  // let Koka infer effects (div + fsys, io, etc.)
       else " : " ++ ts
     Nothing -> ""
-  val pub-prefix = if d.is-pub then "pub " else ""
+  val noinline-str = if d.is-noinline then "noinline " else ""
+  val pub-prefix = if d.is-pub then "pub " ++ noinline-str else noinline-str
   val fn-name = marshal-name(d.name, declared)
   val arg-list = d.params.map(fn(n) marshal-name(n, declared)).join(", ")
   val body-code = emit-body(d.body, declared).lines.map(fn(line) "  " ++ line).join("\n")

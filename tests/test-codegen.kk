@@ -1688,6 +1688,14 @@ pub fun main() : io ()
       val code = emit-typed-program("fun add(a: int, b: int) : int => a + b\nfun main() => add(1, 2)")
       assert/is-true(!code.contains("pub fun"))
 
+    dtest("emit noinline function")
+      val code = emit-typed-program("noinline fun add(a: int, b: int) : int => a + b\nfun main() => add(1, 2)")
+      assert/is-true(code.contains("noinline fun"))
+
+    dtest("emit pub noinline function")
+      val code = emit-typed-program("pub noinline fun add(a: int, b: int) : int => a + b\nfun main() => add(1, 2)")
+      assert/is-true(code.contains("pub noinline fun"))
+
     // --- input() ---
     dtest("input emits print and readline")
       val code = emit-typed-program("fun main() { let name = input(\"Name: \")\nprintln(name) }")

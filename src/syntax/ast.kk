@@ -369,8 +369,9 @@ pub struct fun-decl
   ret-ann     : maybe<hica-type> = Nothing   // user-written return type annotation
   param-types : list<hica-type> = []
   ret-type    : maybe<hica-type> = Nothing
-  is-recursive : bool = False
-  is-pub       : bool = False
+  is-recursive  : bool = False
+  is-pub        : bool = False
+  is-noinline   : bool = False
 
 pub fun fun-decl/show( d : fun-decl ) : div string
   "fun " ++ d.name ++ "(" ++ d.params.join(", ") ++ ") " ++ d.body.show

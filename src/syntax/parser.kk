@@ -1140,6 +1140,9 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
   val is-pub = match peek()
     TkPub -> { advance(); True }
     _     -> False
+  val is-noinline = match peek()
+    TkNoinline -> { advance(); True }
+    _          -> False
   val t = expect("fun", fn(k) match k { TkFun -> True; _ -> False })
   val name = match peek()
     TkIdent(n) -> { advance(); n }
@@ -1156,7 +1159,7 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
       parse-expr()
     _ ->
       parse-block()
-  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub)
+  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub, is-noinline = is-noinline)
 
 fun parse-global-decl() : <div,parser> global-decl
   val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
