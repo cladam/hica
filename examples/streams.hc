@@ -60,13 +60,13 @@ fun early_stop() {
 
 fun aggregate() {
   // Sum the first 10 even squares — no intermediate list ever built
-  let total = stream([1..1000])
+  let total = stream([0..1000])
     .filter((x) => x % 2 == 0)
     .map((x) => x * x)
     .take(10)
     .fold(0, (acc, x) => acc + x)
 
-  println("sum of first 10 even squares: {total}")  // 1540
+  println("sum of first 10 even squares: {total}")  // 1140
 }
 
 // ---------------------------------------------------------------------------
@@ -74,11 +74,11 @@ fun aggregate() {
 // ---------------------------------------------------------------------------
 
 fun slice_demo() {
-  let prefix = stream([1..10])
+  let prefix = stream([1..=10])
     .take_while((x) => x <= 5)
     .collect()
 
-  let suffix = stream([1..10])
+  let suffix = stream([0..=10])
     .drop_while((x) => x <= 5)
     .collect()
 
@@ -132,7 +132,7 @@ fun enumerate_demo() {
 fun foreach_demo() {
   // Effect inference: this lambda has `io` because of println.
   // The stream's foreach therefore also carries `io`.
-  stream([1..5])
+  stream([1..=5])
     .map((x) => x * x)
     .foreach((x) => println("square: {show(x)}"))
 }

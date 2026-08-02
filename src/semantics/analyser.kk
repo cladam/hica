@@ -161,22 +161,6 @@ val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwri
 val ndet-fns    = ["random"]
 
 pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div function-score
-  var items : list<debt-item> := []
-  
-  fun add-debt(cat: rule-category, msg: string, pts: int, sp: span, hint: string)
-    items := Cons(Debt-item(cat, msg, pts, sp, hint), items)
-
-  // Batch 4: Double-wrapping
-  match decl.ret-type
-    Just(TMaybe(TMaybe(_))) -> 
-      add-debt(DoubleWrapping, "Function returns nested maybe<maybe<T>>", 6, decl.span, "Use 'and_then' or 'flat_map' to flatten the structure.")
-    Just(TResult(TResult(_, _), _)) -> 
-      add-debt(DoubleWrapping, "Function returns nested result<result<T, E>, E>", 6, decl.span, "Use 'and_then_result' to flatten the structure.")
-    _ -> ()
-
-  var has-io := False
-  var has-console := False
-
   fun is-list-op(node: node) : bool
     match node.typ { Just(TList(_)) -> True; _ -> False }
 
@@ -191,24 +175,28 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
           Nothing -> False
       _ -> False
 
-  fun walk(n: node, in-pipeline: bool)
+  fun add-debt-pure(state: (list<debt-item>, bool, bool), cat: rule-category, msg: string, pts: int, sp: span, hint: string) : (list<debt-item>, bool, bool)
+    val (items, io, cons-eff) = state
+    (Cons(Debt-item(cat, msg, pts, sp, hint), items), io, cons-eff)
+
+  fun walk(n: node, in-pipeline: bool, state: (list<debt-item>, bool, bool)) : div (list<debt-item>, bool, bool)
     match n.expr
       Let(_name, _t, init, body) ->
-        walk(init, False)
-        walk(body, False)
+        val s1 = walk(init, False, state)
+        walk(body, False, s1)
       VarDecl(_name, _t, init, body) ->
         // Batch 3: Immutability rule (VarDecl)
-        add-debt(Immutability, "Mutable 'var' declaration used", 5, n.span, "Suggest using 'map', 'filter', 'fold', or lazy streams instead.")
-        walk(init, False)
-        walk(body, False)
+        val s1 = add-debt-pure(state, Immutability, "Mutable 'var' declaration used", 5, n.span, "Suggest using 'map', 'filter', 'fold', or lazy streams instead.")
+        val s2 = walk(init, False, s1)
+        walk(body, False, s2)
       Assign(_name, value) ->
-        walk(value, False)
+        walk(value, False, state)
       Fun(params, body) ->
         // Batch 3: Lambda Noise rule
         // Only flag as noise if the call is NOT using UFCS dot-notation.
         // If args[0].span is before callee.span, the user wrote `arg.callee()`, which is an intentional style choice.
         val unwrapped-body = unwrap-block(body)
-        match unwrapped-body.expr
+        val s1 = match unwrapped-body.expr
           Call(callee, args) ->
             if args.length == params.length && !params.is-empty then
               match args.head
@@ -218,43 +206,50 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
                     val is-noise = args.zip(params).all fn((a, p))
                       match a.expr { Var(name) -> name == p; _ -> False }
                     if is-noise then
-                      add-debt(ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span, "Convert to point-free style (e.g. filter(is_even) instead of filter((x) => is_even(x))).")
-                Nothing -> ()
-          _ -> ()
-        walk(body, False)
+                      add-debt-pure(state, ClosureLambdaNoise, "Redundant lambda wrapper (Lambda Noise)", 3, n.span, "Convert to point-free style (e.g. filter(is_even) instead of filter((x) => is_even(x))).")
+                    else state
+                  else state
+                Nothing -> state
+            else state
+          _ -> state
+        walk(body, False, s1)
       Call(callee, args) ->
         // Batch 4: Pipelines & Allocation
         // Check for eager list pipelines with >2 operations
         val is-lop = is-list-op(n)
         val is-pipe = is-lop && is-nested-list-call(n, 1)
         val matched-here = is-pipe && !in-pipeline
-        if matched-here then
-          add-debt(PipelinesAllocation, "Eager list pipeline with >2 operations", 10, n.span, "Wrap input with 'stream(xs)' from 'std/stream' or use pipeline transducers from 'std/xform' to eliminate intermediate list allocations.")
+        val s1 = if matched-here then
+          add-debt-pure(state, PipelinesAllocation, "Eager list pipeline with >2 operations", 10, n.span, "Wrap input with 'stream(xs)' from 'std/stream' or use pipeline transducers from 'std/xform' to eliminate intermediate list allocations.")
+        else state
 
         // Batch 4: Purity & Effects
-        match callee.expr
-          Var(name) ->
-            if io-fns.any(fn(f) f == name) || fsys-fns.any(fn(f) f == name) || extra-effectful.any(fn(f) f == name) then has-io := True
-            if console-fns.any(fn(f) f == name) then has-console := True
-          _ -> ()
+        val (items, io, cons-eff) = s1
+        val next-io = match callee.expr
+          Var(name) -> io || io-fns.any(fn(f) f == name) || fsys-fns.any(fn(f) f == name) || extra-effectful.any(fn(f) f == name)
+          _ -> io
+        val next-con = match callee.expr
+          Var(name) -> cons-eff || console-fns.any(fn(f) f == name)
+          _ -> cons-eff
+        val s2 = (items, next-io, next-con)
 
-        walk(callee, False)
+        val s3 = walk(callee, False, s2)
         match args
-          Nil -> ()
+          Nil -> s3
           Cons(first, rest) ->
-            walk(first, is-lop || in-pipeline)
-            rest.foreach(fn(a) walk(a, False))
+            val s4 = walk(first, is-lop || in-pipeline, s3)
+            rest.foldl(s4, fn(acc, a) walk(a, False, acc))
       Binary(_op, lhs, rhs) ->
-        walk(lhs, False)
-        walk(rhs, False)
+        val s1 = walk(lhs, False, state)
+        walk(rhs, False, s1)
       Unary(_op, operand) ->
-        walk(operand, False)
+        walk(operand, False, state)
       If(cond, then-e, else-e) ->
-        walk(cond, False)
-        walk(then-e, False)
-        walk(else-e, False)
+        val s1 = walk(cond, False, state)
+        val s2 = walk(then-e, False, s1)
+        walk(else-e, False, s2)
       Block(stmts) ->
-        stmts.foreach(fn(s) walk(s, False))
+        stmts.foldl(state, fn(acc, s) walk(s, False, acc))
       Match(scrut, arms) ->
         // Batch 4: Error Handling (Nested match on Maybe/Result)
         val is-wrapper = match scrut.typ
@@ -262,7 +257,7 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
           Just(TResult(_, _)) -> True
           _ -> False
         
-        if is-wrapper then
+        val s1 = if is-wrapper then
           val has-nested = arms.any fn(a)
             val unwrapped-arm-body = unwrap-block(a.body)
             match unwrapped-arm-body.expr
@@ -273,75 +268,84 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
                   _ -> False
               _ -> False
           if has-nested then
-            add-debt(ErrorHandling, "Nested 'match' on maybe/result", 8, n.span, "Suggest using '?' operator or combinators (like 'and_then'/'and_then_result') to reduce nested block depth.")
+            add-debt-pure(state, ErrorHandling, "Nested 'match' on maybe/result", 8, n.span, "Suggest using '?' operator or combinators (like 'and_then'/'and_then_result') to reduce nested block depth.")
+          else state
+        else state
 
-        walk(scrut, False)
-        arms.foreach fn(a)
-          match a.guard { Just(g) -> walk(g, False); Nothing -> () }
-          walk(a.body, False)
+        val s2 = walk(scrut, False, s1)
+        arms.foldl(s2) fn(acc, a)
+          val s3 = match a.guard { Just(g) -> walk(g, False, acc); Nothing -> acc }
+          walk(a.body, False, s3)
       Repeat(count, body) ->
-        walk(count, False)
-        walk(body, False)
+        val s1 = walk(count, False, state)
+        walk(body, False, s1)
       ForIn(_name, start-e, end-e, body) ->
         // Batch 3: Immutability rule (ForIn)
-        add-debt(Immutability, "Imperative 'for' loop used", 5, n.span, "Refactor to standard list combinators like 'map', 'filter', or 'fold'.")
-        walk(start-e, False)
-        walk(end-e, False)
-        walk(body, False)
+        val s1 = add-debt-pure(state, Immutability, "Imperative 'for' loop used", 5, n.span, "Refactor to standard list combinators like 'map', 'filter', or 'fold'.")
+        val s2 = walk(start-e, False, s1)
+        val s3 = walk(end-e, False, s2)
+        walk(body, False, s3)
       ForEach(_name, coll, body) ->
-        walk(coll, False)
-        walk(body, False)
+        val s1 = walk(coll, False, state)
+        walk(body, False, s1)
       While(cond, body) ->
         // Batch 3: Immutability rule (While)
-        add-debt(Immutability, "Imperative 'while' loop used", 5, n.span, "Refactor using tail recursion or standard combinators.")
-        walk(cond, False)
-        walk(body, False)
+        val s1 = add-debt-pure(state, Immutability, "Imperative 'while' loop used", 5, n.span, "Refactor using tail recursion or standard combinators.")
+        val s2 = walk(cond, False, s1)
+        walk(body, False, s2)
       Loop(body) ->
-        add-debt(Immutability, "Imperative 'loop' used", 5, n.span, "Refactor using recursive functions.")
-        walk(body, False)
+        val s1 = add-debt-pure(state, Immutability, "Imperative 'loop' used", 5, n.span, "Refactor using recursive functions.")
+        walk(body, False, s1)
       StringInterp(parts) ->
-        parts.foreach(fn(p) walk(p, False))
+        parts.foldl(state, fn(acc, p) walk(p, False, acc))
       Tuple(elems) ->
-        elems.foreach(fn(e) walk(e, False))
+        elems.foldl(state, fn(acc, e) walk(e, False, acc))
       EList(elems) ->
-        elems.foreach(fn(e) walk(e, False))
+        elems.foldl(state, fn(acc, e) walk(e, False, acc))
       MapLit(entries) ->
-        entries.foreach fn((k, v))
-          walk(k, False)
-          walk(v, False)
+        entries.foldl(state) fn(acc, (k, v))
+          val s1 = walk(k, False, acc)
+          walk(v, False, s1)
       ListIndex(lst, idx) ->
-        walk(lst, False)
-        walk(idx, False)
+        val s1 = walk(lst, False, state)
+        walk(idx, False, s1)
       ListSlice(lst, s, e) ->
-        walk(lst, False)
-        match s { Just(x) -> walk(x, False); Nothing -> () }
-        match e { Just(x) -> walk(x, False); Nothing -> () }
+        val s1 = walk(lst, False, state)
+        val s2 = match s { Just(x) -> walk(x, False, s1); Nothing -> s1 }
+        match e { Just(x) -> walk(x, False, s2); Nothing -> s2 }
       TupleIndex(tup, _idx) ->
-        walk(tup, False)
+        walk(tup, False, state)
       LetTuple(_names, init, body) ->
-        walk(init, False)
-        walk(body, False)
+        val s1 = walk(init, False, state)
+        walk(body, False, s1)
       ESome(value) ->
-        walk(value, False)
+        walk(value, False, state)
       EOk(value) ->
-        walk(value, False)
+        walk(value, False, state)
       EErr(value) ->
-        walk(value, False)
+        walk(value, False, state)
       StructLit(_name, fields) ->
-        fields.foreach fn((_, v))
-          walk(v, False)
+        fields.foldl(state, fn(acc, (_, v)) walk(v, False, acc))
       StructUpdate(_name, base, fields, _def-fields) ->
-        walk(base, False)
-        fields.foreach fn((_, v))
-          walk(v, False)
+        val s1 = walk(base, False, state)
+        fields.foldl(s1, fn(acc, (_, v)) walk(v, False, acc))
       FieldAccess(obj, _f) ->
-        walk(obj, False)
-      _ -> ()
+        walk(obj, False, state)
+      _ -> state
 
-  walk(decl.body, False)
+  val init-state = ([], False, False)
+  val state-with-wrapping = match decl.ret-type
+    Just(TMaybe(TMaybe(_))) -> 
+      add-debt-pure(init-state, DoubleWrapping, "Function returns nested maybe<maybe<T>>", 6, decl.span, "Use 'and_then' or 'flat_map' to flatten the structure.")
+    Just(TResult(TResult(_, _), _)) -> 
+      add-debt-pure(init-state, DoubleWrapping, "Function returns nested result<result<T, E>, E>", 6, decl.span, "Use 'and_then_result' to flatten the structure.")
+    _ -> init-state
 
-  if has-io && has-console then
-    add-debt(PurityEffects, "Mixed side effects [io/fsys, console] in function", 8, decl.span, "Encourage isolating pure core logic from impure I/O shell.")
+  val (items, has-io, has-console) = walk(decl.body, False, state-with-wrapping)
+
+  val final-items = if has-io && has-console then
+    Cons(Debt-item(PurityEffects, "Mixed side effects [io/fsys, console] in function", 8, decl.span, "Encourage isolating pure core logic from impure I/O shell."), items)
+  else items
 
   fun format-params(ps: list<string>, ts: list<hica-type>) : div string
     match (ps, ts)

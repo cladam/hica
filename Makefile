@@ -9,7 +9,7 @@ KUNIT      = lib/kunit
 SRC        = src
 CURL_LIB   = $(if $(filter Windows_NT,$(OS)),libcurl,curl)
 
-.PHONY: all build release bundle bundle-prelude bundle-stdlib test test-lexer \
+.PHONY: all build release bundle bundle-prelude bundle-stdlib bundle-kk-stdlib test test-lexer \
         test-parser test-codegen test-cli test-js test-repl playground clean \
 		choreo-cli choreo-repl submodules
 
@@ -44,7 +44,7 @@ release: check-submodules
 # ── Bundle ────────────────────────────────────────────────────────────────────
 
 ## Bundle prelude + stdlib, then do a release build
-bundle: bundle-prelude bundle-stdlib release
+bundle: bundle-prelude bundle-stdlib bundle-kk-stdlib release
 
 ## Embed prelude .hc files into src/prelude-bundle.kk
 bundle-prelude:
@@ -53,6 +53,10 @@ bundle-prelude:
 ## Embed stdlib .hc files into src/stdlib-bundle.kk
 bundle-stdlib:
 	bash scripts/bundle-stdlib.sh
+
+## Embed native Koka stdlib files into src/stream-kk-bundle.kk
+bundle-kk-stdlib:
+	bash scripts/bundle-kk-stdlib.sh
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 

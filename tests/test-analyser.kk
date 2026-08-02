@@ -34,7 +34,6 @@ fun get-analyser-scores(source: string) : <div,console> list<function-score>
       check-program(desugared, 0)
   
   val scores = typed-prog.decls.map(fn(d) semantics/analyser/analyse-decl(d, []))
-  keep-alive(scores)
   scores
 
 pub fun main() : io ()

@@ -34,7 +34,7 @@ import deps
 import http
 import semantics/analyser
 
-val version = "0.47.1"
+val version = "0.47.2"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -1877,10 +1877,10 @@ fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : li
   result
 
 // Compile a single imported module to a .kk file.
-// True if the generated .kk is strictly newer than the .hc source — no recompilation needed.
+// True if the generated .kk is at least as new as the .hc source (same-second OK).
 fun kk-is-fresh( kk-file : path, hc-file : path ) : io bool
   if is-windows() then False
-  else run-system("test " ++ kk-file.show ++ " -nt " ++ hc-file.show ++ dev-null()) == 0
+  else run-system("test ! " ++ kk-file.show ++ " -ot " ++ hc-file.show ++ dev-null()) == 0
 
 // True if the main .kk is newer than the main .hc AND newer than every direct
 // user-import's .hc, AND every direct import's .kk exists on disk.
