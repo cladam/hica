@@ -1294,7 +1294,11 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 // Check an entire program: infer all declarations in order.
 // skip-kw-check: number of leading declarations (prelude + imports) to skip
 // for Koka keyword warnings. These are trusted code, not user-authored.
-pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [] ) : <div,diag,fresh> program
+// import-sigs-only: when True, Phase 1 (prelude+imports) only seeds env from
+// declared signatures — no body inference. Eliminates O(N²) substitution growth
+// over imported decls. Safe when all imported functions have explicit type
+// annotations (as is the case for well-typed libraries and stdlib).
+pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [], import-sigs-only : bool = False ) : <div,diag,fresh> program
   // For opaque structs: imported ones (indices < skip-kw-structs) retain is-opaque so
   // that StructLit/StructUpdate can reject them. The user's own opaque structs (indices
   // >= skip-kw-structs) have is-opaque cleared so construction is allowed within the
@@ -1341,8 +1345,21 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   //   Phase 2 — user decls: enforce opaque restrictions using structs-for-check.
   val structs-all-clear = p.structs.map(fn(sd) sd(is-opaque = False))
   val (s-imp, env-imp, decls-imp) =
-    with handler fun get-structs() structs-all-clear
-    infer-decls(global-env, s0, p.decls.take(skip-kw-check))
+    if import-sigs-only then
+      // Fast path for hica check: seed env from declared signatures only.
+      // Skips body inference for prelude + imported decls, avoiding O(N²)
+      // substitution growth. Works correctly when imported functions carry
+      // explicit type annotations; fresh-tvars for unannotated return types
+      // get resolved lazily during Phase 2 user-decl inference.
+      val imp-ds = p.decls.take(skip-kw-check)
+      val pre-env = imp-ds.foldl(global-env) fn(e, d)
+        val param-types = zip-with-anns(d.params, d.param-anns)
+        val ret = match d.ret-ann { Just(t) -> t; Nothing -> fresh-tvar() }
+        e.extend(d.name, TFun(param-types, ret))
+      (s0, pre-env, imp-ds)
+    else
+      with handler fun get-structs() structs-all-clear
+      infer-decls(global-env, s0, p.decls.take(skip-kw-check))
   val (s1, env1, decls-usr) = infer-decls(env-imp, s-imp, p.decls.drop(skip-kw-check))
   val decls' = decls-imp ++ decls-usr
   val tests' = infer-tests(env1, s1, p.tests)
@@ -1369,14 +1386,17 @@ fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fr
   //
   // Pass 3: detect mutual recursion — a function is recursive if it calls itself
   // OR participates in a cycle (calls a function that transitively calls it back).
+  // Optimisation: pre-compute the call graph once (O(N²×body_size)) so the DFS
+  // reachability queries run on the graph without re-traversing bodies (O(N³) total
+  // vs the naïve O(N³×body_size) per-query body re-traversal).
   val all-names = ds.map(fn(d) d.name)
   val decls-ordered = decls'.reverse
+  // Build call-graph: each function → list of distinct user-defined functions it calls
+  val call-graph = decls-ordered.map(fn(d) (d.name, body-calls-any(d.body, all-names)))
   val decls-final = decls-ordered.map fn(d)
     if d.is-recursive then d  // already marked by self-recursion detection
     else
-      // Check if this function is mutually recursive: it calls another function
-      // that (directly or transitively) calls it back
-      val is-mutual = is-mutually-recursive(d.name, decls-ordered, all-names)
+      val is-mutual = is-mutually-recursive-fast(d.name, call-graph)
       d(is-recursive = is-mutual)
   (s-final, env-final, decls-final)
 
@@ -1448,20 +1468,18 @@ fun body-calls-any( n : node, names : list<string> ) : div list<string>
 // Check if function `fname` is mutually recursive with any other function.
 // A function is mutually recursive if it calls another function that
 // (directly or transitively) calls it back.
+// Legacy: kept for reference but no longer called from infer-decls (superseded by fast variant).
 fun is-mutually-recursive( fname : string, decls : list<fun-decl>, all-names : list<string> ) : div bool
-  // Find which user-defined functions this function calls (excluding itself)
   match decls.find(fn(d) d.name == fname)
     Nothing -> False
     Just(d) ->
       val callees = body-calls-any(d.body, all-names).filter(fn(nm) nm != fname)
-      // For each callee, check if it (transitively) calls back to `fname`
       callees.any fn(callee)
         calls-back-to(callee, fname, decls, all-names, [fname])
 
-// Does function `current` transitively call `target`?
-// `visited` prevents infinite loops in the traversal.
+// Legacy DFS helper (kept for is-mutually-recursive above).
 fun calls-back-to( current : string, target : string, decls : list<fun-decl>, all-names : list<string>, visited : list<string> ) : div bool
-  if visited.any(fn(v) v == current) then False  // already visited, avoid infinite loop
+  if visited.any(fn(v) v == current) then False
   else match decls.find(fn(d) d.name == current)
     Nothing -> False
     Just(d) ->
@@ -1471,3 +1489,24 @@ fun calls-back-to( current : string, target : string, decls : list<fun-decl>, al
         val visited' = Cons(current, visited)
         callees.filter(fn(c) !visited'.any(fn(v) v == c)).any fn(c)
           calls-back-to(c, target, decls, all-names, visited')
+
+// Fast variant: uses a pre-computed call-graph so body traversal is O(1) per node.
+// call-graph maps function name → list of user-defined functions it directly calls.
+fun is-mutually-recursive-fast( fname : string, call-graph : list<(string, list<string>)> ) : div bool
+  match call-graph.find(fn(e) e.fst == fname)
+    Nothing -> False
+    Just((_, callees)) ->
+      val callees-others = callees.filter(fn(nm) nm != fname)
+      callees-others.any fn(callee)
+        calls-back-to-fast(callee, fname, call-graph, [fname])
+
+fun calls-back-to-fast( current : string, target : string, call-graph : list<(string, list<string>)>, visited : list<string> ) : div bool
+  if visited.any(fn(v) v == current) then False
+  else match call-graph.find(fn(e) e.fst == current)
+    Nothing -> False
+    Just((_, callees)) ->
+      if callees.any(fn(c) c == target) then True
+      else
+        val visited' = Cons(current, visited)
+        callees.filter(fn(c) !visited'.any(fn(v) v == c)).any fn(c)
+          calls-back-to-fast(c, target, call-graph, visited')

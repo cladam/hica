@@ -34,7 +34,7 @@ import deps
 import http
 import semantics/analyser
 
-val version = "0.46.0"
+val version = "0.47.1"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -436,7 +436,8 @@ fun cmd-check( file : string )
   val prog   = run-parser-program(tokens, source)
   val dir    = file.path.dirname
   val prelude = load-prelude()
-  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes)
+  // need-kk=False: hica check never invokes Koka, so skip compile-module and its expensive check-program
+  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes, False)
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
@@ -446,9 +447,12 @@ fun cmd-check( file : string )
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types = prelude.types.length + imported-types.length
+  // import-sigs-only=True: skip Phase 1 body inference for prelude+imported decls.
+  // Imported functions are already well-typed; seeding from their declared signatures
+  // avoids O(N²) substitution growth and makes hica check fast.
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, import-sigs-only = True)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -1785,62 +1789,92 @@ fun collect-extern-kk-modules-rec( imp-list : list<import-decl>, base-dir : path
 fun collect-extern-kk-modules( imports : list<import-decl>, base-dir : path, include-dirs : list<string> = [] )
   collect-extern-kk-modules-rec(imports, base-dir, [], include-dirs)
 
-// Compile all imports and return (pub-decls, pub-structs, pub-types, pub-names, generated-kk-paths)
-fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [] )
-  imp-list.foldl(([], [], [], [], []), fn(acc, imp)
+// Per-module memoisation: maps resolved file path → cache entry.
+// Immutable list threaded through calls — avoids ref type annotation issues.
+alias compile-imports-entry = ((list<fun-decl>, list<string>), list<fun-decl>, (list<struct-def>, list<type-def>), list<string>, list<path>)
+alias import-cache = list<(string, compile-imports-entry)>
+
+// Compile all imports; returns ((pub-decls, structs, types, names, kk-paths), updated-cache).
+// cache-in is threaded through every recursive call so each module is processed at most once.
+// need-kk: when False (hica check), skip compile-module-impl — no .kk generation needed.
+fun compile-imports-impl( imp-list : list<import-decl>, base-dir : path, visited : list<string>, cache-in : import-cache, include-dirs : list<string> = [], need-kk : bool = True )
+  imp-list.foldl((([], [], [], [], []), cache-in), fn(state, imp)
+    val (acc, c) = state
     val (prev-decls, prev-structs, prev-types, prev-names, prev-kk-paths) = acc
     // Extern imports: just record the path for Koka; type info collected separately
-    if imp.is-extern then acc
+    if imp.is-extern then (acc, c)
     // Stdlib imports: resolved from embedded sources, extracted to ~/.hica/stdlib
     elif imp.path.starts-with("std/").bool then
       val (sd, ss, st, sn) = compile-stdlib-import(imp.path)
-      (prev-decls ++ sd, prev-structs ++ ss, prev-types ++ st, prev-names ++ sn, prev-kk-paths)
+      ((prev-decls ++ sd, prev-structs ++ ss, prev-types ++ st, prev-names ++ sn, prev-kk-paths), c)
     else
       val imp-file = resolve-import(imp.path, base-dir, include-dirs)
       val imp-path-str = imp-file.show
       // Cycle detection
       if visited.any(fn(v) v == imp-path-str) then
         println("error: circular import detected: " ++ imp-path-str)
-        acc
+        (acc, c)
       elif !is-file(imp-file) then
         println("error: imported file not found: " ++ imp-path-str)
-        acc
+        (acc, c)
       else
-        // Compile the imported module to .kk; collect generated .kk paths for later cleanup
-        val mod-kk-paths = compile-module(imp-file, visited, include-dirs)
-        // Parse the module to collect pub declarations for the checker
-        val mod-source = read-text-file(imp-file)
-        val mod-tokens = lex(mod-source)
-        val mod-prog = run-parser-program(mod-tokens)
-        // Collect pub declarations (for selective imports, filter by name)
-        val pub-decls = mod-prog.decls.filter(fn(d) d.is-pub)
-        val pub-names-all = pub-decls.map(fn(d) d.name)
-        val filtered-decls = match imp.names
-          Nothing  -> pub-decls
-          Just(ns) -> pub-decls.filter(fn(d) ns.any(fn(n) n == d.name))
-        val filtered-names = match imp.names
-          Nothing  -> pub-names-all
-          Just(ns) -> ns
-        // Collect re-exported symbols from the module's pub imports
-        val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
-        val imp-dir = imp-file.dirname.path
-        val (re-decls, re-structs, re-types, re-names, re-kk-paths) = compile-imports(pub-reimports, imp-dir, Cons(imp-path-str, visited), include-dirs)
-        // Also pull in stdlib symbols from this module's private imports so the checker
-        // can resolve references inside pub-decls (e.g. datetime_kind called from
-        // parser.hc's pub funs when basic.hc imports hml.hc which pub-imports parser).
-        // These are added to the checker env but NOT to imp-names, so they are never
-        // treated as user-re-exported symbols.
-        val mod-priv-stdlib = mod-prog.imports.filter(fn(i) !i.is-pub && i.path.starts-with("std/").bool)
-        val (stdlib-decls, stdlib-structs, stdlib-types, _, _) = compile-imports(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited), include-dirs)
-        // Likewise pull in pub symbols from this module's private LOCAL imports so the
-        // checker can resolve references inside pub-decls (e.g. router.hc's pub funs
-        // calling response_status defined in a privately-imported http_server.hc).
-        // These are added to the checker env but NOT to imp-names, so they are never
-        // treated as user-re-exported symbols (transitive imports are not re-exported).
-        val mod-priv-local = mod-prog.imports.filter(fn(i) !i.is-pub && !i.is-extern && !i.path.starts-with("std/").bool)
-        val (local-decls, local-structs, local-types, _, _) = compile-imports(mod-priv-local, imp-dir, Cons(imp-path-str, visited), include-dirs)
-        (prev-decls ++ filtered-decls ++ re-decls ++ stdlib-decls ++ local-decls, prev-structs ++ mod-prog.structs ++ re-structs ++ stdlib-structs ++ local-structs, prev-types ++ mod-prog.types ++ re-types ++ stdlib-types ++ local-types, prev-names ++ filtered-names ++ re-names, prev-kk-paths ++ mod-kk-paths ++ re-kk-paths)
+        // Cache hit: reuse previously computed result for this module path
+        match c.find(fn(e) e.fst == imp-path-str)
+          Just((_, ((dpub, dpub-names), dtrans, (dstructs, dtypes), dtrans-names, dkk))) ->
+            val filtered-decls = match imp.names
+              Nothing  -> dpub
+              Just(ns) -> dpub.filter(fn(d) ns.any(fn(n) n == d.name))
+            val filtered-names = match imp.names
+              Nothing  -> dpub-names
+              Just(ns) -> ns
+            ((prev-decls ++ filtered-decls ++ dtrans, prev-structs ++ dstructs, prev-types ++ dtypes, prev-names ++ filtered-names ++ dtrans-names, prev-kk-paths ++ dkk), c)
+          Nothing ->
+            // Compile the imported module to .kk; collect generated .kk paths for later cleanup
+            val (mod-kk-paths, c1) = if need-kk then compile-module-impl(imp-file, visited, c, include-dirs) else ([], c)
+            // Parse the module to collect pub declarations for the checker
+            val mod-source = read-text-file(imp-file)
+            val mod-tokens = lex(mod-source)
+            val mod-prog = run-parser-program(mod-tokens)
+            // Collect pub declarations (for selective imports, filter by name)
+            val pub-decls = mod-prog.decls.filter(fn(d) d.is-pub)
+            val pub-names-all = pub-decls.map(fn(d) d.name)
+            val filtered-decls = match imp.names
+              Nothing  -> pub-decls
+              Just(ns) -> pub-decls.filter(fn(d) ns.any(fn(n) n == d.name))
+            val filtered-names = match imp.names
+              Nothing  -> pub-names-all
+              Just(ns) -> ns
+            // Collect re-exported symbols from the module's pub imports
+            val pub-reimports = mod-prog.imports.filter(fn(i) i.is-pub)
+            val imp-dir = imp-file.dirname.path
+            val ((re-decls, re-structs, re-types, re-names, re-kk-paths), c2) = compile-imports-impl(pub-reimports, imp-dir, Cons(imp-path-str, visited), c1, include-dirs, need-kk)
+            // Also pull in stdlib symbols from this module's private imports so the checker
+            // can resolve references inside pub-decls (e.g. datetime_kind called from
+            // parser.hc's pub funs when basic.hc imports hml.hc which pub-imports parser).
+            // These are added to the checker env but NOT to imp-names, so they are never
+            // treated as user-re-exported symbols.
+            val mod-priv-stdlib = mod-prog.imports.filter(fn(i) !i.is-pub && i.path.starts-with("std/").bool)
+            val ((stdlib-decls, stdlib-structs, stdlib-types, _, _), c3) = compile-imports-impl(mod-priv-stdlib, imp-dir, Cons(imp-path-str, visited), c2, include-dirs, need-kk)
+            // Likewise pull in pub symbols from this module's private LOCAL imports so the
+            // checker can resolve references inside pub-decls (e.g. router.hc's pub funs
+            // calling response_status defined in a privately-imported http_server.hc).
+            // These are added to the checker env but NOT to imp-names, so they are never
+            // treated as user-re-exported symbols (transitive imports are not re-exported).
+            val mod-priv-local = mod-prog.imports.filter(fn(i) !i.is-pub && !i.is-extern && !i.path.starts-with("std/").bool)
+            val ((local-decls, local-structs, local-types, _, _), c4) = compile-imports-impl(mod-priv-local, imp-dir, Cons(imp-path-str, visited), c3, include-dirs, need-kk)
+            // Memoize this module's result for any subsequent import of the same path
+            val trans-decls = re-decls ++ stdlib-decls ++ local-decls
+            val all-structs = mod-prog.structs ++ re-structs ++ stdlib-structs ++ local-structs
+            val all-types = mod-prog.types ++ re-types ++ stdlib-types ++ local-types
+            val all-kk-paths = mod-kk-paths ++ re-kk-paths
+            val c5 = c4 ++ [(imp-path-str, ((pub-decls, pub-names-all), trans-decls, (all-structs, all-types), re-names, all-kk-paths))]
+            ((prev-decls ++ filtered-decls ++ trans-decls, prev-structs ++ all-structs, prev-types ++ all-types, prev-names ++ filtered-names ++ re-names, prev-kk-paths ++ all-kk-paths), c5)
   )
+
+// Public entry point: creates a fresh empty cache for each top-level compilation unit.
+fun compile-imports( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [], need-kk : bool = True )
+  val (result, _) = compile-imports-impl(imp-list, base-dir, visited, [], include-dirs, need-kk)
+  result
 
 // Compile a single imported module to a .kk file.
 // True if the generated .kk is strictly newer than the .hc source — no recompilation needed.
@@ -1874,15 +1908,15 @@ fun main-kk-is-up-to-date( out-kk : path, hc-file : path, imports : list<import-
             is-file(lib-kk) && kk-is-fresh(out-kk, hc)
       )
 
-// Returns all generated .kk paths in this subtree (for post-compile cleanup).
-fun compile-module( imp-file : path, visited : list<string>, include-dirs : list<string> = [] ) : io list<path>
+// Returns (generated-kk-paths, updated-cache) — cache is threaded so compile-imports-impl shares it.
+fun compile-module-impl( imp-file : path, visited : list<string>, cache-in : import-cache, include-dirs : list<string> = [] ) : io (list<path>, import-cache)
   val stem = imp-file.stemname
   val mod-name = safe-module-name(stem)
   val dir = imp-file.dirname
   val out-kk = dir.path / (mod-name ++ ".kk").path
   // Timestamp cache: if .kk is already newer than .hc, skip the entire pipeline
   if is-file(out-kk) && kk-is-fresh(out-kk, imp-file) then
-    [out-kk]
+    ([out-kk], cache-in)
   else
     print("#")
     flush-stdout()
@@ -1893,7 +1927,7 @@ fun compile-module( imp-file : path, visited : list<string>, include-dirs : list
     val prelude = load-prelude()
     // Recursively compile this module's imports
     val imp-path-str = imp-file.show
-    val (imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths) = compile-imports(prog.imports, dir.path, Cons(imp-path-str, visited), include-dirs)
+    val ((imp-decls, imp-structs, imp-types, imp-names, sub-kk-paths), updated-cache) = compile-imports-impl(prog.imports, dir.path, Cons(imp-path-str, visited), cache-in, include-dirs)
     val ext-env = collect-extern-env(prog.imports, dir.path, include-dirs)
     val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
                          types = prelude.types ++ imp-types ++ prog.types,
@@ -1927,7 +1961,12 @@ fun compile-module( imp-file : path, visited : list<string>, include-dirs : list
     val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, include-dirs) ++ compute-div-names(imp-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, include-dirs))
     // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
     write-kk-if-changed(out-kk, koka-code, imp-file.show)
-    Cons(out-kk, sub-kk-paths)
+    (Cons(out-kk, sub-kk-paths), updated-cache)
+
+// Public entry point: creates a fresh cache (used when called outside compile-imports-impl).
+fun compile-module( imp-file : path, visited : list<string>, include-dirs : list<string> = [] ) : io list<path>
+  val (result, _) = compile-module-impl(imp-file, visited, [], include-dirs)
+  result
 
 // ---------------------------------------------------------------------------
 // Koka error line rewriting: translate .kk line numbers back to .hc lines
