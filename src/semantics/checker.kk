@@ -1294,11 +1294,15 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 // Check an entire program: infer all declarations in order.
 // skip-kw-check: number of leading declarations (prelude + imports) to skip
 // for Koka keyword warnings. These are trusted code, not user-authored.
+// prelude-count: number of leading decls that are the hica prelude (not imports).
+//   When import-sigs-only is True, these get full body inference so that binary
+//   Add nodes inside prelude bodies receive their list/string types (needed for
+//   the codegen to emit `++` vs `+`). Import-only decls keep the fast path.
 // import-sigs-only: when True, Phase 1 (prelude+imports) only seeds env from
 // declared signatures — no body inference. Eliminates O(N²) substitution growth
 // over imported decls. Safe when all imported functions have explicit type
 // annotations (as is the case for well-typed libraries and stdlib).
-pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [], import-sigs-only : bool = False ) : <div,diag,fresh> program
+pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [], prelude-count : int = 0, import-sigs-only : bool = False ) : <div,diag,fresh> program
   // For opaque structs: imported ones (indices < skip-kw-structs) retain is-opaque so
   // that StructLit/StructUpdate can reject them. The user's own opaque structs (indices
   // >= skip-kw-structs) have is-opaque cleared so construction is allowed within the
@@ -1346,17 +1350,21 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   val structs-all-clear = p.structs.map(fn(sd) sd(is-opaque = False))
   val (s-imp, env-imp, decls-imp) =
     if import-sigs-only then
-      // Fast path for hica check: seed env from declared signatures only.
-      // Skips body inference for prelude + imported decls, avoiding O(N²)
-      // substitution growth. Works correctly when imported functions carry
-      // explicit type annotations; fresh-tvars for unannotated return types
-      // get resolved lazily during Phase 2 user-decl inference.
-      val imp-ds = p.decls.take(skip-kw-check)
-      val pre-env = imp-ds.foldl(global-env) fn(e, d)
+      // Split fast path:
+      //   Prelude decls — run full body inference (small, fully annotated) so that
+      //   binary Add nodes inside prelude bodies get list/string types for codegen.
+      //   Imported lib decls — signature seeding only, avoiding O(N²) growth.
+      val pre-ds  = p.decls.take(prelude-count)
+      val lib-ds  = p.decls.drop(prelude-count).take(skip-kw-check - prelude-count)
+      val (s-pre, env-pre, decls-pre) =
+        with handler fun get-structs() structs-all-clear
+        infer-decls(global-env, s0, pre-ds)
+      val (env-lib, lib-ds') = lib-ds.foldl((env-pre, []:list<fun-decl>)) fn(acc, d)
+        val (e, ds') = acc
         val param-types = zip-with-anns(d.params, d.param-anns)
         val ret = match d.ret-ann { Just(t) -> t; Nothing -> fresh-tvar() }
-        e.extend(d.name, TFun(param-types, ret))
-      (s0, pre-env, imp-ds)
+        (e.extend(d.name, TFun(param-types, ret)), Cons(d(param-types = param-types, ret-type = Just(ret)), ds'))
+      (s-pre, env-lib, decls-pre ++ lib-ds'.reverse)
     else
       with handler fun get-structs() structs-all-clear
       infer-decls(global-env, s0, p.decls.take(skip-kw-check))

@@ -5,13 +5,13 @@
 //
 // See https://github.com/cladam/hica/blob/main/LICENSE for license information
 
-fun abs(n) => if n < 0 { -n } else { n }
+fun abs(n: int) : int => if n < 0 { -n } else { n }
 
-fun min(a, b) => if a < b { a } else { b }
+fun min(a: int, b: int) : int => if a < b { a } else { b }
 
-fun max(a, b) => if a > b { a } else { b }
+fun max(a: int, b: int) : int => if a > b { a } else { b }
 
-fun clamp(v, lo, hi) => min(max(v, lo), hi)
+fun clamp(v: int, lo: int, hi: int) : int => min(max(v, lo), hi)
 
 // Greatest Common Divisor (GCD)
 fun gcd(a: int, b: int) : int => if b == 0 { a } else { gcd(b, a % b) }

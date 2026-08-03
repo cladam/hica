@@ -1315,21 +1315,28 @@ fun body-calls-any( n : node, names : list<string> ) : div bool
 // Seed: all self-recursive functions. Then iteratively add any function whose
 // body calls a div-needing function, until no new names are added.
 pub fun compute-div-names( decls : list<fun-decl> ) : div list<string>
+  // Deduplicate by name first — transitive import accumulation can repeat the same
+  // function many times, causing O(N⁴) blow-up in the reachability analysis below.
+  val deduped = decls.foldl(([], []:list<string>), fn(acc, d)
+    val (kept, seen) = acc
+    if seen.any(fn(nm) nm == d.name) then acc
+    else (Cons(d, kept), Cons(d.name, seen))
+  ).fst.reverse
   // Seed with functions that are intrinsically divergent. Recursion is detected
   // STRUCTURALLY from the call graph rather than via the `is-recursive` flag,
   // because imported decls (parsed fresh) have not had that flag assigned yet.
   // A function is divergent if it contains a `while` loop, calls itself directly,
   // or lies on a call cycle (mutual recursion).
-  val all-names = decls.map(fn(d) d.name)
-  var div-names := decls.filter(fn(d)
+  val all-names = deduped.map(fn(d) d.name)
+  var div-names := deduped.filter(fn(d)
     node-has-while(d.body) ||
-    reachable-from(decls, all-names.filter(fn(nm) body-calls-any(d.body, [nm])))
+    reachable-from(deduped, all-names.filter(fn(nm) body-calls-any(d.body, [nm])))
       .any(fn(nm) nm == d.name)
   ).map(fn(d) d.name)
   var changed := True
   while { changed }
     changed := False
-    decls.foreach fn(d)
+    deduped.foreach fn(d)
       val already = div-names.any(fn(nm) nm == d.name)
       if !already && body-calls-any(d.body, div-names) then
         div-names := Cons(d.name, div-names)

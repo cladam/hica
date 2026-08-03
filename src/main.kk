@@ -346,7 +346,7 @@ fun compile-js( file : string ) : io maybe<path>
   val skip-types = prelude.types.length + imported-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -412,7 +412,7 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
   val skip-types = prelude.types.length + imported-types.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
   
   // if there are hard errors, we can't analyse
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
@@ -452,7 +452,7 @@ fun cmd-check( file : string )
   // avoids O(N²) substitution growth and makes hica check fast.
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, import-sigs-only = True)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -510,7 +510,7 @@ fun cmd-test( file : string )
     val skip-types = prelude.types.length + imported-types.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -1490,7 +1490,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     flush-stdout()
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
     println(" done")
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
@@ -1942,7 +1942,8 @@ fun compile-module-impl( imp-file : path, visited : list<string>, cache-in : imp
     val skip-types = prelude.types.length + imp-types.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env)
+        // import-sigs-only=True: same speedup as cmd-check — skip O(N²) Phase 1 body inference for imported decls
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     if !errors.is-empty then
       errors.foreach(fn(d) println(render-diagnostic(source, imp-file.show, d)))
