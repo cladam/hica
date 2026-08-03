@@ -363,6 +363,7 @@ pub fun expr/show( e : expr ) : div string
 pub struct fun-decl
   span        : span
   name        : string
+  doc         : maybe<string> = Nothing
   params      : list<string>
   body        : node
   param-anns  : list<maybe<hica-type>> = []  // user-written type annotations per param
@@ -390,6 +391,7 @@ pub fun global-decl/show( g : global-decl ) : div string
 pub struct struct-def
   span      : span
   name      : string
+  doc       : maybe<string> = Nothing
   fields    : list<(string, hica-type)>
   is-pub    : bool = False
   is-opaque : bool = False
@@ -409,6 +411,7 @@ pub fun variant-def/show( v : variant-def ) : div string
 pub struct type-def
   span     : span
   name     : string
+  doc      : maybe<string> = Nothing
   variants : list<variant-def>
   is-pub   : bool = False
 

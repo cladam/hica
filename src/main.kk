@@ -14,6 +14,7 @@ import std/os/file
 import std/os/path
 import std/os/process
 import std/os/readline
+import std/core/unsafe
 
 import syntax/ast
 import syntax/lexer
@@ -33,8 +34,9 @@ import stream-kk-bundle
 import deps
 import http
 import semantics/analyser
+import semantics/docgen
 
-val version = "0.47.2"
+val version = "0.48.0-alpha"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -198,6 +200,9 @@ fun analyse-cli() : command
     .arg(positional("FILE").help("Source .hc file").required)
     .arg(option("format").help("Output format: text (default) or markdown"))
     .arg(option("top").help("Number of top issues to show in markdown format"))
+    .arg(flag("document").help("Generate project documentation under docs/"))
+    .arg(option("out-dir").help("Custom output directory for documentation"))
+    .arg(flag("check-docs").help("Verify if documentation is up to date"))
 
 fun clean-cli() : command
   command("hica clean")
@@ -296,8 +301,8 @@ fun main-dispatch( hica-args : list<string>, user-args : list<string> )
             "r"     -> cmd-run(f, target, user-args, m.get-flag("generate"))
             "check" -> cmd-check(f)
             "c"     -> cmd-check(f)
-            "analyse" -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"))
-            "a"     -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"))
+            "analyse" -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"), m.get-flag("document"), m.get-one("out-dir"), m.get-flag("check-docs"))
+            "a"     -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"), m.get-flag("document"), m.get-one("out-dir"), m.get-flag("check-docs"))
             "fmt"   -> cmd-fmt(f, m.get-flag("check"))
             "f"     -> cmd-fmt(f, m.get-flag("check"))
             "test"  -> cmd-test(f)
@@ -393,7 +398,7 @@ fun cmd-run( file : string, target : string, user-args : list<string>, generate 
     else
       println("aborted: not running stale executable because compilation failed")
 
-fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
+fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, document-flag : bool = False, out-dir-str : maybe<string> = Nothing, check-docs-flag : bool = False )
   val dep-includes = resolve-dep-includes()
   val source = read-text-file(file.path)
   val tokens = lex(source)
@@ -425,8 +430,17 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string> )
   val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
   val user-prog = typed-prog(decls = user-decls)
   val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
-  analyse-program(user-prog, file, source, format-str, top-n-str, extra-effectful)
-  flush-stdout()
+  
+  if document-flag then
+    val odir = out-dir-str.default("docs")
+    unsafe-total(fn() generate-all-docs(user-prog, source, file, odir, extra-effectful))
+  elif check-docs-flag then
+    val odir = out-dir-str.default("docs")
+    val ok = unsafe-total(fn() check-all-docs(user-prog, source, file, odir, extra-effectful))
+    hica-process-exit(if ok then 0 else 1)
+  else
+    analyse-program(user-prog, file, source, format-str, top-n-str, extra-effectful)
+    flush-stdout()
   hica-process-exit(0)
 
 fun cmd-check( file : string )
@@ -1156,7 +1170,7 @@ fun repl-eval( input : string, prelude : program, state : repl-state, silent : b
 fun repl-eval-let( binding-name : string, init : node, prelude : program, state : repl-state, silent : bool = False )
   // Type check init in context using a Let-chain wrapper
   val wrapped = wrap-with-vals(state.vals, init)
-  val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+  val wrapper = Fun-decl(no-span, "__repl_expr", params = [], body = wrapped)
   val merged = Program(prelude.structs ++ state.structs,
                        types = prelude.types ++ state.types,
                        decls = prelude.decls ++ state.decls ++ [wrapper])
@@ -1191,7 +1205,7 @@ fun repl-type( input : string, prelude : program, state : repl-state )
         Let(_name, _ann, init, _body) -> init
         _ -> enode
       val wrapped = wrap-with-vals(state.vals, expr)
-      val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+      val wrapper = Fun-decl(no-span, "__repl_expr", params = [], body = wrapped)
       val merged = Program(prelude.structs ++ state.structs,
                            types = prelude.types ++ state.types,
                            decls = prelude.decls ++ state.decls ++ [wrapper])
@@ -1238,7 +1252,7 @@ fun repl-type( input : string, prelude : program, state : repl-state )
 // Evaluate a bare expression in the REPL
 fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
   val wrapped = wrap-with-vals(state.vals, expr)
-  val wrapper = Fun-decl(no-span, "__repl_expr", [], wrapped)
+  val wrapper = Fun-decl(no-span, "__repl_expr", params = [], body = wrapped)
   val merged = Program(prelude.structs ++ state.structs,
                        types = prelude.types ++ state.types,
                        decls = prelude.decls ++ state.decls ++ [wrapper])

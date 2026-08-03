@@ -96,6 +96,7 @@ pub type token-kind
   // Special
   TkEof
   TkError( msg : string )
+  TkDocComment( value : string )
 
 pub struct token
   kind : token-kind
@@ -180,6 +181,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkBitPattern(m, v) -> "<bits:" ++ m.show ++ "," ++ v.show ++ ">"
     TkEof        -> "<eof>"
     TkError(m)   -> "<error: " ++ m ++ ">"
+    TkDocComment(v) -> "/// " ++ v
 
 // ---------------------------------------------------------------------------
 // Lexer
@@ -200,6 +202,7 @@ fun lex-from( cs : list<char>, pos : int, nl : bool = False ) : div list<token>
     Cons(c, rest) ->
       if c == '\n' then lex-from(rest, pos + 1, True)
       elif c.is-white then lex-from(rest, pos + 1, nl)
+      elif c == '/' && rest.head-is('/') && rest.tail.head-is('/') then lex-doc-comment(rest.tail.tail, pos, pos + 3)
       elif c == '/' && rest.head-is('/') then skip-line-comment(rest.tail, pos)
       elif c.is-digit then mark-first-nl(lex-number(cs, pos), nl)
       elif c.is-alpha || c == '_' then mark-first-nl(lex-ident(cs, pos), nl)
@@ -217,6 +220,16 @@ fun skip-line-comment( cs : list<char>, pos : int ) : div list<token>
     Nil             -> [Token(TkEof, Span(pos, pos))]
     Cons('\n', rest) -> lex-from(rest, pos + 1, True)
     Cons(_, rest)   -> skip-line-comment(rest, pos + 1)
+
+fun lex-doc-comment( cs : list<char>, start : int, pos : int ) : div list<token>
+  // Span the characters up to a newline or EOF
+  val (line, rest) = cs.span(fn(c) c != '\n')
+  val doc-text = line.string.trim
+  val end = pos + line.length
+  match rest
+    Nil -> [Token(TkDocComment(doc-text), Span(start, end)), Token(TkEof, Span(end, end))]
+    Cons('\n', rem) -> Cons(Token(TkDocComment(doc-text), Span(start, end)), lex-from(rem, end + 1, True))
+    _ -> Cons(Token(TkDocComment(doc-text), Span(start, end)), lex-from(rest, end, False))
 
 fun is-hex-digit( c : char ) : bool
   c.is-digit || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')

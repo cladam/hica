@@ -1037,7 +1037,7 @@ fun parse-import-names() : <div,parser> list<string>
   names.reverse
 
 // Parse a struct declaration: struct Name { field: type, ... }
-fun parse-struct-decl() : <div,parser> struct-def
+fun parse-struct-decl( doc : maybe<string> = Nothing ) : <div,parser> struct-def
   val t = expect("struct", fn(k) match k { TkStruct -> True; _ -> False })
   val name = match peek()
     TkIdent(n) -> { advance(); n }
@@ -1048,7 +1048,7 @@ fun parse-struct-decl() : <div,parser> struct-def
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
   val fields = parse-struct-def-fields()
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  Struct-def(Span(t.span.start, end-tok.span.end), name, fields, is-pub = False, is-opaque = is-opaque)
+  Struct-def(Span(t.span.start, end-tok.span.end), name, fields = fields, doc = doc, is-pub = False, is-opaque = is-opaque)
 
 // Parse struct definition fields: name: type, ...
 fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
@@ -1071,7 +1071,7 @@ fun parse-struct-def-fields() : <div,parser> list<(string, hica-type)>
 // Type (enum) declarations: type Name { Variant, Variant(field: type), ... }
 // ---------------------------------------------------------------------------
 
-pub fun parse-type-decl() : <div,parser> type-def
+pub fun parse-type-decl( doc : maybe<string> = Nothing ) : <div,parser> type-def
   val t = expect("type", fn(k) match k { TkType -> True; _ -> False })
   val name = match peek()
     TkIdent(n) -> { advance(); n }
@@ -1079,7 +1079,7 @@ pub fun parse-type-decl() : <div,parser> type-def
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
   val variants = parse-variant-defs()
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  Type-def(Span(t.span.start, end-tok.span.end), name, variants, is-pub = False)
+  Type-def(Span(t.span.start, end-tok.span.end), name, variants = variants, doc = doc, is-pub = False)
 
 // Parse variant definitions: Name, Name(field: type, ...), ...
 fun parse-variant-defs() : <div,parser> list<variant-def>
@@ -1136,7 +1136,7 @@ pub fun parse-test-decl() : <div,parser> test-decl
 // Top-level declarations: fun name(params) { body } or fun name(params) => expr
 // ---------------------------------------------------------------------------
 
-pub fun parse-fun-decl() : <div,parser> fun-decl
+pub fun parse-fun-decl( doc : maybe<string> = Nothing ) : <div,parser> fun-decl
   val is-pub = match peek()
     TkPub -> { advance(); True }
     _     -> False
@@ -1159,7 +1159,7 @@ pub fun parse-fun-decl() : <div,parser> fun-decl
       parse-expr()
     _ ->
       parse-block()
-  Fun-decl(Span(t.span.start, body.span.end), name, param-names, body, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub, is-noinline = is-noinline)
+  Fun-decl(Span(t.span.start, body.span.end), name, params = param-names, body = body, doc = doc, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub, is-noinline = is-noinline)
 
 fun parse-global-decl() : <div,parser> global-decl
   val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })
@@ -1229,7 +1229,7 @@ fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
   
   val sname = name ++ "State"
-  val sdef = Struct-def(Span(t.span.start, end-tok.span.end), sname, state-fields.reverse, is-pub = False, is-opaque = False)
+  val sdef = Struct-def(Span(t.span.start, end-tok.span.end), sname, fields = state-fields.reverse, is-pub = False, is-opaque = False)
   
   var stmt-list : list<node> := []
   state-fields.reverse.foreach fn((fname, ftype))
@@ -1248,7 +1248,7 @@ fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
   val fn-name = name.to-lower ++ "_receive"
   val param-names = ["state", msg-param]
   val param-types = [Just(TStruct(sname)), msg-ann]
-  val fdecl = Fun-decl(Span(t.span.start, end-tok.span.end), fn-name, param-names, fdecl-body, param-anns = param-types, ret-ann = Just(TStruct(sname)), is-pub = False)
+  val fdecl = Fun-decl(Span(t.span.start, end-tok.span.end), fn-name, params = param-names, body = fdecl-body, param-anns = param-types, ret-ann = Just(TStruct(sname)), is-pub = False)
   
   (sdef, fdecl)
 
@@ -1262,46 +1262,93 @@ pub fun parse-program() : <div,parser> program
   // Parse imports at the top of the file
   while { match peek() { TkImport -> True; TkFrom -> True; TkExtern -> True; _ -> False } }
     imports := Cons(parse-import-decl(), imports)
+  
+  var current-doc : maybe<string> := Nothing
   // Parse remaining declarations
   while { match peek() { TkEof -> False; _ -> True } }
     match peek()
+      TkDocComment(txt) ->
+        advance()
+        current-doc := (match current-doc { Just(prev) -> Just(prev ++ "\n" ++ txt); Nothing -> Just(txt) })
       TkOpaque ->
         advance()
         match peek()
           TkStruct ->
-            val sd = parse-struct-decl()
+            val sd = parse-struct-decl(current-doc)
             structs := Cons(sd(is-opaque = True), structs)
           _ ->
             parse-error("expected 'struct' after 'opaque'")
             ()
-      TkStruct -> structs := Cons(parse-struct-decl(), structs)
-      TkType   -> types := Cons(parse-type-decl(), types)
-      TkTest   -> tests := Cons(parse-test-decl(), tests)
-      TkExtern -> imports := Cons(parse-import-decl(), imports)
-      TkLet    -> globals := Cons(parse-global-decl(), globals)
-      TkActor  ->
+        current-doc := Nothing
+      TkStruct ->
+        structs := Cons(parse-struct-decl(current-doc), structs)
+        current-doc := Nothing
+      TkType ->
+        types := Cons(parse-type-decl(current-doc), types)
+        current-doc := Nothing
+      TkTest ->
+        if !current-doc.is-nothing then
+          val _ = parse-error("doc comment ignored on test declaration")
+          ()
+        tests := Cons(parse-test-decl(), tests)
+        current-doc := Nothing
+      TkExtern ->
+        if !current-doc.is-nothing then
+          val _ = parse-error("doc comment ignored on extern declaration")
+          ()
+        imports := Cons(parse-import-decl(), imports)
+        current-doc := Nothing
+      TkLet ->
+        if !current-doc.is-nothing then
+          val _ = parse-error("doc comment ignored on let declaration")
+          ()
+        globals := Cons(parse-global-decl(), globals)
+        current-doc := Nothing
+      TkActor ->
+        if !current-doc.is-nothing then
+          val _ = parse-error("doc comment ignored on actor declaration")
+          ()
         val (sdef, fdecl) = parse-actor-decl()
         structs := Cons(sdef, structs)
         decls   := Cons(fdecl, decls)
-      TkPub    ->
+        current-doc := Nothing
+      TkPub ->
         // pub import "path" — re-export
         match peek-next()
-          TkImport -> imports := Cons(parse-import-decl(), imports)
-          TkExtern -> imports := Cons(parse-import-decl(), imports)
+          TkImport ->
+            if !current-doc.is-nothing then
+              val _ = parse-error("doc comment ignored on pub import")
+              ()
+            imports := Cons(parse-import-decl(), imports)
+          TkExtern ->
+            if !current-doc.is-nothing then
+              val _ = parse-error("doc comment ignored on pub extern")
+              ()
+            imports := Cons(parse-import-decl(), imports)
           TkStruct ->
             advance()
-            val sd = parse-struct-decl()
+            val sd = parse-struct-decl(current-doc)
             structs := Cons(sd(is-pub = True), structs)
           TkType ->
             advance()
-            val td = parse-type-decl()
+            val td = parse-type-decl(current-doc)
             types := Cons(td(is-pub = True), types)
           TkLet ->
+            if !current-doc.is-nothing then
+              val _ = parse-error("doc comment ignored on pub let")
+              ()
             advance()
             val gd = parse-global-decl()
             globals := Cons(gd(is-pub = True), globals)
-          _        -> decls := Cons(parse-fun-decl(), decls)
-      _        -> decls := Cons(parse-fun-decl(), decls)
+          _ ->
+            decls := Cons(parse-fun-decl(current-doc), decls)
+        current-doc := Nothing
+      _ ->
+        if !current-doc.is-nothing then
+          val _ = parse-error("doc comment ignored")
+          ()
+        decls := Cons(parse-fun-decl(current-doc), decls)
+        current-doc := Nothing
   Program(structs.reverse, types = types.reverse, decls = decls.reverse, globals = globals.reverse, tests = tests.reverse, imports = imports.reverse)
 
 // ---------------------------------------------------------------------------
