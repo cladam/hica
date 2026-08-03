@@ -89,7 +89,7 @@ pub type CliOutcome {
 // Builders (pipe-friendly)
 // ---------------------------------------------------------------------------
 
-pub fun cli(name: string, version: string, about: string) =>
+pub fun cli(name: string, version: string, about: string) : CliSpec =>
   CliSpec {
     app_name: name,
     app_version: version,
@@ -102,71 +102,71 @@ pub fun cli(name: string, version: string, about: string) =>
 
 // --- with_* helpers to reduce builder boilerplate ---
 
-pub fun with_flags(spec: CliSpec, flags: list<CliFlag>) =>
+pub fun with_flags(spec: CliSpec, flags: list<CliFlag>) : CliSpec =>
   CliSpec { app_name: spec.app_name, app_version: spec.app_version,
             app_about: spec.app_about, app_flags: flags,
             app_options: spec.app_options, app_args: spec.app_args,
             app_commands: spec.app_commands }
 
-pub fun with_options(spec: CliSpec, options: list<CliOption>) =>
+pub fun with_options(spec: CliSpec, options: list<CliOption>) : CliSpec =>
   CliSpec { app_name: spec.app_name, app_version: spec.app_version,
             app_about: spec.app_about, app_flags: spec.app_flags,
             app_options: options, app_args: spec.app_args,
             app_commands: spec.app_commands }
 
-pub fun with_args(spec: CliSpec, args: list<CliArg>) =>
+pub fun with_args(spec: CliSpec, args: list<CliArg>) : CliSpec =>
   CliSpec { app_name: spec.app_name, app_version: spec.app_version,
             app_about: spec.app_about, app_flags: spec.app_flags,
             app_options: spec.app_options, app_args: args,
             app_commands: spec.app_commands }
 
-pub fun with_commands(spec: CliSpec, commands: list<(string, CliSpec)>) =>
+pub fun with_commands(spec: CliSpec, commands: list<(string, CliSpec)>) : CliSpec =>
   CliSpec { app_name: spec.app_name, app_version: spec.app_version,
             app_about: spec.app_about, app_flags: spec.app_flags,
             app_options: spec.app_options, app_args: spec.app_args,
             app_commands: commands }
 
-pub fun flag(spec: CliSpec, name: string, short: string, help_text: string) =>
+pub fun flag(spec: CliSpec, name: string, short: string, help_text: string) : CliSpec =>
   with_flags(spec, spec.app_flags + [CliFlag { flag_name: name, flag_short: short, flag_help: help_text }])
 
-pub fun option(spec: CliSpec, name: string, short: string, help_text: string) =>
+pub fun option(spec: CliSpec, name: string, short: string, help_text: string) : CliSpec =>
   with_options(spec, spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: "" }])
 
-pub fun option_default(spec: CliSpec, name: string, short: string, help_text: string, default: string) =>
+pub fun option_default(spec: CliSpec, name: string, short: string, help_text: string, default: string) : CliSpec =>
   with_options(spec, spec.app_options + [CliOption { opt_name: name, opt_short: short, opt_help: help_text, opt_default: default }])
 
-pub fun arg(spec: CliSpec, name: string, help_text: string, required: bool) =>
+pub fun arg(spec: CliSpec, name: string, help_text: string, required: bool) : CliSpec =>
   with_args(spec, spec.app_args + [CliArg { arg_name: name, arg_help: help_text, arg_required: required }])
 
-pub fun command(spec: CliSpec, name: string, sub: CliSpec) =>
+pub fun command(spec: CliSpec, name: string, sub: CliSpec) : CliSpec =>
   with_commands(spec, spec.app_commands + [(name, sub)])
 
 // ---------------------------------------------------------------------------
 // Help & version formatting
 // ---------------------------------------------------------------------------
 
-pub fun format_flag_usage(f: CliFlag) =>
+pub fun format_flag_usage(f: CliFlag) : string =>
   if is_empty(f.flag_short) { pad_right("    --{f.flag_name}", 24, " ") + f.flag_help }
   else { pad_right("  -{f.flag_short}, --{f.flag_name}", 24, " ") + f.flag_help }
 
-pub fun format_option_usage(o: CliOption) {
+pub fun format_option_usage(o: CliOption) : string {
   let suffix = if is_empty(o.opt_default) { "" } else { " [default: {o.opt_default}]" }
   if is_empty(o.opt_short) { pad_right("    --{o.opt_name} VALUE", 24, " ") + o.opt_help + suffix }
   else { pad_right("  -{o.opt_short}, --{o.opt_name} VALUE", 24, " ") + o.opt_help + suffix }
 }
 
-pub fun format_arg_usage(a: CliArg) {
+pub fun format_arg_usage(a: CliArg) : string {
   let marker = if a.arg_required { " (required)" } else { "" }
   pad_right("  <{a.arg_name}>", 24, " ") + a.arg_help + marker
 }
 
-pub fun format_arg_label(a: CliArg) =>
+pub fun format_arg_label(a: CliArg) : string =>
   if a.arg_required { " <{a.arg_name}>" } else { " [{a.arg_name}]" }
 
-pub fun format_cmd_usage(pair: (string, CliSpec)) =>
+pub fun format_cmd_usage(pair: (string, CliSpec)) : string =>
   pad_right("  {pair.0}", 24, " ") + pair.1.app_about
 
-pub fun cli_help(spec: CliSpec) {
+pub fun cli_help(spec: CliSpec) : string {
   let header = "{spec.app_name} {spec.app_version} — {spec.app_about}"
   let arg_labels = map(spec.app_args, (a) => format_arg_label(a))
   let args_str = join(arg_labels, "")
@@ -191,31 +191,31 @@ pub fun cli_help(spec: CliSpec) {
   out
 }
 
-pub fun cli_version_str(spec) => "{spec.app_name} {spec.app_version}"
+pub fun cli_version_str(spec: CliSpec) : string => "{spec.app_name} {spec.app_version}"
 
 // ---------------------------------------------------------------------------
 // Querying results
 // ---------------------------------------------------------------------------
 
-pub fun cli_empty() =>
+pub fun cli_empty() : CliResult =>
   CliResult { cli_flags: [], cli_options: [], cli_positionals: [], cli_command: "", cli_sub: None }
 
 pub fun has_flag(r: CliResult, name: string) : bool =>
   name in r.cli_flags
 
-pub fun get_opt(r: CliResult, name: string) =>
+pub fun get_opt(r: CliResult, name: string) : maybe<string> =>
   match find(r.cli_options, (pair) => pair.0 == name) {
     Some(pair) => Some(pair.1),
     None => None
   }
 
-pub fun get_opt_or(r: CliResult, name: string, default: string) =>
+pub fun get_opt_or(r: CliResult, name: string, default: string) : string =>
   match get_opt(r, name) {
     Some(v) => v,
     None => default
   }
 
-pub fun get_opt_int(r: CliResult, name: string) =>
+pub fun get_opt_int(r: CliResult, name: string) : maybe<int> =>
   match get_opt(r, name) {
     Some(v) => parse_int(v),
     None => None
@@ -227,7 +227,7 @@ pub fun get_opt_int_or(r: CliResult, name: string, default: int) : int =>
     None => default
   }
 
-pub fun get_opt_float(r: CliResult, name: string) =>
+pub fun get_opt_float(r: CliResult, name: string) : maybe<float> =>
   match get_opt(r, name) {
     Some(v) => parse_float(v),
     None => None
@@ -239,47 +239,49 @@ pub fun get_opt_float_or(r: CliResult, name: string, default: float) : float =>
     None => default
   }
 
-pub fun get_positional(r: CliResult, index: int) =>
-  if index < length(r.cli_positionals) { Some(r.cli_positionals[index]) }
-  else { None }
+pub fun get_positional(r: CliResult, index: int) : maybe<string> =>
+  match drop(r.cli_positionals, index) {
+    [] => None,
+    [h, ..rest] => Some(h)
+  }
 
-pub fun get_positionals(r: CliResult) => r.cli_positionals
+pub fun get_positionals(r: CliResult) : list<string> => r.cli_positionals
 
-pub fun get_command(r: CliResult) => r.cli_command
+pub fun get_command(r: CliResult) : string => r.cli_command
 
-pub fun get_sub(r: CliResult) => r.cli_sub
+pub fun get_sub(r: CliResult) : maybe<CliResult> => r.cli_sub
 
 // ---------------------------------------------------------------------------
 // Parsing internals
 // ---------------------------------------------------------------------------
 
-pub fun find_flag_long(flags: list<CliFlag>, name: string) =>
+pub fun find_flag_long(flags: list<CliFlag>, name: string) : maybe<CliFlag> =>
   find(flags, (f) => f.flag_name == name)
 
-pub fun find_flag_short(flags: list<CliFlag>, s: string) =>
+pub fun find_flag_short(flags: list<CliFlag>, s: string) : maybe<CliFlag> =>
   find(flags, (f) => f.flag_short == s)
 
-pub fun find_opt_long(options: list<CliOption>, name: string) =>
+pub fun find_opt_long(options: list<CliOption>, name: string) : maybe<CliOption> =>
   find(options, (o) => o.opt_name == name)
 
-pub fun find_opt_short(options: list<CliOption>, s: string) =>
+pub fun find_opt_short(options: list<CliOption>, s: string) : maybe<CliOption> =>
   find(options, (o) => o.opt_short == s)
 
-pub fun find_command(commands: list<(string, CliSpec)>, name: string) =>
+pub fun find_command(commands: list<(string, CliSpec)>, name: string) : maybe<(string, CliSpec)> =>
   find(commands, (pair) => pair.0 == name)
 
 // Apply default values for options not provided by the user
-pub fun add_default(acc: list<(string, string)>, o: CliOption) =>
+pub fun add_default(acc: list<(string, string)>, o: CliOption) : list<(string, string)> =>
   if !is_empty(o.opt_default) && !any(acc, (pair) => pair.0 == o.opt_name) {
     acc + [(o.opt_name, o.opt_default)]
   }
   else { acc }
 
-pub fun apply_defaults(spec: CliSpec, options: list<(string, string)>) =>
+pub fun apply_defaults(spec: CliSpec, options: list<(string, string)>) : list<(string, string)> =>
   fold(spec.app_options, options, (acc, o) => add_default(acc, o))
 
 // Check that all required positional args were provided
-pub fun check_one_arg(positionals: list<string>, err: string, pair: (int, CliArg)) =>
+pub fun check_one_arg(positionals: list<string>, err: string, pair: (int, CliArg)) : string =>
   if !is_empty(err) { err }
   else {
     if pair.1.arg_required && pair.0 >= length(positionals) {
@@ -288,7 +290,7 @@ pub fun check_one_arg(positionals: list<string>, err: string, pair: (int, CliArg
     else { "" }
   }
 
-pub fun check_required_args(spec: CliSpec, positionals: list<string>) =>
+pub fun check_required_args(spec: CliSpec, positionals: list<string>) : string =>
   fold(enumerate(spec.app_args), "", (err, pair) => check_one_arg(positionals, err, pair))
 
 // Internal struct to pass parse results without exceeding Koka's 5-tuple limit
@@ -303,7 +305,7 @@ pub struct ParseRaw {
 
 // --- Parse loop: var/while, non-recursive ---
 
-pub fun parse_loop(spec: CliSpec, args: list<string>) {
+pub fun parse_loop(spec: CliSpec, args: list<string>) : ParseRaw {
   var flags: list<string> = []
   var options: list<(string, string)> = []
   var positionals: list<string> = []
@@ -388,7 +390,7 @@ pub fun parse_loop(spec: CliSpec, args: list<string>) {
 
 // --- Recursive wrapper: handles subcommand parsing ---
 
-pub fun cli_parse_args(spec: CliSpec, args: list<string>) {
+pub fun cli_parse_args(spec: CliSpec, args: list<string>) : CliOutcome {
   let raw = parse_loop(spec, args)
   let error = raw.raw_error
   let flags = raw.raw_flags
@@ -435,10 +437,10 @@ pub fun cli_parse_args(spec: CliSpec, args: list<string>) {
 // Public parsing API
 // ---------------------------------------------------------------------------
 
-pub fun cli_parse(spec) =>
+pub fun cli_parse(spec: CliSpec) : CliOutcome =>
   cli_parse_args(spec, get_args())
 
-pub fun cli_parse_or_exit(spec) =>
+pub fun cli_parse_or_exit(spec: CliSpec) : CliResult =>
   match cli_parse(spec) {
     Parsed(r)     => r,
     Help          => { println(cli_help(spec)); exit(0); cli_empty() },
