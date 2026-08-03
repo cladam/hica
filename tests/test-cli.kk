@@ -173,6 +173,7 @@ pub fun main() : io ()
       assert/is-true(out.contains("Some(7)"))
       assert/is-true(out.contains("None"))
       assert/is-true(out.contains("Some(5)"))
+      assert/is-true(out.contains("None"))
 
     // --- Fmt ---
 
