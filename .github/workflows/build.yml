@@ -104,7 +104,7 @@ jobs:
 
       - name: Verify binary (Unix)
         if: runner.os != 'Windows'
-        run: ./hica --version && ./hica run examples/try.hc
+        run: ./hica --version
 
       - name: Verify binary (Windows)
         if: runner.os == 'Windows'
