@@ -401,7 +401,69 @@ fun cmd-run( file : string, target : string, user-args : list<string>, generate 
     else
       println("aborted: not running stale executable because compilation failed")
 
+// Analyse one .hc file and return its doc section string, or Nothing on errors.
+// Skips prelude loading (caller passes it in for reuse across files).
+fun analyse-one-for-docs( hc-file : string, dep-includes : list<string>, prelude : program, odir : string ) : io (maybe<string>)
+  val source = read-text-file(hc-file.path)
+  val tokens = lex(source)
+  val prog   = run-parser-program(tokens, source)
+  val dir    = hc-file.path.dirname
+  val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [hc-file], dep-includes)
+  val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
+  val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
+                       types = prelude.types ++ imported-types ++ prog.types,
+                       decls = prelude.decls ++ imported-decls ++ prog.decls,
+                       globals = prog.globals)
+  val desugared = desugar-program(merged)
+  val skip-decls   = prelude.decls.length   + imported-decls.length
+  val skip-structs = prelude.structs.length + imported-structs.length
+  val skip-types   = prelude.types.length   + imported-types.length
+  val (typed-prog, diags) = collect-diagnostics
+    run-fresh
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+  val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
+  if !errors.is-empty then
+    println("  [skip] " ++ hc-file ++ " — " ++ errors.length.show ++ " error(s)")
+    Nothing
+  else
+    val user-decls   = typed-prog.decls.drop(skip-decls)
+    val user-structs = typed-prog.structs.drop(skip-structs)
+    val user-types   = typed-prog.types.drop(skip-types)
+    val user-prog    = typed-prog(decls = user-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
+    Just(unsafe-total(fn() file-doc-section(user-prog, source, hc-file, odir, extra-effectful)))
+
 fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, document-flag : bool = False, out-dir-str : maybe<string> = Nothing, check-docs-flag : bool = False )
+  // Folder mode: document an entire project directory
+  if is-directory(file.path) && document-flag then
+    val folder-name = file.path.stemname
+    val odir = out-dir-str.default("docs") ++ "/" ++ folder-name
+    val out-path = odir.path
+    ensure-dir(out-path)
+    val dep-includes = resolve-dep-includes()
+    val hc-files = list-directory(file.path)
+      .filter(fn(p) p.extname == "hc")
+      .map(fn(p) (file ++ "/" ++ p.basename))
+    if hc-files.is-nil then
+      println("analyse: no .hc files found in " ++ file)
+      hica-exit(1)
+    val prelude = load-prelude()
+    val rel-segs = odir.split("/").filter(fn(s) !s.is-empty)
+    val rel-prefix = rel-segs.foldl("", fn(acc, _seg) acc ++ "../")
+    // TOC header
+    var index-md := "# " ++ folder-name ++ "\n\n**Files:**\n"
+    hc-files.foreach fn(f)
+      index-md := index-md ++ "- [" ++ f.path.basename ++ "](" ++ rel-prefix ++ f ++ ")\n"
+    index-md := index-md ++ "\n"
+    // per-file sections
+    hc-files.foreach fn(hc-file)
+      println("[docgen] Analysing " ++ hc-file ++ "...")
+      match analyse-one-for-docs(hc-file, dep-includes, prelude, odir)
+        Just(section) -> index-md := index-md ++ "---\n\n" ++ section
+        Nothing -> ()
+    write-text-file(out-path / "index.md".path, index-md)
+    println("Documentation generated in `" ++ odir ++ "/index.md`.")
+    hica-process-exit(0)
   val dep-includes = resolve-dep-includes()
   val source = read-text-file(file.path)
   val tokens = lex(source)

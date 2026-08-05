@@ -267,34 +267,28 @@ pub fun generate-router-md( prog : program, source : string, file : string, out-
     
   md
 
-// Main Entry Point to generate all documentation
-pub fun generate-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : io ()
-  val out-path = out-dir.path
-  ensure-dir(out-path)
-
-  println("[docgen] Generating index.md...")
+// Returns the combined section markdown for one file (no I/O)
+pub fun file-doc-section( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : div string
   val arch-md    = generate-architecture-md(prog, source, file)
   val models-md  = generate-models-md(prog)
   val effects-md = generate-effects-md(prog, extra-effectful)
   val health-md  = generate-health-md(prog, source, file, extra-effectful)
   val router-md  = generate-router-md(prog, source, file, out-dir)
+  arch-md ++ "\n---\n\n" ++ models-md ++ "\n---\n\n" ++ effects-md ++ "\n---\n\n" ++ health-md ++ "\n---\n\n" ++ router-md
 
-  val index-md = arch-md ++ "\n---\n\n" ++ models-md ++ "\n---\n\n" ++ effects-md ++ "\n---\n\n" ++ health-md ++ "\n---\n\n" ++ router-md
-
+// Main Entry Point to generate all documentation
+pub fun generate-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : io ()
+  val out-path = out-dir.path
+  ensure-dir(out-path)
+  println("[docgen] Generating index.md...")
+  val index-md = file-doc-section(prog, source, file, out-dir, extra-effectful)
   write-text-file(out-path / "index.md".path, index-md)
   println("Documentation generated in `" ++ out-dir ++ "/index.md`.")
 
 // Drift Check Algorithm
 pub fun check-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : io bool
   val out-path = out-dir.path
-
-  val arch-md    = generate-architecture-md(prog, source, file)
-  val models-md  = generate-models-md(prog)
-  val effects-md = generate-effects-md(prog, extra-effectful)
-  val health-md  = generate-health-md(prog, source, file, extra-effectful)
-  val router-md  = generate-router-md(prog, source, file, out-dir)
-
-  val index-gen = arch-md ++ "\n---\n\n" ++ models-md ++ "\n---\n\n" ++ effects-md ++ "\n---\n\n" ++ health-md ++ "\n---\n\n" ++ router-md
+  val index-gen = file-doc-section(prog, source, file, out-dir, extra-effectful)
 
   val fpath = out-path / "index.md".path
   if !is-file(fpath) then
