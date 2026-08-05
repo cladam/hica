@@ -401,8 +401,6 @@ fun cmd-run( file : string, target : string, user-args : list<string>, generate 
     else
       println("aborted: not running stale executable because compilation failed")
 
-// Analyse one .hc file and return its doc section string, or Nothing on errors.
-// Skips prelude loading (caller passes it in for reuse across files).
 fun analyse-one-for-docs( hc-file : string, dep-includes : list<string>, prelude : program, odir : string ) : io (maybe<string>)
   val source = read-text-file(hc-file.path)
   val tokens = lex(source)
@@ -436,22 +434,33 @@ fun analyse-one-for-docs( hc-file : string, dep-includes : list<string>, prelude
 fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, document-flag : bool = False, out-dir-str : maybe<string> = Nothing, check-docs-flag : bool = False )
   // Folder mode: document an entire project directory
   if is-directory(file.path) && document-flag then
-    val folder-name = file.path.stemname
-    val odir = out-dir-str.default("docs") ++ "/" ++ folder-name
+    val manifest-path = (file ++ "/hica.hml").path
+    // Read project name and source directory from hica.hml if present
+    val (proj-name, src-dir) = if is-file(manifest-path) then
+      val content  = read-text-file(manifest-path)
+      val name     = hml-field(content, "project", "name").default(file.path.stemname)
+      val entry    = hml-field(content, "project", "entry").default("")
+      val entry-parent = entry.path.dirname
+      val resolved = if entry-parent.is-empty || entry-parent == "." then file
+                     else file ++ "/" ++ entry-parent
+      (name, resolved)
+    else
+      (file.path.stemname, file)
+    val odir = out-dir-str.default("docs") ++ "/" ++ proj-name
     val out-path = odir.path
     ensure-dir(out-path)
-    val dep-includes = resolve-dep-includes()
-    val hc-files = list-directory(file.path)
+    val dep-includes = resolve-dep-includes(file)
+    val hc-files = list-directory-recursive(src-dir.path)
       .filter(fn(p) p.extname == "hc")
-      .map(fn(p) (file ++ "/" ++ p.basename))
+      .map(fn(p) p.string)
     if hc-files.is-nil then
-      println("analyse: no .hc files found in " ++ file)
+      println("analyse: no .hc files found in " ++ src-dir)
       hica-exit(1)
     val prelude = load-prelude()
     val rel-segs = odir.split("/").filter(fn(s) !s.is-empty)
     val rel-prefix = rel-segs.foldl("", fn(acc, _seg) acc ++ "../")
     // TOC header
-    var index-md := "# " ++ folder-name ++ "\n\n**Files:**\n"
+    var index-md := "# " ++ proj-name ++ "\n\n**Files:**\n"
     hc-files.foreach fn(f)
       index-md := index-md ++ "- [" ++ f.path.basename ++ "](" ++ rel-prefix ++ f ++ ")\n"
     index-md := index-md ++ "\n"
@@ -463,6 +472,7 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
         Nothing -> ()
     write-text-file(out-path / "index.md".path, index-md)
     println("Documentation generated in `" ++ odir ++ "/index.md`.")
+    hica-process-exit(0)
     hica-process-exit(0)
   val dep-includes = resolve-dep-includes()
   val source = read-text-file(file.path)
@@ -793,12 +803,13 @@ fun pkg-update-cmd()
     pkg-update(dep-list, ".".path)
 
 // Resolve dependency include paths from hica.ini [dependencies] section
-fun resolve-dep-includes()
-  if is-file(manifest-name.path) then
-    val content = read-text-file(manifest-name.path)
+fun resolve-dep-includes(dir : string = ".")
+  val manifest-path = (dir ++ "/" ++ manifest-name).path
+  if is-file(manifest-path) then
+    val content = read-text-file(manifest-path)
     val dep-list = parse-deps-section(content)
     if dep-list.is-nil then []
-    else fetch-all-deps(dep-list, ".".path)
+    else fetch-all-deps(dep-list, dir.path)
   else []
 
 fun scaffold-project( project-dir : path, name : string )
