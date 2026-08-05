@@ -85,11 +85,15 @@ fun rollback(state: DeployState) : Transition =>
 // Choreo-style runner - given / when / then output
 // ---------------------------------------------------------------------------
 
-fun choreo_step(curr: DeployState, name: string, action: string, t: Transition) {
-  println("  test " + name)
-  println("    given: state is " + state_name(curr))
-  println("    when:  " + action)
-  println("    then:  state is " + state_name(t.next) + "  -- " + t.log)
+fun choreo_step(curr: DeployState, name: string, desc: string, action: string, t: Transition, prev_dep: string) : DeployState {
+  println("  test " + name + " \"" + desc + "\" {")
+  println("    given:")
+  println("      " + prev_dep)
+  println("    when:")
+  println("      System run \"" + action + "\"")
+  println("    then:")
+  println("      System state_is \"" + state_name(t.next) + "\"  // " + t.log)
+  println("  }")
   println("")
   t.next
 }
@@ -112,9 +116,9 @@ fun scenario_failing_deploy() {
   scenario_header("Deploy fails and rolls back")
   let artifact = "v1.2.3"
   let s0 = Idle
-  let s1 = choreo_step(s0, "StartDeploy", "start_deploy(" + artifact + ")", start_deploy(s0, artifact))
-  let s2 = choreo_step(s1, "HealthCheck", "health_check(503)",              health_check(s1, 503))
-  let s3 = choreo_step(s2, "Rollback",   "rollback()",                     rollback(s2))
+  let s1 = choreo_step(s0, "StartDeploy", "Deploy the artifact " + artifact, "start_deploy(" + artifact + ")", start_deploy(s0, artifact), "Test can_start")
+  let s2 = choreo_step(s1, "HealthCheck", "Perform health check on deployed artifact", "health_check(503)", health_check(s1, 503), "Test has_succeeded StartDeploy")
+  let s3 = choreo_step(s2, "Rollback", "Rollback degraded deployment", "rollback()", rollback(s2), "Test has_succeeded HealthCheck")
   scenario_footer(s3)
 }
 
@@ -126,8 +130,8 @@ fun scenario_happy_deploy() {
   scenario_header("Deploy succeeds")
   let artifact = "v2.0.0"
   let s0 = Idle
-  let s1 = choreo_step(s0, "StartDeploy", "start_deploy(" + artifact + ")", start_deploy(s0, artifact))
-  let s2 = choreo_step(s1, "HealthCheck", "health_check(200)",              health_check(s1, 200))
+  let s1 = choreo_step(s0, "StartDeploy", "Deploy the artifact " + artifact, "start_deploy(" + artifact + ")", start_deploy(s0, artifact), "Test can_start")
+  let s2 = choreo_step(s1, "HealthCheck", "Perform health check on deployed artifact", "health_check(200)", health_check(s1, 200), "Test has_succeeded StartDeploy")
   scenario_footer(s2)
 }
 
@@ -137,6 +141,10 @@ fun scenario_happy_deploy() {
 
 fun main() {
   println("feature \"Deploy service workflow\"")
+  println("")
+  println("actors {")
+  println("  System")
+  println("}")
   println("")
   scenario_failing_deploy()
   scenario_happy_deploy()

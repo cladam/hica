@@ -1312,6 +1312,12 @@ pub fun parse-program() : <div,parser> program
         structs := Cons(sdef, structs)
         decls   := Cons(fdecl, decls)
         current-doc := Nothing
+      TkFun ->
+        decls := Cons(parse-fun-decl(current-doc), decls)
+        current-doc := Nothing
+      TkNoinline ->
+        decls := Cons(parse-fun-decl(current-doc), decls)
+        current-doc := Nothing
       TkPub ->
         // pub import "path" — re-export
         match peek-next()

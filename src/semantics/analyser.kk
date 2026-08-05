@@ -65,7 +65,7 @@ pub fun format-terminal(file: string, source: string, scores: list<function-scor
 
     // Resolve line number from span
     val start-pos = score.span.start
-    val line-num = source.slice.extend(start-pos).string.lines.length
+    val line-num = source.list.take(start-pos).filter(fn(c) c == '\n').length + 1
     
     val p1 = severity-label ++ " " ++ file ++ ":" ++ line-num.show ++ " (score: " ++ func-total.show ++ ")\n  " ++ score.signature ++ "\n"
     
@@ -106,7 +106,7 @@ pub fun format-markdown(file: string, source: string, scores: list<function-scor
 
     // Resolve line number from span
     val start-pos = score.span.start
-    val line-num = source.slice.extend(start-pos).string.lines.length
+    val line-num = source.list.take(start-pos).filter(fn(c) c == '\n').length + 1
     
     val p1 = "## Function Context\n- **Name:** `" ++ score.name ++ "`\n- **Signature:** `" ++ score.signature ++ "`\n- **Location:** `" ++ file ++ ":" ++ line-num.show ++ "`\n- **Debt Score:** " ++ func-total.show ++ " (" ++ severity ++ ")\n\n## Detected FP Anti-Patterns\n"
     
@@ -127,12 +127,23 @@ pub fun format-markdown(file: string, source: string, scores: list<function-scor
     
     val end-pos = score.span.end
     val func-source = if start-pos < source.count && end-pos <= source.count && start-pos <= end-pos then
-       source.slice.extend(end-pos).drop(start-pos).string ++ "\n"
+      source.list.drop(start-pos).take(end-pos - start-pos).string ++ "\n"
     else ""
     
     p1 ++ p2 ++ "\n## Code Snippet\n```hica\n" ++ func-source ++ "```\n\n---\n\n"
   
-  "# Hica Analysis Hotspot: `" ++ file ++ "`\n\n" ++ parts.join("")
+  val q-index = max(0, 100 - total)
+  val debt-count = non-empty-scores.length
+  val summary = if debt-count == 0 then
+    "## Summary\n✅ **No functional debt detected** — all " ++ num-decls.show ++ " function(s) are clean.\n\n**FP Quality Index: " ++ q-index.show ++ "/100**\n"
+  else
+    val shown = top-scores.length
+    val intro = if shown < debt-count then
+      "Showing top " ++ shown.show ++ " of " ++ debt-count.show ++ " function(s) with debt.\n\n"
+    else ""
+    "## Summary\n" ++ intro ++ "- **Functions analysed:** " ++ num-decls.show ++ "\n- **Functions with debt:** " ++ debt-count.show ++ "\n- **Total debt score:** " ++ total.show ++ "\n\n**FP Quality Index: " ++ q-index.show ++ "/100**\n"
+
+  "# Hica Analysis Hotspot: `" ++ file ++ "`\n\n" ++ parts.join("") ++ summary
 
 pub fun analyse-program(prog: program, file: string, source: string, format: string, top: maybe<string>, extra-effectful: list<string>) : io ()
   val scores = prog.decls.map(fn(d) analyse-decl(d, extra-effectful))

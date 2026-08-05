@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.48.0-1"
+val version = "0.48.0-2"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -160,6 +160,9 @@ fun hica-cli() : command
     .arg(option-short("output", 'o').help("Output binary name (build only)"))
     .arg(option("format").help("Output format: text or markdown (analyse only)"))
     .arg(option("top").help("Number of top issues to show in markdown format (analyse only)"))
+    .arg(flag("document").help("Generate project documentation under docs/ (analyse only)"))
+    .arg(option("out-dir").help("Custom output directory for documentation (analyse only)"))
+    .arg(flag("check-docs").help("Verify if documentation is up to date (analyse only)"))
     .subcommand("build, b", "Compile a .hc file and build a binary")
     .subcommand("run, r", "Compile and run a .hc file")
     .subcommand("check, c", "Type-check a .hc file and report errors")
@@ -428,15 +431,17 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
 
   // Only analyse user declarations, strip prelude and imports
   val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
-  val user-prog = typed-prog(decls = user-decls)
+  val user-structs = typed-prog.structs.drop(prelude.structs.length + imported-structs.length)
+  val user-types = typed-prog.types.drop(prelude.types.length + imported-types.length)
+  val user-prog = typed-prog(decls = user-decls, structs = user-structs, types = user-types, imports = prog.imports)
   val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
   
   if document-flag then
-    val odir = out-dir-str.default("docs")
-    unsafe-total(fn() generate-all-docs(user-prog, source, file, odir, extra-effectful))
+    val odir = out-dir-str.default("docs") ++ "/" ++ file.path.stemname
+    generate-all-docs(user-prog, source, file, odir, extra-effectful)
   elif check-docs-flag then
-    val odir = out-dir-str.default("docs")
-    val ok = unsafe-total(fn() check-all-docs(user-prog, source, file, odir, extra-effectful))
+    val odir = out-dir-str.default("docs") ++ "/" ++ file.path.stemname
+    val ok = check-all-docs(user-prog, source, file, odir, extra-effectful)
     hica-process-exit(if ok then 0 else 1)
   else
     analyse-program(user-prog, file, source, format-str, top-n-str, extra-effectful)

@@ -17,9 +17,11 @@ import "std/stream"
 import "std/list"
 
 // ---------------------------------------------------------------------------
-// 1. Basic pipeline
+// Basic pipeline
 // ---------------------------------------------------------------------------
 
+/// This code shows a basic pipeline, one using an eager methos and one showing the usage of lazy streams,
+///   both produce the same result: [4, 16, 36, 64, 100]
 fun basic_pipeline() {
   // Eager list pipeline: three intermediate lists allocated
   let eager = [1..20]
@@ -43,6 +45,7 @@ fun basic_pipeline() {
 // 2. Early termination — the key win over list pipelines
 // ---------------------------------------------------------------------------
 
+/// Early stop with streams, the generator stops after yielding 3 matches.
 fun early_stop() {
   // With a list pipeline: all 1000 elements pass through filter.
   // With a stream: the generator stops after yielding 3 matches.
@@ -58,6 +61,7 @@ fun early_stop() {
 // 3. Fold without materialising
 // ---------------------------------------------------------------------------
 
+/// Sum the first 10 even squares — no intermediate list ever built
 fun aggregate() {
   // Sum the first 10 even squares — no intermediate list ever built
   let total = stream([0..1000])

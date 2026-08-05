@@ -203,7 +203,7 @@ fun lex-from( cs : list<char>, pos : int, nl : bool = False ) : div list<token>
       if c == '\n' then lex-from(rest, pos + 1, True)
       elif c.is-white then lex-from(rest, pos + 1, nl)
       elif c == '/' && rest.head-is('/') && rest.tail.head-is('/') then lex-doc-comment(rest.tail.tail, pos, pos + 3)
-      elif c == '/' && rest.head-is('/') then skip-line-comment(rest.tail, pos)
+      elif c == '/' && rest.head-is('/') then skip-line-comment(rest.tail, pos + 2)
       elif c.is-digit then mark-first-nl(lex-number(cs, pos), nl)
       elif c.is-alpha || c == '_' then mark-first-nl(lex-ident(cs, pos), nl)
       elif c == '"' then mark-first-nl(lex-string(rest, pos, pos + 1), nl)

@@ -131,15 +131,15 @@ fun format-decl-signature( decl : fun-decl ) : div string
   "fun " ++ decl.name ++ "(" ++ format-params(decl.params, decl.param-types) ++ ")" ++ ret-str
 
 fun resolve-line-num( source : string, start-pos : int ) : int
-  source.slice.extend(start-pos).string.lines.length
+  source.list.take(start-pos).filter(fn(c) c == '\n').length + 1
 
-// 1. ARCHITECTURE.md
+// ARCHITECTURE.md
 pub fun generate-architecture-md( prog : program, source : string, file : string ) : div string
   val public-decls = prog.decls.filter(is-pub)
   val public-structs = prog.structs.filter(is-pub)
   val public-types = prog.types.filter(is-pub)
   
-  var md := "# Project Architecture & Export Directory: `" ++ file.path.basename.show ++ "`\n\n"
+  var md := "# Project Architecture & Export Directory: `" ++ file.path.basename ++ "`\n\n"
   
   md := md ++ "## Module Overview\n"
   md := md ++ "- **Source File:** `" ++ file ++ "`\n"
@@ -181,7 +181,7 @@ pub fun generate-architecture-md( prog : program, source : string, file : string
     
   md
 
-// 2. MODELS.md
+// MODELS.md
 pub fun generate-models-md( prog : program ) : div string
   var md := "# Domain Data Models & Type Dictionary\n\n"
   
@@ -216,7 +216,7 @@ pub fun generate-models-md( prog : program ) : div string
         
   md
 
-// 3. EFFECTS.md
+// EFFECTS.md
 pub fun generate-effects-md( prog : program, extra-effectful : list<string> ) : div string
   var md := "# Purity and Side Effects Tracking Matrix\n\n"
   
@@ -242,7 +242,7 @@ pub fun generate-effects-md( prog : program, extra-effectful : list<string> ) : 
     
   md
 
-// 4. HEALTH.md
+// HEALTH.md
 pub fun generate-health-md( prog : program, source : string, file : string, extra-effectful : list<string> ) : div string
   val scores = prog.decls.map(fn(d) analyse-decl(d, extra-effectful))
   val total = scores.map(fn(s) s.items.map(points).sum).sum
@@ -250,80 +250,61 @@ pub fun generate-health-md( prog : program, source : string, file : string, extr
   // Reuse existing analyser formatting for HEALTH.md
   format-markdown(file, source, scores, total, prog.decls.length, 10)
 
-// 5. ROUTER.md
-pub fun generate-router-md( prog : program, source : string, file : string ) : div string
+// ROUTER.md
+pub fun generate-router-md( prog : program, source : string, file : string, out-dir : string ) : div string
   var md := "# Router Map & Symbolic Index\n\n"
   
   md := md ++ "This index maps symbol names to their original file ranges, for tool and human reference.\n\n"
+
+  // build a relative prefix so links resolve from within out-dir back to the repo root
+  val segs = out-dir.split("/").filter(fn(s) !s.is-empty)
+  val rel-prefix = segs.foldl("", fn(acc, _seg) acc ++ "../")
   
   prog.decls.foreach fn(d)
     val line = resolve-line-num(source, d.span.start)
     val desc = match d.doc { Just(x) -> " — " ++ x.replace-all("\n", " "); Nothing -> "" }
-    md := md ++ "- [`" ++ d.name ++ "`](hica://" ++ file ++ ":" ++ line.show ++ ")" ++ desc ++ "\n"
-    
-  prog.structs.foreach fn(s)
-    val line = resolve-line-num(source, s.span.start)
-    val desc = match s.doc { Just(x) -> " — " ++ x.replace-all("\n", " "); Nothing -> "" }
-    md := md ++ "- [`" ++ s.name ++ "`](hica://" ++ file ++ ":" ++ line.show ++ ")" ++ desc ++ "\n"
-
-  prog.types.foreach fn(t)
-    val line = resolve-line-num(source, t.span.start)
-    val desc = match t.doc { Just(x) -> " — " ++ x.replace-all("\n", " "); Nothing -> "" }
-    md := md ++ "- [`" ++ t.name ++ "`](hica://" ++ file ++ ":" ++ line.show ++ ")" ++ desc ++ "\n"
+    md := md ++ "- [`" ++ d.name ++ "`](" ++ rel-prefix ++ file ++ "#L" ++ line.show ++ ")" ++ desc ++ "\n"
     
   md
 
 // Main Entry Point to generate all documentation
-pub fun generate-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : <io,div> ()
+pub fun generate-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : io ()
   val out-path = out-dir.path
   ensure-dir(out-path)
-  
-  val arch-md = generate-architecture-md(prog, source, file)
-  val models-md = generate-models-md(prog)
+
+  println("[docgen] Generating index.md...")
+  val arch-md    = generate-architecture-md(prog, source, file)
+  val models-md  = generate-models-md(prog)
   val effects-md = generate-effects-md(prog, extra-effectful)
-  val health-md = generate-health-md(prog, source, file, extra-effectful)
-  val router-md = generate-router-md(prog, source, file)
-  
-  write-text-file(out-path / "ARCHITECTURE.md".path, arch-md)
-  write-text-file(out-path / "MODELS.md".path, models-md)
-  write-text-file(out-path / "EFFECTS.md".path, effects-md)
-  write-text-file(out-path / "HEALTH.md".path, health-md)
-  write-text-file(out-path / "ROUTER.md".path, router-md)
-  
-  println("Documentation suite generated successfully in `" ++ out-dir ++ "`.")
+  val health-md  = generate-health-md(prog, source, file, extra-effectful)
+  val router-md  = generate-router-md(prog, source, file, out-dir)
+
+  val index-md = arch-md ++ "\n---\n\n" ++ models-md ++ "\n---\n\n" ++ effects-md ++ "\n---\n\n" ++ health-md ++ "\n---\n\n" ++ router-md
+
+  write-text-file(out-path / "index.md".path, index-md)
+  println("Documentation generated in `" ++ out-dir ++ "/index.md`.")
 
 // Drift Check Algorithm
-pub fun check-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : <io,div> bool
+pub fun check-all-docs( prog : program, source : string, file : string, out-dir : string, extra-effectful : list<string> ) : io bool
   val out-path = out-dir.path
-  
-  val arch-gen = generate-architecture-md(prog, source, file)
-  val models-gen = generate-models-md(prog)
-  val effects-gen = generate-effects-md(prog, extra-effectful)
-  val health-gen = generate-health-md(prog, source, file, extra-effectful)
-  val router-gen = generate-router-md(prog, source, file)
-  
-  fun check-file( name : string, gen-content : string ) : io bool
-    val fpath = out-path / name.path
-    if !is-file(fpath) then
-      println("Drift Check Fail: `" ++ fpath.string ++ "` does not exist.")
+
+  val arch-md    = generate-architecture-md(prog, source, file)
+  val models-md  = generate-models-md(prog)
+  val effects-md = generate-effects-md(prog, extra-effectful)
+  val health-md  = generate-health-md(prog, source, file, extra-effectful)
+  val router-md  = generate-router-md(prog, source, file, out-dir)
+
+  val index-gen = arch-md ++ "\n---\n\n" ++ models-md ++ "\n---\n\n" ++ effects-md ++ "\n---\n\n" ++ health-md ++ "\n---\n\n" ++ router-md
+
+  val fpath = out-path / "index.md".path
+  if !is-file(fpath) then
+    println("Drift Check Fail: `" ++ fpath.string ++ "` does not exist.")
+    False
+  else
+    val disc-content = read-text-file(fpath)
+    if disc-content != index-gen then
+      println("Drift Check Fail: `" ++ fpath.string ++ "` has out-of-sync content.")
       False
     else
-      val disc-content = read-text-file(fpath)
-      if disc-content != gen-content then
-        println("Drift Check Fail: `" ++ fpath.string ++ "` has out-of-sync content.")
-        False
-      else
-        True
-        
-  val ok1 = check-file("ARCHITECTURE.md", arch-gen)
-  val ok2 = check-file("MODELS.md", models-gen)
-  val ok3 = check-file("EFFECTS.md", effects-gen)
-  val ok4 = check-file("HEALTH.md", health-gen)
-  val ok5 = check-file("ROUTER.md", router-gen)
-  
-  val all-ok = ok1 && ok2 && ok3 && ok4 && ok5
-  if all-ok then
-    println("Documentation is up to date.")
-    True
-  else
-    False
+      println("Documentation is up to date.")
+      True
