@@ -14,4 +14,5 @@ How does hica compare to other languages? Each page walks through syntax, featur
 What is the fundamental paradigm shift from Kotlin's **Mutable, Imperative Object-Oriented** state to hica's **Immutable, Declarative Functional** state?
 
 - [Translating getters & setters to hica](/docs/lenses-vs-kotlin-properties) – comparing Kotlin's mutable Object-Oriented getters/setters with hica's pure functional, immutable Lenses (Optics).
+- [Rethinking design patterns in hica](/docs/rethinking-design-patterns-in-hica) – walking through Factory, Visitor, Builder, Decorator and Strategy: which classic Java OOP patterns shrink in hica, and which ones vanish entirely.
 
