@@ -6,7 +6,7 @@ title: Rethinking Design Patterns in hica
 # Rethinking Design Patterns in hica: When the Patterns Melt Away
 
 In August 2026, Nicolas Duminil published [*Rethinking Java Design Patterns: From OOP to FP*](https://dzone.com/articles/rethinking-java-design-patterns) on DZone.
-Walking through five of the classic *Gang of Four* patterns – **Factory**, **Visitor**, **Builder**, **Decorator** and **Strategy** – he shows how each one shrinks when you shift a Java codebase from an object-oriented style to a functional one. 
+Walking through five of the classic *Gang of Four* patterns: **Factory**, **Visitor**, **Builder**, **Decorator** and **Strategy**, he shows how each one shrinks when you shift a Java codebase from an object-oriented style to a functional one. 
 Interfaces collapse into `Function<A, B>`. Wrapper classes collapse into `UnaryOperator<T>`. Fluent builders collapse into `andThen` chains of copy operations.
 
 The article's punchline, borrowed from a story about Richard Feynman, is *"turtles all the way down"*: once you commit to the functional style,
@@ -118,11 +118,11 @@ What Java earned back through `sealed` + `switch` in 2021, hica has as its defau
 
 ## 3. Builder: composition, without the accumulator
 
-The Builder pattern addresses the telescoping constructor problem—handling objects with required and optional fields without exponential constructor overloads.
+The Builder pattern addresses the telescoping constructor problem – handling objects with required and optional fields without exponential constructor overloads.
 
 Duminil's Java OOP version is the classic mutable accumulator: an `OrderBuilder` you call `.addItem(...)`, `.coupon(...)`, `.giftWrap()` on, 
 and finally `.build()` to freeze into an immutable `Order`. The Java FP version keeps the immutable target but replaces the accumulator
-with `UnaryOperator<Order>` values — pure functions from `Order` to `Order`, glued together with `andThen`.
+with `UnaryOperator<Order>` values: pure functions from `Order` to `Order`, glued together with `andThen`.
 
 hica's Builder sits between the two: no mutable accumulator (because `struct` is immutable), *and* no `UnaryOperator<Order>` wrapper needed
 (because our pipe operator does the same job with plain multi-arg functions):
@@ -156,11 +156,11 @@ let order = empty_order("Alice", "EUR")
   |> with_note("please deliver after 5pm")
 ```
 
-This reads exactly like the Java fluent API. But there is no builder object at all — no mutation, no `.build()`, 
+This reads exactly like the Java fluent API. But there is no builder object at all: no mutation, no `.build()`, 
 no separation between "under construction" and "finished". Every intermediate step is already a first-class, immutable `Order`. 
 If you want to keep one and reuse it (like building a second order that starts from the first one's line items) you just... bind it to a `let` and pipe it into more steps.
 
-The same shape shows up all over the hica standard library — `std/cli`, `std/log`, HML — because it's simply how you compose transformations over immutable values in hica.
+The same shape shows up all over the hica standard library (`std/cli`, `std/log`, HML, etc.), because it's simply how you compose transformations over immutable values in hica.
 
 **What survived:** the *idea* of composing a value step by step. What disappeared: the mutable builder, the `.build()` boundary, 
 the `UnaryOperator<Order>` wrapping, and the need to give any of this a special name.
@@ -198,14 +198,13 @@ let wrapped = book |> discounted |> taxed |> gift_wrapped
 assert(product_price(wrapped) == 113.00)
 ```
 
-Notice that where Java writes `new GiftWrapped(new Taxed(new Discounted(book)))` — which you have to read inside-out — hica's `|>` reads exactly in stacking order, 
-top to bottom.
+Notice that where Java writes `new GiftWrapped(new Taxed(new Discounted(book)))` (which you have to read inside-out), hica's `|>` reads exactly in stacking order, top to bottom.
 
 **Note on implementation**: Duminil's Java version requires a `BaseProduct` adapter because the domain type is sealed. In hica, functions operate directly on the sealed type without adapters.
 
 **Performance**: While hica structs are immutable, they use Koka's Perceus reference counting. When a value's reference count is one (as in a single pipeline), field updates execute in-place compiled down to mutation efficiency.
 
-**What survived:** the *composition* — Decorator names something real, and the name still fits. 
+**What survived:** the *composition*; Decorator names something real, and the name still fits. 
 What disappeared: the wrapper classes, the abstract decorator, the delegation boilerplate, and the adapter.
 
 ## 5. Strategy: the interface *was* the function
@@ -222,7 +221,7 @@ fun express_shipping(p: Product) : float =>
   9.99 + (product_price(p) * 0.02)
 ```
 
-The article's parameterised `FreeOverShipping` class — the one that holds a threshold and a fallback strategy in instance fields — becomes a *closure*. 
+The article's parameterised `FreeOverShipping` class (the one that holds a threshold and a fallback strategy in instance fields) becomes a *closure*. 
 Higher-order functions capture parameters without ceremony:
 
 ```hica
@@ -241,8 +240,7 @@ fun cheapest(a: (Product) -> float, b: (Product) -> float) : (Product) -> float 
   (p) => min_float(a(p), b(p))
 ```
 
-And Duminil's `ShippingCalculator` context class — the object whose entire reason to exist was to hold a strategy field so `total()` could delegate to it,
-is just another higher-order function:
+And Duminil's `ShippingCalculator` context class: the object whose entire reason to exist was to hold a strategy field so `total()` could delegate to it, is just another higher-order function:
 
 ```hica
 fun total_with(strategy: (Product) -> float, p: Product) : float =>
@@ -251,7 +249,7 @@ fun total_with(strategy: (Product) -> float, p: Product) : float =>
 
 Which you call as `total_with(express_shipping, book)`. No setStrategy. No context object. No dependency injection. Just pass the function you want.
 
-**What disappeared:** The interface, concrete strategy classes, and context wrappers – all replaced by first-class functions and closures.
+**What disappeared:** The interface, concrete strategy classes, and context wrappers; all replaced by first-class functions and closures.
 
 ## The bigger picture
 
@@ -290,6 +288,6 @@ running 5 test(s)...
 
 ## Further reading
 
-- [Rethinking Java Design Patterns: From OOP to FP](https://dzone.com/articles/rethinking-java-design-patterns) — Nicolas Duminil's original article. Recommended if you want to see the parallel Java code in detail.
-- [From Mutable Properties to Pure Lenses](/docs/lenses-vs-kotlin-properties) — a companion piece translating Kotlin getters and setters into hica lenses.
-- [`examples/design_patterns.hc`](https://github.com/cladam/hica/blob/main/examples/design_patterns.hc) — the full, runnable source for every snippet in this article.
+- [Rethinking Java Design Patterns: From OOP to FP](https://dzone.com/articles/rethinking-java-design-patterns): Nicolas Duminil's original article. Recommended if you want to see the parallel Java code in detail.
+- [From Mutable Properties to Pure Lenses](/docs/lenses-vs-kotlin-properties): a companion piece translating Kotlin getters and setters into hica lenses.
+- [`examples/design_patterns.hc`](https://github.com/cladam/hica/blob/main/examples/design_patterns.hc): the full, runnable source for every snippet in this article.
