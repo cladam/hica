@@ -3,8 +3,6 @@ layout: default
 title: Rethinking Design Patterns in hica
 ---
 
-# Rethinking Design Patterns in hica: When the Patterns Melt Away
-
 In August 2026, Nicolas Duminil published [*Rethinking Java Design Patterns: From OOP to FP*](https://dzone.com/articles/rethinking-java-design-patterns) on DZone.
 Walking through five of the classic *Gang of Four* patterns: **Factory**, **Visitor**, **Builder**, **Decorator** and **Strategy**, he shows how each one shrinks when you shift a Java codebase from an object-oriented style to a functional one. 
 Interfaces collapse into `Function<A, B>`. Wrapper classes collapse into `UnaryOperator<T>`. Fluent builders collapse into `andThen` chains of copy operations.
