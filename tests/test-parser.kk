@@ -578,3 +578,39 @@ pub fun main() : io ()
       val result = parse-show("parse_int(a)? + parse_int(b)?")
       assert/is-true(result.contains("parse_int(a)?"))
       assert/is-true(result.contains("parse_int(b)?"))
+
+    // --- Char / float literal patterns (regression: hedit-hica-issues.md issue 1) ---
+    itest("parse char literal pattern at top level")
+      val result = parse-show("match c { 'q' => 1, _ => 0 }")
+      assert/is-true(result.contains("'q'"))
+
+    itest("parse char literal inside nested constructor pattern")
+      // Previously wedged the parser in an infinite recovery loop —
+      // `KShortcut(Ctrl, 'q')` would emit `expected pattern` at 'q' forever.
+      val src = "type Modifier { Ctrl }\n" ++
+        "type Key { KShortcut(m: Modifier, c: char) }\n" ++
+        "fun h(k: Key) : int => match k { KShortcut(Ctrl, 'q') => 1, _ => 0 }\n" ++
+        "fun main() => h(KShortcut(Ctrl, 'q'))\n"
+      val tokens = lex(src)
+      val (_, errs) = run-parser-program-with-errors(tokens, src)
+      assert/is-true(errs.is-nil)
+
+    itest("parse float literal pattern")
+      val result = parse-show("match x { 3.14 => 1, _ => 0 }")
+      assert/is-true(result.contains("3.14"))
+
+    // --- Parser error-recovery termination (regression: hedit-hica-issues.md issue 1) ---
+    itest("parser terminates on garbage input inside function body")
+      // Before the advance-on-error guard this looped forever on the '@'.
+      val src = "fun main() {\n  let x = @#$%\n  println(\"done\")\n}\n"
+      val tokens = lex(src)
+      val (_, errs) = run-parser-program-with-errors(tokens, src)
+      // Small bounded error count (< 50) proves the parser made forward
+      // progress and did not spam the terminal until EOF.
+      assert/is-true(errs.length < 50)
+
+    itest("parser terminates on garbage token in match arm")
+      val src = "fun main() {\n  match x { @ => 1, _ => 0 }\n}\n"
+      val tokens = lex(src)
+      val (_, errs) = run-parser-program-with-errors(tokens, src)
+      assert/is-true(errs.length < 50)

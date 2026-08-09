@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.48.0"
+val version = "0.49.0-6"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a

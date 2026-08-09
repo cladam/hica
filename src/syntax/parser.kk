@@ -240,7 +240,14 @@ fun parse-prefix() : <div,parser> node
       val operand = parse-postfix()
       Node(Span(t.span.start, operand.span.end), Unary(Not, operand))
     _ ->
-      parse-error("unexpected token: " ++ tk.show)
+      val err = parse-error("unexpected token: " ++ tk.show)
+      // Belt-and-suspenders: consume the offending token so callers that loop
+      // on parse-prefix (or its callers) make forward progress. Without
+      // this, sequences like `let x = @` wedge the parser.
+      match peek()
+        TkEof -> ()
+        _     -> { advance(); () }
+      err
 
 fun infix-bp( tk : token-kind ) : maybe<(int, int, binop)>
   match tk
@@ -900,7 +907,18 @@ fun parse-pattern() : <div,parser> pattern
     TkBitPattern(m, v) -> { advance(); PBits(m, v) }
     TkBool(b)    -> { advance(); PLit(LitBool(b)) }
     TkString(s)  -> { advance(); PLit(LitString(s)) }
-    _ -> { parse-error("expected pattern"); PWild }
+    TkChar(c)    -> { advance(); PLit(LitChar(c)) }
+    TkFloat(f)   -> { advance(); PLit(LitFloat(f)) }
+    // Fallback: consume the offending token so the parser makes forward
+    // progress on unrecognised patterns. Without the advance() here, callers
+    // that re-enter parse-pattern (e.g. constructor arg lists) will loop
+    // forever emitting the same error.
+    _ ->
+      parse-error("expected pattern")
+      match peek()
+        TkEof -> ()
+        _     -> { advance(); () }
+      PWild
 
 fun parse-repeat() : <div,parser> node
   val t = expect("repeat", fn(k) match k { TkRepeat -> True; _ -> False })
