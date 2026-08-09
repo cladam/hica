@@ -82,8 +82,23 @@ pub effect type-reg
   fun get-types() : type-registry
 
 // ---------------------------------------------------------------------------
+// Effect registry: look up user-defined effect declarations by name
+// ---------------------------------------------------------------------------
+
+pub alias effect-registry = list<effect-def>
+
+pub fun effect-find( reg : effect-registry, ename : string ) : maybe<effect-def>
+  match reg
+    Nil -> Nothing
+    Cons(ed, rest) -> if ed.name == ename then Just(ed) else effect-find(rest, ename)
+
+pub effect effect-reg
+  fun get-effects() : effect-registry
+
+// ---------------------------------------------------------------------------
 // Loop context: track whether we are inside a loop body
 // ---------------------------------------------------------------------------
+
 
 pub effect loop-ctx
   fun in-loop() : bool
@@ -320,7 +335,7 @@ fun zip-with-anns( params : list<string>, anns : list<maybe<hica-type>> ) : <div
 // ---------------------------------------------------------------------------
 
 // Helper to infer generic calls (not intercepted by stream or other dispatch)
-fun infer-generic-call( env : type-env, s : subst, callee : node, args : list<node>, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
+fun infer-generic-call( env : type-env, s : subst, callee : node, args : list<node>, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, node)
   val (s1, callee') = infer(env, s, callee)
   val (s2, args') = infer-args(env, s1, args)
   val callee-type = apply-subst(s2, get-type(callee'))
@@ -332,14 +347,14 @@ fun infer-generic-call( env : type-env, s : subst, callee : node, args : list<no
   (s3, Node(n.span, Call(callee', args'), Just(result-type)))
 
 // Infer a node inside a loop body context (sets in-loop to True).
-fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
+fun infer-loop-body( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, node)
   with override
     fun in-loop() True
   infer(env, s, n)
 
 // Infer the type of a node, returning the updated substitution and a
 // node annotated with its inferred type.
-pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, node)
+pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, node)
   match n.expr
     // --- Literals: known concrete types ---
     Literal(LitInt(_)) ->
@@ -917,36 +932,115 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           val (s3, fields') = infer-struct-fields(env, s2, sd.fields, lit-fields, n.span)
           (s3, Node(n.span, StructUpdate(sname, base', fields', def-names), Just(TStruct(sname))))
 
-    // --- Handle expression (M1 lenient mode, Mode B) ---
-    // See documentation/effects-journal.md M1 and documentation/effects-design.md §8.
-    // In M1 we do not have an effect registry yet (that lands in M2) — so we
-    //   1. type-check every state initialiser and extend the env with the binding;
-    //   2. type-check each op-arm body under the state-extended env (params are
-    //      untyped for now — they receive fresh type variables);
-    //   3. type-check the `in { body }` under the state-extended env;
-    //   4. return the body's type as the expression's type.
-    // Mode B leniency: op calls inside the arms/body appear as bare `Var(name)`
-    // lookups that fall through to the ordinary env. We do NOT yet enforce that
-    // the op names in the arms match a real effect declaration, and we do NOT
-    // check exhaustiveness — both land in M2.
+    // --- Handle expression (M2: exhaustiveness + arm-param typing) ---
+    // See documentation/effects-design.md §5.2 and §8.3.
+    // Steps:
+    //   1. Look up the effect in the registry (`get-effects`). Unknown effect
+    //      is an error; we still walk the arms/body so users see all diagnostics.
+    //   2. Exhaustiveness: verify the set of arm op-names equals the effect's
+    //      op-set. Report missing ops, unknown ops, duplicate arms — all as
+    //      hica-level errors with spans.
+    //   3. State bindings: infer each initialiser, extend env cumulatively.
+    //   4. Op arms — params get types from the matching op signature (freshened
+    //      per arm so untyped ops like TVar("_") don't share a single tvar
+    //      across arms). Unknown-op arms still get fresh tvars so their bodies
+    //      type-check locally. Wrong-arity arms are reported and the extra
+    //      params get fresh tvars.
+    //   5. Type-check the `in { body }` under the state-extended env.
+    //   6. Return the body's type as the expression's type.
+    //
+    // Mode B leniency (carried from M1): op calls inside the arms/body appear
+    // as bare `Var(name)` lookups that resolve via the top-level `effect-op-env`
+    // seed. Un-discharged-effect detection at main/test entries is deferred to
+    // a follow-up (see documentation/effects-journal.md M2 log).
     EHandle(ename, arms, state, body) ->
-      // 1. State bindings: infer each initialiser, extend env cumulatively.
+      // 1. Effect registry lookup.
+      val effect-def-opt = get-effects().effect-find(ename)
+      match effect-def-opt
+        Nothing -> emit-error(n.span, "unknown effect: '" ++ ename ++ "'")
+        _       -> ()
+      // 2. Exhaustiveness checks: only when we know the effect.
+      match effect-def-opt
+        Nothing -> ()
+        Just(edef) ->
+          val op-names = edef.ops.map(fn(op) op.name)
+          val arm-names = arms.map(fn(a) a.op-name)
+          // (a) missing ops — declared but not handled
+          op-names.foreach fn(opn)
+            if !arm-names.any(fn(an) an == opn) then
+              emit-error(n.span,
+                "handler for effect '" ++ ename ++ "' is missing operation '" ++ opn ++ "'")
+          // (b) unknown-op arms — handled but not declared
+          arms.foreach fn(arm)
+            if !op-names.any(fn(opn) opn == arm.op-name) then
+              emit-error(arm.span,
+                "'" ++ arm.op-name ++ "' is not an operation of effect '" ++ ename ++ "'")
+          // (c) duplicate arms — same op handled more than once.
+          // Walk arms with a manual index counter; for each arm, check whether
+          // any earlier arm already handled the same op.
+          var dup-idx := 0
+          arms.foreach fn(arm)
+            val prior = arms.take(dup-idx)
+            if prior.any(fn(a) a.op-name == arm.op-name) then
+              emit-error(arm.span,
+                "operation '" ++ arm.op-name ++ "' is handled twice")
+            dup-idx := dup-idx + 1
+
+
+      // 3. State bindings: infer each initialiser, extend env cumulatively.
       val (s-st, state', env-st) = state.foldl((s, []:list<(string, node)>, env)) fn(acc, entry)
         val (sa, sts-acc, ea) = acc
         val (vname, vinit) = entry
         val (s1, vinit') = infer(ea, sa, vinit)
         val vtype = apply-subst(s1, get-type(vinit'))
         (s1, Cons((vname, vinit'), sts-acc), ea.extend(vname, vtype))
-      // 2. Op arms — each param is a fresh type var scoped to that arm's body.
+      // 4. Op arms — bind params to types from the op signature when possible.
       val (s-arms, arms') = arms.foldl((s-st, []:list<handle-arm>)) fn(acc, arm)
         val (sa, arms-acc) = acc
-        val arm-param-types = arm.params.map(fn(_) fresh-tvar())
+        // Look up the op signature (if any); freshen the whole (params, ret)
+        // as a group so untyped ops (TVar("_")) get a fresh tvar per arm.
+        val op-sig-opt = match effect-def-opt
+          Nothing   -> Nothing
+          Just(ed)  -> ed.ops.find(fn(op) op.name == arm.op-name)
+        val arm-param-types = match op-sig-opt
+          Just(op) ->
+            val declared-param-types = op.params.map(fn((_, t)) t)
+            // Freshen the params+ret bundle together to keep tvar sharing
+            // between them; then split the freshened list back out.
+            val bundle = TFun(declared-param-types, op.ret)
+            val bundle' = freshen(bundle)
+            val freshened-params = match bundle'
+              TFun(ps, _) -> ps
+              _           -> declared-param-types
+            // Arity check — if user wrote wrong-arity arm, fall back to fresh tvars.
+            if freshened-params.length == arm.params.length then freshened-params
+            else
+              if op-sig-opt.is-just then
+                emit-error(arm.span,
+                  "operation '" ++ arm.op-name ++ "' of effect '" ++ ename ++
+                  "' expects " ++ freshened-params.length.show ++
+                  " parameter(s), got " ++ arm.params.length.show)
+              arm.params.map(fn(_) fresh-tvar())
+          Nothing ->
+            // No matching op signature (either unknown effect or unknown-op arm).
+            // Fall back to fresh tvars so the arm body still type-checks.
+            arm.params.map(fn(_) fresh-tvar())
         val arm-env = zip(arm.params, arm-param-types).foldl(env-st) fn(e, pair)
           match pair
             (pn, pt) -> e.extend(pn, pt)
         val (s1, ab') = infer(arm-env, sa, arm.arm-body)
-        (s1, Cons(arm(arm-body = ab'), arms-acc))
-      // 3. Handled block.
+        // If we have a known op signature, unify the arm body's type with
+        // the op's declared return type so mistakes like returning a string
+        // where the op returns int are caught at handler definition time.
+        val s2 = match op-sig-opt
+          Just(op) ->
+            val declared-ret = match freshen(TFun([], op.ret))
+              TFun(_, r) -> r
+              _          -> op.ret
+            compose-subst(unify(apply-subst(s1, get-type(ab')), declared-ret, arm.arm-body.span), s1)
+          Nothing -> s1
+        (s2, Cons(arm(arm-body = ab'), arms-acc))
+      // 5. Handled block.
       val (s-body, body') = infer(env-st, s-arms, body)
       val body-type = apply-subst(s-body, get-type(body'))
       (s-body, Node(n.span, EHandle(ename, arms'.reverse, state'.reverse, body'), Just(body-type)))
@@ -976,7 +1070,7 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           (s1, Node(n.span, FieldAccess(obj', fname), Just(fresh-tvar())))
 
 // Infer types for struct literal fields and unify with declared types.
-fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<(string, node)>)
+fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, hica-type)>, lit-fields : list<(string, node)>, sp : span ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<(string, node)>)
   match lit-fields
     Nil -> (s, [])
     Cons((fname, fval), rest) ->
@@ -990,7 +1084,7 @@ fun infer-struct-fields( env : type-env, s : subst, def-fields : list<(string, h
       (s3, Cons((fname, fval'), rest'))
 
 // Unify constructor arguments with declared variant field types.
-fun unify-ctor-args( s : subst, def-fields : list<(string, hica-type)>, args : list<node>, sp : span ) : <div,diag,fresh,struct-reg,type-reg,loop-ctx> subst
+fun unify-ctor-args( s : subst, def-fields : list<(string, hica-type)>, args : list<node>, sp : span ) : <div,diag,fresh,struct-reg,type-reg,loop-ctx,effect-reg> subst
   match (def-fields, args)
     (Cons((_, ft), frest), Cons(arg, arest)) ->
       val arg-type = apply-subst(s, get-type(arg))
@@ -1001,7 +1095,7 @@ fun unify-ctor-args( s : subst, def-fields : list<(string, hica-type)>, args : l
 // Infer types for a list of statements (inside a block).
 // Returns the updated substitution, typed statements, and the type of
 // the last statement.
-fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>, hica-type)
+fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<node>, hica-type)
   match stmts
     Nil -> (s, [], TUnit)
     Cons(stmt, Nil) ->
@@ -1032,7 +1126,7 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
     _ -> env
 
 // Infer types for a list of call arguments.
-fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>)
+fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<node>)
   match args
     Nil -> (s, [])
     Cons(arg, rest) ->
@@ -1041,7 +1135,7 @@ fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh
       (s2, Cons(arg', rest'))
 
 // Infer types for map literal entries (key-value pairs).
-fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<(node, node)>)
+fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<(node, node)>)
   match entries
     Nil -> (s, [])
     Cons((k, v), rest) ->
@@ -1053,7 +1147,7 @@ fun infer-map-entries( env : type-env, s : subst, entries : list<(node, node)> )
 // Infer types for string interpolation parts.
 // Each part is inferred independently — string segments stay TString,
 // expression parts can be any type (they get .show in codegen).
-fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<node>)
+fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<node>)
   match parts
     Nil -> (s, [])
     Cons(part, rest) ->
@@ -1064,7 +1158,7 @@ fun infer-interp-parts( env : type-env, s : subst, parts : list<node> ) : <div,d
 // Infer types for match arms.
 // Each arm's pattern constrains the scrutinee type, and each arm's body
 // must unify with the result type variable.
-fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, list<match-arm>)
+fun infer-arms( env : type-env, s : subst, scrut-type : hica-type, result-var : hica-type, arms : list<match-arm> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<match-arm>)
   match arms
     Nil -> (s, [])
     Cons(arm, rest) ->
@@ -1198,7 +1292,7 @@ fun enrich-struct-pattern( p : pattern ) : <struct-reg> pattern
 // Infer type constraints from a match pattern.
 // Returns the updated substitution and the environment extended with
 // any pattern-bound variables.
-fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh,struct-reg,type-reg> (subst, type-env)
+fun infer-pattern( env : type-env, s : subst, scrut-type : hica-type, p : pattern ) : <div,diag,fresh,struct-reg,type-reg,effect-reg> (subst, type-env)
   match p
     PWild    -> (s, env)
     PVar(name) -> (s, env.extend(name, scrut-type))
@@ -1299,7 +1393,7 @@ fun get-type( n : node ) : hica-type
 // Infer a top-level function declaration.
 // Supports self-recursion: the function's own name is pre-seeded in the
 // environment with a fresh type so recursive calls can resolve.
-fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, fun-decl)
+fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, type-env, fun-decl)
   // Assign types to each parameter: use annotation if provided, otherwise fresh type variable
   val param-types = zip-with-anns(d.params, d.param-anns)
   val ret-var = match d.ret-ann
@@ -1348,7 +1442,10 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   with handler
     fun get-types() p.types
   with handler
+    fun get-effects() p.effects
+  with handler
     fun in-loop() False
+
   // Check user struct names and field names against Koka keyword blocklist
   p.structs.drop(skip-kw-structs).foreach fn(sd)
     check-not-koka-keyword(sd.name.to-lower, sd.span)
@@ -1417,7 +1514,7 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   val tests' = infer-tests(env1, s1, p.tests)
   Program(p.structs, types = p.types, decls = decls', globals = globals'.reverse, tests = tests')
 
-fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> (subst, type-env, list<fun-decl>)
+fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, type-env, list<fun-decl>)
   // Two-pass approach: pre-seed ALL function signatures first (enables mutual recursion),
   // then check each body with the full environment.
   //
@@ -1454,7 +1551,7 @@ fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fr
 
 // Type-check test declarations: each test body is checked like a function body
 // with no parameters.
-fun infer-tests( env : type-env, s : subst, ts : list<test-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg> list<test-decl>
+fun infer-tests( env : type-env, s : subst, ts : list<test-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> list<test-decl>
   match ts
     Nil -> []
     Cons(t, rest) ->

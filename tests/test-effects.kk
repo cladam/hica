@@ -150,3 +150,56 @@ pub fun main() : io ()
           check-program(desugared)
       val undefined-info = ds.any(fn(d) d.message.contains("undefined") && d.message.contains("info"))
       assert/is-true(!undefined-info)
+
+    // --- M2: exhaustiveness -------------------------------------------
+    // Handler that forgets an op should surface a hica-level error that
+    // names the effect AND the missing op, not a Koka error.
+    dtest("check: missing op reported with effect + op names")
+      val src = "effect Log2 {\n  fun info(s: string)\n  fun warn(s: string)\n}\nfun main() {\n  handle Log2 { info(s) => println(s) } in { info(\"hi\") }\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("missing operation 'warn'") && d.message.contains("Log2"))
+      assert/is-true(hit)
+
+    // Handler arm that names an op the effect does not declare should
+    // surface an "'X' is not an operation of effect 'Y'" error.
+    dtest("check: unknown-op arm reported with effect name")
+      val src = "effect Log3 {\n  fun info(s: string)\n}\nfun main() {\n  handle Log3 {\n    info(s)  => println(s),\n    debug(s) => println(s)\n  } in {\n    info(\"hi\")\n  }\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("'debug' is not an operation of effect 'Log3'"))
+      assert/is-true(hit)
+
+    // Two arms for the same op must produce a "handled twice" error.
+    dtest("check: duplicate arm reported")
+      val src = "effect Log4 {\n  fun info(s: string)\n}\nfun main() {\n  handle Log4 {\n    info(s) => println(s),\n    info(s) => println(s)\n  } in {\n    info(\"hi\")\n  }\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("operation 'info' is handled twice"))
+      assert/is-true(hit)
+
+    // `handle` on an effect that was never declared: report the
+    // unknown-effect error with the offending name.
+    dtest("check: unknown effect reported with name")
+      val src = "fun main() {\n  handle Terminal {\n    write(s) => println(s)\n  } in {\n    ()\n  }\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("unknown effect: 'Terminal'"))
+      assert/is-true(hit)
+
