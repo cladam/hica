@@ -1569,6 +1569,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     println(" done")
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
+                         effects = prog.effects,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
                          globals = prog.globals,
                          imports = prog.imports)

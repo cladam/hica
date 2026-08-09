@@ -221,6 +221,8 @@ fun parse-prefix() : <div,parser> node
       parse-while()
     TkLoop ->
       parse-loop()
+    TkHandle ->
+      parse-handle-expr()
     TkBreak ->
       val t = advance()
       Node(t.span, Break)
@@ -1174,6 +1176,143 @@ fun parse-global-decl() : <div,parser> global-decl
     _           -> ()
   Global-decl(Span(t.span.start, body.span.end), name, body, ann = ann)
 
+// ---------------------------------------------------------------------------
+// Effect declarations (design doc §4.1)
+//
+//   effect Name { fun op(param: T, ...) : Ret ... }
+//
+// Each op is `fun op(<typed-params>) : <ret>`; a missing return type
+// defaults to TUnit (parse-optional-type-ann returns Nothing → TUnit here).
+// Untyped params get TVar("_") — the M1 checker leaves op-args untyped
+// via fresh type variables inside handler arms, so this placeholder is
+// only used for effect-def emission and design-doc-compliant AST shape.
+// ---------------------------------------------------------------------------
+
+fun parse-effect-op( doc : maybe<string> = Nothing ) : <div,parser> effect-op
+  val t = expect("fun", fn(k) match k { TkFun -> True; _ -> False })
+  val op-name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected operation name"); "_" }
+  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+  val typed-params = parse-typed-params()
+  val end-paren = expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  val ret-ann = parse-optional-type-ann()
+  val ret = match ret-ann
+    Just(rt) -> rt
+    Nothing  -> TUnit
+  // Materialise param types: fresh TVar per untyped param (checker replaces later).
+  val params = typed-params.map fn((pname, pann))
+    val ptype = match pann
+      Just(pt) -> pt
+      Nothing  -> TVar("_")
+    (pname, ptype)
+  Effect-op(Span(t.span.start, end-paren.span.end), op-name, doc, params, ret)
+
+// Parse the contiguous list of op declarations inside `effect Name { … }`.
+// Each op is on its own line; no separators required. Optional doc-comments
+// preceding an op are attached to that op.
+fun parse-effect-ops() : <div,parser> list<effect-op>
+  var ops : list<effect-op> := []
+  var doc : maybe<string> := Nothing
+  while { match peek() { TkFun -> True; TkDocComment(_) -> True; _ -> False } }
+    match peek()
+      TkDocComment(txt) ->
+        advance()
+        doc := (match doc { Just(prev) -> Just(prev ++ "\n" ++ txt); Nothing -> Just(txt) })
+      TkFun ->
+        ops := Cons(parse-effect-op(doc), ops)
+        doc := Nothing
+      _ -> ()
+  ops.reverse
+
+// Parse `effect Name { fun op(...) : T ... }`. Called from parse-program.
+// The `pub` prefix (design doc §12 Q2) is consumed by the caller; is-pub is
+// passed in.
+fun parse-effect-def( is-pub : bool = False, doc : maybe<string> = Nothing ) : <div,parser> effect-def
+  val t = expect("effect", fn(k) match k { TkEffect -> True; _ -> False })
+  val name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected effect name"); "_" }
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  val ops = parse-effect-ops()
+  val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  Effect-def(Span(t.span.start, end-tok.span.end), name, doc, ops, is-pub)
+
+// ---------------------------------------------------------------------------
+// Handle expressions (design doc §4.3)
+//
+//   handle Name { op(args) => body, ... }
+//     (with var x = e, var y = e)?
+//     in { body }
+//
+// Called from parse-prefix on TkHandle. Arms are comma-separated (trailing
+// comma allowed). The `with var …` clause is optional (populated in M5;
+// parsed here so the surface syntax is stable from M1).
+// ---------------------------------------------------------------------------
+
+fun parse-handle-arm() : <div,parser> handle-arm
+  val start-sp = current-span()
+  val op-name = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected operation name in handler arm"); "_" }
+  expect("(", fn(k) match k { TkLParen -> True; _ -> False })
+  val params = parse-params()
+  expect(")", fn(k) match k { TkRParen -> True; _ -> False })
+  expect("=>", fn(k) match k { TkArrow -> True; _ -> False })
+  val body = parse-expr()
+  Handle-arm(Span(start-sp.start, body.span.end), op-name, params, body)
+
+fun parse-handle-arms() : <div,parser> list<handle-arm>
+  var arms : list<handle-arm> := []
+  while { match peek() { TkRBrace -> False; TkEof -> False; _ -> True } }
+    arms := Cons(parse-handle-arm(), arms)
+    // optional comma between arms; also tolerate trailing semicolons/newlines
+    match peek()
+      TkComma     -> { advance(); () }
+      TkSemicolon -> { advance(); () }
+      _           -> ()
+  arms.reverse
+
+// Parse an optional `with var x = e, var y = e` clause after the handler body.
+// Returns an empty list if the clause is absent.
+fun parse-handle-state() : <div,parser> list<(string, node)>
+  // "with" is not a keyword in the lexer — recognise as a bare identifier.
+  match peek()
+    TkIdent("with") ->
+      advance()
+      var state : list<(string, node)> := []
+      var more := True
+      while { more }
+        expect("var", fn(k) match k { TkVar -> True; _ -> False })
+        val vname = match peek()
+          TkIdent(n) -> { advance(); n }
+          _          -> { parse-error("expected state variable name after 'var'"); "_" }
+        // optional : type — parsed and discarded for M1 (checker infers).
+        val _ann = parse-optional-type-ann()
+        expect("=", fn(k) match k { TkEq -> True; _ -> False })
+        val init = parse-expr()
+        state := Cons((vname, init), state)
+        match peek()
+          TkComma -> { advance(); () }
+          _       -> more := False
+      state.reverse
+    _ -> []
+
+fun parse-handle-expr() : <div,parser> node
+  val t = expect("handle", fn(k) match k { TkHandle -> True; _ -> False })
+  val ename = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected effect name after 'handle'"); "_" }
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  val arms = parse-handle-arms()
+  expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  val state = parse-handle-state()
+  // Consume `in` (a real keyword — TkIn — that here means "the following block
+  // is the handled body", not the binary In operator).
+  expect("in", fn(k) match k { TkIn -> True; _ -> False })
+  val body = parse-block()
+  Node(Span(t.span.start, body.span.end), EHandle(ename, arms, state, body))
+
 fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
   val t = expect("actor", fn(k) match k { TkActor -> True; _ -> False })
   val name = match peek()
@@ -1256,6 +1395,7 @@ pub fun parse-program() : <div,parser> program
   var decls := []
   var structs := []
   var types := []
+  var effects : list<effect-def> := []
   var globals := []
   var tests := []
   var imports := []
@@ -1285,6 +1425,10 @@ pub fun parse-program() : <div,parser> program
         current-doc := Nothing
       TkType ->
         types := Cons(parse-type-decl(current-doc), types)
+        current-doc := Nothing
+      TkEffect ->
+        val edef = parse-effect-def(False, current-doc)
+        effects := Cons(edef, effects)
         current-doc := Nothing
       TkTest ->
         if !current-doc.is-nothing then
@@ -1355,7 +1499,7 @@ pub fun parse-program() : <div,parser> program
           ()
         decls := Cons(parse-fun-decl(current-doc), decls)
         current-doc := Nothing
-  Program(structs.reverse, types = types.reverse, decls = decls.reverse, globals = globals.reverse, tests = tests.reverse, imports = imports.reverse)
+  Program(structs.reverse, types = types.reverse, effects = effects.reverse, decls = decls.reverse, globals = globals.reverse, tests = tests.reverse, imports = imports.reverse)
 
 // ---------------------------------------------------------------------------
 // Runner: handle the parser effect over a token list

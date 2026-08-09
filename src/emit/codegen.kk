@@ -283,6 +283,8 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
+  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed)).join("\n\n")
+  val effect-sep = if p.effects.is-nil then "" else "\n\n"
   val global-defs = p.globals.map(fn(g) emit-global(g, declared)).join("\n")
   val global-sep = if p.globals.is-empty then "" else "\n\n"
   val rec-names = compute-div-names(p.decls)
@@ -321,6 +323,7 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   show-result-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
+  effect-defs ++ effect-sep ++
   global-defs ++ global-sep ++
   prelude-decls.map(fn(d) emit-decl(d, declared, rec-names, extra-effectful = extra-effectful)).join("\n\n") ++
   (if !prelude-decls.is-empty && p.decls.length > prelude-count then "\n\n" else "") ++
@@ -1211,6 +1214,46 @@ fun emit-expr( n : node, declared : list<string> ) : div string
 // See design doc §7.1: `read_key` → `read-key`.
 fun koka-op-name( name : string ) : string
   name.replace-all("_", "-")
+
+// ---------------------------------------------------------------------------
+// Effect definition emission (design doc §7.1)
+//
+//   effect Log { fun info(s: string) }
+// →
+//   effect log
+//     ctl info(s : string) : ()
+//
+// - Effect name: PascalCase → lowercase (Log → log). No `hc-` prefix — effects
+//   live in their own Koka namespace and don't clash with builtins.
+// - Op name: snake_case → kebab-case via koka-op-name.
+// - Untyped op params (TVar("_")) are emitted without an annotation so Koka
+//   can infer them at handler-installation time.
+// ---------------------------------------------------------------------------
+
+fun emit-effect-op-param( p : (string, hica-type) ) : div string
+  val (pname, ptype) = p
+  match ptype
+    TVar(_) -> pname  // untyped param — let Koka infer
+    _       ->
+      val ann = emit-type(ptype)
+      if ann == "" then pname else pname ++ " : " ++ ann
+
+fun emit-effect-op-decl( op : effect-op ) : div string
+  val op-name = koka-op-name(op.name)
+  val param-strs = op.params.map(fn(p) emit-effect-op-param(p))
+  val params-code = param-strs.join(", ")
+  val ret-code = match op.ret
+    TUnit -> "()"
+    _     ->
+      val r = emit-type(op.ret)
+      if r == "" then "()" else r
+  "  ctl " ++ op-name ++ "(" ++ params-code ++ ") : " ++ ret-code
+
+fun emit-effect-def( ed : effect-def ) : div string
+  val pub-str = if ed.is-pub then "pub " else ""
+  val ename = ed.name.to-lower
+  val ops-code = ed.ops.map(emit-effect-op-decl).join("\n")
+  pub-str ++ "effect " ++ ename ++ "\n" ++ ops-code
 
 fun emit-interp-part( p : node, declared : list<string> ) : div string
 

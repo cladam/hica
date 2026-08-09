@@ -1365,7 +1365,17 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   // Check global let names against Koka keyword blocklist
   p.globals.foreach fn(g)
     check-not-koka-keyword(g.name, g.span)
-  val base-env = extern-env() ++ extra-extern
+  val base-extern = extern-env() ++ extra-extern
+  // Seed the environment with user-declared effect operations, so that op calls
+  // resolve as free identifiers in Mode B (see documentation/effects-design.md §8
+  // and effects-journal.md M1). Each op is a function whose params/ret come from
+  // its `effect-op` signature (untyped params were materialised as TVar("_") in
+  // the parser and get freshened per call site by `freshen`).
+  val effect-op-env : type-env = p.effects.flatmap fn(edef)
+    edef.ops.map fn(op)
+      val param-types = op.params.map(fn((_, t)) t)
+      (op.name, TFun(param-types, op.ret))
+  val base-env = base-extern ++ effect-op-env
   // Type-check top-level globals in order; each one extends the env for the next.
   val (s0, global-env, globals') = p.globals.foldl((empty-subst, base-env, []:list<global-decl>)) fn(acc, g)
     val (s-acc, env-acc, checked) = acc
