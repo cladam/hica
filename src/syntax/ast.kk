@@ -44,6 +44,9 @@ pub type hica-type
   TMaybe( elem : hica-type )
   TResult( ok-type : hica-type, err-type : hica-type )
   TStream( elem : hica-type )
+  // TFun — effect-row polymorphic function types (design doc §4.5) land in M4.
+  // When they do, this variant gets an `effects : list<string>` field. For M1
+  // we keep the 2-arg shape so the rest of the compiler doesn't need to change.
   TFun( params : list<hica-type>, result : hica-type )
   TStruct( name : string )
   TEnum( name : string )
@@ -259,6 +262,24 @@ pub type expr
   // expr&? — validated try operator, early return on Invalid
   EValidateTry( inner : node )
 
+  // handle EffectName { arms } (with var x = e, ...)? in { body }
+  // See documentation/effects-design.md §4.3.
+  //   effect-name : the effect being discharged (e.g. "Log", "Terminal")
+  //   arms        : one op-arm per operation of the effect (exhaustiveness M2)
+  //   state       : optional `with var …` clause bindings (M5).
+  //                 M1 always parses this as [].
+  //   body        : the `in { … }` block whose effects are being handled
+  EHandle( effect-name : string, arms : list<handle-arm>, state : list<(string, node)>, body : node )
+
+pub struct handle-arm
+  span     : span
+  op-name  : string
+  params   : list<string>
+  arm-body : node
+
+pub fun handle-arm/show( a : handle-arm ) : div string
+  a.op-name ++ "(" ++ a.params.join(", ") ++ ") => " ++ a.arm-body.show
+
 pub struct match-arm
   pattern : pattern
   guard   : maybe<node>
@@ -355,10 +376,47 @@ pub fun expr/show( e : expr ) : div string
       else name ++ "(" ++ args.map(show).join(", ") ++ ")"
     ETry(inner) -> inner.show ++ "?"
     EValidateTry(inner) -> inner.show ++ "&?"
+    EHandle(name, arms, state, body) ->
+      val state-str = if state.is-nil then ""
+        else " with " ++ state.map(fn((n, v)) "var " ++ n ++ " = " ++ v.show).join(", ")
+      "handle " ++ name ++ " { " ++
+        arms.map(handle-arm/show).join(", ") ++
+        " }" ++ state-str ++ " in " ++ body.show
+
+// ---------------------------------------------------------------------------
+// Effect declarations (top-level, since M1)
+// ---------------------------------------------------------------------------
+
+// A single operation of an effect: `fun op(param: T, ...) : ReturnType`.
+// A missing return type parses as TUnit (see design doc §4.1).
+pub struct effect-op
+  span    : span
+  name    : string
+  doc     : maybe<string> = Nothing
+  params  : list<(string, hica-type)>
+  ret     : hica-type = TUnit
+
+pub fun effect-op/show( o : effect-op ) : div string
+  val ps = o.params.map(fn((n, t)) n ++ ": " ++ t.show).join(", ")
+  "fun " ++ o.name ++ "(" ++ ps ++ ") : " ++ o.ret.show
+
+// A user-defined effect: `effect Name { fun op(...) : T ... }`.
+// Lives at the top level, alongside `struct` and `type`.
+pub struct effect-def
+  span   : span
+  name   : string
+  doc    : maybe<string> = Nothing
+  ops    : list<effect-op>
+  is-pub : bool = False
+
+pub fun effect-def/show( e : effect-def ) : div string
+  val pub-str = if e.is-pub then "pub " else ""
+  pub-str ++ "effect " ++ e.name ++ " { " ++ e.ops.map(effect-op/show).join("; ") ++ " }"
 
 // ---------------------------------------------------------------------------
 // Top-level declarations
 // ---------------------------------------------------------------------------
+
 
 pub struct fun-decl
   span        : span
@@ -443,6 +501,7 @@ pub fun import-decl/show( d : import-decl ) : div string
 pub struct program
   structs : list<struct-def>
   types   : list<type-def> = []
+  effects : list<effect-def> = []
   decls   : list<fun-decl>
   globals : list<global-decl> = []
   tests   : list<test-decl> = []
@@ -451,9 +510,11 @@ pub struct program
 pub fun program/show( prg : program ) : div string
   val import-strs = prg.imports.map(show)
   val struct-strs = prg.structs.map(show)
+  val effect-strs = prg.effects.map(show)
   val global-strs = prg.globals.map(show)
   val decl-strs = prg.decls.map(show)
-  (import-strs ++ struct-strs ++ global-strs ++ decl-strs).join("\n\n")
+  (import-strs ++ struct-strs ++ effect-strs ++ global-strs ++ decl-strs).join("\n\n")
+
 
 // ---------------------------------------------------------------------------
 // REPL input: a single fragment parsed from interactive input

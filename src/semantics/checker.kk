@@ -917,6 +917,40 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
           val (s3, fields') = infer-struct-fields(env, s2, sd.fields, lit-fields, n.span)
           (s3, Node(n.span, StructUpdate(sname, base', fields', def-names), Just(TStruct(sname))))
 
+    // --- Handle expression (M1 lenient mode, Mode B) ---
+    // See documentation/effects-journal.md M1 and documentation/effects-design.md §8.
+    // In M1 we do not have an effect registry yet (that lands in M2) — so we
+    //   1. type-check every state initialiser and extend the env with the binding;
+    //   2. type-check each op-arm body under the state-extended env (params are
+    //      untyped for now — they receive fresh type variables);
+    //   3. type-check the `in { body }` under the state-extended env;
+    //   4. return the body's type as the expression's type.
+    // Mode B leniency: op calls inside the arms/body appear as bare `Var(name)`
+    // lookups that fall through to the ordinary env. We do NOT yet enforce that
+    // the op names in the arms match a real effect declaration, and we do NOT
+    // check exhaustiveness — both land in M2.
+    EHandle(ename, arms, state, body) ->
+      // 1. State bindings: infer each initialiser, extend env cumulatively.
+      val (s-st, state', env-st) = state.foldl((s, []:list<(string, node)>, env)) fn(acc, entry)
+        val (sa, sts-acc, ea) = acc
+        val (vname, vinit) = entry
+        val (s1, vinit') = infer(ea, sa, vinit)
+        val vtype = apply-subst(s1, get-type(vinit'))
+        (s1, Cons((vname, vinit'), sts-acc), ea.extend(vname, vtype))
+      // 2. Op arms — each param is a fresh type var scoped to that arm's body.
+      val (s-arms, arms') = arms.foldl((s-st, []:list<handle-arm>)) fn(acc, arm)
+        val (sa, arms-acc) = acc
+        val arm-param-types = arm.params.map(fn(_) fresh-tvar())
+        val arm-env = zip(arm.params, arm-param-types).foldl(env-st) fn(e, pair)
+          match pair
+            (pn, pt) -> e.extend(pn, pt)
+        val (s1, ab') = infer(arm-env, sa, arm.arm-body)
+        (s1, Cons(arm(arm-body = ab'), arms-acc))
+      // 3. Handled block.
+      val (s-body, body') = infer(env-st, s-arms, body)
+      val body-type = apply-subst(s-body, get-type(body'))
+      (s-body, Node(n.span, EHandle(ename, arms'.reverse, state'.reverse, body'), Just(body-type)))
+
     // --- Field access ---
     FieldAccess(obj, fname) ->
       val (s1, obj') = infer(env, s, obj)

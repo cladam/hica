@@ -1185,7 +1185,35 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       val inner-code = emit-expr(inner, declared)
       "match " ++ inner-code ++ "\n  Valid(hc__v) -> hc__v\n  Invalid(hc__e) -> hica-early-invalid(hc__e)"
 
+    // handle EffectName { arms } (with var … )? in { body }
+    // Emits (design doc §7.3):
+    //   var <s.name> := <s.init>      -- one per state binding, hoisted above the handler
+    //   with handler
+    //     ctl <op-name>(<params>) -> resume(<arm-body>)
+    //   <body>
+    // In M1 the state list is always empty; M5 flips the switch by populating it.
+    EHandle(_effect-name, arms, state, body) ->
+      val state-lines = state.map fn((sname, sinit))
+        "var " ++ marshal-name(sname, declared) ++ " := " ++ emit-expr(sinit, declared)
+      val arm-lines = arms.map fn(arm)
+        val ps = arm.params.map(fn(p) marshal-name(p, declared)).join(", ")
+        val ac = emit-expr(arm.arm-body, declared)
+        val op = koka-op-name(arm.op-name)
+        if ac.contains("\n") then
+          "  ctl " ++ op ++ "(" ++ ps ++ ") ->\n" ++ indent-all(indent-all("resume(" ++ ac ++ ")"))
+        else
+          "  ctl " ++ op ++ "(" ++ ps ++ ") -> resume(" ++ ac ++ ")"
+      val bc = emit-body(body, declared)
+      val pre = if state-lines.is-nil then "" else state-lines.join("\n") ++ "\n"
+      pre ++ "with handler\n" ++ arm-lines.join("\n") ++ "\n" ++ bc
+
+// Convert a hica op name (snake_case) to Koka's kebab-case convention.
+// See design doc §7.1: `read_key` → `read-key`.
+fun koka-op-name( name : string ) : string
+  name.replace-all("_", "-")
+
 fun emit-interp-part( p : node, declared : list<string> ) : div string
+
   match p.expr
     Literal(LitString(s)) -> "\"" ++ s ++ "\""
     _ ->

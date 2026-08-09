@@ -1467,7 +1467,7 @@ fun load-prelude()
     decl-result := decl-result ++ prog.decls
     struct-result := struct-result ++ prog.structs
     type-result := type-result ++ prog.types
-  Program(struct-result, type-result, decl-result)
+  Program(struct-result, type-result, decls = decl-result)
 
 // ---------------------------------------------------------------------------
 // Stdlib path: ~/.hica/stdlib — bundled modules extracted on demand
