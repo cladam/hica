@@ -624,7 +624,7 @@ fun cmd-test( file : string )
       val prelude-type-count = prelude.types.length
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports, tests = prog.tests)
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports, tests = typed-prog.tests)
       val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes))
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)

@@ -1,6 +1,7 @@
 # Core Language Constraints
 - You are writing code for hica. 
 - Before writing ANY hica code, you MUST read and strictly adhere to the specifications laid out in @SKILL.md and @Modelfile.
+- Read through the hica Language Reference at @docs/language-reference.md and hica's standard library at @docs/standard-library.md
 
 # Agentic Workflow Guidelines for hica (Ollama / Local Models)
 To maximize success when working with local models and Ollama inside Cline, strictly follow these workflow practices:

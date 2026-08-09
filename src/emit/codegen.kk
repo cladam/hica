@@ -2353,7 +2353,8 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // ---------------------------------------------------------------------------
 
 pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
-  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names
+  val effect-op-names = p.effects.flatmap(fn(ed) ed.ops.map(fn(op) op.name))
+  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names ++ effect-op-names
   val float-import = if program-has-float(p) || tests-have-float(p.tests) then "import std/num/float64\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
   val bitwise-import = if !program-uses-random(p) && program-uses-bitwise(p) then "import std/num/int32\n\n" else ""
@@ -2375,6 +2376,8 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val try-validated-effect = if has-try-v then "effect hica-validated<a>\n  ctl hica-early-invalid(e : a) : b\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
+  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed)).join("\n\n")
+  val effect-sep = if p.effects.is-nil then "" else "\n\n"
   val assert-helper = assert-helper-code
   val show-maybe-helper = show-maybe-helper-code
   val show-result-helper = show-result-helper-code
@@ -2440,6 +2443,7 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   show-result-helper ++
   type-defs ++ type-sep ++
   struct-defs ++ struct-sep ++
+  effect-defs ++ effect-sep ++
   decls-code ++ decls-sep ++
   test-fns ++ test-sep ++
   test-main ++ "\n"
