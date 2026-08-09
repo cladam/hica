@@ -10,7 +10,7 @@ SRC        = src
 CURL_LIB   = $(if $(filter Windows_NT,$(OS)),libcurl,curl)
 
 .PHONY: all build release bundle bundle-prelude bundle-stdlib bundle-kk-stdlib test test-lexer \
-        test-parser test-codegen test-cli test-js test-repl playground clean \
+        test-parser test-codegen test-effects test-cli test-js test-repl playground clean \
 		choreo-cli choreo-repl submodules
 
 # ── Default ──────────────────────────────────────────────────────────────────
@@ -79,6 +79,10 @@ test-analyser:
 ## Codegen unit tests
 test-codegen:
 	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-codegen.kk
+
+## Effects tests (user-facing algebraic effects — journal in documentation/effects-journal.md)
+test-effects:
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -e tests/test-effects.kk
 
 ## End-to-end CLI tests (requires a built binary)
 test-cli: $(HICA)

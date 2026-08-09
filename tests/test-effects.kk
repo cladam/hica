@@ -1,0 +1,152 @@
+/*
+ * hica – user-facing algebraic effects: milestone 1 tests
+ *
+ * This source file is part of the hica open source project
+ * Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
+ *
+ * See https://github.com/cladam/hica/blob/main/LICENSE for license information
+ *
+ * Milestone 1 goal (see documentation/effects-journal.md):
+ *   - `effect Name { fun op(...) : T ... }` parses at top level
+ *   - `handle Name { arm, ... } in { body }` parses as an expression
+ *   - Both compile to valid Koka via emit-program
+ *   - Checker is lenient (Mode B): op names are registered, no exhaustiveness yet
+ *
+ * These tests are RED at the start of M1 and should turn green step by step
+ * as the sequence in the journal is followed.
+*/
+import kunit
+import syntax/ast
+import syntax/lexer
+import syntax/parser
+import semantics/checker
+import diagnostics/diagnostics
+import emit/codegen
+import transform/desugar
+
+// ---- Helpers (mirrors of the ones in test-codegen.kk / test-parser.kk) -----
+
+fun token-string( source : string ) : div string
+  lex(source).map(fn(t) t.kind.show).join(" ")
+
+// Structural check: does the first non-EOF token have the given kind?
+// We use match on the actual token-kind variant, not the show string,
+// because TkIdent("effect") and TkEffect both render as "effect".
+fun first-kind-is-effect-kw( source : string ) : div bool
+  match lex(source)
+    Cons(t, _) -> match t.kind
+      TkEffect -> True
+      _        -> False
+    _ -> False
+
+fun first-kind-is-handle-kw( source : string ) : div bool
+  match lex(source)
+    Cons(t, _) -> match t.kind
+      TkHandle -> True
+      _        -> False
+    _ -> False
+
+fun parse-program-show( source : string ) : <div,console> string
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  prog.show
+
+fun emit-program-show( source : string ) : <div,console> string
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  emit-program(prog)
+
+fun emit-typed-program( source : string ) : <div,console> string
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  val desugared = desugar-program(prog)
+  val (typed-prog, _) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  emit-program(typed-prog)
+
+fun check-diagnostic-count( source : string ) : <div,console> int
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  val desugared = desugar-program(prog)
+  val (_, ds) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  ds.length
+
+fun parse-error-count( source : string ) : div int
+  val tokens = lex(source)
+  val (_, errs) = run-parser-program-with-errors(tokens)
+  errs.length
+
+// ---- Sample source: the canonical M1 "Log" example ------------------------
+// (Kept on one line with explicit \n — Koka string literals do not span lines.)
+
+val log-src = "effect Log {\n  fun info(s: string)\n}\n\nfun greet(name: string) {\n  info(\"hello, \" + name)\n}\n\nfun main() {\n  handle Log {\n    info(s) => println(\"[LOG] \" + s)\n  } in {\n    greet(\"world\")\n    greet(\"effects\")\n  }\n}\n"
+
+// ---------------------------------------------------------------------------
+
+pub fun main() : io ()
+  println(bold("Effects tests (M1)"))
+  println("")
+  defaultKDivHandler
+    // --- (a) Lexer knows the new keywords ------------------------------
+    // NOTE: We MUST pattern-match on the token kind, not on the printed
+    // form, because TkIdent("effect") shows as "effect" too — that would
+    // give a false green until TkEffect exists as its own variant.
+    dtest("lex: 'effect' keyword produces TkEffect")
+      assert/is-true(first-kind-is-effect-kw("effect"))
+
+    dtest("lex: 'handle' keyword produces TkHandle")
+      assert/is-true(first-kind-is-handle-kw("handle"))
+
+    dtest("lex: 'effect handle' — both new keywords together")
+      val toks = lex("effect handle")
+      val second-is-handle = match toks
+        Cons(_, Cons(t2, _)) -> match t2.kind
+          TkHandle -> True
+          _        -> False
+        _ -> False
+      assert/is-true(first-kind-is-effect-kw("effect handle") && second-is-handle)
+
+    // --- (b) Parser accepts a minimal effect declaration ---------------
+    dtest("parse: minimal effect declaration")
+      val src = "effect Log { fun info(s: string) }"
+      // no parse errors
+      assert/is-true(parse-error-count(src) == 0)
+
+    dtest("parse: effect declaration with multiple ops")
+      val src = "effect Term {\n  fun read_key() : int\n  fun write(s: string)\n  fun clear()\n}"
+      assert/is-true(parse-error-count(src) == 0)
+
+    // --- (c) Parser accepts a minimal handle expression ----------------
+    dtest("parse: minimal handle expression in main")
+      val src = "fun main() {\n  handle Log {\n    info(s) => println(s)\n  } in {\n    info(\"hi\")\n  }\n}"
+      assert/is-true(parse-error-count(src) == 0)
+
+    // --- (d) End-to-end: the Log example emits well-formed Koka --------
+    dtest("codegen: Log example emits 'effect log' block")
+      val kk = emit-program-show(log-src)
+      assert/is-true(kk.contains("effect log"))
+
+    dtest("codegen: Log example emits an op declaration for 'info'")
+      val kk = emit-program-show(log-src)
+      assert/is-true(kk.contains("info"))
+
+    dtest("codegen: Log example emits a 'with handler' block")
+      val kk = emit-program-show(log-src)
+      assert/is-true(kk.contains("with handler"))
+
+    // --- Checker leniency (Mode B) -------------------------------------
+    dtest("check: op call inside handler is not flagged as undefined")
+      // With Mode B, the op registry avoids the false 'undefined variable'
+      // for known operations. We tolerate diagnostics from OTHER sources
+      // by only asserting the specific one we care about is absent.
+      val tokens = lex(log-src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val undefined-info = ds.any(fn(d) d.message.contains("undefined") && d.message.contains("info"))
+      assert/is-true(!undefined-info)
