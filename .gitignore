@@ -49,6 +49,9 @@ examples/*
 !examples/*.hc
 examples/scratches/*
 !examples/scratches/*.hc
+!examples/effects
+examples/effects/*
+!examples/effects/*.hc
 
 programs/*
 !programs/*.hc

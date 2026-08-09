@@ -345,6 +345,7 @@ fun compile-js( file : string ) : io maybe<path>
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
+                       effects = prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals,
                        imports = prog.imports)
@@ -371,7 +372,7 @@ fun compile-js( file : string ) : io maybe<path>
     val prelude-type-count = prelude.types.length
     val imported-type-count = imported-types.length
     val user-types = typed-prog.types.drop(prelude-type-count + imported-type-count)
-    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
     val js-code = emit-js-program(user-prog, mod-name)
     val out-js = dir.path / (mod-name ++ ".js").path
     write-text-file(out-js, js-code)
@@ -410,6 +411,7 @@ fun analyse-one-for-docs( hc-file : string, dep-includes : list<string>, prelude
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
+                       effects = prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
@@ -484,6 +486,7 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
+                       effects = prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
@@ -505,7 +508,7 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
   val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
   val user-structs = typed-prog.structs.drop(prelude.structs.length + imported-structs.length)
   val user-types = typed-prog.types.drop(prelude.types.length + imported-types.length)
-  val user-prog = typed-prog(decls = user-decls, structs = user-structs, types = user-types, imports = prog.imports)
+  val user-prog = typed-prog(decls = user-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
   val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
   
   if document-flag then
@@ -532,6 +535,7 @@ fun cmd-check( file : string )
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
+                       effects = prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
@@ -590,6 +594,7 @@ fun cmd-test( file : string )
     val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
+                         effects = prog.effects,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
                          globals = prog.globals,
                          tests = prog.tests)
@@ -619,7 +624,7 @@ fun cmd-test( file : string )
       val prelude-type-count = prelude.types.length
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports, tests = prog.tests)
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports, tests = prog.tests)
       val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes))
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
@@ -1603,7 +1608,7 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       val prelude-type-count = prelude.types.length
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
       val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, extra-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, extra-includes))
       write-kk-if-changed(out-kk, koka-code, file)
       print("  => compiling...")
@@ -2025,6 +2030,7 @@ fun compile-module-impl( imp-file : path, visited : list<string>, cache-in : imp
     val ext-env = collect-extern-env(prog.imports, dir.path, include-dirs)
     val merged = Program(prelude.structs ++ imp-structs ++ prog.structs,
                          types = prelude.types ++ imp-types ++ prog.types,
+                         effects = prog.effects,
                          decls = prelude.decls ++ imp-decls ++ prog.decls,
                          globals = prog.globals,
                          imports = prog.imports)
@@ -2052,7 +2058,7 @@ fun compile-module-impl( imp-file : path, visited : list<string>, cache-in : imp
     val prelude-type-count = prelude.types.length
     val imp-type-count = imp-types.length
     val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imp-type-count)
-    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, imports = prog.imports)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
     val koka-code = emit-program(user-prog, mod-name, imported-names = imp-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, include-dirs) ++ compute-div-names(imp-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, include-dirs))
     // Write to source dir — stable path lets koka reuse its .kki cache on unchanged runs
     write-kk-if-changed(out-kk, koka-code, imp-file.show)

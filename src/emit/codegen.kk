@@ -27,6 +27,7 @@ pub fun safe-module-name( name : string ) : string
     Cons(c, _) | c.is-digit -> "hc" ++ name
     _                       -> name
 
+
 // Extract the basename from an import path: "lib/utils" → "utils"
 fun import-basename( p : string ) : div string
   match p.list.reverse.span(fn(c) c != '/')
@@ -47,6 +48,7 @@ fun marshal-name( name : string, declared : list<string> ) : string
     || koka-keywords.any(fn(k) k == name)
     then "hc_" ++ name
   else name
+
 
 // ---------------------------------------------------------------------------
 // Type annotation emission: convert hica types to Koka type syntax
@@ -237,7 +239,12 @@ fun offset-to-line( source : string, offset : int ) : int
 
 pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
   val global-names = p.globals.map(fn(g) g.name)
-  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ global-names ++ imported-names
+  // Effect op names must be treated as "declared" so their call sites get
+  // `marshal-name`'d to `hc_<op>` — matching the `ctl hc_<op>(...)` names
+  // emitted in the `effect` block. See koka-op-name for the rationale.
+  val effect-op-names = p.effects.flatmap(fn(ed) ed.ops.map(fn(op) op.name))
+  val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ global-names ++ imported-names ++ effect-op-names
+
   val float-import = if program-has-float(p) then "import std/num/float64\n\n" else ""
   val stream-import = if program-has-stream(p) then "import hc-stream\n\n" else ""
   val random-import = if program-uses-random(p) then "import std/num/random\nimport std/num/int32\n\n" else ""
@@ -1210,10 +1217,21 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       val pre = if state-lines.is-nil then "" else state-lines.join("\n") ++ "\n"
       pre ++ "with handler\n" ++ arm-lines.join("\n") ++ "\n" ++ bc
 
-// Convert a hica op name (snake_case) to Koka's kebab-case convention.
-// See design doc §7.1: `read_key` → `read-key`.
+// Convert a hica op name (snake_case) to a Koka identifier that can't clash
+// with Koka stdlib names (e.g. `info`, `exit`, `resume`). See design doc §7.1.
+//
+// We use `hc_<name>` — the same prefix `marshal-name` applies to user-declared
+// identifiers that would otherwise shadow a Koka builtin. This keeps op names
+// and their call sites in sync automatically: a hica op `info` becomes a Koka
+// op `hc_info`, and a bare `info(x)` at a hica call site is marshalled to
+// `hc_info(x)` by the general `marshal-name` path.
+//
+// Note: we intentionally do NOT convert `_` to `-` for op names, because that
+// would produce `hc-info` which does not match `marshal-name`'s `hc_` output.
 fun koka-op-name( name : string ) : string
-  name.replace-all("_", "-")
+  "hc_" ++ name
+
+
 
 // ---------------------------------------------------------------------------
 // Effect definition emission (design doc §7.1)
