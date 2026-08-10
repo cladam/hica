@@ -997,49 +997,53 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       // 4. Op arms — bind params to types from the op signature when possible.
       val (s-arms, arms') = arms.foldl((s-st, []:list<handle-arm>)) fn(acc, arm)
         val (sa, arms-acc) = acc
-        // Look up the op signature (if any); freshen the whole (params, ret)
-        // as a group so untyped ops (TVar("_")) get a fresh tvar per arm.
-        val op-sig-opt = match effect-def-opt
-          Nothing   -> Nothing
-          Just(ed)  -> ed.ops.find(fn(op) op.name == arm.op-name)
-        val arm-param-types = match op-sig-opt
-          Just(op) ->
-            val declared-param-types = op.params.map(fn((_, t)) t)
-            // Freshen the params+ret bundle together to keep tvar sharing
-            // between them; then split the freshened list back out.
-            val bundle = TFun(declared-param-types, op.ret)
-            val bundle' = freshen(bundle)
-            val freshened-params = match bundle'
-              TFun(ps, _) -> ps
-              _           -> declared-param-types
-            // Arity check — if user wrote wrong-arity arm, fall back to fresh tvars.
-            if freshened-params.length == arm.params.length then freshened-params
-            else
-              if op-sig-opt.is-just then
-                emit-error(arm.span,
-                  "operation '" ++ arm.op-name ++ "' of effect '" ++ ename ++
-                  "' expects " ++ freshened-params.length.show ++
-                  " parameter(s), got " ++ arm.params.length.show)
-              arm.params.map(fn(_) fresh-tvar())
-          Nothing ->
-            // No matching op signature (either unknown effect or unknown-op arm).
-            // Fall back to fresh tvars so the arm body still type-checks.
-            arm.params.map(fn(_) fresh-tvar())
-        val arm-env = zip(arm.params, arm-param-types).foldl(env-st) fn(e, pair)
-          match pair
-            (pn, pt) -> e.extend(pn, pt)
-        val (s1, ab') = infer(arm-env, sa, arm.arm-body)
-        // If we have a known op signature, unify the arm body's type with
-        // the op's declared return type so mistakes like returning a string
-        // where the op returns int are caught at handler definition time.
-        val s2 = match op-sig-opt
-          Just(op) ->
-            val declared-ret = match freshen(TFun([], op.ret))
-              TFun(_, r) -> r
-              _          -> op.ret
-            compose-subst(unify(apply-subst(s1, get-type(ab')), declared-ret, arm.arm-body.span), s1)
-          Nothing -> s1
-        (s2, Cons(arm(arm-body = ab'), arms-acc))
+        // Destructure arm up-front to avoid field-accessor lambdas inside foldl
+        // (Koka 3.2.3 specializer bug: @open coercion fails on accessor applications).
+        match arm
+          Handle-arm(arm-span, arm-op-name, arm-params, arm-body) ->
+            // Look up the op signature (if any); freshen the whole (params, ret)
+            // as a group so untyped ops (TVar("_")) get a fresh tvar per arm.
+            val op-sig-opt = match effect-def-opt
+              Nothing   -> Nothing
+              Just(ed)  -> ed.ops.find(fn(op) op.name == arm-op-name)
+            val arm-param-types = match op-sig-opt
+              Just(op) ->
+                val declared-param-types = op.params.map(fn((_, t)) t)
+                // Freshen the params+ret bundle together to keep tvar sharing
+                // between them; then split the freshened list back out.
+                val bundle = TFun(declared-param-types, op.ret)
+                val bundle' = freshen(bundle)
+                val freshened-params = match bundle'
+                  TFun(ps, _) -> ps
+                  _           -> declared-param-types
+                // Arity check — if user wrote wrong-arity arm, fall back to fresh tvars.
+                if freshened-params.length == arm-params.length then freshened-params
+                else
+                  if op-sig-opt.is-just then
+                    emit-error(arm-span,
+                      "operation '" ++ arm-op-name ++ "' of effect '" ++ ename ++
+                      "' expects " ++ freshened-params.length.show ++
+                      " parameter(s), got " ++ arm-params.length.show)
+                  arm-params.map(fn(_) fresh-tvar())
+              Nothing ->
+                // No matching op signature (either unknown effect or unknown-op arm).
+                // Fall back to fresh tvars so the arm body still type-checks.
+                arm-params.map(fn(_) fresh-tvar())
+            val arm-env = zip(arm-params, arm-param-types).foldl(env-st) fn(e, pair)
+              match pair
+                (pn, pt) -> e.extend(pn, pt)
+            val (s1, ab') = infer(arm-env, sa, arm-body)
+            // If we have a known op signature, unify the arm body's type with
+            // the op's declared return type so mistakes like returning a string
+            // where the op returns int are caught at handler definition time.
+            val s2 = match op-sig-opt
+              Just(op) ->
+                val declared-ret = match freshen(TFun([], op.ret))
+                  TFun(_, r) -> r
+                  _          -> op.ret
+                compose-subst(unify(apply-subst(s1, get-type(ab')), declared-ret, arm-body.span), s1)
+              Nothing -> s1
+            (s2, Cons(Handle-arm(arm-span, arm-op-name, arm-params, ab'), arms-acc))
       // 5. Handled block.
       val (s-body, body') = infer(env-st, s-arms, body)
       val body-type = apply-subst(s-body, get-type(body'))

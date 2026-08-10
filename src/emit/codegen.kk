@@ -136,8 +136,8 @@ fun emit-struct-def( sd : struct-def ) : div string
     if sd.fields.is-nil then
       "  True"
     else
-      val parts = sd.fields.map fn((fname, _))
-        val mf = marshal-field(fname)
+      val parts = sd.fields.map fn(field)
+        val mf = marshal-field(field.fst)
         "(a." ++ mf ++ " == b." ++ mf ++ ")"
       "  " ++ parts.join(" && ")
   val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(a : " ++ tname ++ ", b : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
@@ -191,9 +191,9 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
     if vd.fields.is-nil then
       "    (" ++ vd.name ++ ", " ++ vd.name ++ ") -> True"
     else
-      val l-names = vd.fields.map(fn((fname, _)) marshal-field(fname) ++ "1")
-      val r-names = vd.fields.map(fn((fname, _)) marshal-field(fname) ++ "2")
-      val checks = l-names.zip(r-names).map(fn((l, r)) "(" ++ l ++ " == " ++ r ++ ")").join(" && ")
+      val l-names = vd.fields.map(fn(f) marshal-field(f.fst) ++ "1")
+      val r-names = vd.fields.map(fn(f) marshal-field(f.fst) ++ "2")
+      val checks = l-names.zip(r-names).map(fn(p) "(" ++ p.fst ++ " == " ++ p.snd ++ ")").join(" && ")
       "    (" ++ vd.name ++ "(" ++ l-names.join(", ") ++ "), " ++ vd.name ++ "(" ++ r-names.join(", ") ++ ")) -> " ++ checks
   // Add a catch-all only when there are multiple variants (otherwise Koka warns
   // about an unreachable pattern).
