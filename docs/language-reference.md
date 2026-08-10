@@ -500,6 +500,18 @@ fun origin() : Point => Point { x: 0, y: 0 }
 
 Struct names must start with an uppercase letter. Fields are accessed with dot notation.
 
+Structs also auto-derive `show` and `==`. Equality is field-wise — two struct values are equal iff every field is equal:
+
+```hica
+struct Point { x: int, y: int }
+
+let a = Point { x: 3, y: 4 }
+let b = Point { x: 3, y: 4 }
+let c = Point { x: 5, y: 4 }
+println(show(a == b))   // True
+println(show(a == c))   // False
+```
+
 #### Struct update syntax
 
 Create a new struct from an existing one, overriding specific fields with `{ ...base, field: value }`:
@@ -622,6 +634,30 @@ warning: non-exhaustive match: missing Circle(…)
 ```
 
 Enum names and variant names must start with an uppercase letter. `println` auto-shows enum values (e.g. `Circle(5)`, `Red`).
+
+Enums also auto-derive `==`. Two enum values are equal iff they are the same variant and every payload field is equal; payloads dispatch to their own `==`, so nested user types and containers Just Work:
+
+```hica
+type Modifier { Ctrl, Alt, Meta, Shift }
+type Key      { KChar(c: char), KShortcut(m: Modifier, c: char) }
+
+println(show(Ctrl == Ctrl))                                   // True
+println(show(Ctrl == Alt))                                    // False
+println(show(KShortcut(Ctrl, 'q') == KShortcut(Ctrl, 'q')))    // True
+println(show(KShortcut(Ctrl, 'q') == KShortcut(Alt, 'q')))     // False
+println(show(KChar('x') == KShortcut(Ctrl, 'q')))              // False
+```
+
+Reserve `match` for **destructuring payloads**; use `==` for **"am I this variant"** checks:
+
+```hica
+fun quit_pressed(k: Key) : bool => match k {
+  KShortcut(m, c) => m == Ctrl && c == 'q',   // extract payload, then compare
+  KChar(_)        => false
+}
+```
+
+> **Note:** `if x == Ctrl { ... }` parses `Ctrl { ... }` as a struct literal because `Name {` is greedy in expression position. Parenthesise the condition (`if (x == Ctrl) { ... }`) to disambiguate.
 
 **Enum vs Struct:** Use a struct when every value has the same fields (AND of fields). Use an enum when a value can be one of several alternatives (OR of shapes).
 

@@ -129,7 +129,20 @@ fun emit-struct-def( sd : struct-def ) : div string
   val effect-ann = if is-rec then " : div string" else " : string"
   val show-fn = pub-str ++ "fun " ++ tname ++ "/show(p : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  \"" ++ sd.name ++ "(\" ++ " ++ show-parts.join(" ++ \", \" ++ ") ++ " ++ \")\""
-  struct-str ++ "\n\n" ++ show-fn
+  // Auto-derived (==) — field-wise structural equality. See
+  // documentation/bugs/hedit-hica-issues.md issue 2.
+  val eq-effect-ann = if is-rec then " : div bool" else " : bool"
+  val eq-body =
+    if sd.fields.is-nil then
+      "  True"
+    else
+      val parts = sd.fields.map fn((fname, _))
+        val mf = marshal-field(fname)
+        "(a." ++ mf ++ " == b." ++ mf ++ ")"
+      "  " ++ parts.join(" && ")
+  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(a : " ++ tname ++ ", b : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
+    eq-body
+  struct-str ++ "\n\n" ++ show-fn ++ "\n\n" ++ eq-fn
 
 // ---------------------------------------------------------------------------
 // Type (enum) definition emission
@@ -171,7 +184,24 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
   val show-fn = pub-str ++ "fun " ++ tname ++ "/show(v : " ++ tname ++ ")" ++ effect-ann ++ "\n" ++
     "  match v\n" ++
     show-arms.join("\n")
-  type-str ++ "\n\n" ++ show-fn
+  // Auto-derived (==) — variant tag + payload-wise structural equality. See
+  // documentation/bugs/hedit-hica-issues.md issue 2.
+  val eq-effect-ann = if is-rec || refs-rec-struct || refs-rec-type then " : div bool" else " : bool"
+  val eq-arms = td.variants.map fn(vd)
+    if vd.fields.is-nil then
+      "    (" ++ vd.name ++ ", " ++ vd.name ++ ") -> True"
+    else
+      val l-names = vd.fields.map(fn((fname, _)) marshal-field(fname) ++ "1")
+      val r-names = vd.fields.map(fn((fname, _)) marshal-field(fname) ++ "2")
+      val checks = l-names.zip(r-names).map(fn((l, r)) "(" ++ l ++ " == " ++ r ++ ")").join(" && ")
+      "    (" ++ vd.name ++ "(" ++ l-names.join(", ") ++ "), " ++ vd.name ++ "(" ++ r-names.join(", ") ++ ")) -> " ++ checks
+  // Add a catch-all only when there are multiple variants (otherwise Koka warns
+  // about an unreachable pattern).
+  val eq-catch = if td.variants.length > 1 then "\n    _ -> False" else ""
+  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(a : " ++ tname ++ ", b : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
+    "  match (a, b)\n" ++
+    eq-arms.join("\n") ++ eq-catch
+  type-str ++ "\n\n" ++ show-fn ++ "\n\n" ++ eq-fn
 
 // Check if a type references a type name (for recursion detection in enums)
 fun references-type( t : hica-type, name : string ) : div bool

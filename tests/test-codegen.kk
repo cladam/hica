@@ -2431,3 +2431,64 @@ pub fun main() : io ()
       assert/is-true(code.contains("xf_map"))
       assert/is-true(code.contains("xf_take"))
       assert/is-true(code.contains("transduce"))
+
+    // --- Auto-derived (==) for user-defined types
+    //     (hedit-hica-issues.md issue 2) ---
+
+    dtest("enum emits auto-derived tname/(==)")
+      val code = emit-typed-program("type Modifier { Ctrl, Alt, Meta }\nfun main() => 0")
+      assert/is-true(code.contains("fun modifier/(==)"))
+
+    dtest("enum (==) emits a variant-tag arm per no-payload variant")
+      val code = emit-typed-program("type Modifier { Ctrl, Alt, Meta }\nfun main() => 0")
+      assert/is-true(code.contains("(Ctrl, Ctrl) -> True"))
+      assert/is-true(code.contains("(Alt, Alt) -> True"))
+      assert/is-true(code.contains("(Meta, Meta) -> True"))
+
+    dtest("enum (==) with payload variants emits field-wise comparison")
+      val code = emit-typed-program("type Key { KChar(c: char), KShortcut(m: char, c: char) }\nfun main() => 0")
+      assert/is-true(code.contains("KChar(c1)"))
+      assert/is-true(code.contains("KChar(c2)"))
+      assert/is-true(code.contains("(c1 == c2)"))
+      assert/is-true(code.contains("KShortcut(m1, c1)"))
+      assert/is-true(code.contains("KShortcut(m2, c2)"))
+      assert/is-true(code.contains("(m1 == m2) && (c1 == c2)"))
+
+    dtest("enum (==) with multiple variants includes catch-all")
+      val code = emit-typed-program("type Modifier { Ctrl, Alt }\nfun main() => 0")
+      assert/is-true(code.contains("_ -> False"))
+
+    dtest("enum (==) with single variant omits catch-all")
+      val code = emit-typed-program("type Solo { Only }\nfun main() => 0")
+      assert/is-true(code.contains("fun solo/(==)"))
+      assert/is-true(!code.contains("_ -> False"))
+
+    dtest("recursive enum (==) is annotated : div bool")
+      val code = emit-typed-program("type Tree { Leaf, Node(v: int, l: Tree, r: Tree) }\nfun main() => 0")
+      assert/is-true(code.contains("fun tree/(==)"))
+      assert/is-true(code.contains(": div bool"))
+
+    dtest("struct emits auto-derived tname/(==)")
+      val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() => 0")
+      assert/is-true(code.contains("fun point/(==)"))
+      assert/is-true(code.contains("(a.x == b.x) && (a.y == b.y)"))
+
+    dtest("recursive struct (==) is annotated : div bool")
+      val code = emit-typed-program("struct Node { value: int, next: maybe<Node> }\nfun main() => 0")
+      assert/is-true(code.contains("fun node/(==)"))
+      assert/is-true(code.contains(": div bool"))
+
+    dtest("enum equality: same no-payload variant checks pass")
+      val ds = check-diagnostics("type Modifier { Ctrl, Alt }\nfun main() {\n  let a: Modifier = Ctrl\n  let b: Modifier = Ctrl\n  let r = (a == b)\n  println(r)\n}")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("enum equality: payload variants type-check")
+      val ds = check-diagnostics("type Key { KChar(c: char), KShortcut(m: char, c: char) }\nfun main() {\n  let a = KShortcut('c', 'q')\n  let b = KShortcut('c', 'q')\n  let r = (a == b)\n  println(r)\n}")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)
+
+    dtest("struct equality: field-wise type-checks")
+      val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() {\n  let p1 = Point { x: 3, y: 4 }\n  let p2 = Point { x: 3, y: 4 }\n  let r = (p1 == p2)\n  println(r)\n}")
+      val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
+      assert/is-true(errors.length == 0)

@@ -86,6 +86,17 @@ fun parse-prefix() : <div,parser> node
         _ ->
           val t = advance()
           // Check for struct literal: Name { field: value, ... }
+          //
+          // NOTE: `Name { ... }` in expression position is always parsed as
+          // a struct literal (or struct update via `...spread`). This means
+          // a zero-arg enum constructor followed by a block in a `if`/`while`
+          // condition — `if m == Ctrl { println("ctrl") }` — parses `Ctrl {`
+          // as a struct literal and confuses the rest of the expression.
+          //
+          // The workaround for now is to parenthesise: `if (m == Ctrl) { ... }`.
+          // A proper fix requires 3-token lookahead (`{ IDENT :` = struct,
+          // `{ IDENT ...` = block) — that needs a `peek-nth` extension to
+          // the parser effect and is tracked as a separate issue.
           match peek()
             TkLBrace | name.is-upper-start ->
               advance() // consume {
