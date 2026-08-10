@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.0-6"
+val version = "0.49.0-7"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -2326,63 +2326,116 @@ val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwri
 val ndet-fns    = ["random"]
 
 fun discover-effects( prog : program ) : div list<string>
-  // Collect all called function names and recursion info
-  val info = prog.decls.map(fn(d) (collect-calls(d.body), d.is-recursive))
+  // Collect all *un-discharged* call names in each decl. A call to an op is
+  // un-discharged if there is no enclosing `handle E { … } in { … }` block
+  // for the effect E that owns the op. Built-in effects (console, fsys, io,
+  // ndet) fall out of the same walk because they never appear as ops in
+  // `prog.effects` and are therefore never subtracted.
+  val info = prog.decls.map(fn(d) (collect-calls-h(d.body, prog.effects), d.is-recursive))
   val all-calls = info.map(fst).concat
   val any-recursive = info.any(fn((_, r)) r)
-  var effects : list<string> := []
+  // Built-in effects (unchanged behaviour) — alphabetical.
+  var result : list<string> := []
   if all-calls.any(fn(name) console-fns.any(fn(f) f == name)) then
-    effects := effects ++ ["console"]
+    result := result ++ ["console"]
   if all-calls.any(fn(name) fsys-fns.any(fn(f) f == name)) then
-    effects := effects ++ ["fsys"]
+    result := result ++ ["fsys"]
   if all-calls.any(fn(name) io-fns.any(fn(f) f == name)) then
-    effects := effects ++ ["io"]
+    result := result ++ ["io"]
   if all-calls.any(fn(name) ndet-fns.any(fn(f) f == name)) then
-    effects := effects ++ ["ndet"]
+    result := result ++ ["ndet"]
   if any-recursive then
-    effects := effects ++ ["div"]
-  effects
+    result := result ++ ["div"]
+  // User-defined effects: in declaration order (per design doc §11.2).
+  // An effect E leaks from a decl if any op of E is called anywhere in that
+  // decl's body without an enclosing `handle E … in …` block that discharges
+  // it. `collect-calls-h` already subtracts discharged op calls, so we simply
+  // check whether any remaining call name matches one of E's op names.
+  prog.effects.foreach fn(edef)
+    val op-names = edef.ops.map(fn(op) op.name)
+    if all-calls.any(fn(name) op-names.any(fn(opn) opn == name)) then
+      result := result ++ [edef.name]
+  result
 
-// Collect all function names called in a node (recursively)
+
+
+// Collect all function names called in a node (recursively).
+// Preserved for backwards-compatibility with any caller that does not need
+// handler-aware discharge (currently unused inside main, but re-exported for
+// completeness and to keep this diff surgical).
 fun collect-calls( n : node ) : div list<string>
+  collect-calls-h(n, [])
+
+// Handler-aware variant of `collect-calls`: subtracts op calls that appear
+// inside an `handle E … in { body }` where E declares that op. Used by
+// `discover-effects` so user-defined effects only appear in the effect row
+// when they are actually un-discharged in the top-level program.
+//
+// The `effects` parameter is the full program's effect registry. `handled` is
+// the stack of effect names currently in scope (inner-first). When we enter
+// an EHandle for effect E, we push E; op calls inside the `body` whose op is
+// declared on E are elided from the result. We do NOT elide op calls inside
+// the *arm bodies* — those arms typically re-emit the op via a real handler
+// (e.g. `println`), but any effect they trigger is a separate concern already
+// covered by the walk over that arm's expression.
+fun collect-calls-h( n : node, effects : list<effect-def>, handled : list<string> = [] ) : div list<string>
   match n.expr
     Call(callee, args) ->
       val callee-names = match callee.expr
-        Var(name) -> [name]
-        _         -> collect-calls(callee)
-      callee-names ++ args.map(fn(a) collect-calls(a)).concat
-    Let(_, _, init, body) -> collect-calls(init) ++ collect-calls(body)
-    VarDecl(_, _, init, body) -> collect-calls(init) ++ collect-calls(body)
-    Assign(_, v) -> collect-calls(v)
-    Fun(_, body) -> collect-calls(body)
-    Binary(_, lhs, rhs) -> collect-calls(lhs) ++ collect-calls(rhs)
-    Unary(_, operand) -> collect-calls(operand)
-    If(cond, then-e, else-e) -> collect-calls(cond) ++ collect-calls(then-e) ++ collect-calls(else-e)
-    Block(stmts) -> stmts.map(fn(s) collect-calls(s)).concat
+        Var(vname) ->
+          // Check whether `vname` is an op of some effect currently on the
+          // handled stack. If so, elide it — it's discharged here.
+          val discharged = effects.any fn(edef)
+            handled.any(fn(h) h == edef.name) &&
+              edef.ops.any(fn(op) op.name == vname)
+          if discharged then [] else [vname]
+        _         -> collect-calls-h(callee, effects, handled)
+
+      callee-names ++ args.map(fn(a) collect-calls-h(a, effects, handled)).concat
+    Let(_, _, init, body) -> collect-calls-h(init, effects, handled) ++ collect-calls-h(body, effects, handled)
+    VarDecl(_, _, init, body) -> collect-calls-h(init, effects, handled) ++ collect-calls-h(body, effects, handled)
+    Assign(_, v) -> collect-calls-h(v, effects, handled)
+    Fun(_, body) -> collect-calls-h(body, effects, handled)
+    Binary(_, lhs, rhs) -> collect-calls-h(lhs, effects, handled) ++ collect-calls-h(rhs, effects, handled)
+    Unary(_, operand) -> collect-calls-h(operand, effects, handled)
+    If(cond, then-e, else-e) -> collect-calls-h(cond, effects, handled) ++ collect-calls-h(then-e, effects, handled) ++ collect-calls-h(else-e, effects, handled)
+    Block(stmts) -> stmts.map(fn(s) collect-calls-h(s, effects, handled)).concat
     Match(scrut, arms) ->
       val guard-calls = arms.map fn(a)
         match a.guard
-          Just(g) -> collect-calls(g)
+          Just(g) -> collect-calls-h(g, effects, handled)
           Nothing -> []
-      collect-calls(scrut) ++ guard-calls.concat ++ arms.map(fn(a) collect-calls(a.body)).concat
-    Repeat(count, body) -> collect-calls(count) ++ collect-calls(body)
-    ForIn(_, start-e, end-e, body) -> collect-calls(start-e) ++ collect-calls(end-e) ++ collect-calls(body)
-    ForEach(_, coll, body) -> collect-calls(coll) ++ collect-calls(body)
-    While(cond, body) -> collect-calls(cond) ++ collect-calls(body)
-    Loop(body) -> collect-calls(body)
-    StringInterp(parts) -> parts.map(fn(p) collect-calls(p)).concat
-    Tuple(elems) -> elems.map(fn(e) collect-calls(e)).concat
-    EList(elems) -> elems.map(fn(e) collect-calls(e)).concat
-    ListIndex(lst, idx) -> collect-calls(lst) ++ collect-calls(idx)
+      collect-calls-h(scrut, effects, handled) ++ guard-calls.concat ++ arms.map(fn(a) collect-calls-h(a.body, effects, handled)).concat
+    Repeat(count, body) -> collect-calls-h(count, effects, handled) ++ collect-calls-h(body, effects, handled)
+    ForIn(_, start-e, end-e, body) -> collect-calls-h(start-e, effects, handled) ++ collect-calls-h(end-e, effects, handled) ++ collect-calls-h(body, effects, handled)
+    ForEach(_, coll, body) -> collect-calls-h(coll, effects, handled) ++ collect-calls-h(body, effects, handled)
+    While(cond, body) -> collect-calls-h(cond, effects, handled) ++ collect-calls-h(body, effects, handled)
+    Loop(body) -> collect-calls-h(body, effects, handled)
+    StringInterp(parts) -> parts.map(fn(p) collect-calls-h(p, effects, handled)).concat
+    Tuple(elems) -> elems.map(fn(e) collect-calls-h(e, effects, handled)).concat
+    EList(elems) -> elems.map(fn(e) collect-calls-h(e, effects, handled)).concat
+    ListIndex(lst, idx) -> collect-calls-h(lst, effects, handled) ++ collect-calls-h(idx, effects, handled)
     ListSlice(lst, s, e) ->
-      val s-calls = match s { Just(n') -> collect-calls(n'); Nothing -> [] }
-      val e-calls = match e { Just(n') -> collect-calls(n'); Nothing -> [] }
-      collect-calls(lst) ++ s-calls ++ e-calls
-    TupleIndex(tup, _) -> collect-calls(tup)
-    LetTuple(_, init, body) -> collect-calls(init) ++ collect-calls(body)
-    ESome(v)  -> collect-calls(v)
-    EOk(v)    -> collect-calls(v)
-    EErr(v)   -> collect-calls(v)
-    FieldAccess(o, _) -> collect-calls(o)
-    StructLit(_, fields) -> fields.map(fn((_, v)) collect-calls(v)).concat
+      val s-calls = match s { Just(n') -> collect-calls-h(n', effects, handled); Nothing -> [] }
+      val e-calls = match e { Just(n') -> collect-calls-h(n', effects, handled); Nothing -> [] }
+      collect-calls-h(lst, effects, handled) ++ s-calls ++ e-calls
+    TupleIndex(tup, _) -> collect-calls-h(tup, effects, handled)
+    LetTuple(_, init, body) -> collect-calls-h(init, effects, handled) ++ collect-calls-h(body, effects, handled)
+    ESome(v)  -> collect-calls-h(v, effects, handled)
+    EOk(v)    -> collect-calls-h(v, effects, handled)
+    EErr(v)   -> collect-calls-h(v, effects, handled)
+    FieldAccess(o, _) -> collect-calls-h(o, effects, handled)
+    StructLit(_, fields) -> fields.map(fn((_, v)) collect-calls-h(v, effects, handled)).concat
+    // Handler discharge: push the effect name onto `handled` before walking
+    // the `in { body }`. Also walk state initialisers (evaluated outside the
+    // handler scope, so they don't get discharged) and arm bodies (they may
+    // themselves call ops of other effects — walk them with the parent
+    // handled stack, not the extended one, since the handler dispatches on
+    // the op we're seeing here, not on nested ops).
+    EHandle(ename, arms, state, body) ->
+      val state-calls = state.map(fn((_, v)) collect-calls-h(v, effects, handled)).concat
+      val arm-calls   = arms.map(fn(a) collect-calls-h(a.arm-body, effects, handled)).concat
+      val body-calls  = collect-calls-h(body, effects, Cons(ename, handled))
+      state-calls ++ arm-calls ++ body-calls
     _ -> []
+

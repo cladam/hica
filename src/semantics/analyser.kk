@@ -342,7 +342,19 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         fields.foldl(s1, fn(acc, (_, v)) walk(v, False, acc))
       FieldAccess(obj, _f) ->
         walk(obj, False, state)
+      // Handler expression: walk the state initialisers, each arm body, and
+      // the handled `in { body }` block so debt inside handlers (mutable
+      // vars, loops, nested matches, etc.) is still counted. The `handled`
+      // stack is a discovery-time concern, so we ignore it here.
+      EHandle(_ename, arms, hstate, hbody) ->
+        val s1 = hstate.foldl(state, fn(acc, entry)
+          match entry
+            (_, init) -> walk(init, False, acc)
+        )
+        val s2 = arms.foldl(s1, fn(acc, arm) walk(arm.arm-body, False, acc))
+        walk(hbody, False, s2)
       _ -> state
+
 
   val init-state = ([], False, False)
   val state-with-wrapping = match decl.ret-type
