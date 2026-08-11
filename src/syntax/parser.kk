@@ -542,8 +542,8 @@ fun parse-type() : <div,parser> hica-type
           match peek()
             TkThinArrow ->
               advance()
-              val ret = parse-type()
-              TFun([], ret)
+              val (row, ret) = parse-effect-row-and-return()
+              TFun([], ret, row)
             _ ->
               TUnit
         _ ->
@@ -557,8 +557,8 @@ fun parse-type() : <div,parser> hica-type
               match peek()
                 TkThinArrow ->
                   advance()
-                  val ret = parse-type()
-                  TFun(Cons(first, rest), ret)
+                  val (row, ret) = parse-effect-row-and-return()
+                  TFun(Cons(first, rest), ret, row)
                 _ ->
                   TTuple(Cons(first, rest))
             TkRParen ->
@@ -567,8 +567,8 @@ fun parse-type() : <div,parser> hica-type
               match peek()
                 TkThinArrow ->
                   advance()
-                  val ret = parse-type()
-                  TFun([first], ret)
+                  val (row, ret) = parse-effect-row-and-return()
+                  TFun([first], ret, row)
                 _ ->
                   first  // just grouping parens
             _ ->
@@ -623,11 +623,63 @@ fun parse-type-list() : <div,parser> list<hica-type>
         TkComma -> { advance(); Cons(t, parse-type-list()) }
         _       -> [t]
 
+// After the `->` of a function type, parse an optional effect row `<E1, E2>`
+// (design doc §4.5) followed by the return type. Returns (effects, ret-type).
+// An empty row (`<>` — not distinguishable from absence in v1) or a missing
+// row both yield [] — the wildcard/permissive default that keeps existing
+// programs working. Effect names must be PascalCase identifiers.
+fun parse-effect-row-and-return() : <div,parser> (list<string>, hica-type)
+  match peek()
+    TkLt ->
+      advance()  // consume <
+      val row = parse-effect-row-names()
+      expect(">", fn(k) match k { TkGt -> True; _ -> False })
+      val ret = parse-type()
+      (row, ret)
+    _ ->
+      val ret = parse-type()
+      ([], ret)
+
+// Parse a comma-separated list of effect names: E1, E2, E3
+// (or empty). Each name must be a PascalCase identifier. Trailing `>` is
+// consumed by the caller.
+fun parse-effect-row-names() : <div,parser> list<string>
+  match peek()
+    TkGt -> []   // empty row `<>` — allowed; see design doc §4.5
+    TkIdent(name) | name.is-upper-start ->
+      advance()
+      match peek()
+        TkComma -> { advance(); Cons(name, parse-effect-row-names()) }
+        _       -> [name]
+    _ ->
+      parse-error("expected effect name (PascalCase) in effect row")
+      []
+
 // Parse an optional `: type` annotation. Returns Nothing if no colon.
 fun parse-optional-type-ann() : <div,parser> maybe<hica-type>
   match peek()
     TkColon -> { advance(); Just(parse-type()) }
     _       -> Nothing
+
+// Parse an optional `: <E1, E2> type` return-type annotation (design doc §4.5).
+// Used by function declarations (`fun f() : <Db> int`) to attach a user-declared
+// effect row directly onto the function itself. The `<row>` is optional; when
+// absent, this behaves exactly like parse-optional-type-ann.
+// Returns (effect-row, type-annotation).
+fun parse-optional-ret-ann() : <div,parser> (list<string>, maybe<hica-type>)
+  match peek()
+    TkColon ->
+      advance()
+      match peek()
+        TkLt ->
+          advance()
+          val row = parse-effect-row-names()
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          (row, Just(parse-type()))
+        _ ->
+          ([], Just(parse-type()))
+    _ ->
+      ([], Nothing)
 
 // ---------------------------------------------------------------------------
 // Parameters and bindings
@@ -1181,7 +1233,7 @@ pub fun parse-fun-decl( doc : maybe<string> = Nothing ) : <div,parser> fun-decl
   expect("(", fn(k) match k { TkLParen -> True; _ -> False })
   val typed-params = parse-typed-params()
   expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-  val ret-ann = parse-optional-type-ann()
+  val (fun-eff-row, ret-ann) = parse-optional-ret-ann()
   val param-names = typed-params.map(fn(e) e.fst)
   val p-anns = typed-params.map(fn(e) e.snd)
   val body = match peek()
@@ -1190,7 +1242,7 @@ pub fun parse-fun-decl( doc : maybe<string> = Nothing ) : <div,parser> fun-decl
       parse-expr()
     _ ->
       parse-block()
-  Fun-decl(Span(t.span.start, body.span.end), name, params = param-names, body = body, doc = doc, param-anns = p-anns, ret-ann = ret-ann, is-pub = is-pub, is-noinline = is-noinline)
+  Fun-decl(Span(t.span.start, body.span.end), name, params = param-names, body = body, doc = doc, param-anns = p-anns, ret-ann = ret-ann, fun-effects = fun-eff-row, is-pub = is-pub, is-noinline = is-noinline)
 
 fun parse-global-decl() : <div,parser> global-decl
   val t = expect("let", fn(k) match k { TkLet -> True; _ -> False })

@@ -79,11 +79,14 @@ fun emit-type( t : hica-type ) : div string
     TStream(e) ->
       val inner = emit-type(e)
       if inner == "" then "" else "hc-stream/stream-t<" ++ inner ++ ">"
-    TFun(ps, r) ->
+    TFun(ps, r, es) ->
       val param-strs = ps.map(fn(p) emit-type(p))
       val ret-str = emit-type(r)
+      // Emit an optional effect row `<e1,e2>` when the user has annotated one
+      // (M4). Effect names are lowercased for Koka (matches emit-effect-def).
+      val row = if es.is-nil then "" else "<" ++ es.map(fn(e) e.to-lower).join(",") ++ "> "
       if param-strs.any(fn(s) s == "") || ret-str == "" then ""
-      else "(" ++ param-strs.join(", ") ++ ") -> " ++ ret-str
+      else "(" ++ param-strs.join(", ") ++ ") -> " ++ row ++ ret-str
     TStruct(name) -> name.struct-type-name
     TEnum(name)   -> name.to-lower
     TVar(_)     -> ""  // unresolved — omit annotation
@@ -402,14 +405,27 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
     "read_key", "term_cols", "term_rows", "flush_stdout"
   ] ++ extra-effectful
   val needs-div = d.is-recursive || (!rec-names.is-nil && body-calls-any(d.body, rec-names)) || body-calls-any(d.body, effectful-prims) || node-has-while(d.body)
+  // Prefix the return-type annotation with the user-declared effect row
+  // (design doc §4.5 / §6):  `fun render(buf) : <Terminal> ()` emits Koka
+  // `fun hc_render(buf) : <terminal> ()`. When the user leaves the row
+  // implicit (d.fun-effects is empty), fall back to the existing rules.
+  val eff-row = if d.fun-effects.is-nil then ""
+    else "<" ++ d.fun-effects.map(fn(e) e.to-lower).join(",") ++ "> "
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->
       val ts = emit-type(t)
-      if ts == "" then ""
-      elif needs-div then ""  // let Koka infer effects (div + fsys, io, etc.)
-      else " : " ++ ts
-    Nothing -> ""
+      if ts == "" then
+        // Return type erased. If the user *did* declare an effect row, we
+        // still need to surface it — Koka accepts a bare row before an omitted
+        // return type as `<row> ()`.
+        if d.fun-effects.is-nil then "" else " : " ++ eff-row ++ "()"
+      elif d.fun-effects.is-nil && needs-div then ""  // let Koka infer
+      else " : " ++ eff-row ++ ts
+    Nothing ->
+      if d.fun-effects.is-nil then ""
+      else " : " ++ eff-row ++ "()"
+
   val noinline-str = if d.is-noinline then "noinline " else ""
   val pub-prefix = if d.is-pub then "pub " ++ noinline-str else noinline-str
   val fn-name = marshal-name(d.name, declared)

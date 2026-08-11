@@ -44,10 +44,14 @@ pub type hica-type
   TMaybe( elem : hica-type )
   TResult( ok-type : hica-type, err-type : hica-type )
   TStream( elem : hica-type )
-  // TFun — effect-row polymorphic function types (design doc §4.5) land in M4.
-  // When they do, this variant gets an `effects : list<string>` field. For M1
-  // we keep the 2-arg shape so the rest of the compiler doesn't need to change.
-  TFun( params : list<hica-type>, result : hica-type )
+  // TFun — effect-row polymorphic function types (design doc §4.5, M4).
+  // The `effects` row lists user-defined effect names that the function
+  // *requires* on its parameter/callback position. An empty list is a
+  // **wildcard** — matches any effect row on the counterpart (this is the
+  // pre-M4 default that keeps every existing program working). A non-empty
+  // list is authoritative: the argument must call ops only within this set
+  // (plus built-ins, which are always allowed in v1).
+  TFun( params : list<hica-type>, result : hica-type, effects : list<string> = [] )
   TStruct( name : string )
   TEnum( name : string )
   TVar( name : string )
@@ -65,7 +69,9 @@ pub fun hica-type/show( t : hica-type ) : div string
     TMaybe(e)   -> "maybe<" ++ e.show ++ ">"
     TResult(o, e) -> "result<" ++ o.show ++ ", " ++ e.show ++ ">"
     TStream(e)  -> "stream<" ++ e.show ++ ">"
-    TFun(ps, r) -> "(" ++ ps.map(show).join(", ") ++ ") -> " ++ r.show
+    TFun(ps, r, es) ->
+      val row = if es.is-nil then "" else "<" ++ es.join(", ") ++ "> "
+      "(" ++ ps.map(show).join(", ") ++ ") -> " ++ row ++ r.show
     TStruct(n)  -> n
     TEnum(n)    -> n
     TVar(n)     -> n
@@ -87,8 +93,16 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TVar(a), TVar(b)) -> a == b
     (TStruct(a), TStruct(b)) -> a == b
     (TEnum(a), TEnum(b)) -> a == b
-    (TFun(ps1, r1), TFun(ps2, r2)) ->
-      ps1.length == ps2.length && zip(ps1, ps2).all(fn((a, b)) a == b) && r1 == r2
+    (TFun(ps1, r1, es1), TFun(ps2, r2, es2)) ->
+      // Effect rows compare as sets. An empty row is a wildcard match — this
+      // matches the unification rule so `==` and `unify` stay in agreement.
+      val effects-eq =
+        if es1.is-nil || es2.is-nil then True
+        else es1.all(fn(e) es2.any(fn(x) x == e)) &&
+             es2.all(fn(e) es1.any(fn(x) x == e))
+      ps1.length == ps2.length &&
+        zip(ps1, ps2).all(fn((a, b)) a == b) &&
+        r1 == r2 && effects-eq
     _ -> False
 
 // ---------------------------------------------------------------------------
@@ -426,6 +440,12 @@ pub struct fun-decl
   body        : node
   param-anns  : list<maybe<hica-type>> = []  // user-written type annotations per param
   ret-ann     : maybe<hica-type> = Nothing   // user-written return type annotation
+  // Effect-row annotation written by the user on the return type
+  // (design doc §4.5 / §6):  `fun render(buf) : <Terminal> ()`.
+  // Populated in M4 by the parser. Empty list = no user-declared row;
+  // callers/checkers should treat as wildcard (inferred). Non-empty list is
+  // an authoritative constraint: the body may only use these effects.
+  fun-effects : list<string> = []
   param-types : list<hica-type> = []
   ret-type    : maybe<hica-type> = Nothing
   is-recursive  : bool = False

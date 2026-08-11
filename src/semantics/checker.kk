@@ -218,7 +218,7 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
       compose-subst(s2, s1)
     (TStream(e1), TStream(e2)) ->
       unify(e1, e2, sp)
-    (TFun(ps1, r1), TFun(ps2, r2)) ->
+    (TFun(ps1, r1, es1), TFun(ps2, r2, es2)) ->
       if ps1.length != ps2.length then
         emit-error(sp, "function arity mismatch: expected " ++ ps1.length.show ++ " params, got " ++ ps2.length.show)
         empty-subst
@@ -227,6 +227,17 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
         val r1' = apply-subst(param-subst, r1)
         val r2' = apply-subst(param-subst, r2)
         val ret-subst = unify(r1', r2', sp)
+        // Effect-row compatibility (design doc §4.5, M4). An empty row is a
+        // wildcard: it matches any row. Two explicit rows must be equal as
+        // sets. Mismatch produces a clear error listing the missing/extra
+        // effects. Merging behaviour is deferred (v2+).
+        if !es1.is-nil && !es2.is-nil then
+          val missing = es1.filter(fn(e) !es2.any(fn(x) x == e))
+          val extra   = es2.filter(fn(e) !es1.any(fn(x) x == e))
+          if !missing.is-nil || !extra.is-nil then
+            val msg = "effect row mismatch: expected <" ++ es1.join(", ") ++
+              ">, got <" ++ es2.join(", ") ++ ">"
+            emit-error(sp, msg)
         compose-subst(ret-subst, param-subst)
     (TStruct(a), TStruct(b)) ->
       if a == b then empty-subst
