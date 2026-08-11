@@ -43,11 +43,21 @@ val koka-reserved-names = ["list", "vector", "string", "int", "bool", "float",
   "char", "order", "maybe", "either", "tuple", "sslice", "console", "debug",
   "exn", "div", "ndet", "io", "show", "core", "std"]
 
+// M4.5 — user effect ops are tagged by the checker as `Var("hc-op:<name>")` so
+// codegen's stdlib-arm short-circuits (e.g. `(Var("exec"), [cmd]) -> …`) don't
+// hijack them. Strip the tag here so the emitted Koka name matches the effect
+// declaration's `ctl hc_<name>(...)`. See documentation/effects-journal.md
+// M4.5 log for the collision problem this solves.
+val effect-op-tag = "hc-op:"
+
 fun marshal-name( name : string, declared : list<string> ) : string
-  if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
-    || koka-keywords.any(fn(k) k == name)
-    then "hc_" ++ name
-  else name
+  match name.starts-with(effect-op-tag)
+    Just(rest) -> "hc_" ++ rest.string
+    Nothing ->
+      if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
+        || koka-keywords.any(fn(k) k == name)
+        then "hc_" ++ name
+      else name
 
 
 // ---------------------------------------------------------------------------

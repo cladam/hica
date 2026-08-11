@@ -2378,11 +2378,19 @@ fun collect-calls( n : node ) : div list<string>
 // the *arm bodies* — those arms typically re-emit the op via a real handler
 // (e.g. `println`), but any effect they trigger is a separate concern already
 // covered by the walk over that arm's expression.
+// M4.5 — strip the `hc-op:` prefix that the checker adds to effect-op call
+// sites, so the discharge test compares the bare op name.
+fun unwrap-op-tag-main( vname : string ) : string
+  match vname.starts-with("hc-op:")
+    Just(rest) -> rest.string
+    Nothing    -> vname
+
 fun collect-calls-h( n : node, effects : list<effect-def>, handled : list<string> = [] ) : div list<string>
   match n.expr
     Call(callee, args) ->
       val callee-names = match callee.expr
-        Var(vname) ->
+        Var(raw-vname) ->
+          val vname = unwrap-op-tag-main(raw-vname)
           // Check whether `vname` is an op of some effect currently on the
           // handled stack. If so, elide it — it's discharged here.
           val discharged = effects.any fn(edef)

@@ -501,8 +501,8 @@ no equivalent mechanism once `opaque` or `priv` is used.
 | `import "std/trusted"` (string validation) | ✓ Shipped | n/a (Hica stdlib) |
 | Numeric domain primitive pattern (`Quantity`, `Price`) | ✓ Documented | `examples/domain-primitives.hc` |
 | Checker enforcement (user code) | ✓ Active | Dual: hica + Koka |
-| Effect definitions (`effect` / `handle`) | Planned (P3) | — |
-| Effect-row polymorphic function types | Planned (P4) | — |
+| Effect definitions (`effect` / `handle`) | ✓ Shipped | `effect foo` + `with handler ctl hc_op(...) -> resume(...)` (design doc §7) |
+| Effect-row polymorphic function types | ✓ Shipped | `(A) -> <e1,e2> R` in Koka types + hica-level call-site enforcement (design doc §4.5) |
 
 ## 10. Auditing Checklist for Security Reviewers
 

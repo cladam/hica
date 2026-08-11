@@ -232,3 +232,22 @@ pub fun main() : io ()
       val hit = ds.any(fn(d) d.message.contains("effect row mismatch") && d.message.contains("Fs2") && d.message.contains("<Db>"))
       assert/is-true(hit)
 
+    // --- M4.5: stdlib name-collision guard ----------------------------
+    // Effect ops whose names collide with hardcoded codegen intercepts
+    // (e.g. `exec` → `run-system-read`, `write` → `write-text-file`, …)
+    // must be emitted as `hc_<name>` so the stdlib arms don't hijack
+    // them. The checker tags every effect-op call site with an
+    // `hc-op:` prefix; codegen's `marshal-name` strips it back to the
+    // regular `hc_` marshalling path. See documentation/effects-journal.md
+    // M4.5 for the trade-off.
+    dtest("codegen: effect op named 'exec' emits as hc_exec (M4.5)")
+      val src = "effect Db {\n  fun exec(sql: string)\n}\nfun main() {\n  handle Db {\n    exec(sql) => println(sql)\n  } in {\n    exec(\"SELECT 1\")\n  }\n}"
+      val kk = emit-typed-program(src)
+      // The op declaration should carry the hc_ prefix.
+      val decl-ok = kk.contains("ctl hc_exec")
+      // The call site should be marshalled to hc_exec(...) — NOT the
+      // stdlib arm `run-system-read(...)`.
+      val call-ok = kk.contains("hc_exec(") && !kk.contains("run-system-read")
+      assert/is-true(decl-ok && call-ok)
+
+

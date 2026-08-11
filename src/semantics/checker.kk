@@ -95,6 +95,15 @@ pub fun effect-find( reg : effect-registry, ename : string ) : maybe<effect-def>
 pub effect effect-reg
   fun get-effects() : effect-registry
 
+// M4.5 helper — is `name` the name of an operation of any user-defined
+// effect in the current program? Used by `infer` to tag effect-op references
+// with the `hc-op:` prefix so codegen's stdlib-arm short-circuits don't
+// hijack them. See src/emit/codegen.kk `effect-op-tag` for the strip-and-emit
+// side and documentation/effects-journal.md M4.5 for the trade-off.
+fun is-effect-op-name( nm : string ) : <effect-reg> bool
+  get-effects().any fn(edef)
+    edef.ops.any(fn(op) op.name == nm)
+
 // ---------------------------------------------------------------------------
 // Loop context: track whether we are inside a loop body
 // ---------------------------------------------------------------------------
@@ -385,7 +394,13 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
     Var(name) ->
       val t = env.lookup(name, n.span)
       val resolved = apply-subst(s, t)
-      (s, n(typ = Just(resolved)))
+      // M4.5 — tag user effect-op references so codegen's stdlib-arm
+      // short-circuits (e.g. `(Var("exec"), [cmd]) -> …`) don't hijack them.
+      // See src/emit/codegen.kk `effect-op-tag` and `marshal-name` for the
+      // strip-and-emit-hc_<name> side; documentation/effects-journal.md M4.5
+      // for the trade-off.
+      val name' = if is-effect-op-name(name) then "hc-op:" ++ name else name
+      (s, n(typ = Just(resolved), expr = Var(name')))
 
     // --- Let bindings: infer init, extend env, infer body ---
     Let(name, ann, init, body) ->
@@ -1720,11 +1735,20 @@ fun calls-back-to-fast( current : string, target : string, call-graph : list<(st
 // currently discharged by enclosing `handle` blocks. Mirrors main.kk's
 // `collect-calls-h` but stays inside checker.kk so we can call it from
 // `check-program`.
+// M4.5 — strip the `hc-op:` prefix that the checker adds to effect-op call
+// sites. Leak detection compares against the *bare* op name declared on the
+// effect, so it must undo the tag before comparing.
+fun unwrap-op-tag( vname : string ) : string
+  match vname.starts-with("hc-op:")
+    Just(rest) -> rest.string
+    Nothing    -> vname
+
 fun collect-effect-leaks( n : node, effects : list<effect-def>, handled : list<string> = [] ) : div list<string>
   match n.expr
     Call(callee, args) ->
       val callee-leaks = match callee.expr
-        Var(vname) ->
+        Var(raw-vname) ->
+          val vname = unwrap-op-tag(raw-vname)
           val discharged-by = effects.filter fn(edef)
             handled.any(fn(h) h == edef.name) &&
               edef.ops.any(fn(op) op.name == vname)

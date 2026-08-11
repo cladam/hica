@@ -249,11 +249,83 @@ The innermost matching handler wins for each operation.
 
 ---
 
+## Effect rows in function types (M4)
+
+Function type annotations can restrict which user-defined effects a callback is allowed to use. The row goes between the parameter list and the return type:
+
+```hica
+(A, B) -> <E1, E2> R
+```
+
+An **empty row (or no row)** is a wildcard: the function accepts any effects the checker can infer. This is the pre-M4 default and keeps every existing hica program working unchanged. A **non-empty row** is authoritative: the argument passed at every call site must call only ops declared in that row (plus built-in effects — `console`, `fsys`, `div`, etc. — which are always allowed in v1).
+
+The canonical use case is a **capability-based sandbox**: a library accepts a callback and guarantees that the callback can only use one specific effect:
+
+```hica
+effect Db {
+  fun query(sql: string) : int
+  fun exec(sql: string)
+}
+
+// The `f: () -> <Db> int` type says: `f` may only use <Db>.
+pub fun with_db(f: () -> <Db> int) : int {
+  handle Db {
+    query(sql) => run_query(sql),
+    exec(sql)  => run_exec(sql)
+  } in {
+    f()
+  }
+}
+
+// This callback is compliant — it only uses <Db>.
+fun list_users() : <Db> int {
+  exec("UPDATE stats SET last_scan = now()")
+  query("SELECT count(*) FROM users")
+}
+
+fun main() {
+  let count = with_db(list_users)
+  println("users = " + show(count))
+}
+```
+
+If the callback tries to use another user-defined effect, the checker rejects the *call site*:
+
+```hica
+effect Log {
+  fun audit(msg: string)
+}
+
+fun leaky_write() : int {
+  audit("touching users table")        // uses <Log> — not permitted
+  exec("INSERT INTO audit VALUES ('leak')")
+  0
+}
+
+fun main() {
+  let n = with_db(leaky_write)         // ← error here
+}
+```
+
+```
+error: effect row mismatch — callback passed to 'with_db' may use
+  <Log, Db>, not permitted by <Db>
+ 41 |   let n = with_db(leaky_write)
+    |                   ^^^^^^^^^^^
+```
+
+The check follows references: passing a top-level function like `leaky_write` walks that function's body; passing an inline lambda walks the lambda body directly. See `examples/effects/db-sandbox.hc` (positive) and `examples/effects/db-sandbox-leak.hc` (negative) for the full motivator.
+
+**Empty row `<>`** means "no user-defined effects". Any call to a user-defined effect op inside such a callback is rejected.
+
+Effect rows are compared **as sets** — `<A, B>` unifies with `<B, A>`.
+
+---
+
 ## Coming in later milestones
 
 | Feature | Milestone |
 |---|---|
-| **Effect-row polymorphism** — `(A) -> <Db> R` function type syntax | M4 |
 | **Stateful handlers** — `handle … with var count = 0 in { … }` | M5 |
 | **`actor` keyword** — sugar over `effect + handle + with var` | M6 |
 

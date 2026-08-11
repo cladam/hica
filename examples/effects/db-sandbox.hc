@@ -10,21 +10,17 @@
 //
 // `list_users` uses only <Db> ops → the check passes.
 //
-// NOTE — v1 codegen limitation (tracked in effects-journal.md M4
-// carry-forward): user effect op names must not collide with hica stdlib
-// function names (`exec`, `write`, `read`, `input`, `print`, `println`,
-// `open`, `close`, ...). The codegen intercepts those names for stdlib
-// lowering *before* it consults the effect-op registry, so a user op
-// named `exec` gets emitted as `run-system-read(...)` and Koka rejects the
-// resulting effect row. Until session-10's codegen fix lands, name your
-// effect ops distinctively: here we use `query` and `run_sql` instead of
-// `exec`.
+// M4.5 note — the op name `exec` used to collide with hica's stdlib
+// `exec(cmd) → run-system-read(cmd)` codegen intercept. The checker now
+// tags every effect-op call site with an `hc-op:` prefix so the codegen
+// stdlib arms never hijack them; the emitted Koka call is `hc_exec(sql)`,
+// matching the `ctl hc_exec(...)` in the `effect db` declaration.
 //
 // Run:  hica run examples/effects/db-sandbox.hc
 
 effect Db {
   fun query(sql: string) : int
-  fun run_sql(sql: string)
+  fun exec(sql: string)
 }
 
 // Callback contract: `f` may only use `<Db>`. built-ins (div, console)
@@ -32,7 +28,7 @@ effect Db {
 pub fun with_db(f: () -> <Db> int) : int {
   handle Db {
     query(sql) => 42,
-    run_sql(sql) => ()
+    exec(sql) => ()
   } in {
     f()
   }
@@ -40,7 +36,7 @@ pub fun with_db(f: () -> <Db> int) : int {
 
 // Compliant callback: uses only <Db> ops. Passes the M4 subset check.
 fun list_users() : <Db> int {
-  run_sql("UPDATE stats SET last_scan = now()")
+  exec("UPDATE stats SET last_scan = now()")
   let n = query("SELECT count(*) FROM users")
   n
 }

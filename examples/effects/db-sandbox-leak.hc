@@ -13,7 +13,7 @@
 
 effect Db {
   fun query(sql: string) : int
-  fun run_sql(sql: string)
+  fun exec(sql: string)
 }
 
 effect Log {
@@ -23,7 +23,7 @@ effect Log {
 pub fun with_db(f: () -> <Db> int) : int {
   handle Db {
     query(sql) => 42,
-    run_sql(sql) => ()
+    exec(sql) => ()
   } in {
     f()
   }
@@ -33,7 +33,7 @@ pub fun with_db(f: () -> <Db> int) : int {
 // callback annotation says `<Db>` only, this call is rejected.
 fun leaky_write() : int {
   audit("touching users table")
-  run_sql("INSERT INTO audit VALUES ('leak')")
+  exec("INSERT INTO audit VALUES ('leak')")
   0
 }
 

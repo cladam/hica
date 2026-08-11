@@ -1091,6 +1091,79 @@ hica test my_file.hc
 - No imports needed. `assert` and `assert_eq` are built-in
 - Exit code is 0 on success, 1 on failure
 
+## Effects (experimental)
+
+hica supports user-defined algebraic effects via `effect` declarations and `handle` blocks. Effects let you name an abstract capability (logging, database, terminal, …), call its operations like ordinary functions, and choose *at the call site* how to fulfil them — the same code path runs against a real backend in production and a mock in tests.
+
+```hica
+effect Log {
+  fun info(s: string)
+}
+
+fun greet(name: string) {
+  info("hello, " + name)   // no IO here — Log is abstract
+}
+
+fun main() {
+  handle Log {
+    info(s) => println("[LOG] " + s)
+  } in {
+    greet("world")
+    greet("effects")
+  }
+}
+```
+
+**Effect declarations** live at the top level:
+
+```hica
+effect Db {
+  fun query(sql: string) : int
+  fun exec(sql: string)                 // return type defaults to ()
+}
+```
+
+- Effect names are `PascalCase`, op names `snake_case`.
+- Op parameters are typed; the return type defaults to `()` when omitted.
+
+**Handlers** are expressions — `handle E { arms } in { block }` evaluates to the value of the block. Every operation of the effect must have exactly one arm; the checker reports missing ops, unknown-op arms, and duplicate arms with source spans.
+
+**Handler arms** have their parameters typed automatically from the op signature — you never need to annotate them.
+
+### Effect rows in function types
+
+Function type annotations can restrict which user-defined effects a callback is allowed to use. The row appears between the parameter list and the return type:
+
+```hica
+(A, B) -> <E1, E2> R
+```
+
+An **empty row** (or no row) is a wildcard — accepts any effects. A **non-empty row** is authoritative: the argument passed at every call site must call only ops declared in that row (plus built-in effects — `console`, `fsys`, `div`, etc. — which are always allowed in v1). Passing a callback that leaks another user-defined effect is a compile-time error at the call site.
+
+```hica
+// with_db permits only <Db> inside the callback
+pub fun with_db(f: () -> <Db> int) : int {
+  handle Db {
+    query(sql) => 42,
+    exec(sql)  => ()
+  } in {
+    f()
+  }
+}
+
+fun list_users() : <Db> int {
+  exec("UPDATE stats SET last_scan = now()")
+  query("SELECT count(*) FROM users")
+}
+
+fun main() {
+  let n = with_db(list_users)          // ok
+  println("users = " + show(n))
+}
+```
+
+Effect rows compare as sets: `<A, B>` unifies with `<B, A>`. See [`docs/effects.md`](effects.md) for the full guide including handler nesting, the sandbox pattern, and testing recipes.
+
 ## Modules & Imports
 
 ### Modules
