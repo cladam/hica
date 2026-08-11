@@ -2471,7 +2471,7 @@ pub fun main() : io ()
     dtest("struct emits auto-derived tname/(==)")
       val code = emit-typed-program("struct Point { x: int, y: int }\nfun main() => 0")
       assert/is-true(code.contains("fun point/(==)"))
-      assert/is-true(code.contains("(a.x == b.x) && (a.y == b.y)"))
+      assert/is-true(code.contains("(hc_lhs.x == hc_rhs.x) && (hc_lhs.y == hc_rhs.y)"))
 
     dtest("recursive struct (==) is annotated : div bool")
       val code = emit-typed-program("struct Node { value: int, next: maybe<Node> }\nfun main() => 0")
