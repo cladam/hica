@@ -203,3 +203,32 @@ pub fun main() : io ()
       val hit = ds.any(fn(d) d.message.contains("unknown effect: 'Terminal'"))
       assert/is-true(hit)
 
+    // --- M4: call-site effect-row enforcement ------------------------
+    // A callback ref whose declared effect leak set is a subset of the
+    // callee param's row passes cleanly. See db-sandbox.hc for the full
+    // motivator example; here we keep it minimal.
+    dtest("check: callback with matching row is accepted (M4)")
+      val src = "effect Db {\n  fun q() : int\n}\npub fun with_db(f: () -> <Db> int) : int {\n  handle Db { q() => 1 } in { f() }\n}\nfun ok_cb() : <Db> int { q() }\nfun main() {\n  let n = with_db(ok_cb)\n  println(n)\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val errors = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      assert/is-true(errors.is-empty)
+
+    // A callback ref that leaks an effect *not* in the callee param's
+    // row is rejected at the argument site with the hica-level
+    // `effect row mismatch` error naming the offending row.
+    dtest("check: callback with extra effect is rejected (M4)")
+      val src = "effect Db {\n  fun q() : int\n}\neffect Fs2 {\n  fun r() : string\n}\npub fun with_db(f: () -> <Db> int) : int {\n  handle Db { q() => 1 } in { f() }\n}\nfun leaky() : int {\n  let s = r()\n  0\n}\nfun main() {\n  let n = with_db(leaky)\n  println(n)\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("effect row mismatch") && d.message.contains("Fs2") && d.message.contains("<Db>"))
+      assert/is-true(hit)
+

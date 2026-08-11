@@ -124,8 +124,10 @@ pub fun apply-subst( s : subst, t : hica-type ) : div hica-type
       match subst-find(s, name)
         Just(replacement) -> apply-subst(s, replacement)
         Nothing           -> t
-    TFun(params, result) ->
-      TFun(params.map(fn(p) apply-subst(s, p)), apply-subst(s, result))
+    TFun(params, result, es) ->
+      // M4: preserve the effect row through substitution — the row is a list
+      // of effect *names*, not types, so no substitution is applied to it.
+      TFun(params.map(fn(p) apply-subst(s, p)), apply-subst(s, result), es)
     TTuple(elems) ->
       TTuple(elems.map(fn(e) apply-subst(s, e)))
     TList(elem) ->
@@ -723,9 +725,16 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
     Tuple(elems) ->
       if elems.length > 5 then
         emit-error(n.span, "tuples can have at most 5 elements, got " ++ elems.length.show)
-      val (s1, elems') = infer-args(env, s, elems)
-      val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
-      (s1, Node(n.span, Tuple(elems'), Just(TTuple(elem-types))))
+      // Empty tuple literal `()` is the unit value, not a tuple. Typing it as
+      // `TTuple([])` and then unifying against `TUnit` fails inside the tuple
+      // path because `unify` produces "tuple size mismatch" (0 vs 0) which
+      // still emits the type-mismatch fallback. Treat `()` as TUnit directly.
+      match elems
+        Nil -> (s, Node(n.span, Tuple([]), Just(TUnit)))
+        _ ->
+          val (s1, elems') = infer-args(env, s, elems)
+          val elem-types = elems'.map(fn(e) apply-subst(s1, get-type(e)))
+          (s1, Node(n.span, Tuple(elems'), Just(TTuple(elem-types))))
 
     // --- Lists ---
     EList(elems) ->
@@ -1527,7 +1536,14 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   val (s1, env1, decls-usr) = infer-decls(env-imp, s-imp, p.decls.drop(skip-kw-check))
   val decls' = decls-imp ++ decls-usr
   val tests' = infer-tests(env1, s1, p.tests)
-  Program(p.structs, types = p.types, decls = decls', globals = globals'.reverse, tests = tests')
+  // M4 — call-site effect-row enforcement (design doc §4.5 / §8.4).
+  // Walk each user decl's body one more time, this time comparing the effect
+  // row on each callback parameter against the un-discharged effect set of
+  // the argument passed in. A mismatch is a hica-level error emitted through
+  // the same `diag` channel as the rest of check-program's diagnostics.
+  // See `check-callback-rows` for the algorithm.
+  check-callback-rows(decls', p.effects)
+  Program(p.structs, types = p.types, effects = p.effects, decls = decls', globals = globals'.reverse, tests = tests')
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, type-env, list<fun-decl>)
   // Two-pass approach: pre-seed ALL function signatures first (enables mutual recursion),
@@ -1674,3 +1690,266 @@ fun calls-back-to-fast( current : string, target : string, call-graph : list<(st
         val visited' = Cons(current, visited)
         callees.filter(fn(c) !visited'.any(fn(v) v == c)).any fn(c)
           calls-back-to-fast(c, target, call-graph, visited')
+
+// ---------------------------------------------------------------------------
+// M4 — call-site effect-row enforcement
+// ---------------------------------------------------------------------------
+//
+// Design doc §4.5 / §8.4. After type inference has finished (and every callee
+// param's `TFun(_, _, es)` carries its declared effect row via `apply-subst`
+// preserving `es`), walk every user decl one more time and check every call
+// site whose callee is a top-level function with an annotated callback param.
+//
+// For each such call site:
+//   * Take the declared param row `<E1, E2, ...>` on the callee's TFun.
+//   * Compute the argument's *un-discharged* effect leak set — which user
+//     effects it calls whose ops are NOT dispatched by an enclosing `handle`.
+//   * If any leaked effect isn't in the declared row, emit
+//     `error: effect row mismatch — callback may use <X>, not permitted by <E1, E2>`.
+//
+// Two argument shapes are handled:
+//   1. `Var(name)` where `name` is another top-level user decl — look up the
+//      decl by name and walk its body.
+//   2. `Fun(_, body)` (an inline lambda) — walk `body` directly.
+// Any other shape (parenthesised expressions, function results, …) is skipped
+// in v1; Koka's type check still enforces the row at compile-time when the
+// shape is opaque to us.
+
+// Walker: collect all un-discharged effect-op names called anywhere in `n`,
+// given the program's effect registry `effects` and a stack of effects
+// currently discharged by enclosing `handle` blocks. Mirrors main.kk's
+// `collect-calls-h` but stays inside checker.kk so we can call it from
+// `check-program`.
+fun collect-effect-leaks( n : node, effects : list<effect-def>, handled : list<string> = [] ) : div list<string>
+  match n.expr
+    Call(callee, args) ->
+      val callee-leaks = match callee.expr
+        Var(vname) ->
+          val discharged-by = effects.filter fn(edef)
+            handled.any(fn(h) h == edef.name) &&
+              edef.ops.any(fn(op) op.name == vname)
+          if !discharged-by.is-nil then []
+          else
+            // Which effect(s) declare this op? Add each one to the leak set.
+            effects.filter(fn(edef) edef.ops.any(fn(op) op.name == vname))
+              .map(fn(edef) edef.name)
+        _ -> collect-effect-leaks(callee, effects, handled)
+      callee-leaks ++ args.flatmap(fn(a) collect-effect-leaks(a, effects, handled))
+    Let(_, _, init, body) ->
+      collect-effect-leaks(init, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    VarDecl(_, _, init, body) ->
+      collect-effect-leaks(init, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    Assign(_, v) -> collect-effect-leaks(v, effects, handled)
+    Fun(_, body) -> collect-effect-leaks(body, effects, handled)
+    Binary(_, l, r) ->
+      collect-effect-leaks(l, effects, handled) ++
+      collect-effect-leaks(r, effects, handled)
+    Unary(_, o) -> collect-effect-leaks(o, effects, handled)
+    If(c, t, e) ->
+      collect-effect-leaks(c, effects, handled) ++
+      collect-effect-leaks(t, effects, handled) ++
+      collect-effect-leaks(e, effects, handled)
+    Block(stmts) ->
+      stmts.flatmap(fn(st) collect-effect-leaks(st, effects, handled))
+    Match(scrut, arms) ->
+      val guard-leaks = arms.flatmap fn(a)
+        match a.guard
+          Just(g) -> collect-effect-leaks(g, effects, handled)
+          Nothing -> []
+      collect-effect-leaks(scrut, effects, handled) ++
+        guard-leaks ++
+        arms.flatmap(fn(a) collect-effect-leaks(a.body, effects, handled))
+    Repeat(c, body) ->
+      collect-effect-leaks(c, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    ForIn(_, s-e, e-e, body) ->
+      collect-effect-leaks(s-e, effects, handled) ++
+      collect-effect-leaks(e-e, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    ForEach(_, coll, body) ->
+      collect-effect-leaks(coll, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    While(c, body) ->
+      collect-effect-leaks(c, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    Loop(body) -> collect-effect-leaks(body, effects, handled)
+    StringInterp(parts) ->
+      parts.flatmap(fn(p) collect-effect-leaks(p, effects, handled))
+    Tuple(elems)  -> elems.flatmap(fn(e) collect-effect-leaks(e, effects, handled))
+    EList(elems)  -> elems.flatmap(fn(e) collect-effect-leaks(e, effects, handled))
+    ListIndex(l, i) ->
+      collect-effect-leaks(l, effects, handled) ++
+      collect-effect-leaks(i, effects, handled)
+    ListSlice(l, sm, em) ->
+      val s-leaks = match sm { Just(x) -> collect-effect-leaks(x, effects, handled); Nothing -> [] }
+      val e-leaks = match em { Just(x) -> collect-effect-leaks(x, effects, handled); Nothing -> [] }
+      collect-effect-leaks(l, effects, handled) ++ s-leaks ++ e-leaks
+    TupleIndex(t, _) -> collect-effect-leaks(t, effects, handled)
+    LetTuple(_, init, body) ->
+      collect-effect-leaks(init, effects, handled) ++
+      collect-effect-leaks(body, effects, handled)
+    ESome(v) -> collect-effect-leaks(v, effects, handled)
+    EOk(v)   -> collect-effect-leaks(v, effects, handled)
+    EErr(v)  -> collect-effect-leaks(v, effects, handled)
+    FieldAccess(o, _) -> collect-effect-leaks(o, effects, handled)
+    StructLit(_, fields) ->
+      fields.flatmap(fn((_, v)) collect-effect-leaks(v, effects, handled))
+    StructUpdate(_, base, overrides, _) ->
+      collect-effect-leaks(base, effects, handled) ++
+      overrides.flatmap(fn((_, v)) collect-effect-leaks(v, effects, handled))
+    EConstructor(_, cargs) ->
+      cargs.flatmap(fn(a) collect-effect-leaks(a, effects, handled))
+    ETry(inner) -> collect-effect-leaks(inner, effects, handled)
+    EValidateTry(inner) -> collect-effect-leaks(inner, effects, handled)
+    MapLit(entries) ->
+      entries.flatmap fn((k, v))
+        collect-effect-leaks(k, effects, handled) ++
+        collect-effect-leaks(v, effects, handled)
+    // Handler discharge: push the effect name onto `handled` before walking
+    // the `in { body }`. State initialisers and arm bodies use the *parent*
+    // stack — the handler dispatches on the op we're seeing here, not on ops
+    // that occur inside the arms themselves.
+    EHandle(ename, arms, state, body) ->
+      val state-leaks = state.flatmap(fn((_, v)) collect-effect-leaks(v, effects, handled))
+      val arm-leaks   = arms.flatmap(fn(a) collect-effect-leaks(a.arm-body, effects, handled))
+      val body-leaks  = collect-effect-leaks(body, effects, Cons(ename, handled))
+      state-leaks ++ arm-leaks ++ body-leaks
+    _ -> []
+
+// Deduplicate a list of strings preserving first-seen order.
+fun dedup-strings( xs : list<string> ) : list<string>
+  xs.foldl([]) fn(acc : list<string>, x)
+    if acc.any(fn(a) a == x) then acc else acc ++ [x]
+
+// Walk every call site inside `body`. For each site whose callee resolves to
+// a user decl in `decl-index`, and whose param at position `i` is a `TFun`
+// with a non-empty declared row, check that the argument at position `i` has
+// a subset of the row's effects. `handled` is the discharge stack.
+fun walk-call-sites( n : node, decl-index : list<(string, fun-decl)>, effects : list<effect-def>, handled : list<string> = [] ) : <div,diag> ()
+  match n.expr
+    Call(callee, args) ->
+      // Recurse into the callee and arguments first, so nested calls also get
+      // checked. Then apply the row-check at this site.
+      walk-call-sites(callee, decl-index, effects, handled)
+      args.foreach(fn(a) walk-call-sites(a, decl-index, effects, handled))
+      match callee.expr
+        Var(callee-name) ->
+          // Look up the callee among the user decls to get its declared
+          // param types (which carry the effect rows written by the user).
+          match decl-index.find(fn((nm, _)) nm == callee-name)
+            Just((_, callee-decl)) ->
+              val expected-params = callee-decl.param-types
+              // Only iterate over as many positions as we have both a param
+              // type and an argument (partial application is not a case here).
+              var i := 0
+              args.foreach fn(arg)
+                match expected-params[i]
+                  Just(TFun(_, _, es)) | !es.is-nil ->
+                    // Resolve the argument to its effective body:
+                    //   - `Var(name)` referring to a top-level user decl → walk
+                    //     that decl's body (X1: follow refs).
+                    //   - `Fun(_, body)` inline lambda → walk `body` directly.
+                    //   - Anything else → walk the argument node itself and
+                    //     let leaks fall out where they may.
+                    val leak-source = match arg.expr
+                      Var(rname) ->
+                        match decl-index.find(fn((nm, _)) nm == rname)
+                          Just((_, ref-decl)) -> ref-decl.body
+                          Nothing             -> arg
+                      Fun(_, body) -> body
+                      _ -> arg
+                    val leaks = dedup-strings(collect-effect-leaks(leak-source, effects, handled))
+                    val extra = leaks.filter(fn(e) !es.any(fn(x) x == e))
+                    if !extra.is-nil then
+                      val expected-str = "<" ++ es.join(", ") ++ ">"
+                      val got-str      = "<" ++ leaks.join(", ") ++ ">"
+                      emit-error(arg.span,
+                        "effect row mismatch — callback passed to '" ++ callee-name ++
+                        "' may use " ++ got-str ++ ", not permitted by " ++ expected-str)
+                  _ -> ()
+                i := i + 1
+            Nothing -> ()
+        _ -> ()
+    Let(_, _, init, body) ->
+      walk-call-sites(init, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    VarDecl(_, _, init, body) ->
+      walk-call-sites(init, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    Assign(_, v) -> walk-call-sites(v, decl-index, effects, handled)
+    Fun(_, body) -> walk-call-sites(body, decl-index, effects, handled)
+    Binary(_, l, r) ->
+      walk-call-sites(l, decl-index, effects, handled)
+      walk-call-sites(r, decl-index, effects, handled)
+    Unary(_, o) -> walk-call-sites(o, decl-index, effects, handled)
+    If(c, t, e) ->
+      walk-call-sites(c, decl-index, effects, handled)
+      walk-call-sites(t, decl-index, effects, handled)
+      walk-call-sites(e, decl-index, effects, handled)
+    Block(stmts) -> stmts.foreach(fn(st) walk-call-sites(st, decl-index, effects, handled))
+    Match(scrut, arms) ->
+      walk-call-sites(scrut, decl-index, effects, handled)
+      arms.foreach fn(a)
+        match a.guard
+          Just(g) -> walk-call-sites(g, decl-index, effects, handled)
+          Nothing -> ()
+        walk-call-sites(a.body, decl-index, effects, handled)
+    Repeat(c, body) ->
+      walk-call-sites(c, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    ForIn(_, s-e, e-e, body) ->
+      walk-call-sites(s-e, decl-index, effects, handled)
+      walk-call-sites(e-e, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    ForEach(_, coll, body) ->
+      walk-call-sites(coll, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    While(c, body) ->
+      walk-call-sites(c, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    Loop(body) -> walk-call-sites(body, decl-index, effects, handled)
+    StringInterp(parts) -> parts.foreach(fn(p) walk-call-sites(p, decl-index, effects, handled))
+    Tuple(elems) -> elems.foreach(fn(e) walk-call-sites(e, decl-index, effects, handled))
+    EList(elems) -> elems.foreach(fn(e) walk-call-sites(e, decl-index, effects, handled))
+    ListIndex(l, i) ->
+      walk-call-sites(l, decl-index, effects, handled)
+      walk-call-sites(i, decl-index, effects, handled)
+    ListSlice(l, sm, em) ->
+      walk-call-sites(l, decl-index, effects, handled)
+      match sm { Just(x) -> walk-call-sites(x, decl-index, effects, handled); Nothing -> () }
+      match em { Just(x) -> walk-call-sites(x, decl-index, effects, handled); Nothing -> () }
+    TupleIndex(t, _) -> walk-call-sites(t, decl-index, effects, handled)
+    LetTuple(_, init, body) ->
+      walk-call-sites(init, decl-index, effects, handled)
+      walk-call-sites(body, decl-index, effects, handled)
+    ESome(v) -> walk-call-sites(v, decl-index, effects, handled)
+    EOk(v)   -> walk-call-sites(v, decl-index, effects, handled)
+    EErr(v)  -> walk-call-sites(v, decl-index, effects, handled)
+    FieldAccess(o, _) -> walk-call-sites(o, decl-index, effects, handled)
+    StructLit(_, fields) ->
+      fields.foreach(fn((_, v)) walk-call-sites(v, decl-index, effects, handled))
+    StructUpdate(_, base, overrides, _) ->
+      walk-call-sites(base, decl-index, effects, handled)
+      overrides.foreach(fn((_, v)) walk-call-sites(v, decl-index, effects, handled))
+    EConstructor(_, cargs) ->
+      cargs.foreach(fn(a) walk-call-sites(a, decl-index, effects, handled))
+    ETry(inner) -> walk-call-sites(inner, decl-index, effects, handled)
+    EValidateTry(inner) -> walk-call-sites(inner, decl-index, effects, handled)
+    MapLit(entries) ->
+      entries.foreach fn((k, v))
+        walk-call-sites(k, decl-index, effects, handled)
+        walk-call-sites(v, decl-index, effects, handled)
+    EHandle(ename, arms, state, body) ->
+      state.foreach(fn((_, v)) walk-call-sites(v, decl-index, effects, handled))
+      arms.foreach(fn(a) walk-call-sites(a.arm-body, decl-index, effects, handled))
+      walk-call-sites(body, decl-index, effects, Cons(ename, handled))
+    _ -> ()
+
+// Entry point: after type inference has populated every decl's `param-types`
+// (with `TFun.effects` preserved by apply-subst), walk every decl's body
+// once more and enforce the row on every callback argument.
+pub fun check-callback-rows( decls : list<fun-decl>, effects : list<effect-def> ) : <div,diag> ()
+  val decl-index = decls.map(fn(d) (d.name, d))
+  decls.foreach(fn(d) walk-call-sites(d.body, decl-index, effects))
