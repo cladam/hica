@@ -151,9 +151,9 @@ fun emit-struct-def( sd : struct-def ) : div string
     else
       val parts = sd.fields.map fn(field)
         val mf = marshal-field(field.fst)
-        "(a." ++ mf ++ " == b." ++ mf ++ ")"
+        "(hc_lhs." ++ mf ++ " == hc_rhs." ++ mf ++ ")"
       "  " ++ parts.join(" && ")
-  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(a : " ++ tname ++ ", b : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
+  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(hc_lhs : " ++ tname ++ ", hc_rhs : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
     eq-body
   struct-str ++ "\n\n" ++ show-fn ++ "\n\n" ++ eq-fn
 
@@ -211,8 +211,8 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
   // Add a catch-all only when there are multiple variants (otherwise Koka warns
   // about an unreachable pattern).
   val eq-catch = if td.variants.length > 1 then "\n    _ -> False" else ""
-  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(a : " ++ tname ++ ", b : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
-    "  match (a, b)\n" ++
+  val eq-fn = pub-str ++ "fun " ++ tname ++ "/(==)(hc_lhs : " ++ tname ++ ", hc_rhs : " ++ tname ++ ")" ++ eq-effect-ann ++ "\n" ++
+    "  match (hc_lhs, hc_rhs)\n" ++
     eq-arms.join("\n") ++ eq-catch
   type-str ++ "\n\n" ++ show-fn ++ "\n\n" ++ eq-fn
 
