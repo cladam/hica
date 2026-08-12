@@ -26,7 +26,7 @@ hica is a statically typed, expression-oriented language that **transpiles to Ko
 
 | vs | Trade-off |
 |----|-----------|
-| Koka | Friendlier syntax and implicit effects; user-defined algebraic effect handlers now available via `effect` + `handle` (experimental, M1–M2 landed) |
+| Koka | Friendlier syntax and implicit effects; **user-defined algebraic effect handlers** fully supported via `effect` + `handle`, with stateful handlers (`with var …`) and effect-row polymorphic function types (`(A) -> <E> R`). See [`docs/effects.md`](docs/effects.md) |
 | Rust | No borrow checker / lifetime annotations; gives up fine-grained manual memory layout |
 | Python | Static types, no exceptions, deterministic memory; gives up dynamic flexibility |
 | Gleam | Brace syntax, loops, mutable `var`; shares the "no null, Result types" philosophy |

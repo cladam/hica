@@ -273,4 +273,19 @@ pub fun main() : io ()
       // Compact form: no newline between `->` and `resume(42)`.
       assert/is-true(kk.contains("ctl hc_get() -> resume(42)"))
 
+    // M5.5 — match-shaped op body (e.g. Buffer.pop) can't sit directly inside
+    // `resume(...)` because Koka's layout parser hits the trailing `)` before
+    // the inner block closes. Fix: hoist the match to a local `val`, then
+    // `resume(val)`. See examples/effects/buffer.hc and the M5.5 milestone
+    // in documentation/effects-journal.md.
+    dtest("codegen: match-shaped op body is hoisted to val + resume(val) (M5.5)")
+      val src = "effect Buffer {\n  fun pop() : maybe<int>\n  fun push(x: int)\n}\nfun main() {\n  let n = handle Buffer {\n    push(x) => items = items + [x],\n    pop() => match items {\n      [] => None,\n      [x, ..rest] => { items = rest; Some(x) }\n    }\n  } with var items = [1, 2, 3] in {\n    pop()\n  }\n  println(n)\n}"
+      val kk = emit-typed-program(src)
+      // The hoisted local uses the op name as the val suffix: `hc__pop_res`.
+      val has-hoist = kk.contains("val hc__pop_res =")
+      val resumes-local = kk.contains("resume(hc__pop_res)")
+      // Guard against the pre-M5.5 shape: `resume(match items`.
+      val no-inline-match = !kk.contains("resume(match ")
+      assert/is-true(has-hoist && resumes-local && no-inline-match)
+
 

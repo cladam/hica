@@ -1324,8 +1324,25 @@ fun emit-handle-arm( arm : handle-arm, declared : list<string> ) : div string
         Let(_, _, _, _)     -> True
         LetTuple(_, _, _)   -> True
         _                   -> False
+      // Arm bodies that emit as multi-line, non-atomic expressions (e.g. a
+      // `match` with block-shaped case bodies) can't be dropped straight into
+      // `resume(...)` — Koka's layout parser hits the trailing `)` before the
+      // inner block closes, and side-effecting statements inside a match arm
+      // (e.g. `items := rest`) inside `resume(...)` get consumed by the outer
+      // parens. Same trick `emit-expr` uses for multi-line match scrutinees
+      // (see `hc__scrut` in the Match case): hoist the value into a local
+      // `val`, then `resume(local)`. See M5 → M5.5 buffer bug in
+      // documentation/effects-journal.md.
+      val is-hoist-shape = match arm.arm-body.expr
+        Match(_, _) -> True
+        If(_, _, _) -> True
+        _           -> False
       if is-stmt then
         header ++ "\n" ++ indent-all(indent-all(ac ++ "\nresume(())"))
+      elif is-hoist-shape && ac.contains("\n") then
+        val res-name = "hc__" ++ arm.op-name ++ "_res"
+        val hoisted = "val " ++ res-name ++ " =\n" ++ indent-all(ac) ++ "\nresume(" ++ res-name ++ ")"
+        header ++ "\n" ++ indent-all(indent-all(hoisted))
       elif ac.contains("\n") then
         header ++ "\n" ++ indent-all(indent-all("resume(" ++ ac ++ ")"))
       else

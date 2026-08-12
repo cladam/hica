@@ -248,9 +248,13 @@ test "counter counts three" {
 
 See:
 - `examples/effects/counter.hc` — the minimal single-var handler
+- `examples/effects/buffer.hc`  — multi-var state with a match-shaped `pop()` arm
 - `learn/45-effects-state.hc`  — a longer walk-through with fresh-state and non-zero-start examples
 
-**Current implementation note:** arm bodies that are themselves multi-arm `match` expressions with block-shaped cases are a known codegen gap (design doc §4.4's `Buffer` example). If you need one, extract the match into a helper function and call it from the arm. The `Counter` pattern above (single-statement assignment or single-expression arm) covers the common case.
+Arm bodies can be plain expressions, `{ … }` blocks that mutate state, or
+`match` expressions with block-shaped cases (see `buffer.hc`). The compiler
+hoists complex arm-body values into a local `val` before calling
+`resume(…)` so Koka's layout parser sees a clean expression.
 
 
 ## Testing with different handlers
