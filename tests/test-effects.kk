@@ -250,4 +250,27 @@ pub fun main() : io ()
       val call-ok = kk.contains("hc_exec(") && !kk.contains("run-system-read")
       assert/is-true(decl-ok && call-ok)
 
+    // --- M5: stateful handlers (`with var …`) ------------------------
+    // A single-var state binding is hoisted before `with handler`, and each
+    // arm body that mutates state is emitted as a leading statement followed
+    // by `resume(())`. See design doc §7.4 and examples/effects/counter.hc.
+    dtest("codegen: stateful handler hoists var and splits assign-arm (M5)")
+      val src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\nfun main() {\n  let n = handle Counter {\n    incr() => count = count + 1,\n    get()  => count\n  } with var count = 0 in {\n    incr()\n    incr()\n    incr()\n    get()\n  }\n  println(n)\n}"
+      val kk = emit-typed-program(src)
+      // State variable is hoisted as `var count := 0` before `with handler`.
+      val has-var = kk.contains("var count := 0")
+      // The mutating arm splits `count := (count + 1)` and `resume(())`.
+      val split-ok = kk.contains("count := (count + 1)") && kk.contains("resume(())")
+      // The IIFE wrapper appears because the handle is in expression
+      // position (`let n = handle …`).
+      val iife-ok = kk.contains("(fn()") && kk.contains(")()")
+      assert/is-true(has-var && split-ok && iife-ok)
+
+    // A pure-expression arm body still emits the compact single-line form.
+    dtest("codegen: pure-expression arm stays compact (M5)")
+      val src = "effect Counter {\n  fun get() : int\n}\nfun main() {\n  let n = handle Counter { get() => 42 } with var count = 0 in { get() }\n  println(n)\n}"
+      val kk = emit-typed-program(src)
+      // Compact form: no newline between `->` and `resume(42)`.
+      assert/is-true(kk.contains("ctl hc_get() -> resume(42)"))
+
 

@@ -1101,7 +1101,7 @@ effect Log {
 }
 
 fun greet(name: string) {
-  info("hello, " + name)   // no IO here — Log is abstract
+  info("hello, " + name)   // no IO here,  Log is abstract
 }
 
 fun main() {
@@ -1126,9 +1126,35 @@ effect Db {
 - Effect names are `PascalCase`, op names `snake_case`.
 - Op parameters are typed; the return type defaults to `()` when omitted.
 
-**Handlers** are expressions — `handle E { arms } in { block }` evaluates to the value of the block. Every operation of the effect must have exactly one arm; the checker reports missing ops, unknown-op arms, and duplicate arms with source spans.
+**Handlers** are expressions: `handle E { arms } in { block }` evaluates to the value of the block. Every operation of the effect must have exactly one arm; the checker reports missing ops, unknown-op arms, and duplicate arms with source spans.
 
 **Handler arms** have their parameters typed automatically from the op signature — you never need to annotate them.
+
+### Stateful handlers (`with var …`)
+
+A handler can carry local mutable state via the `with var …` clause. Each state binding is hoisted before the handler installation; every arm body and the `in { … }` block share the same references. The state dies when the block returns, so each invocation gets fresh state.
+
+```hica
+effect Counter {
+  fun incr()
+  fun get() : int
+}
+
+fun main() {
+  let n = handle Counter {
+    incr() => count = count + 1,
+    get()  => count
+  } with var count = 0 in {
+    incr(); incr(); incr()
+    get()
+  }
+  println("counter = {show(n)}")   // counter = 3
+}
+```
+
+Multiple state bindings share one `with var` clause, separated by commas: `with var items = [], var size = 0`. Assign to a state binding the same way you would to any `var` (`count = count + 1`); when the arm body is just an assignment, the handler splits the mutation out from the auto-resume so both the write and the `()` return happen.
+
+See `examples/effects/counter.hc` and `learn/45-effects-state.hc`.
 
 ### Effect rows in function types
 

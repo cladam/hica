@@ -19,7 +19,7 @@ val koka-keywords = ["match", "fun", "val", "var", "if", "else", "elif",
   "alias", "module", "import", "pub", "abstract", "extern", "fn", "forall",
   "raw", "inline", "noinline", "include", "co", "rec", "open", "extend", "behind",
   "linear", "value", "reference", "named", "scoped", "context", "initially",
-  "finally", "override", "path", "raw", "prefix"]
+  "finally", "override", "path", "raw", "prefix", "final"]
 
 pub fun safe-module-name( name : string ) : string
   if name == "stream" || koka-keywords.any(fn(k) k == name) then "hc-" ++ name
@@ -1252,26 +1252,84 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       "match " ++ inner-code ++ "\n  Valid(hc__v) -> hc__v\n  Invalid(hc__e) -> hica-early-invalid(hc__e)"
 
     // handle EffectName { arms } (with var … )? in { body }
-    // Emits (design doc §7.3):
-    //   var <s.name> := <s.init>      -- one per state binding, hoisted above the handler
-    //   with handler
-    //     ctl <op-name>(<params>) -> resume(<arm-body>)
-    //   <body>
-    // In M1 the state list is always empty; M5 flips the switch by populating it.
+    // Emits (design doc §7.3 / §7.4):
+    //   (fn()
+    //     var <s.name> := <s.init>            -- one per state binding (hoisted)
+    //     with handler
+    //       ctl <op-name>(<params>) -> resume(<arm-body>)
+    //     <body>
+    //   )()
+    //
+    // The IIFE wrapper matters when the whole handle expression appears in
+    // an expression position (e.g. `let (a, b) = handle …`) because Koka's
+    // `var` is a statement, not an expression — it needs a surrounding block.
+    // The wrapper is a no-op when the handle is already at statement position,
+    // and it keeps M1's stateless handlers producing valid Koka either way.
+    //
+    // Multi-statement arm bodies (design doc §4.4 counter/buffer): we detect
+    // Block-shaped arm bodies and emit the leading statements *before* the
+    // `resume(...)` so their side effects run — otherwise Koka would parse
+    // them as trailing text of resume's argument. See emit-arm-body below.
     EHandle(_effect-name, arms, state, body) ->
       val state-lines = state.map fn((sname, sinit))
         "var " ++ marshal-name(sname, declared) ++ " := " ++ emit-expr(sinit, declared)
-      val arm-lines = arms.map fn(arm)
-        val ps = arm.params.map(fn(p) marshal-name(p, declared)).join(", ")
-        val ac = emit-expr(arm.arm-body, declared)
-        val op = koka-op-name(arm.op-name)
-        if ac.contains("\n") then
-          "  ctl " ++ op ++ "(" ++ ps ++ ") ->\n" ++ indent-all(indent-all("resume(" ++ ac ++ ")"))
-        else
-          "  ctl " ++ op ++ "(" ++ ps ++ ") -> resume(" ++ ac ++ ")"
+      val arm-lines = arms.map(fn(arm) emit-handle-arm(arm, declared))
       val bc = emit-body(body, declared)
       val pre = if state-lines.is-nil then "" else state-lines.join("\n") ++ "\n"
-      pre ++ "with handler\n" ++ arm-lines.join("\n") ++ "\n" ++ bc
+      val inner = pre ++ "with handler\n" ++ arm-lines.join("\n") ++ "\n" ++ bc
+      "(fn()\n" ++ indent-all(inner) ++ "\n)()"
+
+// Emit a single handler arm.  Multi-statement arm bodies (Block with more
+// than one stmt) are split so the leading statements run *before* resume(),
+// and only the final expression is passed to resume(). This matches design
+// doc §7.4's counter/buffer example:
+//
+//   ctl hc_push(x) ->
+//     items := (items ++ [x])
+//     size := (size + 1)
+//     resume(())
+//
+// Single-expression arm bodies stay compact:
+//   ctl hc_get() -> resume(count)
+fun emit-handle-arm( arm : handle-arm, declared : list<string> ) : div string
+  val ps = arm.params.map(fn(p) marshal-name(p, declared)).join(", ")
+  val op = koka-op-name(arm.op-name)
+  val header = "  ctl " ++ op ++ "(" ++ ps ++ ") ->"
+  match arm.arm-body.expr
+    // Multi-stmt block — emit leading stmts, then resume(last-expr) (or resume(())
+    // when the block is empty or the last stmt was pure side-effect / assignment).
+    Block(stmts) | stmts.length > 1 ->
+      match stmts.reverse
+        Cons(last, rest) ->
+          val leading = rest.reverse.map(fn(s) emit-stmt(s, declared)).join("\n")
+          val (last-is-stmt, last-code) = match last.expr
+            Assign(_, _)              -> (True,  emit-stmt(last, declared))
+            VarDecl(_, _, _, _)       -> (True,  emit-stmt(last, declared))
+            Let(_, _, _, _)           -> (True,  emit-stmt(last, declared))
+            LetTuple(_, _, _)         -> (True,  emit-stmt(last, declared))
+            _                          -> (False, emit-expr(last, declared))
+          val inner = if last-is-stmt then leading ++ "\n" ++ last-code ++ "\nresume(())"
+                      else leading ++ "\n" ++ "resume(" ++ last-code ++ ")"
+          header ++ "\n" ++ indent-all(indent-all(inner))
+        Nil -> header ++ " resume(())"
+    _ ->
+      val ac = emit-expr(arm.arm-body, declared)
+      // A single-statement arm body that is itself an assignment or `var`/`let`
+      // binding — like `incr() => count = count + 1` — needs the statement to run
+      // *before* resume, not inside it. Otherwise Koka parses `count := count + 1`
+      // as an argument to resume(...).
+      val is-stmt = match arm.arm-body.expr
+        Assign(_, _)        -> True
+        VarDecl(_, _, _, _) -> True
+        Let(_, _, _, _)     -> True
+        LetTuple(_, _, _)   -> True
+        _                   -> False
+      if is-stmt then
+        header ++ "\n" ++ indent-all(indent-all(ac ++ "\nresume(())"))
+      elif ac.contains("\n") then
+        header ++ "\n" ++ indent-all(indent-all("resume(" ++ ac ++ ")"))
+      else
+        header ++ " resume(" ++ ac ++ ")"
 
 // Convert a hica op name (snake_case) to a Koka identifier that can't clash
 // with Koka stdlib names (e.g. `info`, `exit`, `resume`). See design doc §7.1.

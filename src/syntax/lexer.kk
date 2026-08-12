@@ -47,6 +47,7 @@ pub type token-kind
   TkActor
   TkEffect
   TkHandle
+  TkWith
   TkImport
   TkFrom
   TkPub
@@ -138,6 +139,7 @@ pub fun token-kind/show( tk : token-kind ) : string
     TkActor      -> "actor"
     TkEffect     -> "effect"
     TkHandle     -> "handle"
+    TkWith       -> "with"
     TkImport     -> "import"
     TkFrom       -> "from"
     TkPub        -> "pub"
@@ -311,6 +313,7 @@ fun lex-ident( cs : list<char>, start : int ) : div list<token>
     "actor"  -> TkActor
     "effect" -> TkEffect
     "handle" -> TkHandle
+    "with"   -> TkWith
     "import" -> TkImport
     "from"   -> TkFrom
     "pub"      -> TkPub

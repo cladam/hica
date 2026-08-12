@@ -42,7 +42,7 @@ pub fun parse-expr() : <div,parser> node
 // Pratt expression parsing
 // ---------------------------------------------------------------------------
 
-fun parse-prefix() : <div,parser> node
+fun parse-prefix() : <div,parser,console> node
   val tk = peek()
   match tk
     TkInt(n) ->
@@ -1356,10 +1356,12 @@ fun parse-handle-arms() : <div,parser> list<handle-arm>
 
 // Parse an optional `with var x = e, var y = e` clause after the handler body.
 // Returns an empty list if the clause is absent.
-fun parse-handle-state() : <div,parser> list<(string, node)>
-  // `with` is a real keyword (TkWith); it's only meaningful in this position
-  // so it doesn't need to be reserved as an identifier elsewhere.
-  match peek()
+fun parse-handle-state() : <div,parser,console> list<(string, node)>
+  // `with` is a real keyword (TkWith); it's only meaningful in this
+  // position so it doesn't need to be reserved as an identifier elsewhere.
+  val tk = peek()
+  println("DEBUG parse-handle-state peek=" ++ tk.show)
+  match tk
     TkWith ->
       advance()
       var state : list<(string, node)> := []
@@ -1372,14 +1374,7 @@ fun parse-handle-state() : <div,parser> list<(string, node)>
         // optional : type — parsed and discarded for M1 (checker infers).
         val _ann = parse-optional-type-ann()
         expect("=", fn(k) match k { TkEq -> True; _ -> False })
-        // Parse the initialiser at a binding-power ABOVE `In`'s l-bp (7) so
-        // the trailing `in` keyword of `handle … with … in { … }` is never
-        // greedily consumed as the binary `in` operator (list membership).
-        // See `infix-bp` — `In` has (7, 8), so bp = 9 skips it. All other
-        // binops with l-bp >= 9 (Add, Mul, etc.) still work in initialisers.
-        // This means state initialisers cannot use `x in list` inline; wrap
-        // it in parens: `var found = (x in xs)`.
-        val init = parse-binary(9)
+        val init = parse-expr()
         state := Cons((vname, init), state)
         match peek()
           TkComma -> { advance(); () }
@@ -1387,7 +1382,7 @@ fun parse-handle-state() : <div,parser> list<(string, node)>
       state.reverse
     _ -> []
 
-fun parse-handle-expr() : <div,parser> node
+fun parse-handle-expr() : <div,parser,console> node
   val t = expect("handle", fn(k) match k { TkHandle -> True; _ -> False })
   val ename = match peek()
     TkIdent(n) -> { advance(); n }

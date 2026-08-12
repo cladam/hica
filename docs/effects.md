@@ -5,13 +5,10 @@ title: Algebraic Effects - hica
 
 # Algebraic Effects
 
-**Status: experimental, since v0.X — `effect` and `handle` are fully parsed, type-checked, and compiled to native Koka. The surface syntax is stable; some advanced features (effect-row polymorphism, stateful handlers) are still in progress.**
+**Status: experimental, since v0.48.X — `effect` and `handle` are fully parsed, type-checked, and compiled to native Koka. The surface syntax is stable; some advanced features (effect-row polymorphism, stateful handlers) are still in progress.**
 
-hica exposes Koka's effect system in two ways. First, it surfaces built-in effects *implicitly*: `println` gives your function the `<console>` effect, `read_file` gives it `<fsys>`, and so on. Second — the feature this page covers — you can *define your own effects* and *install handlers* for them. This is what algebraic effects actually are: a way to name an abstract capability, use it like a plain function call, and choose at the call site how to fulfil it.
+hica exposes Koka's effect system in two ways. First, it surfaces built-in effects *implicitly*: `println` gives your function the `<console>` effect, `read_file` gives it `<fsys>`, and so on. Second, you can *define your own effects* and *install handlers* for them. This is what algebraic effects actually are: a way to name an abstract capability, use it like a plain function call, and choose at the call site how to fulfil it.
 
-The design document lives at [`documentation/effects-design.md`](../documentation/effects-design.md) if you want the full rationale and spec.
-
----
 
 ## The problem effects solve
 
@@ -45,8 +42,6 @@ fun process_order(order: Order) {
 
 `process_order` is now pure with respect to logging. You install a real handler at the application boundary and a silent or collecting handler in tests.
 
----
-
 ## Declaring an effect
 
 ```hica
@@ -76,8 +71,6 @@ effect Db {
 }
 ```
 
----
-
 ## Calling operations
 
 Operations are called exactly like ordinary functions — no special punctuation. Inside any block where the effect is handled, the call resolves to the installed handler arm.
@@ -90,8 +83,6 @@ fun render(lines: list<string>) {
 ```
 
 `render` requires the `<Terminal>` effect. `hica check render.hc` will show `[<Terminal, console>]` in the effect row once M3 lands; until then you can verify with `hica build --generate`.
-
----
 
 ## Installing a handler
 
@@ -151,8 +142,6 @@ error: 'warning' is not an operation of effect 'Log'
          ^^^^^^^
 ```
 
----
-
 ## Arm-parameter typing
 
 Handler arm parameters are typed automatically from the effect declaration. You do not need to annotate them:
@@ -171,8 +160,6 @@ handle Math {
 
 The checker looks up `add`'s declared signature `(int, int) -> int`, freshens the type variables, and binds `a` and `b` to `int` before inferring the arm body. If you return the wrong type from the arm, you get a hica-level error at the handler definition, not a confusing Koka error.
 
----
-
 ## Handlers are expressions
 
 `handle … in { … }` evaluates to the value of the `in` block:
@@ -189,7 +176,82 @@ println(show(result))         // 26
 
 This composes with `let`, `if`, `match`, and everywhere else expressions are expected.
 
----
+## Handlers with local state
+
+Real-world handlers often need to keep a running value: a counter, a buffer, an accumulator, a message queue. The `with var …` clause after the arm list declares one or more mutable bindings that live for the duration of the surrounding `handle … in { … }` expression:
+
+```hica
+effect Counter {
+  fun incr()
+  fun get() : int
+}
+
+fun main() {
+  let n = handle Counter {
+    incr() => count = count + 1,
+    get()  => count
+  } with var count = 0 in {
+    incr()
+    incr()
+    incr()
+    get()
+  }
+  println("counter = {show(n)}")   // counter = 3
+}
+```
+
+Rules:
+
+1. Each `var name = expr` is a separate binding. Multiple bindings share one `with var` clause and are separated by commas: `with var items = [], var size = 0`.
+2. Bindings are visible to **every arm** and to the `in { … }` block.
+3. Bindings die when the `in` block returns — there is no way for the state to escape the handler.
+4. Every `handle … in { … }` gets a fresh binding. Calling the same handler-installing function twice does not share state between calls.
+
+Assign to state bindings the same way you would to any `var`:
+
+```hica
+incr() => count = count + 1     // arm body is an assignment
+```
+
+The handler internally splits the assignment out from the auto-resume so both the mutation and the `()` return value happen, in that order. If you want a value from the arm, put the value expression *last*:
+
+```hica
+add(n) => { count = count + n; count }   // mutate, then return the new value
+```
+
+### Why this matters for testing
+
+Because the state lives inside the handler expression, tests never need a `beforeEach` reset — every test creates a fresh handler with fresh state:
+
+```hica
+test "counter starts at zero" {
+  let n = handle Counter {
+    incr() => count = count + 1,
+    get()  => count
+  } with var count = 0 in {
+    get()
+  }
+  assert_eq(0, n)
+}
+
+test "counter counts three" {
+  let n = handle Counter {
+    incr() => count = count + 1,
+    get()  => count
+  } with var count = 0 in {
+    incr(); incr(); incr()
+    get()
+  }
+  assert_eq(3, n)
+}
+```
+
+See:
+- `examples/effects/counter.hc` — the minimal single-var handler
+- `learn/45-effects-state.hc`  — a longer walk-through with fresh-state and non-zero-start examples
+
+**Current implementation note:** arm bodies that are themselves multi-arm `match` expressions with block-shaped cases are a known codegen gap (design doc §4.4's `Buffer` example). If you need one, extract the match into a helper function and call it from the arm. The `Counter` pattern above (single-statement assignment or single-expression arm) covers the common case.
+
 
 ## Testing with different handlers
 
@@ -223,8 +285,6 @@ test "arrow-down moves cursor" {
 
 The test never touches a real terminal. It cannot flake because of terminal state, TTY settings, or CI environment. The `editor_loop` logic is identical in both cases — the divergence is entirely in the handler.
 
----
-
 ## Nesting handlers
 
 Effects stack. Code inside an inner `handle` can use both the outer and inner effects:
@@ -246,8 +306,6 @@ handle Log {
 ```
 
 The innermost matching handler wins for each operation.
-
----
 
 ## Effect rows in function types (M4)
 
@@ -320,18 +378,11 @@ The check follows references: passing a top-level function like `leaky_write` wa
 
 Effect rows are compared **as sets** — `<A, B>` unifies with `<B, A>`.
 
----
-
 ## Coming in later milestones
 
 | Feature | Milestone |
 |---|---|
-| **Stateful handlers** — `handle … with var count = 0 in { … }` | M5 |
 | **`actor` keyword** — sugar over `effect + handle + with var` | M6 |
-
-The `with var` clause for stateful handlers (e.g. a Counter or Buffer effect) is *parsed* today but not yet emitted. If you need mutable handler state before M5, declare a `var` in the enclosing scope and capture it in the arm.
-
----
 
 ## See also
 
