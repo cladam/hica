@@ -239,6 +239,10 @@ fun assigns-to-name( n : node, target : string ) : div bool
       state.any(fn((_, v)) assigns-to-name(v, target)) ||
       arms.any(fn(a) assigns-to-name(a.arm-body, target)) ||
       assigns-to-name(body, target)
+    // Named-effect spawn (N1) — same treatment as EHandle but no body.
+    ESpawn(_, arms, state, _) ->
+      state.any(fn((_, v)) assigns-to-name(v, target)) ||
+      arms.any(fn(a) assigns-to-name(a.arm-body, target))
     _                         -> False
 
 // True iff `n` contains a lambda (`Fun`) whose body assigns to `target`.
@@ -291,6 +295,10 @@ fun contains-lambda-assigning-to( n : node, target : string ) : div bool
       state.any(fn((_, v)) contains-lambda-assigning-to(v, target)) ||
       arms.any(fn(a) contains-lambda-assigning-to(a.arm-body, target)) ||
       contains-lambda-assigning-to(body, target)
+    // Named-effect spawn (N1) — walk state + arms; no body.
+    ESpawn(_, arms, state, _) ->
+      state.any(fn((_, v)) contains-lambda-assigning-to(v, target)) ||
+      arms.any(fn(a) contains-lambda-assigning-to(a.arm-body, target))
     _                         -> False
 
 pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div function-score
@@ -483,6 +491,15 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
         )
         val s2 = arms.foldl(s1, fn(acc, arm) walk(arm.arm-body, False, acc))
         walk(hbody, False, s2)
+      // Named-effect spawn (N1) — walk state initialisers + arm bodies.
+      // No body to walk: the spawn binds a ref for the enclosing scope
+      // (the enclosing Block walker handles subsequent statements).
+      ESpawn(_ename, arms, hstate, _binder) ->
+        val s1 = hstate.foldl(state, fn(acc, entry)
+          match entry
+            (_, init) -> walk(init, False, acc)
+        )
+        arms.foldl(s1, fn(acc, arm) walk(arm.arm-body, False, acc))
       _ -> state
 
 

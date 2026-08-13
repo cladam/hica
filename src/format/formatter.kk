@@ -244,4 +244,10 @@ fun acc-keyword( acc : list<char> ) : bool
     "struct" -> True
     "type"   -> True
     "test"   -> True
+    "handle" -> True
+    "effect" -> True
+    "actor"  -> True
+    "spawn"  -> True
+    "as"     -> True
+    "with"   -> True
     _        -> False

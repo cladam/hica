@@ -100,6 +100,9 @@ fun emit-type( t : hica-type ) : div string
     TStruct(name) -> name.struct-type-name
     TEnum(name)   -> name.to-lower
     TVar(_)     -> ""  // unresolved — omit annotation
+    // Named-effect reference (N1): Koka spells the reference type as
+    // `ev<E>` ("evidence for effect E"). See design doc §7.4.
+    TRef(name)  -> "ev<" ++ name.to-lower ++ ">"
 
 // ---------------------------------------------------------------------------
 // Struct definition emission
@@ -1279,6 +1282,26 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       val inner = pre ++ "with handler\n" ++ arm-lines.join("\n") ++ "\n" ++ bc
       "(fn()\n" ++ indent-all(inner) ++ "\n)()"
 
+    // spawn EffectName { arms } (with var …)? as binder — N1 stub emit.
+    // Emits Koka's named-handler form (design doc §7.2):
+    //   var <state> := <init>            -- one per state binding
+    //   with <binder> <- named handler
+    //     fun hc_<op>(<params>) <arm-body>
+    //     ...
+    // The binder's scope is the enclosing block — subsequent statements are
+    // emitted by the outer walker. N1 uses the naïve promotion path: whenever
+    // ANY spawn appears in the program, emit-effect-def promotes the effect
+    // to `named effect` with `fun` ops (see §7.6). For N1 we do NOT promote
+    // yet — spawn-only usage is validated with the two-counters example, and
+    // named-effect promotion lands in N2 alongside the full checker/dispatch.
+    ESpawn(_effect-name, arms, state, binder) ->
+      val state-lines = state.map fn((sname, sinit))
+        "var " ++ marshal-name(sname, declared) ++ " := " ++ emit-expr(sinit, declared)
+      val arm-lines = arms.map(fn(arm) emit-named-arm(arm, declared))
+      val pre = if state-lines.is-nil then "" else state-lines.join("\n") ++ "\n"
+      pre ++ "with " ++ marshal-name(binder, declared) ++ " <- named handler\n" ++
+        arm-lines.join("\n")
+
 // Emit a single handler arm.  Multi-statement arm bodies (Block with more
 // than one stmt) are split so the leading statements run *before* resume(),
 // and only the final expression is passed to resume(). This matches design
@@ -1347,6 +1370,28 @@ fun emit-handle-arm( arm : handle-arm, declared : list<string> ) : div string
         header ++ "\n" ++ indent-all(indent-all("resume(" ++ ac ++ ")"))
       else
         header ++ " resume(" ++ ac ++ ")"
+
+// Emit a spawn arm as a Koka named-handler `fun` op.
+// Named-effect handlers require tail-resumptive ops, which map to `fun`
+// (not `ctl`) — so no `resume(...)` wrapping. The arm's body IS the
+// resume value. See design doc §7.2.
+//
+// For N1 we accept the simple case: multi-stmt Block bodies become an
+// indented body block; single-expression bodies emit compact.
+fun emit-named-arm( arm : handle-arm, declared : list<string> ) : div string
+  val ps = arm.params.map(fn(p) marshal-name(p, declared)).join(", ")
+  val op = koka-op-name(arm.op-name)
+  val header = "  fun " ++ op ++ "(" ++ ps ++ ")"
+  match arm.arm-body.expr
+    Block(stmts) | stmts.length > 1 ->
+      val body-code = stmts.map(fn(s) emit-stmt(s, declared)).join("\n")
+      header ++ "\n" ++ indent-all(indent-all(body-code))
+    _ ->
+      val ac = emit-expr(arm.arm-body, declared)
+      if ac.contains("\n") then
+        header ++ "\n" ++ indent-all(indent-all(ac))
+      else
+        header ++ " " ++ ac
 
 // Convert a hica op name (snake_case) to a Koka identifier that can't clash
 // with Koka stdlib names (e.g. `info`, `exit`, `resume`). See design doc §7.1.

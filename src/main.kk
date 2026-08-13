@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.0-14"
+val version = "0.49.0-15"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -2445,5 +2445,12 @@ fun collect-calls-h( n : node, effects : list<effect-def>, handled : list<string
       val arm-calls   = arms.map(fn(a) collect-calls-h(a.arm-body, effects, handled)).concat
       val body-calls  = collect-calls-h(body, effects, Cons(ename, handled))
       state-calls ++ arm-calls ++ body-calls
+    // Named-effect spawn (N1): walk state initialisers and arm bodies. Do
+    // NOT push the effect onto `handled` — the binder discharges ops via
+    // ref-dispatch, which N4 will analyse; for now leave un-discharged.
+    ESpawn(_, arms, state, _) ->
+      val state-calls = state.map(fn((_, v)) collect-calls-h(v, effects, handled)).concat
+      val arm-calls   = arms.map(fn(a) collect-calls-h(a.arm-body, effects, handled)).concat
+      state-calls ++ arm-calls
     _ -> []
 

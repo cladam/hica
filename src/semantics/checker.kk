@@ -1084,6 +1084,55 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       val body-type = apply-subst(s-body, get-type(body'))
       (s-body, Node(n.span, EHandle(ename, arms'.reverse, state'.reverse, body'), Just(body-type)))
 
+    // --- Spawn expression (named effects v2, N1 stub) ---
+    // See documentation/named-effects-design.md §4.2 / §7.2.
+    // For N1, we lightly type-check: register the effect exists, walk state
+    // initialisers and arm bodies (arm params get types from op sig, same
+    // as EHandle), and tag the result node with TRef(ename). The binder
+    // env-threading into the enclosing block is out of scope for the
+    // stub — the full checker resolves ref.op() dispatch by looking at
+    // the receiver type via Var lookup, which finds the binder because
+    // the Block/Let/VarDecl walker automatically extends the env below.
+    // For N1 we take a shortcut: we do NOT extend the env with the binder
+    // yet; instead, method dispatch falls back to lenient Mode B.
+    // Full env-threading is a checker N2 task.
+    ESpawn(ename, arms, state, binder) ->
+      val effect-def-opt = get-effects().effect-find(ename)
+      match effect-def-opt
+        Nothing -> emit-error(n.span, "unknown effect: '" ++ ename ++ "'")
+        _       -> ()
+      // 2. State bindings: infer each initialiser, extend env cumulatively.
+      val (s-st, state', env-st) = state.foldl((s, []:list<(string, node)>, env)) fn(acc, entry)
+        val (sa, sts-acc, ea) = acc
+        val (vname, vinit) = entry
+        val (s1, vinit') = infer(ea, sa, vinit)
+        val vtype = apply-subst(s1, get-type(vinit'))
+        (s1, Cons((vname, vinit'), sts-acc), ea.extend(vname, vtype))
+      // 3. Op arms — same param typing as EHandle.
+      val (s-arms, arms') = arms.foldl((s-st, []:list<handle-arm>)) fn(acc, arm)
+        val (sa, arms-acc) = acc
+        match arm
+          Handle-arm(arm-span, arm-op-name, arm-params, arm-body) ->
+            val op-sig-opt = match effect-def-opt
+              Nothing   -> Nothing
+              Just(ed)  -> ed.ops.find(fn(op) op.name == arm-op-name)
+            val arm-param-types = match op-sig-opt
+              Just(op) ->
+                val declared-param-types = op.params.map(fn((_, t)) t)
+                val bundle = TFun(declared-param-types, op.ret)
+                val bundle' = freshen(bundle)
+                match bundle'
+                  TFun(ps, _) -> ps
+                  _           -> declared-param-types
+              Nothing ->
+                arm-params.map(fn(_) fresh-tvar())
+            val arm-env = zip(arm-params, arm-param-types).foldl(env-st) fn(e, pair)
+              match pair
+                (pn, pt) -> e.extend(pn, pt)
+            val (s1, ab') = infer(arm-env, sa, arm-body)
+            (s1, Cons(Handle-arm(arm-span, arm-op-name, arm-params, ab'), arms-acc))
+      (s-arms, Node(n.span, ESpawn(ename, arms'.reverse, state'.reverse, binder), Just(TRef(ename))))
+
     // --- Field access ---
     FieldAccess(obj, fname) ->
       val (s1, obj') = infer(env, s, obj)
@@ -1853,6 +1902,13 @@ fun collect-effect-leaks( n : node, effects : list<effect-def>, handled : list<s
       val arm-leaks   = arms.flatmap(fn(a) collect-effect-leaks(a.arm-body, effects, handled))
       val body-leaks  = collect-effect-leaks(body, effects, Cons(ename, handled))
       state-leaks ++ arm-leaks ++ body-leaks
+    // Named-effect spawn (N1): binder scope is the enclosing block, not a
+    // nested body. Walk state initialisers and arm bodies with the parent
+    // handled stack. Ref-based dispatch analysis lands in N4.
+    ESpawn(_, arms, state, _) ->
+      val state-leaks = state.flatmap(fn((_, v)) collect-effect-leaks(v, effects, handled))
+      val arm-leaks   = arms.flatmap(fn(a) collect-effect-leaks(a.arm-body, effects, handled))
+      state-leaks ++ arm-leaks
     _ -> []
 
 // Deduplicate a list of strings preserving first-seen order.
@@ -1982,6 +2038,12 @@ fun walk-call-sites( n : node, decl-index : list<(string, fun-decl)>, effects : 
       state.foreach(fn((_, v)) walk-call-sites(v, decl-index, effects, handled))
       arms.foreach(fn(a) walk-call-sites(a.arm-body, decl-index, effects, handled))
       walk-call-sites(body, decl-index, effects, Cons(ename, handled))
+    // Named-effect spawn (N1): walk state initialisers + arm bodies with the
+    // parent `handled` stack. No body to walk here — the binder lives in the
+    // enclosing scope. Ref-based dispatch analysis is a future milestone.
+    ESpawn(_, arms, state, _) ->
+      state.foreach(fn((_, v)) walk-call-sites(v, decl-index, effects, handled))
+      arms.foreach(fn(a) walk-call-sites(a.arm-body, decl-index, effects, handled))
     _ -> ()
 
 // Entry point: after type inference has populated every decl's `param-types`

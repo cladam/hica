@@ -55,6 +55,11 @@ pub type hica-type
   TStruct( name : string )
   TEnum( name : string )
   TVar( name : string )
+  // TRef — reference to a named-effect handler instance (v2 of effects, N1).
+  // `spawn Name { … } as r` binds `r : TRef("Name")`. Method dispatch
+  // `r.op(args)` looks up `op` in `Name`'s op table and adds `<Name>` to
+  // the enclosing function's effect row. See documentation/named-effects-design.md §4.4.
+  TRef( effect-name : string )
 
 pub fun hica-type/show( t : hica-type ) : div string
   match t
@@ -75,6 +80,7 @@ pub fun hica-type/show( t : hica-type ) : div string
     TStruct(n)  -> n
     TEnum(n)    -> n
     TVar(n)     -> n
+    TRef(n)     -> "ref<" ++ n ++ ">"
 
 pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
   match (t1, t2)
@@ -93,6 +99,7 @@ pub fun hica-type/(==)( t1 : hica-type, t2 : hica-type ) : div bool
     (TVar(a), TVar(b)) -> a == b
     (TStruct(a), TStruct(b)) -> a == b
     (TEnum(a), TEnum(b)) -> a == b
+    (TRef(a), TRef(b)) -> a == b
     (TFun(ps1, r1, es1), TFun(ps2, r2, es2)) ->
       // Effect rows compare as sets. An empty row is a wildcard match — this
       // matches the unification rule so `==` and `unify` stay in agreement.
@@ -285,6 +292,18 @@ pub type expr
   //   body        : the `in { … }` block whose effects are being handled
   EHandle( effect-name : string, arms : list<handle-arm>, state : list<(string, node)>, body : node )
 
+  // spawn EffectName { arms } (with var x = e, ...)? as ident
+  // Named-effects v2 (N1): install a fresh named-handler instance and bind
+  // the reference to `binder`. `binder : TRef(effect-name)` is added to the
+  // enclosing block's env for the rest of the block. See
+  // documentation/named-effects-design.md §4.2.
+  //   effect-name : the effect being instantiated (e.g. "Counter")
+  //   arms        : one op-arm per operation (same shape as EHandle arms)
+  //   state       : optional `with var …` clause bindings (identical to
+  //                 EHandle's — hoisted before the named-handler block).
+  //   binder      : identifier for the fresh instance (bound to TRef(name))
+  ESpawn( effect-name : string, arms : list<handle-arm>, state : list<(string, node)>, binder : string )
+
 pub struct handle-arm
   span     : span
   op-name  : string
@@ -396,6 +415,12 @@ pub fun expr/show( e : expr ) : div string
       "handle " ++ name ++ " { " ++
         arms.map(handle-arm/show).join(", ") ++
         " }" ++ state-str ++ " in " ++ body.show
+    ESpawn(name, arms, state, binder) ->
+      val state-str = if state.is-nil then ""
+        else " with " ++ state.map(fn((n, v)) "var " ++ n ++ " = " ++ v.show).join(", ")
+      "spawn " ++ name ++ " { " ++
+        arms.map(handle-arm/show).join(", ") ++
+        " }" ++ state-str ++ " as " ++ binder
 
 // ---------------------------------------------------------------------------
 // Effect declarations (top-level, since M1)
