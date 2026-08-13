@@ -171,6 +171,128 @@ val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
 val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwrite"]
 val ndet-fns    = ["random"]
 
+// M6.5 — recognise handler-captured `var` bindings.
+//
+// A common idiom for observing state that only exists inside a handler is:
+//
+//   var final_count = -1
+//   with_counter(() => { … final_count = 42 })
+//   println(final_count)
+//
+// The outer `var` here is intentional — it's the only way in v1 to observe
+// state that would otherwise be scoped to (and dropped by) the handler.
+// Without this exception the analyser flags every such capture as
+// `Immutability: mutable var` debt, which fires on legitimate uses of the
+// `actor` sugar and the `with_<name>(fn() …)` helper pattern documented in
+// `learn/47-effects-actors.hc`.
+//
+// The heuristic: a `VarDecl(name, _, _, body)` is handler-captured when
+// `body` contains a `Fun(_, fun-body)` (an inline lambda) that assigns to
+// `name`. This is deliberately loose — any lambda-capture-and-assign counts,
+// not just handler callbacks — because writing that pattern outside a handler
+// is rare, and when it does happen the `var` is still doing the same
+// "escape hatch for a value that would otherwise be scoped inside a
+// closure" job we don't want to penalise.
+fun assigns-to-name( n : node, target : string ) : div bool
+  match n.expr
+    Assign(nm, value)         -> nm == target || assigns-to-name(value, target)
+    Let(_, _, init, body)     -> assigns-to-name(init, target) || assigns-to-name(body, target)
+    VarDecl(_, _, init, body) -> assigns-to-name(init, target) || assigns-to-name(body, target)
+    LetTuple(_, init, body)   -> assigns-to-name(init, target) || assigns-to-name(body, target)
+    Block(stmts)              -> stmts.any(fn(s) assigns-to-name(s, target))
+    If(c, t, e)               -> assigns-to-name(c, target) || assigns-to-name(t, target) || assigns-to-name(e, target)
+    Match(scrut, arms)        ->
+      assigns-to-name(scrut, target) ||
+      arms.any(fn(a) assigns-to-name(a.body, target)) ||
+      arms.any(fn(a) match a.guard { Just(g) -> assigns-to-name(g, target); Nothing -> False })
+    Fun(_, body)              -> assigns-to-name(body, target)
+    Call(callee, args)        -> assigns-to-name(callee, target) || args.any(fn(a) assigns-to-name(a, target))
+    Binary(_, l, r)           -> assigns-to-name(l, target) || assigns-to-name(r, target)
+    Unary(_, o)               -> assigns-to-name(o, target)
+    Repeat(c, body)           -> assigns-to-name(c, target) || assigns-to-name(body, target)
+    ForIn(_, s, e, body)      -> assigns-to-name(s, target) || assigns-to-name(e, target) || assigns-to-name(body, target)
+    ForEach(_, coll, body)    -> assigns-to-name(coll, target) || assigns-to-name(body, target)
+    While(c, body)            -> assigns-to-name(c, target) || assigns-to-name(body, target)
+    Loop(body)                -> assigns-to-name(body, target)
+    StringInterp(parts)       -> parts.any(fn(p) assigns-to-name(p, target))
+    Tuple(elems)              -> elems.any(fn(e) assigns-to-name(e, target))
+    EList(elems)              -> elems.any(fn(e) assigns-to-name(e, target))
+    MapLit(entries)           -> entries.any(fn((k, v)) assigns-to-name(k, target) || assigns-to-name(v, target))
+    ListIndex(l, i)           -> assigns-to-name(l, target) || assigns-to-name(i, target)
+    ListSlice(l, sm, em)      ->
+      assigns-to-name(l, target) ||
+      sm.map(fn(x) assigns-to-name(x, target)).default(False) ||
+      em.map(fn(x) assigns-to-name(x, target)).default(False)
+    TupleIndex(t, _)          -> assigns-to-name(t, target)
+    ESome(v)                  -> assigns-to-name(v, target)
+    EOk(v)                    -> assigns-to-name(v, target)
+    EErr(v)                   -> assigns-to-name(v, target)
+    FieldAccess(o, _)         -> assigns-to-name(o, target)
+    StructLit(_, fields)      -> fields.any(fn((_, v)) assigns-to-name(v, target))
+    StructUpdate(_, base, overrides, _) ->
+      assigns-to-name(base, target) ||
+      overrides.any(fn((_, v)) assigns-to-name(v, target))
+    EConstructor(_, cargs)    -> cargs.any(fn(a) assigns-to-name(a, target))
+    ETry(inner)               -> assigns-to-name(inner, target)
+    EValidateTry(inner)       -> assigns-to-name(inner, target)
+    EHandle(_, arms, state, body) ->
+      state.any(fn((_, v)) assigns-to-name(v, target)) ||
+      arms.any(fn(a) assigns-to-name(a.arm-body, target)) ||
+      assigns-to-name(body, target)
+    _                         -> False
+
+// True iff `n` contains a lambda (`Fun`) whose body assigns to `target`.
+// The lambda itself may be nested inside any expression — Call args, Match
+// arms, Let bodies, etc.
+fun contains-lambda-assigning-to( n : node, target : string ) : div bool
+  match n.expr
+    Fun(_, body) ->
+      assigns-to-name(body, target) || contains-lambda-assigning-to(body, target)
+    Let(_, _, init, body)     -> contains-lambda-assigning-to(init, target) || contains-lambda-assigning-to(body, target)
+    VarDecl(_, _, init, body) -> contains-lambda-assigning-to(init, target) || contains-lambda-assigning-to(body, target)
+    LetTuple(_, init, body)   -> contains-lambda-assigning-to(init, target) || contains-lambda-assigning-to(body, target)
+    Assign(_, value)          -> contains-lambda-assigning-to(value, target)
+    Block(stmts)              -> stmts.any(fn(s) contains-lambda-assigning-to(s, target))
+    If(c, t, e)               -> contains-lambda-assigning-to(c, target) || contains-lambda-assigning-to(t, target) || contains-lambda-assigning-to(e, target)
+    Match(scrut, arms)        ->
+      contains-lambda-assigning-to(scrut, target) ||
+      arms.any(fn(a) contains-lambda-assigning-to(a.body, target)) ||
+      arms.any(fn(a) match a.guard { Just(g) -> contains-lambda-assigning-to(g, target); Nothing -> False })
+    Call(callee, args)        -> contains-lambda-assigning-to(callee, target) || args.any(fn(a) contains-lambda-assigning-to(a, target))
+    Binary(_, l, r)           -> contains-lambda-assigning-to(l, target) || contains-lambda-assigning-to(r, target)
+    Unary(_, o)               -> contains-lambda-assigning-to(o, target)
+    Repeat(c, body)           -> contains-lambda-assigning-to(c, target) || contains-lambda-assigning-to(body, target)
+    ForIn(_, s, e, body)      -> contains-lambda-assigning-to(s, target) || contains-lambda-assigning-to(e, target) || contains-lambda-assigning-to(body, target)
+    ForEach(_, coll, body)    -> contains-lambda-assigning-to(coll, target) || contains-lambda-assigning-to(body, target)
+    While(c, body)            -> contains-lambda-assigning-to(c, target) || contains-lambda-assigning-to(body, target)
+    Loop(body)                -> contains-lambda-assigning-to(body, target)
+    StringInterp(parts)       -> parts.any(fn(p) contains-lambda-assigning-to(p, target))
+    Tuple(elems)              -> elems.any(fn(e) contains-lambda-assigning-to(e, target))
+    EList(elems)              -> elems.any(fn(e) contains-lambda-assigning-to(e, target))
+    MapLit(entries)           -> entries.any(fn((k, v)) contains-lambda-assigning-to(k, target) || contains-lambda-assigning-to(v, target))
+    ListIndex(l, i)           -> contains-lambda-assigning-to(l, target) || contains-lambda-assigning-to(i, target)
+    ListSlice(l, sm, em)      ->
+      contains-lambda-assigning-to(l, target) ||
+      sm.map(fn(x) contains-lambda-assigning-to(x, target)).default(False) ||
+      em.map(fn(x) contains-lambda-assigning-to(x, target)).default(False)
+    TupleIndex(t, _)          -> contains-lambda-assigning-to(t, target)
+    ESome(v)                  -> contains-lambda-assigning-to(v, target)
+    EOk(v)                    -> contains-lambda-assigning-to(v, target)
+    EErr(v)                   -> contains-lambda-assigning-to(v, target)
+    FieldAccess(o, _)         -> contains-lambda-assigning-to(o, target)
+    StructLit(_, fields)      -> fields.any(fn((_, v)) contains-lambda-assigning-to(v, target))
+    StructUpdate(_, base, overrides, _) ->
+      contains-lambda-assigning-to(base, target) ||
+      overrides.any(fn((_, v)) contains-lambda-assigning-to(v, target))
+    EConstructor(_, cargs)    -> cargs.any(fn(a) contains-lambda-assigning-to(a, target))
+    ETry(inner)               -> contains-lambda-assigning-to(inner, target)
+    EValidateTry(inner)       -> contains-lambda-assigning-to(inner, target)
+    EHandle(_, arms, state, body) ->
+      state.any(fn((_, v)) contains-lambda-assigning-to(v, target)) ||
+      arms.any(fn(a) contains-lambda-assigning-to(a.arm-body, target)) ||
+      contains-lambda-assigning-to(body, target)
+    _                         -> False
+
 pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div function-score
   fun is-list-op(node: node) : bool
     match node.typ { Just(TList(_)) -> True; _ -> False }
@@ -195,9 +317,17 @@ pub fun analyse-decl(decl: fun-decl, extra-effectful: list<string>) : div functi
       Let(_name, _t, init, body) ->
         val s1 = walk(init, False, state)
         walk(body, False, s1)
-      VarDecl(_name, _t, init, body) ->
+      VarDecl(name, _t, init, body) ->
         // Batch 3: Immutability rule (VarDecl)
-        val s1 = add-debt-pure(state, Immutability, "Mutable 'var' declaration used", 5, n.span, "Suggest using 'map', 'filter', 'fold', or lazy streams instead.")
+        // M6.5 exception: if the var is captured-and-assigned by an inline
+        // lambda somewhere in its scope (typical for `with_<actor>(fn() {
+        // captured = … })` and handler-callback patterns), the `var` is the
+        // sanctioned way to observe post-handler state and should not accrue
+        // debt. See learn/47-effects-actors.hc for the pattern.
+        val is-handler-capture = contains-lambda-assigning-to(body, name)
+        val s1 =
+          if is-handler-capture then state
+          else add-debt-pure(state, Immutability, "Mutable 'var' declaration used", 5, n.span, "Suggest using 'map', 'filter', 'fold', or lazy streams instead.")
         val s2 = walk(init, False, s1)
         walk(body, False, s2)
       Assign(_name, value) ->

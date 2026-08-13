@@ -324,4 +324,47 @@ pub fun main() : io ()
       val ok-bar = kk.contains("ctl hc_send_bar(m)") && kk.contains("pub fun hc_with_bar(action)")
       assert/is-true(ok-foo && ok-bar)
 
+    // --- M6.5: single-letter effect / actor names rejected -----------
+    // Koka's parser treats a single lowercase identifier at the
+    // effect-header position as a *type variable*, so `effect A { … }`
+    // in hica lowers to `effect a` in Koka and fails with the opaque
+    // "expected type name (and not type variable)" error. M6.5 catches
+    // this at hica-check time with a targeted message. Also covers
+    // the `actor` sugar because actor names lower to effect names.
+    dtest("check: single-letter effect name is rejected (M6.5)")
+      val src = "effect A { fun ping() }\nfun main() { handle A { ping() => println(\"pong\") } in { ping() } }"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("too short") && d.message.contains("'A'"))
+      assert/is-true(hit)
+
+    dtest("check: single-letter actor name is rejected (M6.5)")
+      val src = "type MMsg { Ping }\nactor M { var count = 0; receive(msg: MMsg) => match msg { Ping => count = count + 1 } }\nfun main() { with_m(() => send_m(Ping)) }"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val hit = ds.any(fn(d) d.message.contains("too short") && d.message.contains("'M'"))
+      assert/is-true(hit)
+
+    // Multi-letter names still pass — the exact opposite of the check.
+    // A regression here would mean the new check has become too eager.
+    dtest("check: two-letter effect name is accepted (M6.5)")
+      val src = "effect Ab { fun ping() }\nfun main() { handle Ab { ping() => println(\"pong\") } in { ping() } }"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (_, ds) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val name-too-short-hit = ds.any(fn(d) d.message.contains("too short"))
+      assert/is-true(!name-too-short-hit)
+
+
 

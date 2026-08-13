@@ -1501,6 +1501,19 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   // Check global let names against Koka keyword blocklist
   p.globals.foreach fn(g)
     check-not-koka-keyword(g.name, g.span)
+  // M6.5 — reject single-letter effect names. Koka's parser treats a single
+  // lowercase identifier at effect-header position as a type variable, so an
+  // `effect A { … }` in hica lowers to `effect a` in Koka and fails with the
+  // opaque "expected type name (and not type variable)" error. Catch it at
+  // the hica layer with a targeted message that points at both the effect
+  // and (when applicable) the underlying `actor` declaration.
+  // Also covers the `actor` sugar: `actor M { … }` desugars to an effect of
+  // the same name at parse time, so the same check catches it.
+  p.effects.foreach fn(edef)
+    if edef.name.count <= 1 then
+      emit-error(edef.span,
+        "effect / actor name '" ++ edef.name ++
+        "' is too short — use at least two characters (Koka treats a single lowercase letter as a type variable)")
   val base-extern = extern-env() ++ extra-extern
   // Seed the environment with user-declared effect operations, so that op calls
   // resolve as free identifiers in Mode B (see documentation/effects-design.md §8

@@ -83,5 +83,31 @@ pub fun main() : io ()
             Nothing -> assert/is-true(False)
         Nothing -> assert/is-true(False)
 
+    // M6.5 — the analyser must NOT flag a `var` binding whose scope
+    // contains an inline lambda that assigns to it. This is the sanctioned
+    // way to observe post-handler state (documented in
+    // learn/47-effects-actors.hc). Only the `Immutability`-rule debt is
+    // suppressed; unrelated debts (loops, imperative constructs) still fire.
+    itest("does NOT flag var captured by inline lambda (M6.5)")
+      val source = "fun run() : int { var captured = 0; let cb = () => { captured = 42 }; cb(); captured }"
+      val scores = get-analyser-scores(source)
+      match scores.head
+        Just(func) ->
+          val has-immut = func.items.any(fn(i) match i.category { Immutability -> True; _ -> False })
+          assert/is-true(!has-immut)
+        Nothing -> assert/is-true(False)
+
+    // Regression: a bare `var` in a decl body — with no lambda ever
+    // reassigning it — should still accrue Immutability debt. This
+    // guards against making the M6.5 heuristic too permissive.
+    itest("still flags bare var without lambda capture (M6.5)")
+      val source = "fun run() : int { var count = 0; count = count + 1; count }"
+      val scores = get-analyser-scores(source)
+      match scores.head
+        Just(func) ->
+          val has-immut = func.items.any(fn(i) match i.category { Immutability -> True; _ -> False })
+          assert/is-true(has-immut)
+        Nothing -> assert/is-true(False)
+
   // Prevent mimalloc free-list corruption during tear-down of large ASTs
   my-process-exit(0)

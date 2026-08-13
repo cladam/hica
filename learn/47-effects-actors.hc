@@ -76,6 +76,11 @@ fun run_counter_to_two() : int {
   // after the fact is to capture into an outer mutable reference. In
   // v2 we'll add a second op or a `return-with-state` shape to remove
   // this pattern; today it's the pragmatic choice.
+  //
+  // Note: `hica analyse` recognises this pattern (any `var` captured and
+  // assigned by an inline lambda in its scope) and does NOT flag it as
+  // Immutability debt. Bare `var count = 0; count = count + 1` outside a
+  // handler / lambda-callback still triggers the debt rule.
   var final_count = -1
   with_counter(() => {
     send_counter(Incr)
