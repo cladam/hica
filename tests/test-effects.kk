@@ -288,4 +288,40 @@ pub fun main() : io ()
       val no-inline-match = !kk.contains("resume(match ")
       assert/is-true(has-hoist && resumes-local && no-inline-match)
 
+    // --- M6: actor keyword desugars to effect + helper ---------------
+    // `actor Counter { var count = 0; receive(msg: CounterMsg) => … }`
+    // expands to two top-level items: an `effect Counter { fun
+    // send_counter(msg: CounterMsg) }` declaration, and a
+    // `pub fun with_counter(action) { … }` helper that installs the
+    // handler with `with var count = 0` and calls `action()`. The op
+    // name is `send_<name>` (Option A / design doc §13.4) so multiple
+    // actors in the same file coexist without namespace collision.
+    dtest("codegen: actor Counter emits effect + hc_with_counter helper (M6)")
+      val src = "type CounterMsg { Incr, Decr }\nactor Counter {\n  var count = 0\n  receive(msg: CounterMsg) => match msg { Incr => count = count + 1, Decr => count = count - 1 }\n}\nfun main() {\n  with_counter(() => { send_counter(Incr) })\n}"
+      val kk = emit-typed-program(src)
+      // Effect block for the actor. Effect name is lowercased (matches
+      // the M1 rule) and the op carries the hc_ prefix (M4.5 rule).
+      val has-effect = kk.contains("effect counter") && kk.contains("ctl hc_send_counter")
+      // Helper is emitted as `pub fun hc_with_counter(action)`.
+      val has-helper = kk.contains("pub fun hc_with_counter(action)")
+      // Handler body carries the state hoist and the `send_counter` arm.
+      val has-state  = kk.contains("var count := 0")
+      val has-arm    = kk.contains("ctl hc_send_counter(msg)")
+      assert/is-true(has-effect && has-helper && has-state && has-arm)
+
+    // A minimal, isolated regression on the name-collision fix from M6:
+    // two actors with different message types must produce two effect
+    // blocks and two distinct helpers, without op-name overlap.
+    //
+    // Note: actor names have to be multi-letter here — a single-letter
+    // effect name would be lowercased to `a` in Koka, and Koka's
+    // parser treats a single lowercase letter as a type-variable name
+    // (not an effect name). Filed as a follow-up (see M6 log).
+    dtest("codegen: two actors produce distinct send_<name> ops (M6)")
+      val src = "type FooMsg { F1 }\ntype BarMsg { B1 }\nactor Foo { var x = 0; receive(m: FooMsg) => match m { F1 => x = 1 } }\nactor Bar { var y = 0; receive(m: BarMsg) => match m { B1 => y = 1 } }\nfun main() { with_foo(() => send_foo(F1)); with_bar(() => send_bar(B1)) }"
+      val kk = emit-typed-program(src)
+      val ok-foo = kk.contains("ctl hc_send_foo(m)") && kk.contains("pub fun hc_with_foo(action)")
+      val ok-bar = kk.contains("ctl hc_send_bar(m)") && kk.contains("pub fun hc_with_bar(action)")
+      assert/is-true(ok-foo && ok-bar)
+
 

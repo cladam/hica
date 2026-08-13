@@ -382,11 +382,82 @@ The check follows references: passing a top-level function like `leaky_write` wa
 
 Effect rows are compared **as sets** — `<A, B>` unifies with `<B, A>`.
 
-## Coming in later milestones
+## The `actor` keyword
 
-| Feature | Milestone |
-|---|---|
-| **`actor` keyword** — sugar over `effect + handle + with var` | M6 |
+An `actor` declaration is sugar over `effect + handle + with var`. Reach for it when you have a chunk of stateful, message-driven logic that would otherwise clutter every call site with a hand-written `handle Actor { … } with var … in { … }`.
+
+```hica
+type CounterMsg { Incr, Decr, Reset }
+
+actor Counter {
+  var count = 0
+
+  receive(msg: CounterMsg) => match msg {
+    Incr  => count = count + 1,
+    Decr  => count = count - 1,
+    Reset => count = 0
+  }
+}
+```
+
+The declaration above expands to *two* top-level items:
+
+1. `effect Counter { fun send_counter(msg: CounterMsg) : () }`
+2. `pub fun with_counter(action) { handle Counter { send_counter(msg) => <receive body> } with var count = 0 in { action() } }`
+
+You install the actor via `with_<name>(fn() { … })`, then send messages inside:
+
+```hica
+fun main() {
+  with_counter(() => {
+    send_counter(Incr)
+    send_counter(Incr)
+    send_counter(Incr)
+    send_counter(Decr)
+    println("done")
+  })
+}
+```
+
+**Rules and constraints:**
+
+- Actor names are **PascalCase** (like `struct` and `effect`).
+- State fields are declared as `var name = init` (with optional `: T` annotation), one per line.
+- The `receive(msg: MsgType) => body` header is required, and the `msg` parameter must carry an explicit type annotation; hica needs it to figure out what messages the actor accepts.
+- Each actor gets one op named `send_<name>` (e.g. `send_counter`, `send_pinger`). This convention sidesteps the flat effect-op namespace so multiple actors coexist without collision. When named effects is implemented, the surface will collapse to `counter.send(Incr)`.
+- Actor sends are unit-typed. If you need to observe state after the callback, capture it into an outer `var` (see `learn/47-effects-actors.hc`).
+
+**Two-actor example:**
+
+```hica
+type PingerMsg { Pong }
+type PongerMsg { Ping }
+
+actor Pinger {
+  var pongs = 0
+  receive(msg: PingerMsg) => match msg {
+    Pong => pongs = pongs + 1
+  }
+}
+
+actor Ponger {
+  var pings = 0
+  receive(msg: PongerMsg) => match msg {
+    Ping => pings = pings + 1
+  }
+}
+
+fun main() {
+  with_pinger(() => {
+    with_ponger(() => {
+      send_ponger(Ping)
+      send_pinger(Pong)
+    })
+  })
+}
+```
+
+See `examples/effects/counter-actor.hc` (single actor) and `examples/effects/ping-pong-actor.hc` (two actors, one file) for the full pattern.
 
 ## See also
 

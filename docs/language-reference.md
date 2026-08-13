@@ -1190,6 +1190,34 @@ fun main() {
 
 Effect rows compare as sets: `<A, B>` unifies with `<B, A>`. See [`docs/effects.md`](effects.md) for the full guide including handler nesting, the sandbox pattern, and testing recipes.
 
+### The `actor` keyword
+
+`actor Name { … }` is sugar over `effect + handle + with var`. It's the shortest way to define a stateful, message-driven component:
+
+```hica
+type CounterMsg { Incr, Decr, Reset }
+
+actor Counter {
+  var count = 0
+
+  receive(msg: CounterMsg) => match msg {
+    Incr  => count = count + 1,
+    Decr  => count = count - 1,
+    Reset => count = 0
+  }
+}
+
+fun main() {
+  with_counter(() => {
+    send_counter(Incr)
+    send_counter(Incr)
+    send_counter(Decr)
+  })
+}
+```
+
+Each `actor` declaration expands to (a) an `effect Name { fun send_<name>(msg: MsgType) : () }` and (b) a `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }` helper. The `msg` parameter on `receive` must carry an explicit type annotation. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
+
 ## Modules & Imports
 
 ### Modules

@@ -1402,50 +1402,95 @@ fun parse-handle-expr() : <div,parser> node
   val body = parse-block()
   Node(Span(t.span.start, body.span.end), EHandle(ename, arms, state, body))
 
-fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
+// ---------------------------------------------------------------------------
+// Actor declarations (design doc §11.4 / §13.4, milestone M6)
+//
+//   actor Name {
+//     var s1 = init1
+//     var s2 : T = init2
+//     receive(msg: MsgType) => <body>
+//   }
+//
+// Desugars into TWO top-level items:
+//
+//   1. effect Name { fun send_<name>(msg: MsgType) : () }
+//   2. pub fun with_<name>(action) {
+//        handle Name {
+//          send_<name>(msg) => <receive-body-verbatim>
+//        } with var s1 = init1, var s2 = init2 in {
+//          action()
+//        }
+//      }
+//
+// The `msg` parameter must carry an explicit type annotation
+// (`msg: CounterMsg`) — the checker needs it to type the effect op.
+// State variables MAY carry annotations; if omitted the helper omits
+// them and lets the checker infer via the initialiser (identical to
+// hand-written `with var …`).
+//
+// Design decisions (documented in effects-journal.md M6):
+//   * The single op is named `send_<name>` (e.g. `send_counter`,
+//     `send_pinger`) — not bare `send`. Effect-op namespaces are
+//     currently flat (design doc §8.2), so naming the op after the
+//     actor sidesteps the ambiguity when two actors coexist. This
+//     is the design-doc §13.4 workaround for the pre-named-effects
+//     era; when named effects land (post-M6, §10) we can drop the
+//     `_<name>` suffix and let users write `counter.send(Incr)`.
+//   * With_<name> helper generated as `pub` so it crosses module
+//     boundaries just like ordinary `pub fun`.
+//   * The receive body is copied verbatim into the arm; the message
+//     parameter name is preserved so the body's `match msg { … }`
+//     continues to bind correctly.
+//   * The old Phase-1 shape (`<Name>State` struct + `<name>_receive`
+//     function) is retired — no shipped example uses the `actor`
+//     keyword (see effects-journal.md M6 log for the audit).
+// ---------------------------------------------------------------------------
+
+fun parse-actor-decl() : <div,parser> (effect-def, fun-decl)
   val t = expect("actor", fn(k) match k { TkActor -> True; _ -> False })
   val name = match peek()
     TkIdent(n) -> { advance(); n }
     _          -> { parse-error("expected actor name"); "_" }
-  
+
   expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
-  
-  var state-fields : list<(string, hica-type)> := []
-  
+
+  // State bindings — same as `handle … with var …` clause but written
+  // as `var x = init` (with optional `: T` annotation), one per line.
+  // Whether the annotation is present is preserved so the generated
+  // helper can carry it into the `with var` clause verbatim.
+  var state-bindings : list<(string, maybe<hica-type>, node)> := []
+
   while { match peek() { TkVar -> True; _ -> False } }
     advance() // consume 'var'
     val var-name = match peek()
       TkIdent(n) -> { advance(); n }
       _          -> { parse-error("expected state variable name"); "_" }
-    
     val ann = parse-optional-type-ann()
     expect("=", fn(k) match k { TkEq -> True; _ -> False })
-    val init-expr = parse-expr()
-    
-    val vtype = match ann
-      Just(ty) -> ty
-      Nothing  ->
-        match init-expr.expr
-          Literal(LitInt(_)) -> TInt
-          Literal(LitFloat(_)) -> TFloat
-          Literal(LitBool(_)) -> TBool
-          Literal(LitString(_)) -> TString
-          Literal(LitChar(_)) -> TChar
-          _ -> TInt
-          
-    state-fields := Cons((var-name, vtype), state-fields)
+    // Same bp-9 trick used by parse-handle-state: never let the initialiser
+    // greedily consume a trailing `receive` identifier as anything odd.
+    val init-expr = parse-binary(9)
+    state-bindings := Cons((var-name, ann, init-expr), state-bindings)
     match peek()
       TkSemicolon -> { advance(); () }
       _           -> ()
-      
+
+  // The `receive(msg: MsgType)` header. The msg annotation is REQUIRED
+  // (§13.4 exit criterion + user-agreed session-11 decision) so we can
+  // materialise the effect op signature.
   expect("receive", fn(k) match k { TkIdent("receive") -> True; _ -> False })
   expect("(", fn(k) match k { TkLParen -> True; _ -> False })
   val msg-param = match peek()
     TkIdent(n) -> { advance(); n }
     _          -> { parse-error("expected message parameter name"); "msg" }
   val msg-ann = parse-optional-type-ann()
+  val msg-type = match msg-ann
+    Just(ty) -> ty
+    Nothing  ->
+      parse-error("actor '" ++ name ++ "': receive parameter needs an explicit type annotation, e.g. receive(msg: " ++ name ++ "Msg)")
+      TVar("_")
   expect(")", fn(k) match k { TkRParen -> True; _ -> False })
-  
+
   val body-start = current-span()
   val receive-body = match peek()
     TkArrow ->
@@ -1453,32 +1498,39 @@ fun parse-actor-decl() : <div,parser> (struct-def, fun-decl)
       parse-expr()
     _ ->
       parse-block()
-      
+
   val end-tok = expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
-  
-  val sname = name ++ "State"
-  val sdef = Struct-def(Span(t.span.start, end-tok.span.end), sname, fields = state-fields.reverse, is-pub = False, is-opaque = False)
-  
-  var stmt-list : list<node> := []
-  state-fields.reverse.foreach fn((fname, ftype))
-    val access = Node(body-start, FieldAccess(Node(body-start, Var("state")), fname))
-    val vdecl = Node(body-start, VarDecl(fname, Just(ftype), access, Node(body-start, Tuple([]))))
-    stmt-list := Cons(vdecl, stmt-list)
-    
-  stmt-list := Cons(receive-body, stmt-list)
-  
-  val fields-init = state-fields.reverse.map fn((fname, _))
-    (fname, Node(body-start, Var(fname)))
-  val struct-lit = Node(body-start, StructLit(sname, fields-init))
-  stmt-list := Cons(struct-lit, stmt-list)
-  
-  val fdecl-body = Node(Span(body-start.start, end-tok.span.end), Block(stmt-list.reverse))
-  val fn-name = name.to-lower ++ "_receive"
-  val param-names = ["state", msg-param]
-  val param-types = [Just(TStruct(sname)), msg-ann]
-  val fdecl = Fun-decl(Span(t.span.start, end-tok.span.end), fn-name, params = param-names, body = fdecl-body, param-anns = param-types, ret-ann = Just(TStruct(sname)), is-pub = False)
-  
-  (sdef, fdecl)
+
+  // (1) Effect declaration: `effect Name { fun send_<name>(msg: MsgType) : () }`
+  val send-op-name = "send_" ++ name.to-lower
+  val send-op = Effect-op(Span(t.span.start, end-tok.span.end),
+                          send-op-name,
+                          params = [(msg-param, msg-type)],
+                          ret = TUnit)
+  val edef = Effect-def(Span(t.span.start, end-tok.span.end),
+                        name,
+                        ops = [send-op],
+                        is-pub = False)
+
+  // (2) Helper function: `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }`
+  val handle-arms = [Handle-arm(Span(body-start.start, end-tok.span.end),
+                                send-op-name, [msg-param], receive-body)]
+  val state-clause = state-bindings.reverse.map(fn((n, _ann, init)) (n, init))
+  val action-call  = Node(body-start, Call(Node(body-start, Var("action")), []))
+  val action-block = Node(body-start, Block([action-call]))
+  val handle-node  = Node(Span(t.span.start, end-tok.span.end),
+                          EHandle(name, handle-arms, state-clause, action-block))
+  val helper-body  = Node(Span(t.span.start, end-tok.span.end), Block([handle-node]))
+  val helper-name  = "with_" ++ name.to-lower
+  val fdecl = Fun-decl(Span(t.span.start, end-tok.span.end),
+                       helper-name,
+                       params = ["action"],
+                       body = helper-body,
+                       param-anns = [Nothing],
+                       ret-ann = Nothing,
+                       is-pub = True)
+
+  (edef, fdecl)
 
 pub fun parse-program() : <div,parser> program
   var decls := []
@@ -1541,8 +1593,12 @@ pub fun parse-program() : <div,parser> program
         if !current-doc.is-nothing then
           val _ = parse-error("doc comment ignored on actor declaration")
           ()
-        val (sdef, fdecl) = parse-actor-decl()
-        structs := Cons(sdef, structs)
+        // M6: an actor desugars to an effect declaration plus a
+        // pub fun with_<name>(action) helper. The old Phase-1 shape
+        // (struct + <name>_receive) is retired; no shipped example
+        // uses the `actor` keyword.
+        val (edef, fdecl) = parse-actor-decl()
+        effects := Cons(edef, effects)
         decls   := Cons(fdecl, decls)
         current-doc := Nothing
       TkFun ->
