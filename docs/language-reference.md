@@ -1218,9 +1218,9 @@ fun main() {
 
 Each `actor` declaration expands to (a) an `effect Name { fun send_<name>(msg: MsgType) : () }` and (b) a `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }` helper. The `msg` parameter on `receive` must carry an explicit type annotation. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
 
-### Named effects (experimental — v2 milestone N1)
+### Named effects (experimental — v2 milestones N1 + N2)
 
-`spawn Name { arms } (with var …)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. This is the v2 of effects, letting two independent handlers for the same effect coexist in one function (e.g. two `Counter` instances with independent state).
+`spawn Name { arms } (with var …)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. Per-instance method dispatch (`ref.op(args)`) lets two independent handlers for the same effect coexist in one function, each with its own state.
 
 ```hica
 effect Counter {
@@ -1239,25 +1239,32 @@ fun main() {
     get() => count
   } with var count = 100 as c2
 
-  // (Method dispatch — c1.incr() etc. — lands in N2.)
+  c1.incr(); c1.incr(); c1.incr()
+  c2.incr()
+
+  println("c1 = {show(c1.get())}")   // c1 = 3
+  println("c2 = {show(c2.get())}")   // c2 = 101
 }
 ```
 
-**What works in N1 (this release):**
+**What works in N1 + N2 (this release):**
 
 - `spawn Name { … } (with var …)? as ident` parses and produces AST.
 - Effects that appear in any `spawn` are promoted to Koka's `named effect` form with tail-resumptive `fun` ops — no `resume(...)` wrapping (design doc §7.2 / §7.6).
 - `spawn` emits `with <binder> <- named handler { fun hc_<op>(...) <body> … }`.
+- **N2:** `ref.op(args)` type-checks per-instance: the checker looks up the op's signature on the referenced effect, freshens it, and unifies each argument. Codegen emits `<recv>.hc_<op>(<args>)` — Koka's named dispatch shape. Type-mismatch errors on ref-dispatched calls carry source spans.
 - Effects used only with `handle` (never `spawn`) keep the v1 `effect + ctl` shape. The two styles coexist per compilation unit.
 
-**Deferred to N2 (see `documentation/named-effects-journal.md`):**
+**Deferred to N3 (see `documentation/named-effects-journal.md`):**
 
-- Per-instance method dispatch: `c1.incr()`, `c1.get()`.
 - The `ref<E>` type in function signatures (`fun bump(c: ref<Counter>, n: int)`).
 - The escape rule (§5.5).
-- `hica check` row reporting for spawn-used effects.
 
-See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design and `examples/effects/two-counters.hc` for the N1 smoke test.
+**Deferred to N4:**
+
+- `hica check` row reporting for spawn-used effects in every cross-effect scenario.
+
+See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design, `examples/effects/two-counters.hc` for the two-instance smoke test, and `learn/48-named-effects.hc` for the tutorial.
 
 ## Modules & Imports
 

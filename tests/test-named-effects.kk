@@ -1,5 +1,5 @@
 /*
- * hica – named effects (v2): milestone N1 tests
+* hica – named effects (v2): milestone N1 + N2 tests
  *
  * This source file is part of the hica open source project
  * Copyright (C) 2026 Claes Adamsson <claes.adamsson@gmail.com>
@@ -13,10 +13,18 @@
  *     with `fun`-shaped ops (design doc §7.6)
  *   - `spawn` expressions emit `with <binder> <- named handler` + `fun hc_<op>`
  *
- * Deferred to N2:
- *   - `ref<E>` method dispatch (`c1.incr()`) — needs checker rewrite
+ * Milestone N2 goal:
+ *   - `ref.op(args)` fully type-checks: unknown-method + wrong-arg-type carry spans.
+ *   - Codegen emits `<recv>.hc_<op>(<args>)` for tagged calls.
+ *   - two-counters example runs and prints `c1 = 3` / `c2 = 101`.
+ *
+ * Deferred to N3:
+ *   - `ref<E>` in function signatures (needs parser support)
  *   - Escape rule on `TRef(E)` values
- *   - `hica check` row reporting for spawn use
+ *
+ * Deferred to N4:
+ *   - `hica check` row reporting for spawn use in cross-effect scenarios
+ *   - handle+spawn on the same effect promotion (untested here)
 */
 import kunit
 import syntax/ast
@@ -60,10 +68,20 @@ fun emit-typed-program( source : string ) : <div,console> string
       check-program(desugared)
   emit-program(typed-prog)
 
-val two-counters-src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\n\nfun main() {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c1\n\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 100 as c2\n\n  println(\"ok\")\n}\n"
+// Return the checker's diagnostic list for a given source.
+fun check-diagnostics( source : string ) : <div,console> list<diagnostic>
+  val tokens = lex(source)
+  val prog = run-parser-program(tokens)
+  val desugared = desugar-program(prog)
+  val (_, ds) = collect-diagnostics
+    run-fresh
+      check-program(desugared)
+  ds
+
+val two-counters-src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\n\nfun main() {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c1\n\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 100 as c2\n\n  c1.incr()\n  c2.incr()\n\n  println(\"ok\")\n}\n"
 
 pub fun main() : io ()
-  println(bold("Named effects tests (N1)"))
+  println(bold("Named effects tests (N1 + N2)"))
   println("")
   defaultKDivHandler
     // --- (a) Lexer knows the new keywords -------------------------------
@@ -108,3 +126,35 @@ pub fun main() : io ()
       val kk = emit-typed-program(src)
       // No spawn — effect must NOT be promoted.
       assert/is-true(kk.contains("effect log") && kk.contains("ctl hc_info") && !kk.contains("named effect log"))
+
+    // --- (e) N2 codegen: ref.op(args) dispatches on the binder ----------
+    dtest("codegen: c1.incr() emits c1.hc_incr()")
+      val kk = emit-typed-program(two-counters-src)
+      val has-c1-dispatch = kk.contains("c1.hc_incr()")
+      val has-c2-dispatch = kk.contains("c2.hc_incr()")
+      // Guard against N1's raw-tag leak: the emitted Koka must NOT
+      // contain the internal `hc-ref-op:` marker anywhere.
+      val no-raw-tag = !kk.contains("hc-ref-op:")
+      assert/is-true(has-c1-dispatch && has-c2-dispatch && no-raw-tag)
+
+    // --- (f) N2 checker: type-mismatch errors carry spans ---------------
+    // Passing a string where the op declares an int should produce a
+    // hica-level type-mismatch error with the standard message shape.
+    dtest("check: ref.op(wrong-type) produces a type-mismatch diagnostic")
+      val src = "effect Counter {\n  fun add(n: int)\n  fun get() : int\n}\nfun main() {\n  spawn Counter {\n    add(n) => count = count + n,\n    get() => count\n  } with var count = 0 as c\n  c.add(\"hello\")\n}\n"
+      val ds = check-diagnostics(src)
+      val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      val hit = errs.any(fn(d) d.message.contains("type mismatch"))
+      assert/is-true(hit)
+
+    // --- (g) N2 checker: unknown-op on a ref falls through cleanly ------
+    // Calling a method that doesn't exist on the effect currently falls
+    // through to the ordinary UFCS/generic path (a Var("unknown") lookup
+    // will report "undefined variable"). This is a smoke-test: the check
+    // must not crash, and it must produce *some* diagnostic. A dedicated
+    // "not an operation of effect E" message lands in a later polish pass.
+    dtest("check: ref.unknown_op() surfaces at least one diagnostic")
+      val src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\nfun main() {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c\n  c.does_not_exist()\n}\n"
+      val ds = check-diagnostics(src)
+      val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      assert/is-true(!errs.is-nil)

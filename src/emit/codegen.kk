@@ -50,14 +50,27 @@ val koka-reserved-names = ["list", "vector", "string", "int", "bool", "float",
 // M4.5 log for the collision problem this solves.
 val effect-op-tag = "hc-op:"
 
+// N2 — named-effect method dispatch tag. The checker rewrites a UFCS-shaped
+// `receiver.op(args)` where `receiver : TRef(E)` into
+// `Call(Var("hc-ref-op:op"), [receiver, ...args])`. Codegen's `Call` arm
+// detects this tag and emits `<receiver>.hc_<op>(<args>)` — a Koka named
+// dispatch site. See documentation/named-effects-design.md §7.3 and
+// named-effects-journal.md N2. The tag flows through `marshal-name` too so
+// that a bare `Var("hc-ref-op:op")` reference (which shouldn't normally
+// occur) at least renders as `hc_op` and not the raw tag.
+val ref-op-tag = "hc-ref-op:"
+
 fun marshal-name( name : string, declared : list<string> ) : string
   match name.starts-with(effect-op-tag)
     Just(rest) -> "hc_" ++ rest.string
     Nothing ->
-      if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
-        || koka-keywords.any(fn(k) k == name)
-        then "hc_" ++ name
-      else name
+      match name.starts-with(ref-op-tag)
+        Just(rest) -> "hc_" ++ rest.string
+        Nothing ->
+          if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
+            || koka-keywords.any(fn(k) k == name)
+            then "hc_" ++ name
+          else name
 
 
 // ---------------------------------------------------------------------------
@@ -688,6 +701,19 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     Call(callee, args) ->
       // Auto-wrap println argument with show when it's not a string
       match (callee.expr, args)
+        // N2 — named-effect method dispatch: the checker tags UFCS-shaped
+        // `receiver.op(args)` calls where `receiver : TRef(E)` and `op` is a
+        // member of E as `Call(Var("hc-ref-op:op"), [receiver, ...rest])`.
+        // Emit as Koka's named-handler dispatch: `<receiver>.hc_<op>(<rest>)`.
+        // See documentation/named-effects-design.md §7.3. Matched first so
+        // subsequent stdlib intercepts don't hijack the tagged callee.
+        (Var(raw-cname), Cons(recv, rest)) | raw-cname.starts-with(ref-op-tag).is-just ->
+          val op-name = match raw-cname.starts-with(ref-op-tag)
+            Just(s) -> s.string
+            Nothing -> raw-cname
+          val recv-code = emit-expr(recv, declared)
+          val rest-code = rest.map(fn(a) emit-expr(a, declared))
+          recv-code ++ "." ++ koka-op-name(op-name) ++ "(" ++ rest-code.join(", ") ++ ")"
         (Var("println"), [arg]) ->
           match arg.typ
             Just(TString) -> "println(" ++ emit-expr(arg, declared) ++ ")"
@@ -2628,7 +2654,12 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   val try-maybe-effect = if has-try-m then "effect hica-early-maybe\n  ctl hica-early-none() : a\n\n" else ""
   val try-validated-effect = if has-try-v then "effect hica-validated<a>\n  ctl hica-early-invalid(e : a) : b\n\n" else ""
   val sort-helper = if program-uses-sort(p) then sort-helper-code else ""
-  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed)).join("\n\n")
+  // N2 — the test-program emit needs the same spawn-promotion rule as
+  // emit-program (design doc §7.6). Without this, `spawn` inside a `test`
+  // block would emit `effect e { ctl … }` instead of `named effect e { fun … }`
+  // and Koka's named-handler dispatch would reject it.
+  val spawn-effects = collect-spawn-effects(p)
+  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
   val effect-sep = if p.effects.is-nil then "" else "\n\n"
   val assert-helper = assert-helper-code
   val show-maybe-helper = show-maybe-helper-code

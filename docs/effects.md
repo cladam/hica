@@ -459,9 +459,78 @@ fun main() {
 
 See `examples/effects/counter-actor.hc` (single actor) and `examples/effects/ping-pong-actor.hc` (two actors, one file) for the full pattern.
 
+## Named effects (v2 — experimental, N2)
+
+Every `handle Name { … }` gives you **one** handler instance per lexical
+scope. That's enough for capability sandboxes and one-shot state, but
+breaks the moment you need two independent instances of the same effect
+— a worker pool, a ping-pong actor, two Db connections. **Named effects
+fix that.** The full design lives in
+[`documentation/named-effects-design.md`](../documentation/named-effects-design.md);
+this section is the user-facing quick-start.
+
+### `spawn Name { arms } as ref`
+
+Install a fresh handler instance and bind the reference:
+
+```hica
+effect Counter {
+  fun incr()
+  fun get() : int
+}
+
+fun main() {
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 0 as c1
+
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 100 as c2
+
+  c1.incr(); c1.incr(); c1.incr()   // c1 = 3
+  c2.incr()                          // c2 = 101
+
+  println("c1 = {show(c1.get())}")
+  println("c2 = {show(c2.get())}")
+}
+```
+
+### `ref.op(args)` — per-instance dispatch
+
+Each reference points at its own handler. Dispatch is by reference, not
+by lexical shadow: `c1.incr()` mutates `c1`'s counter, `c2.incr()`
+mutates `c2`'s. State is fully isolated.
+
+### Interoperability with v1 `handle`
+
+The same effect can be used both ways in the same program. When any
+`spawn E` appears in a program, `E` is promoted to Koka's `named effect`
+shape (design doc §7.6) — this is invisible at the hica surface but
+flows through cleanly to codegen.
+
+### What's not shipped yet
+
+- **`ref<Name>` in function signatures.** Passing a reference to a helper
+  function needs the parser to accept `ref<Counter>` as a type annotation.
+  Lands in N3.
+- **Escape rule enforcement.** Returning a reference from the function
+  that spawned it needs a checker check. Lands in N3.
+- **`hica check` output for spawned effects.** Row reporting currently
+  doesn't add `<Counter>` for ref-dispatched calls in every scenario.
+  Lands in N4.
+
+See the runnable example
+[`examples/effects/two-counters.hc`](../examples/effects/two-counters.hc)
+and the tutorial
+[`learn/48-named-effects.hc`](../learn/48-named-effects.hc).
+
 ## See also
 
 - [`documentation/effects-design.md`](../documentation/effects-design.md) — full spec with Koka mapping details
+- [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) — v2 named effects (`spawn` + `ref.op()`)
 - [`examples/effects/`](../examples/effects/) — runnable examples for every milestone
 - [`learn/44-effects-intro.hc`](../learn/44-effects-intro.hc) — interactive intro tutorial
 - [`documentation/security-type-boundaries.md`](../documentation/security-type-boundaries.md) — capability security use case (M4)
