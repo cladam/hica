@@ -84,6 +84,11 @@ test-codegen:
 test-effects:
 	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -e tests/test-effects.kk
 
+## Named-effects tests (v2 — journal in documentation/named-effects-journal.md)
+test-named-effects:
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -e tests/test-named-effects.kk
+
+
 ## End-to-end CLI tests (requires a built binary)
 test-cli: $(HICA)
 	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) -v0 -e tests/test-cli.kk -- $(HICA)

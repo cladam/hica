@@ -234,6 +234,8 @@ fun parse-prefix() : <div,parser> node
       parse-loop()
     TkHandle ->
       parse-handle-expr()
+    TkSpawn ->
+      parse-spawn-expr()
     TkBreak ->
       val t = advance()
       Node(t.span, Break)
@@ -1401,6 +1403,40 @@ fun parse-handle-expr() : <div,parser> node
   expect("in", fn(k) match k { TkIn -> True; _ -> False })
   val body = parse-block()
   Node(Span(t.span.start, body.span.end), EHandle(ename, arms, state, body))
+
+// ---------------------------------------------------------------------------
+// Spawn expressions (named-effects v2, N1 — design doc §4.2)
+//
+//   spawn Name { op(args) => body, ... }
+//     (with var x = e, var y = e)?
+//     as ident
+//
+// Called from parse-prefix on TkSpawn. Arm and state grammar is identical to
+// `handle`; only the trailing clause differs (`as ident` instead of `in {…}`).
+// The parsed AST is `ESpawn(name, arms, state, binder)`; the binder is
+// scoped to the enclosing block by the checker (lenient in N1).
+// ---------------------------------------------------------------------------
+
+fun parse-spawn-expr() : <div,parser> node
+  val t = expect("spawn", fn(k) match k { TkSpawn -> True; _ -> False })
+  val ename = match peek()
+    TkIdent(n) -> { advance(); n }
+    _          -> { parse-error("expected effect name after 'spawn'"); "_" }
+  expect("{", fn(k) match k { TkLBrace -> True; _ -> False })
+  val arms = parse-handle-arms()
+  expect("}", fn(k) match k { TkRBrace -> True; _ -> False })
+  val state = parse-handle-state()
+  // Consume `as` (a real keyword — TkAs — that binds the fresh reference to
+  // the identifier that follows).
+  expect("as", fn(k) match k { TkAs -> True; _ -> False })
+  val (binder, end-sp) = match peek()
+    TkIdent(n) ->
+      val nt = advance()
+      (n, nt.span)
+    _ ->
+      parse-error("expected binder identifier after 'as' in spawn expression")
+      ("_", current-span())
+  Node(Span(t.span.start, end-sp.end), ESpawn(ename, arms, state, binder))
 
 // ---------------------------------------------------------------------------
 // Actor declarations (design doc §11.4 / §13.4, milestone M6)

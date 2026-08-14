@@ -336,9 +336,14 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   val type-sep = if p.types.is-nil then "" else "\n\n"
   val struct-defs = p.structs.map(fn(sd) emit-struct-def(sd)).join("\n\n")
   val struct-sep = if p.structs.is-empty then "" else "\n\n"
-  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed)).join("\n\n")
+  // N1 named-effects promotion (design doc §7.6): any effect that is `spawn`ed
+  // anywhere in the program must be emitted as `named effect` with `fun` ops,
+  // otherwise Koka's `named handler` will reject it.
+  val spawn-effects = collect-spawn-effects(p)
+  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
   val effect-sep = if p.effects.is-nil then "" else "\n\n"
   val global-defs = p.globals.map(fn(g) emit-global(g, declared)).join("\n")
+
   val global-sep = if p.globals.is-empty then "" else "\n\n"
   val rec-names = compute-div-names(p.decls)
   val seed-result = p.decls.filter(fn(d) d.is-recursive && node-has-try-result(d.body)).map(fn(d) d.name)
@@ -1432,7 +1437,11 @@ fun emit-effect-op-param( p : (string, hica-type) ) : div string
       val ann = emit-type(ptype)
       if ann == "" then pname else pname ++ " : " ++ ann
 
-fun emit-effect-op-decl( op : effect-op ) : div string
+// Emit an effect op declaration. `named?` selects the shape:
+//   named? = False -> v1 shape `ctl hc_<op>(...) : ret`  (used with `handle`)
+//   named? = True  -> v2 shape `fun hc_<op>(...) : ret`  (used with `named handler`,
+//                                                        per named-effects-design.md §7.1)
+fun emit-effect-op-decl( op : effect-op, named-emit : bool = False ) : div string
   val op-name = koka-op-name(op.name)
   val param-strs = op.params.map(fn(p) emit-effect-op-param(p))
   val params-code = param-strs.join(", ")
@@ -1441,13 +1450,80 @@ fun emit-effect-op-decl( op : effect-op ) : div string
     _     ->
       val r = emit-type(op.ret)
       if r == "" then "()" else r
-  "  ctl " ++ op-name ++ "(" ++ params-code ++ ") : " ++ ret-code
+  val kw = if named-emit then "fun" else "ctl"
+  "  " ++ kw ++ " " ++ op-name ++ "(" ++ params-code ++ ") : " ++ ret-code
 
-fun emit-effect-def( ed : effect-def ) : div string
+// Emit an effect declaration. `spawn-used` is the set of effect names that
+// appear in any `spawn` expression in the program; effects in this set are
+// promoted to Koka's `named effect` form (design doc §7.6). This is
+// required because Koka's `named handler` mechanism only works against
+// `named effect` declarations, and their ops must be `fun` (not `ctl`).
+//
+// Named-effect promotion is compilation-unit-wide: a single `spawn E` in the
+// program flips E's emission for every use in that unit. See journal N1
+// session-3 for the trade-off.
+fun emit-effect-def( ed : effect-def, spawn-used : list<string> = [] ) : div string
   val pub-str = if ed.is-pub then "pub " else ""
   val ename = ed.name.to-lower
-  val ops-code = ed.ops.map(emit-effect-op-decl).join("\n")
-  pub-str ++ "effect " ++ ename ++ "\n" ++ ops-code
+  val named-emit = spawn-used.any(fn(n) n == ed.name)
+  val kw = if named-emit then "named effect" else "effect"
+  val ops-code = ed.ops.map(fn(op) emit-effect-op-decl(op, named-emit)).join("\n")
+  pub-str ++ kw ++ " " ++ ename ++ "\n" ++ ops-code
+
+
+// Walker: collect every effect name spawned anywhere in the program.
+// Used by emit-program to decide which effects get `named effect` treatment
+// (see emit-effect-def for the promotion rule).
+pub fun collect-spawn-effects( p : program ) : div list<string>
+  val from-globals = p.globals.flatmap(fn(g) collect-spawn-effects-node(g.body))
+  val from-decls   = p.decls.flatmap(fn(d) collect-spawn-effects-node(d.body))
+  val from-tests   = p.tests.flatmap(fn(t) collect-spawn-effects-node(t.body))
+  // Dedupe, preserving first-seen order.
+  (from-globals ++ from-decls ++ from-tests).foldl([]) fn(acc : list<string>, e)
+    if acc.any(fn(a) a == e) then acc else acc ++ [e]
+
+fun collect-spawn-effects-node( n : node ) : div list<string>
+  match n.expr
+    ESpawn(ename, arms, state, _) ->
+      [ename] ++ state.flatmap(fn((_, v)) collect-spawn-effects-node(v))
+             ++ arms.flatmap(fn(a) collect-spawn-effects-node(a.arm-body))
+    Call(callee, args) ->
+      collect-spawn-effects-node(callee) ++
+      args.flatmap(collect-spawn-effects-node)
+    Let(_, _, init, body) ->
+      collect-spawn-effects-node(init) ++ collect-spawn-effects-node(body)
+    VarDecl(_, _, init, body) ->
+      collect-spawn-effects-node(init) ++ collect-spawn-effects-node(body)
+    Assign(_, v) -> collect-spawn-effects-node(v)
+    Fun(_, body) -> collect-spawn-effects-node(body)
+    Binary(_, l, r) ->
+      collect-spawn-effects-node(l) ++ collect-spawn-effects-node(r)
+    Unary(_, o) -> collect-spawn-effects-node(o)
+    If(c, t, e) ->
+      collect-spawn-effects-node(c) ++ collect-spawn-effects-node(t) ++ collect-spawn-effects-node(e)
+    Block(stmts) -> stmts.flatmap(collect-spawn-effects-node)
+    Match(scrut, arms) ->
+      collect-spawn-effects-node(scrut) ++
+      arms.flatmap(fn(a) collect-spawn-effects-node(a.body))
+    Repeat(c, body) -> collect-spawn-effects-node(c) ++ collect-spawn-effects-node(body)
+    ForIn(_, s-e, e-e, body) ->
+      collect-spawn-effects-node(s-e) ++ collect-spawn-effects-node(e-e) ++ collect-spawn-effects-node(body)
+    ForEach(_, coll, body) ->
+      collect-spawn-effects-node(coll) ++ collect-spawn-effects-node(body)
+    While(c, body) ->
+      collect-spawn-effects-node(c) ++ collect-spawn-effects-node(body)
+    Loop(body) -> collect-spawn-effects-node(body)
+    StringInterp(parts) -> parts.flatmap(collect-spawn-effects-node)
+    Tuple(elems) -> elems.flatmap(collect-spawn-effects-node)
+    EList(elems) -> elems.flatmap(collect-spawn-effects-node)
+    LetTuple(_, init, body) ->
+      collect-spawn-effects-node(init) ++ collect-spawn-effects-node(body)
+    EHandle(_, arms, state, body) ->
+      state.flatmap(fn((_, v)) collect-spawn-effects-node(v)) ++
+      arms.flatmap(fn(a) collect-spawn-effects-node(a.arm-body)) ++
+      collect-spawn-effects-node(body)
+    _ -> []
+
 
 fun emit-interp-part( p : node, declared : list<string> ) : div string
 

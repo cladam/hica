@@ -1218,7 +1218,49 @@ fun main() {
 
 Each `actor` declaration expands to (a) an `effect Name { fun send_<name>(msg: MsgType) : () }` and (b) a `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }` helper. The `msg` parameter on `receive` must carry an explicit type annotation. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
 
+### Named effects (experimental — v2 milestone N1)
+
+`spawn Name { arms } (with var …)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. This is the v2 of effects, letting two independent handlers for the same effect coexist in one function (e.g. two `Counter` instances with independent state).
+
+```hica
+effect Counter {
+  fun incr()
+  fun get() : int
+}
+
+fun main() {
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 0 as c1
+
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 100 as c2
+
+  // (Method dispatch — c1.incr() etc. — lands in N2.)
+}
+```
+
+**What works in N1 (this release):**
+
+- `spawn Name { … } (with var …)? as ident` parses and produces AST.
+- Effects that appear in any `spawn` are promoted to Koka's `named effect` form with tail-resumptive `fun` ops — no `resume(...)` wrapping (design doc §7.2 / §7.6).
+- `spawn` emits `with <binder> <- named handler { fun hc_<op>(...) <body> … }`.
+- Effects used only with `handle` (never `spawn`) keep the v1 `effect + ctl` shape. The two styles coexist per compilation unit.
+
+**Deferred to N2 (see `documentation/named-effects-journal.md`):**
+
+- Per-instance method dispatch: `c1.incr()`, `c1.get()`.
+- The `ref<E>` type in function signatures (`fun bump(c: ref<Counter>, n: int)`).
+- The escape rule (§5.5).
+- `hica check` row reporting for spawn-used effects.
+
+See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design and `examples/effects/two-counters.hc` for the N1 smoke test.
+
 ## Modules & Imports
+
 
 ### Modules
 

@@ -104,6 +104,34 @@ fun is-effect-op-name( nm : string ) : <effect-reg> bool
   get-effects().any fn(edef)
     edef.ops.any(fn(op) op.name == nm)
 
+// N1 helper — cheap-lookup used as a guard in the `Call` arm of `infer` to
+// decide whether a UFCS-shaped call `receiver.op(...)` is actually named-effect
+// method dispatch (design doc §5.2). Returns True only when:
+//   1. `op-name` appears in the ops of some effect in the program registry.
+//   2. `recv-name` is a locally-bound identifier whose environment type is
+//      `TRef(E)` for that same effect.
+// The guard is deliberately *lookup-only* — no side-effecting inference — so
+// that if it returns True the arm can re-do a full `infer` on the receiver
+// (which will reproduce the TRef binding), and if it returns False the arm
+// falls through to the ordinary UFCS dispatch path without side effects.
+//
+// We only match on `Var(rname)` receivers here; more complex receivers (e.g.
+// `foo.bar.op()`) would need real inference and are out of scope for N1.
+fun try-ref-dispatch( env : type-env, _s : subst, op-name : string, recv : node ) : <effect-reg> bool
+  if !is-effect-op-name(op-name) then False
+  else
+    match recv.expr
+      Var(rname) ->
+        match env-find(env, rname)
+          Just(TRef(ename)) ->
+            match get-effects().effect-find(ename)
+              Just(edef) -> edef.ops.any(fn(op) op.name == op-name)
+              Nothing    -> False
+          _ -> False
+      _ -> False
+
+
+
 // ---------------------------------------------------------------------------
 // Loop context: track whether we are inside a loop body
 // ---------------------------------------------------------------------------
@@ -460,9 +488,15 @@ pub fun infer( env : type-env, s : subst, n : node ) : <div,diag,fresh,struct-re
       // Type-directed overloads: length and is_empty accept both strings and lists.
       // We intercept before the generic unification and rewrite the callee so that
       // codegen can emit the correct Koka expression for each type.
+      //
+      // N1 named-effect method dispatch (`c1.incr()` on a `TRef(E)` binding)
+      // is deferred to N2. For N1, `spawn` parses, produces AST, and codegen
+      // emits the `named handler` shape — but `ref.op()` calls will fail with
+      // an arity mismatch here. That's tracked in `named-effects-journal.md`.
       match (callee.expr, args)
         (Var("length"), [arg]) ->
           val (s1, arg') = infer(env, s, arg)
+
           match apply-subst(s1, get-type(arg'))
             TString ->
               // Rewrite to str_length — codegen emits .count
@@ -1191,10 +1225,16 @@ fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fre
       (s', [stmt'], get-type(stmt'))
     Cons(stmt, rest) ->
       val (s1, stmt') = infer(env, s, stmt)
-      // If this stmt is a let (chain), extend env for subsequent stmts
-      val env' = extend-let-chain(env, s1, stmt')
+      // If this stmt is a let (chain), extend env for subsequent stmts.
+      // If this stmt is an ESpawn, extend env with its ref binder so the
+      // rest of the block can dispatch method calls on the binder
+      // (design doc §5.3).
+      val env-let  = extend-let-chain(env, s1, stmt')
+      val env'     = extend-spawn-binder(env-let, stmt')
+
       val (s2, rest', last-type) = infer-stmts(env', s1, rest)
       (s2, Cons(stmt', rest'), last-type)
+
 
 // Recursively extract all let bindings from a let chain (let a = ...; let b = ...; body)
 // and extend the environment with each one.
@@ -1212,6 +1252,19 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
       val env' = env.extend(name, apply-subst(s, get-type(init')))
       extend-let-chain(env', s, body)
     _ -> env
+
+// After an `ESpawn` statement in a block, its binder must be visible to the
+// subsequent statements (design doc §5.3 — the binder scopes to the rest of
+// the enclosing block). Unlike Let/Var, ESpawn is not a chained AST node:
+// the parser leaves subsequent stmts as siblings inside the Block, and
+// `infer-stmts` walks them without automatically threading env changes.
+// This helper reads a walked spawn's binder + effect name and extends the
+// env accordingly. Returns the env unchanged for non-spawn nodes.
+fun extend-spawn-binder( env : type-env, n : node ) : div type-env
+  match n.expr
+    ESpawn(ename, _, _, binder) -> env.extend(binder, TRef(ename))
+    _                            -> env
+
 
 // Infer types for a list of call arguments.
 fun infer-args( env : type-env, s : subst, args : list<node> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, list<node>)
