@@ -1218,7 +1218,7 @@ fun main() {
 
 Each `actor` declaration expands to (a) an `effect Name { fun send_<name>(msg: MsgType) : () }` and (b) a `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }` helper. The `msg` parameter on `receive` must carry an explicit type annotation. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
 
-### Named effects (experimental — v2 milestones N1 + N2)
+### Named effects (experimental — v2 milestones N1 + N2 + N3)
 
 `spawn Name { arms } (with var …)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. Per-instance method dispatch (`ref.op(args)`) lets two independent handlers for the same effect coexist in one function, each with its own state.
 
@@ -1255,16 +1255,65 @@ fun main() {
 - **N2:** `ref.op(args)` type-checks per-instance: the checker looks up the op's signature on the referenced effect, freshens it, and unifies each argument. Codegen emits `<recv>.hc_<op>(<args>)` — Koka's named dispatch shape. Type-mismatch errors on ref-dispatched calls carry source spans.
 - Effects used only with `handle` (never `spawn`) keep the v1 `effect + ctl` shape. The two styles coexist per compilation unit.
 
-**Deferred to N3 (see `documentation/named-effects-journal.md`):**
+**Added in N3:**
 
-- The `ref<E>` type in function signatures (`fun bump(c: ref<Counter>, n: int)`).
-- The escape rule (§5.5).
+- **`ref<E>` type in function signatures.** References to named-effect
+  instances are first-class values that can be passed to any function.
+  Callers keep dispatching per-instance while the helper stays generic
+  over the reference (design doc §4.4 / §5.5).
+
+  ```hica
+  fun bump(c: ref<Counter>, n: int) {
+    if n > 0 {
+      c.incr()
+      bump(c, n - 1)
+    }
+  }
+
+  fun main() {
+    spawn Counter {
+      incr() => count = count + 1,
+      get()  => count
+    } with var count = 0 as w1
+
+    bump(w1, 5)                       // pass ref to a helper
+    println("w1 = {show(w1.get())}")  // w1 = 5
+  }
+  ```
+
+  `ref<Name>` is `TRef(Name)` internally and emits as Koka's
+  `ev<name>` (evidence for the named effect).
+
+- **The escape rule.** A `spawn Name … as r` binds `r` for the rest of
+  the enclosing block. The underlying handler is torn down when the block
+  exits, so returning `r` from the function that spawned it — or
+  bubbling it up beyond that scope — is a check-time error:
+
+  ```
+  error: reference of type 'ref<…>' escapes its handler's scope
+    note: 'c' was spawned locally and its handler ends when the
+          enclosing block exits
+   11 |   c
+      |   ^
+  ```
+
+  Refs that flow in as **function parameters** belong to the caller and
+  can be passed around and returned freely — only *locally spawned* refs
+  trigger the escape rule.
+
+**Known limitation:** inline `.op()` dispatch inside a `foreach`-style
+lambda (`workers.foreach((w) => w.incr())`) currently can't be resolved
+because the lambda's parameter type isn't threaded from `foreach`.
+Wrap the dispatch in a `ref<E>`-typed helper (as in `counter-pool.hc`'s
+`bump` and `report`) and pass the helper to `foreach`. Broader inference
+is queued for N4.
 
 **Deferred to N4:**
 
 - `hica check` row reporting for spawn-used effects in every cross-effect scenario.
+- Ref dispatch inside untyped `foreach`-style lambdas (see above).
 
-See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design, `examples/effects/two-counters.hc` for the two-instance smoke test, and `learn/48-named-effects.hc` for the tutorial.
+See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design, `examples/effects/two-counters.hc` for the two-instance smoke test, `examples/effects/counter-pool.hc` for the N3 pool example, and `learn/48-named-effects.hc` for the tutorial.
 
 ## Modules & Imports
 

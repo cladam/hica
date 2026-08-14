@@ -606,6 +606,18 @@ fun parse-type() : <div,parser> hica-type
           val err-t = parse-type()
           expect(">", fn(k) match k { TkGt -> True; _ -> False })
           TResult(ok-t, err-t)
+        // Named-effect reference type: ref<Name> — a first-class handle
+        // to an instance produced by `spawn Name … as r` (design doc §4.4 / §7.4).
+        // Example: fun bump(c : ref<Counter>, n : int) : <Counter> ().
+        "ref" ->
+          expect("<", fn(k) match k { TkLt -> True; _ -> False })
+          val ename = match peek()
+            TkIdent(n) | n.is-upper-start -> { advance(); n }
+            _ ->
+              parse-error("expected PascalCase effect name inside 'ref<…>'")
+              "_"
+          expect(">", fn(k) match k { TkGt -> True; _ -> False })
+          TRef(ename)
         _ ->
           // User-defined struct or enum type
           if name.is-upper-start then TStruct(name)

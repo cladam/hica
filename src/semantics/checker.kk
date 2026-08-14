@@ -291,6 +291,13 @@ pub fun unify( t1 : hica-type, t2 : hica-type, sp : span ) : <div,diag> subst
     // Parser uses TStruct for all user-defined type annotations; unify with TEnum
     (TStruct(a), TEnum(b)) | a == b -> empty-subst
     (TEnum(a), TStruct(b)) | a == b -> empty-subst
+    // Named-effect references (N3): both sides refer to the same effect
+    // instance kind. Nominal equality — no substructure to unify.
+    (TRef(a), TRef(b)) ->
+      if a == b then empty-subst
+      else
+        emit-error(sp, "type mismatch: expected ref<" ++ a ++ ">, got ref<" ++ b ++ ">")
+        empty-subst
     _ ->
       emit-error(sp, "type mismatch: expected " ++ t1.show ++ ", got " ++ t2.show)
       empty-subst
@@ -1768,7 +1775,12 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   // the same `diag` channel as the rest of check-program's diagnostics.
   // See `check-callback-rows` for the algorithm.
   check-callback-rows(decls', p.effects)
+  // N3 — escape rule (design doc §5.5 / §8.4). Walk each user decl's body
+  // and reject any `ref<E>`-typed value that leaves its enclosing spawn
+  // scope. See `check-ref-escapes` below for the algorithm.
+  check-ref-escapes(decls')
   Program(p.structs, types = p.types, effects = p.effects, decls = decls', globals = globals'.reverse, tests = tests')
+
 
 fun infer-decls( env : type-env, s : subst, ds : list<fun-decl> ) : <div,diag,fresh,struct-reg,loop-ctx,type-reg,effect-reg> (subst, type-env, list<fun-decl>)
   // Two-pass approach: pre-seed ALL function signatures first (enables mutual recursion),
@@ -2200,3 +2212,136 @@ fun walk-call-sites( n : node, decl-index : list<(string, fun-decl)>, effects : 
 pub fun check-callback-rows( decls : list<fun-decl>, effects : list<effect-def> ) : <div,diag> ()
   val decl-index = decls.map(fn(d) (d.name, d))
   decls.foreach(fn(d) walk-call-sites(d.body, decl-index, effects))
+
+// ---------------------------------------------------------------------------
+// N3 — escape rule for named-effect references (design doc §5.5 / §8.4)
+// ---------------------------------------------------------------------------
+//
+// A `ref<E>` binds an instance produced by `spawn E { … } as r`. Its
+// underlying Koka handler lives only while the *enclosing block* of the
+// spawn is still on the stack. Returning or storing the ref beyond that
+// scope produces a run-time error when Koka's evidence lookup falls off
+// the end of the handler stack. Rather than propagate that failure to
+// users, hica rejects the escape at check-time with a targeted message.
+//
+// Approach B (session-4 decision — journal N3): rather than tag every env
+// binding with a scope depth, we track TRef bindings via a parallel
+// structure that grows/shrinks with block scope. A `ref<E>` value that
+// flows into a return position (the final expression of a function body,
+// or an early `return`) is checked: if its scope-depth is <= the function's
+// depth, we emit an escape error.
+//
+// N3 scope: catches the direct escape shape — a `Var(r)` return value
+// where `r : TRef(E)`. Storing refs in returned struct fields, lists, or
+// tuples is a follow-up. The direct case covers the most common shape
+// (§5.5 example: `fun make_counter() : ref<Counter> { spawn … as c; c }`).
+
+// Walk a decl body and check whether any locally-spawned `ref<E>` value
+// escapes as the decl's return value. Emits an error for each escape.
+pub fun check-ref-escapes( decls : list<fun-decl> ) : <div,diag> ()
+  decls.foreach fn(d)
+    // Refs declared as *parameters* of the decl are legitimately owned
+    // by the caller and can be freely used / returned. Only refs
+    // spawned inside `d.body` need the escape check.
+    val param-refs = d.params
+    check-body-escapes(d.body, param-refs)
+
+// Recurse into `body`, tracking the set of *locally-spawned* ref binders.
+// When a return-position expression is a Var that names one of those
+// binders, emit an escape error.
+//
+// A "return position" is:
+//   - the final expression of a function body / block
+//   - the true-branch and false-branch of a return-position If
+//   - the arm body of a return-position Match
+//
+// `param-refs` never triggers escape — those bindings belong to the caller.
+fun check-body-escapes( n : node, param-refs : list<string> ) : <div,diag> ()
+  // Collect all locally-spawned ref binders — anywhere inside `n`.
+  val local-refs = collect-local-ref-binders(n)
+  if local-refs.is-nil then ()
+  else
+    // Only local refs can escape. Now check every return-position node
+    // to see if it directly names one of them.
+    check-return-position(n, local-refs)
+
+// Collect the binders introduced by `ESpawn(_, _, _, binder)` anywhere in `n`.
+// These are the refs whose handlers get torn down when their enclosing block
+// exits — the candidates for escape.
+fun collect-local-ref-binders( n : node ) : div list<string>
+  match n.expr
+    ESpawn(_, arms, state, binder) ->
+      [binder] ++ state.flatmap(fn((_, v)) collect-local-ref-binders(v))
+              ++ arms.flatmap(fn(a) collect-local-ref-binders(a.arm-body))
+    Let(_, _, init, body) ->
+      collect-local-ref-binders(init) ++ collect-local-ref-binders(body)
+    VarDecl(_, _, init, body) ->
+      collect-local-ref-binders(init) ++ collect-local-ref-binders(body)
+    Assign(_, v) -> collect-local-ref-binders(v)
+    Fun(_, body) -> collect-local-ref-binders(body)
+    Call(callee, args) ->
+      collect-local-ref-binders(callee) ++
+      args.flatmap(collect-local-ref-binders)
+    Binary(_, l, r) ->
+      collect-local-ref-binders(l) ++ collect-local-ref-binders(r)
+    Unary(_, o) -> collect-local-ref-binders(o)
+    If(c, t, e) ->
+      collect-local-ref-binders(c) ++
+      collect-local-ref-binders(t) ++
+      collect-local-ref-binders(e)
+    Block(stmts) -> stmts.flatmap(collect-local-ref-binders)
+    Match(scrut, arms) ->
+      collect-local-ref-binders(scrut) ++
+      arms.flatmap(fn(a) collect-local-ref-binders(a.body))
+    LetTuple(_, init, body) ->
+      collect-local-ref-binders(init) ++ collect-local-ref-binders(body)
+    Repeat(c, body) ->
+      collect-local-ref-binders(c) ++ collect-local-ref-binders(body)
+    ForIn(_, s-e, e-e, body) ->
+      collect-local-ref-binders(s-e) ++ collect-local-ref-binders(e-e) ++
+      collect-local-ref-binders(body)
+    ForEach(_, coll, body) ->
+      collect-local-ref-binders(coll) ++ collect-local-ref-binders(body)
+    While(c, body) ->
+      collect-local-ref-binders(c) ++ collect-local-ref-binders(body)
+    Loop(body) -> collect-local-ref-binders(body)
+    StringInterp(parts) -> parts.flatmap(collect-local-ref-binders)
+    Tuple(elems) -> elems.flatmap(collect-local-ref-binders)
+    EList(elems) -> elems.flatmap(collect-local-ref-binders)
+    EHandle(_, arms, state, body) ->
+      state.flatmap(fn((_, v)) collect-local-ref-binders(v)) ++
+      arms.flatmap(fn(a) collect-local-ref-binders(a.arm-body)) ++
+      collect-local-ref-binders(body)
+    _ -> []
+
+// Walk return-position nodes in `n` and emit an escape error if the
+// return-position expression is a Var referencing a local ref binder.
+//
+// Return-position walking follows the standard rules:
+//   - Block's last stmt is a return position (skip intermediate stmts)
+//   - If's both branches are return positions
+//   - Match's arm bodies are return positions
+//   - Let/VarDecl body is a return position; init is NOT
+fun check-return-position( n : node, local-refs : list<string> ) : <div,diag> ()
+  match n.expr
+    Var(rname) ->
+      if local-refs.any(fn(r) r == rname) then
+        emit-error(n.span,
+          "reference of type 'ref<…>' escapes its handler's scope\n" ++
+          "  note: '" ++ rname ++ "' was spawned locally and its handler ends when the enclosing block exits")
+    Block(stmts) ->
+      // Only the last stmt is a return position.
+      match stmts.reverse
+        Cons(last, _) -> check-return-position(last, local-refs)
+        Nil           -> ()
+    If(_, t, e) ->
+      check-return-position(t, local-refs)
+      check-return-position(e, local-refs)
+    Match(_, arms) ->
+      arms.foreach(fn(a) check-return-position(a.body, local-refs))
+    Let(_, _, _, body)     -> check-return-position(body, local-refs)
+    VarDecl(_, _, _, body) -> check-return-position(body, local-refs)
+    LetTuple(_, _, body)   -> check-return-position(body, local-refs)
+    _ -> ()
+
+

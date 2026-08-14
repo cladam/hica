@@ -440,8 +440,16 @@ fun emit-decl( d : fun-decl, declared : list<string>, rec-names : list<string> =
   // (design doc §4.5 / §6):  `fun render(buf) : <Terminal> ()` emits Koka
   // `fun hc_render(buf) : <terminal> ()`. When the user leaves the row
   // implicit (d.fun-effects is empty), fall back to the existing rules.
+  //
+  // N3 note: Koka's `div` and `exn` effects are baseline for essentially any
+  // non-trivial function body (division, matching, etc.), and are also
+  // introduced silently by many stdlib helpers. Rather than force users to
+  // spell them out in every `: <Counter> …` annotation, we tack `div,exn`
+  // onto every explicit row. This keeps user surface minimal (they only
+  // write the user-defined effects they care about) while still emitting a
+  // row Koka will accept. See documentation/named-effects-journal.md N3.
   val eff-row = if d.fun-effects.is-nil then ""
-    else "<" ++ d.fun-effects.map(fn(e) e.to-lower).join(",") ++ "> "
+    else "<" ++ (d.fun-effects.map(fn(e) e.to-lower) ++ ["div", "exn"]).join(",") ++ "> "
   val ret-ann = match d.ret-ann
     Just(TFun(_, _)) -> ""
     Just(t) ->

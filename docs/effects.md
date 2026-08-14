@@ -459,7 +459,7 @@ fun main() {
 
 See `examples/effects/counter-actor.hc` (single actor) and `examples/effects/ping-pong-actor.hc` (two actors, one file) for the full pattern.
 
-## Named effects (v2 — experimental, N2)
+## Named effects (v2 — experimental, N1 + N2 + N3)
 
 Every `handle Name { … }` gives you **one** handler instance per lexical
 scope. That's enough for capability sandboxes and one-shot state, but
@@ -511,19 +511,95 @@ The same effect can be used both ways in the same program. When any
 shape (design doc §7.6) — this is invisible at the hica surface but
 flows through cleanly to codegen.
 
-### What's not shipped yet
+### `ref<Name>` in function signatures (N3)
 
-- **`ref<Name>` in function signatures.** Passing a reference to a helper
-  function needs the parser to accept `ref<Counter>` as a type annotation.
-  Lands in N3.
-- **Escape rule enforcement.** Returning a reference from the function
-  that spawned it needs a checker check. Lands in N3.
+References are first-class values. Pass a `ref<Counter>` to any helper
+that needs to dispatch on it:
+
+```hica
+fun bump(c: ref<Counter>, n: int) {
+  if n > 0 {
+    c.incr()
+    bump(c, n - 1)
+  }
+}
+
+fun main() {
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 0 as w1
+
+  bump(w1, 5)                        // pass ref to helper
+  println("w1 = {show(w1.get())}")   // w1 = 5
+}
+```
+
+The `ref<Counter>` type parses in any type-annotation position (function
+parameters, return types, `let` annotations). Internally it's `TRef(Counter)`
+and lowers to Koka's `ev<counter>` (evidence for the named effect).
+
+### The escape rule (N3)
+
+`spawn Name … as r` binds `r` for the rest of the enclosing block. The
+underlying Koka handler is torn down when the block exits, so a locally
+spawned reference cannot outlive its scope:
+
+```hica
+fun make_counter() : ref<Counter> {
+  spawn Counter {
+    incr() => count = count + 1,
+    get() => count
+  } with var count = 0 as c
+  c                       // ← error: escapes its handler's scope
+}
+```
+
+The checker rejects this at check-time:
+
+```
+error: reference of type 'ref<…>' escapes its handler's scope
+  note: 'c' was spawned locally and its handler ends when the
+        enclosing block exits
+```
+
+Refs that arrive as **function parameters** belong to the caller and can
+be returned or passed onward freely — only locally spawned refs are
+restricted.
+
+### Known limitation: inline `.op()` inside untyped `foreach` lambdas
+
+The checker's per-instance dispatch fires when the receiver's inferred
+type is `TRef(E)`. Inside a `foreach((w) => w.incr())` lambda, the
+parameter `w` starts as a fresh type variable — the type isn't unified
+back to `ref<E>` in time, so the dispatch falls through to the ordinary
+UFCS path and reports a mismatch. Workaround: declare a
+`ref<E>`-typed helper and call it from the lambda:
+
+```hica
+// Instead of this (currently unsupported):
+// workers.foreach((w) => w.incr())
+
+// Use a helper:
+fun bump(c: ref<Counter>, n: int) {
+  if n > 0 { c.incr(); bump(c, n - 1) }
+}
+
+workers.foreach((w) => bump(w, 1))
+```
+
+Broader inference into `foreach`-style callbacks is queued for N4.
+
+### What's still deferred
+
 - **`hica check` output for spawned effects.** Row reporting currently
   doesn't add `<Counter>` for ref-dispatched calls in every scenario.
   Lands in N4.
+- **Ref dispatch inside untyped lambdas.** See the limitation above.
 
-See the runnable example
+See the runnable examples
 [`examples/effects/two-counters.hc`](../examples/effects/two-counters.hc)
+and [`examples/effects/counter-pool.hc`](../examples/effects/counter-pool.hc),
 and the tutorial
 [`learn/48-named-effects.hc`](../learn/48-named-effects.hc).
 

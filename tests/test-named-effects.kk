@@ -158,3 +158,31 @@ pub fun main() : io ()
       val ds = check-diagnostics(src)
       val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
       assert/is-true(!errs.is-nil)
+
+    // --- (h) N3 parser: `ref<E>` accepted in parameter position ---------
+    // The parser should accept `ref<Counter>` inside a type annotation.
+    // No parse errors should surface.
+    dtest("parse: ref<E> in function parameter type")
+      val src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\nfun bump(c: ref<Counter>, n: int) {\n  if n > 0 { c.incr(); bump(c, n - 1) }\n}\nfun main() {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c\n  bump(c, 3)\n  println(show(c.get()))\n}\n"
+      assert/is-true(parse-error-count(src) == 0)
+
+    // --- (i) N3 escape rule: return-position escape is rejected ---------
+    // A function that spawns locally and returns the binder must be
+    // rejected — the handler goes out of scope with the enclosing block.
+    // See documentation/named-effects-design.md §5.5.
+    dtest("check: returning a locally-spawned ref escapes and errors")
+      val src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\nfun make() : ref<Counter> {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c\n  c\n}\nfun main() {\n  let x = make()\n  x.incr()\n}\n"
+      val ds = check-diagnostics(src)
+      val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      val hit = errs.any(fn(d) d.message.contains("escapes its handler"))
+      assert/is-true(hit)
+
+    // --- (j) N3 escape rule: parameter refs may be returned or passed --
+    // Refs that come in as function parameters belong to the caller, so
+    // returning or passing them does NOT trigger the escape rule.
+    dtest("check: parameter ref is not treated as an escape")
+      val src = "effect Counter {\n  fun incr()\n  fun get() : int\n}\nfun bump(c: ref<Counter>, n: int) {\n  if n > 0 { c.incr(); bump(c, n - 1) }\n}\nfun main() {\n  spawn Counter {\n    incr() => count = count + 1,\n    get() => count\n  } with var count = 0 as c\n  bump(c, 3)\n  println(show(c.get()))\n}\n"
+      val ds = check-diagnostics(src)
+      val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
+      val escape-errs = errs.filter(fn(d) d.message.contains("escapes its handler"))
+      assert/is-true(escape-errs.is-nil)
