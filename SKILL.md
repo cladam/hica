@@ -26,7 +26,7 @@ hica is a statically typed, expression-oriented language that **transpiles to Ko
 
 | vs | Trade-off |
 |----|-----------|
-| Koka | Friendlier syntax and implicit effects; **user-defined algebraic effect handlers** fully supported via `effect` + `handle`, with stateful handlers (`with var …`), effect-row polymorphic function types (`(A) -> <E> R`), and an `actor Name { var …; receive(msg: T) => … }` sugar layered on top. See [`docs/effects.md`](docs/effects.md) |
+| Koka | Friendlier syntax and implicit effects; **user-defined algebraic effect handlers** fully supported via `effect` + `handle`, with stateful handlers (`with var …`), effect-row polymorphic function types (`(A) -> <E> R`), an `actor Name { … }` sugar for single-instance actors, and **named effects (v2)** — `spawn Name { … } as ref`, per-instance dispatch (`ref.op(args)`), and the first-class `ref<Name>` type let you have two counters, two actors, or two DB connections in one function without name clashes. See [`docs/effects.md`](docs/effects.md) |
 
 | Rust | No borrow checker / lifetime annotations; gives up fine-grained manual memory layout |
 | Python | Static types, no exceptions, deterministic memory; gives up dynamic flexibility |

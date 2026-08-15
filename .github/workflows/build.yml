@@ -123,6 +123,14 @@ jobs:
         run: make test-analyser
         shell: bash
 
+      - name: Run effects tests
+        run: make test-effects
+        shell: bash
+
+      - name: Run named effects tests
+        run: make test-named-effects
+        shell: bash
+
       - name: Run codegen tests
         run: make test-codegen
         shell: bash

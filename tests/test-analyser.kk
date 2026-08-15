@@ -109,5 +109,35 @@ pub fun main() : io ()
           assert/is-true(has-immut)
         Nothing -> assert/is-true(False)
 
+    // N4 — the analyser must walk `ESpawn` state initialisers and arm
+    // bodies. A `spawn` with a `var`-declared field triggers the
+    // Immutability rule on the *state* declaration, but the presence
+    // of an inline arm-body lambda assigning to that same var suppresses
+    // the debt (same rule as M6.5 for `with var … in { … }`). Named
+    // effects reuse that heuristic so the counter-actor style ships
+    // clean.
+    itest("N4: analyser walks ESpawn arm bodies without crashing")
+      val source = "effect Counter { fun incr() }\n" ++
+                   "fun run() { spawn Counter { incr() => 0 } as c; c.incr() }"
+      val scores = get-analyser-scores(source)
+      // The walker must succeed (i.e. scores is not empty for the one decl)
+      match scores.head
+        Just(_) -> assert/is-true(True)
+        Nothing -> assert/is-true(False)
+
+    // N4 — `spawn Name { … } as ref` is legitimate; the analyser must
+    // NOT surface unused-name / imperative-loop debt for the spawn
+    // scaffolding itself. Only real debt inside arm bodies should
+    // count. This test wires a spawn+ref.op() into a function and
+    // asserts zero debt items.
+    itest("N4: bare spawn + ref.op() surfaces no false-positive debt")
+      val source = "effect Log { fun info(s: string) }\n" ++
+                   "fun run() { spawn Log { info(s) => 0 } as lg; lg.info(\"hi\") }"
+      val scores = get-analyser-scores(source)
+      match scores.head
+        Just(func) ->
+          assert/is-true(func.items.length == 0)
+        Nothing -> assert/is-true(False)
+
   // Prevent mimalloc free-list corruption during tear-down of large ASTs
   my-process-exit(0)

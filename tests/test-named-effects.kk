@@ -34,6 +34,7 @@ import semantics/checker
 import diagnostics/diagnostics
 import emit/codegen
 import transform/desugar
+import main
 
 fun first-kind-is-spawn-kw( source : string ) : div bool
   match lex(source)
@@ -215,3 +216,48 @@ pub fun main() : io ()
       val errs = ds.filter(fn(d) match d.severity { Error -> True; _ -> False })
       val escape-errs = errs.filter(fn(d) d.message.contains("escapes its handler"))
       assert/is-true(escape-errs.is-nil)
+
+    // --- (l) N4 row reporting: spawn-only effect surfaces in row -------
+    // A program that uses ONLY `spawn` + `ref.op()` — no bare `handle`
+    // — must still surface the effect in the `hica check` row. Guards
+    // against a regression where the ref-dispatch tag mangling would
+    // hide named-effect calls from `discover-effects`.
+    dtest("check: spawn-only Counter surfaces in row (N4)")
+      val tokens = lex(two-counters-src)
+      val prog = run-parser-program(tokens)
+      val effects = discover-effects(prog)
+      // Expect Counter and console (from the trailing println) — order
+      // is deterministic (built-ins alpha, then user in decl order).
+      val has-counter = effects.any(fn(e) e == "Counter")
+      val has-console = effects.any(fn(e) e == "console")
+      assert/is-true(has-counter && has-console)
+
+    // --- (m) N4 row reporting: cross-effect (two spawns) -----------------
+    // The two-actor ping-pong equivalent — both Pinger and Ponger use
+    // the `send` op via `ref.send()`. Both effects should appear in the
+    // row, alongside console.
+    dtest("check: two spawned effects both surface in row (N4)")
+      val src = "effect Pinger { fun send(msg: int) }\neffect Ponger { fun send(msg: int) }\nfun main() {\n  spawn Pinger { send(msg) => println(show(msg)) } as p\n  spawn Ponger { send(msg) => println(show(msg)) } as q\n  p.send(1)\n  q.send(2)\n}\n"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val effects = discover-effects(prog)
+      val has-pinger  = effects.any(fn(e) e == "Pinger")
+      val has-ponger  = effects.any(fn(e) e == "Ponger")
+      val has-console = effects.any(fn(e) e == "console")
+      assert/is-true(has-pinger && has-ponger && has-console)
+
+    // --- (n) N4 row reporting: mixed handle+spawn on same effect -------
+    // Design doc §7.6 promotion: introducing a `spawn` promotes the
+    // effect everywhere. The row-reporter must still see both call
+    // shapes as belonging to the same effect, so the row entry appears
+    // exactly once.
+    dtest("check: mixed handle+spawn on same effect appears once in row (N4)")
+      val src = "effect Log { fun info(s: string) }\nfun main() {\n  handle Log { info(s) => println(s) } in { info(\"boot\") }\n  spawn Log { info(s) => println(s) } as tr\n  tr.info(\"worker started\")\n}\n"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val effects = discover-effects(prog)
+      val log-count = effects.filter(fn(e) e == "Log").length
+      // Log must appear exactly once — no duplication for the two styles.
+      // (The `handle Log` call is discharged; the `tr.info` spawn call
+      // is un-discharged and drives the row entry.)
+      assert/is-true(log-count == 1)

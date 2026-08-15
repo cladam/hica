@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.0-19"
+val version = "0.49.0-20"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -2325,7 +2325,7 @@ val fsys-fns    = ["read_file", "write_file", "read_lines", "write_lines"]
 val io-fns      = ["input", "get_args", "get_env", "set_env", "set_env_nooverwrite"]
 val ndet-fns    = ["random"]
 
-fun discover-effects( prog : program ) : div list<string>
+pub fun discover-effects( prog : program ) : div list<string>
   // Collect all *un-discharged* call names in each decl. A call to an op is
   // un-discharged if there is no enclosing `handle E { … } in { … }` block
   // for the effect E that owns the op. Built-in effects (console, fsys, io,
