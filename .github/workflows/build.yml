@@ -128,8 +128,14 @@ jobs:
         shell: bash
 
       - name: Run named effects tests
-        run: make test-named-effects
-        shell: bash
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            $env:KOKA_EXTRA_FLAGS = "--ccopts=-IC:/vcpkg/installed/x64-windows/include --cclinkopts=/LIBPATH:C:/vcpkg/installed/x64-windows/lib"
+            make test-named-effects
+          } else {
+            make test-named-effects
+          }
 
       - name: Run codegen tests
         run: make test-codegen

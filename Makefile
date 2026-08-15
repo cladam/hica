@@ -88,7 +88,7 @@ test-effects:
 ## N4 imports `main` for `discover-effects`, which transitively pulls in
 ## the curl-based deps/http modules — so we need to link libcurl here too.
 test-named-effects:
-	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) --cclib=$(CURL_LIB) -e tests/test-named-effects.kk
+	$(KOKA) -i$(KUNIT) -i$(KLAP) -i$(SRC) --cclib=$(CURL_LIB) $(KOKA_EXTRA_FLAGS) -e tests/test-named-effects.kk
 
 
 ## End-to-end CLI tests (requires a built binary)
