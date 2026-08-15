@@ -65,7 +65,8 @@ fun main() {
 - **User types**: `struct` (product) and `type` enum (sum/ADT) — both support generics e.g. `type Tree<T> { Leaf, Node(value: T, left: Tree<T>, right: Tree<T>) }`
 - **No null**: the absence of a value is always `None` (type `maybe<T>`). Null pointer exceptions cannot occur.
 - **No undefined behaviour**: Perceus reference counting is safe and deterministic — no use-after-free, no dangling pointers.
-- **Effects are implicit**: IO, divergence (`div`), and exceptions (`exn`) are tracked by Koka under the hood. hica programmers do not write effect annotations; `hica check` surfaces effect errors when needed.
+- **Effects are implicit for built-ins**: IO, divergence (`div`), and exceptions (`exn`) are tracked by Koka under the hood. hica programmers do not write effect annotations for built-in effects; `hica check` surfaces effect errors and reports the inferred row (`[<console, Log>]`) when needed.
+- **User-defined algebraic effects are first-class**: declare with `effect Name { fun op(...) : R }`, install with `handle Name { arm, ... } (with var ...)? in { body }` (arm params typed from the op sig, stateful handlers via `with var`), restrict callbacks with effect-row polymorphic function types (`(A) -> <E> R`, sandbox pattern), sugar over shape-declaration with `actor Name { ... }`, and get **named/instanced effects** via `spawn Name { arms } (with var ...)? as ref` + per-instance `ref.op(args)` dispatch + the first-class `ref<Name>` type. See `docs/effects.md`.
 - **No generics syntax for users (currently)**: polymorphism is inferred. You write `fun id(x) => x` and the compiler produces a polymorphic function automatically.
 
 ---
@@ -78,7 +79,7 @@ hica is a practical, production-oriented language for writing CLI tools, parsers
 **Key trade-offs vs similar languages:**
 | vs | Trade-off |
 |----|-----------|
-| Koka | Friendlier syntax and implicit effects; gives up user-defined algebraic effect handlers |
+| Koka | Friendlier syntax and implicit built-in effects; **user-defined algebraic effect handlers** fully supported via `effect` + `handle`, with stateful handlers (`with var …`), effect-row polymorphic function types (`(A) -> <E> R`), an `actor Name { … }` sugar, and **named effects (v2)** — `spawn Name { … } as ref`, per-instance dispatch (`ref.op(args)`), and the first-class `ref<Name>` type let you run multiple independent handler instances (two counters, two actors, two DB connections) in one function without name clashes. What you give up: row-polymorphic annotations on ordinary functions, non-resuming control, and multi-shot resumption. See `docs/effects.md`. |
 | Rust | No borrow checker / lifetime annotations; gives up fine-grained manual memory layout |
 | Python | Static types, no exceptions, deterministic memory; gives up dynamic flexibility |
 | Gleam | Brace syntax, loops, mutable `var`; shares the "no null, Result types" philosophy |
