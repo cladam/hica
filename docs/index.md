@@ -18,6 +18,7 @@ Most languages make you choose: easy to learn **or** safe and correct. hica shif
 - **Compile-time safety**: Strong static typing without pervasive annotations.
 - **No tracing garbage collector**: deterministic compile-time memory management via Koka's Perceus engine. Because hica structures are immutable, there are no reference cycles; Perceus optimises reference counts at compile time, turning functional copies into in-place mutations when a value is uniquely owned.
 - **Effect tracking**: side effects (I/O, state, exceptions) are first-class citizens, tracked by the type system.
+- **User-defined algebraic effects**: declare your own capabilities with `effect Name { fun op(...) }`, install handlers with `handle Name { arm, ... } in { body }`, keep local state with `with var ...`, restrict callbacks with effect rows (`() -> <Db> R`), and run multiple independent handler instances with named effects (`spawn Name … as ref` and `ref.op(args)`). See [Algebraic Effects](/docs/effects) for the full guide.
 
 > **hica** stands for **H**indley-milner **I**nference **C**ompiler with **A**lgebraic effects
 

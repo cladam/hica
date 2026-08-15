@@ -7,8 +7,7 @@
 // Up to now you could *observe* those effects with `hica check` but
 // you could not *define your own*.
 //
-// From Milestone 1 onward you can. This lesson walks through every
-// concept you need, step by step.
+// Now you can! This lesson walks through every concept you need, step by step.
 //
 // ── Why effects at all? ───────────────────────────────────────
 //
@@ -30,14 +29,13 @@
 //
 // ── Core vocabulary ───────────────────────────────────────────
 //
-// 1. `effect Name { fun op(…) : T … }` — declares an effect.
+// 1. `effect Name { fun op(...) : T ... }` — declares an effect.
 //    Effect names are PascalCase; operation names are snake_case.
 //
-// 2. Operations are called like ordinary functions — no special
-//    punctuation. Inside a `handle` block they resolve to the
-//    installed handler arm.
+// 2. Operations are called like ordinary functions, no special punctuation needed. 
+//    Inside a `handle` block they resolve to the installed handler arm.
 //
-// 3. `handle Name { op(args) => body, … } in { block }` — installs a
+// 3. `handle Name { op(args) => body, ... } in { block }`: installs a
 //    handler. Every operation declared by `Name` must appear exactly
 //    once (exhaustiveness, checked at compile time). The whole
 //    expression evaluates to the value of `block`.

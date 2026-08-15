@@ -1,13 +1,13 @@
-// learn/45-effects-state.hc — stateful handlers (`with var …`)
+// learn/45-effects-state.hc — stateful handlers (`with var ...`)
 //
 // Prerequisites: learn/44-effects-intro.hc (basic effects + handlers).
 //
-// This tutorial covers the M5 addition to the effects surface: handler-local
-// mutable state via the `with var …` clause. It's what lets a handler count
-// events, buffer values, or keep a running total — without any global `var`,
+// This tutorial covers an addition to the effects surface: handler-local
+// mutable state via the `with var ...` clause. It's what lets a handler count
+// events, buffer values, or keep a running total, without any global `var`,
 // class field, or ambient reference.
 //
-// Every state binding is scoped to the surrounding `handle … in { … }`
+// Every state binding is scoped to the surrounding `handle ... in { ... }`
 // expression: it dies when the block returns. This means every invocation
 // of a handler gets a fresh, clean state, which is exactly what makes handler
 // stacks so much easier to reason about than global mutable variables.
@@ -33,7 +33,7 @@ effect Counter {
   fun get() : int
 }
 
-// A pure helper that only requires the Counter capability — no IO, no logic
+// A pure helper that only requires the Counter capability:  no IO and no logic
 // about how counting is *implemented*. That decision lives at the handler.
 fun bump_three_and_read() : <Counter> int {
   incr()
@@ -47,12 +47,12 @@ fun bump_three_and_read() : <Counter> int {
 // ---------------------------------------------------------------------------
 //
 // `with var count = 0` declares one mutable binding, hoisted before the
-// `with handler` block. All arm bodies and the `in { … }` block share it.
+// `with handler` block. All arm bodies and the `in { ... }` block share it.
 //
 // The counter starts at zero. Each call to `incr()` runs the arm body:
 //   count = count + 1
 // which is a single-statement assignment. hica lifts the assignment *out*
-// of the handler's `resume(…)` so the mutation actually runs — the arm
+// of the handler's `resume(...)` so the mutation actually runs: the arm
 // returns `()` via the implicit resume.
 
 fun default_counter() : int {
@@ -73,8 +73,8 @@ test "default counter starts at 0 and reaches 3 after three bumps" {
 // 3. Fresh state per invocation
 // ---------------------------------------------------------------------------
 //
-// Each `handle … in { … }` invocation gets its own `count = 0`. There is no
-// "counter singleton" — the state binding is scoped to the handler expression,
+// Each `handle ... in { .. }` invocation gets its own `count = 0`. There is no
+// "counter singleton": the state binding is scoped to the handler expression,
 // not to the process.
 
 test "each handler invocation gets a fresh count" {

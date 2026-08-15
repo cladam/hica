@@ -5,7 +5,7 @@ title: Learn hica - hica
 
 # Learn hica
 
-A progressive set of 43 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
+A progressive set of 48 lessons that teach hica one concept at a time. Each lesson is a standalone `.hc` file you can run:
 
 ```sh
 hica run learn/01-hello.hc
@@ -57,6 +57,11 @@ hica run learn/02-arrow.hc
 | 41 | [`41-opaque-struct.hc`](https://github.com/cladam/hica/blob/main/learn/41-opaque-struct.hc) | Opaque Structs | `opaque struct`, `pub struct ... priv`, private constructors, type-safe boundaries |
 | 42 | [`42-streams.hc`](https://github.com/cladam/hica/blob/main/learn/42-streams.hc) | Lazy Streams | `stream`, lazy pipelines (`filter`, `map`, `take`), terminators (`collect`, `fold`), zero-allocation efficiency |
 | 43 | [`43-transducers.hc`](https://github.com/cladam/hica/blob/main/learn/43-transducers.hc) | Pipeline Transducers | `xf_filter`, `xf_map`, `xf_take`, `transduce`, reusable and source-independent stream processing |
+| 44 | [`44-effects-intro.hc`](https://github.com/cladam/hica/blob/main/learn/44-effects-intro.hc) | User-defined effects | `effect Name { fun op(...) }`, `handle Name { arm, ... } in { body }`, typed op params, testability by handler swap |
+| 45 | [`45-effects-state.hc`](https://github.com/cladam/hica/blob/main/learn/45-effects-state.hc) | Stateful handlers | `with var count = 0`, per-block fresh state, mutation from arm bodies |
+| 46 | [`46-effects-sandbox.hc`](https://github.com/cladam/hica/blob/main/learn/46-effects-sandbox.hc) | Effect-row sandboxing | `(A) -> <E> R` callback rows, capability-restricted callbacks, compile-time leak detection |
+| 47 | [`47-effects-actors.hc`](https://github.com/cladam/hica/blob/main/learn/47-effects-actors.hc) | The `actor` keyword | `actor Name { ... }` sugar over `effect + spawn + ref.send()`, per-instance state |
+| 48 | [`48-named-effects.hc`](https://github.com/cladam/hica/blob/main/learn/48-named-effects.hc) | Named effects (v2) | `spawn Name { arms } as ref`, `ref.op(args)`, `ref<Name>` first-class type, escape rule |
 
 ## Language features shown
 
@@ -141,6 +146,14 @@ hica run learn/02-arrow.hc
 | `all_digits`, `all_upper`      | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)                          |
 | `glob_match`                   | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)                          |
 | `glob_match_path`              | [`40-glob.hc`](https://github.com/cladam/hica/blob/main/learn/40-glob.hc)                          |
+| `effect` / `handle` (v1)       | [`44-effects-intro.hc`](https://github.com/cladam/hica/blob/main/learn/44-effects-intro.hc)                      |
+| Handler arm-parameter typing   | [`44-effects-intro.hc`](https://github.com/cladam/hica/blob/main/learn/44-effects-intro.hc)                      |
+| Stateful handlers (`with var …`) | [`45-effects-state.hc`](https://github.com/cladam/hica/blob/main/learn/45-effects-state.hc)                      |
+| Effect-row callbacks (`() -> <E> R`) | [`46-effects-sandbox.hc`](https://github.com/cladam/hica/blob/main/learn/46-effects-sandbox.hc)                    |
+| `actor Name { … }` sugar        | [`47-effects-actors.hc`](https://github.com/cladam/hica/blob/main/learn/47-effects-actors.hc)                     |
+| `spawn Name … as ref`           | [`48-named-effects.hc`](https://github.com/cladam/hica/blob/main/learn/48-named-effects.hc)                       |
+| `ref.op(args)` (per-instance dispatch) | [`48-named-effects.hc`](https://github.com/cladam/hica/blob/main/learn/48-named-effects.hc)                |
+| `ref<Name>` first-class type    | [`48-named-effects.hc`](https://github.com/cladam/hica/blob/main/learn/48-named-effects.hc)                       |
 | `println()`                    | [`01-hello.hc`](https://github.com/cladam/hica/blob/main/learn/01-hello.hc), [`09-repeat.hc`](https://github.com/cladam/hica/blob/main/learn/09-repeat.hc)         |
 
 ## Getting Started

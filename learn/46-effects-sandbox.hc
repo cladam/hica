@@ -1,8 +1,8 @@
 // hica — Effect-row polymorphism as a compile-time sandbox
 //
 // This lesson shows how a library can restrict what a caller-supplied
-// callback is allowed to do — enforced by the type checker at compile time,
-// with zero runtime cost. This is the M4 effect-row polymorphism feature
+// callback is allowed to do, enforced by the type checker at compile time,
+// with zero runtime cost. This is the effect-row polymorphism feature
 // (see documentation/effects-design.md §4.5 and §13.2 for the full spec).
 //
 // **The pattern in one sentence:** put an effect row on a callback parameter,

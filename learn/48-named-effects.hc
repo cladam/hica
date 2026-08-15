@@ -27,7 +27,7 @@ effect Counter {
 // ---- Test 1: two independent counter instances ----------------------------
 //
 // Under v1 you could only have ONE Counter handler in scope at a time.
-// With `spawn … as ref`, each spawn produces a distinct instance:
+// With `spawn ... as ref`, each spawn produces a distinct instance:
 
 test "two counters keep separate state" {
   spawn Counter {
@@ -78,7 +78,7 @@ test "dispatch routes to the correct instance" {
 
 // ---- Test 3: dispatch order across instances ------------------------------
 //
-// Method-call order is straightforward — each `ref.op()` runs the arm body
+// Method-call order is straightforward, each `ref.op()` runs the arm body
 // against the referenced instance's state, then returns.
 
 test "interleaved dispatch preserves per-instance order" {

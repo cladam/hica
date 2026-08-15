@@ -15,9 +15,9 @@ The short answer: the differences are about **intent, ergonomics, and tooling**.
 |-----------|------|------|
 | Syntax style | Indentation-sensitive, ML-family | Braces + semicolons optional, C/Rust-family |
 | Type annotations | Required on public functions | Optional everywhere (Hindley-Milner infers) |
-| Effects | Explicit row-typed effect system (user declares and handles) | Implicit (inferred and emitted, not written by the programmer) |
+| Effects | Explicit row-typed effect system (user declares and handles) | Built-in effects inferred implicitly + user-defined `effect` / `handle` / `spawn` |
 | Pattern matching | Deep, exhaustive, with handlers | Common cases: primitives, Maybe/Result, structs, ranges, lists |
-| Custom effects | First-class: `effect`, `handler`, `resume` | Not exposed (Koka handles it underneath) |
+| Custom effects | First-class: `effect`, `handler`, `resume` | First-class: `effect`, `handle`, stateful handlers (`with var …`), effect-row polymorphism, `actor` sugar, and named effects (`spawn Name … as ref` + `ref.op(args)` + `ref<Name>`) |
 | Data types | `type`, `struct`, `alias`, `effect` with full generics | `struct` + `type` enums, inferred polymorphism |
 | String interpolation | `println("x = " ++ x.show)` | `println("x = {x}")` |
 | String concatenation | `++` | `+` |
@@ -69,7 +69,7 @@ fun read-config() : <fsys, exn> string
   read-text-file("config.txt".path)
 ```
 
-hica curates this power: you get the safety benefits of side-effect tracking (visible via `hica check`) without writing effect annotations yourself:
+hica curates this power: you get the safety benefits of side-effect tracking (visible via `hica check`) without writing effect annotations yourself for built-in effects:
 
 ```hica
 fun greet() {
@@ -79,7 +79,11 @@ fun greet() {
 fun read_config() => read_file("config.txt")
 ```
 
-The hica compiler infers and emits the correct effects in the generated Koka code. You get Koka's safety guarantees without the annotation burden. The trade-off is that you cannot define custom effects or write effect handlers. If you need that power, you are ready for Koka.
+The hica compiler infers and emits the correct effects in the generated Koka code, so you get Koka's safety guarantees without the annotation burden for everyday code.
+
+When you *do* want first-class control, hica exposes user-defined algebraic effects with a friendlier surface than raw Koka: `effect Name { fun op(...) : R }` declarations, `handle Name { arm, ... } (with var ...)? in { body }` handlers (state included), effect-row polymorphic function types (`() -> <E> R`) for capability sandboxes, an `actor Name { ... }` sugar for message-driven components, and **named effects** — `spawn Name { arms } as ref` plus per-instance `ref.op(args)` dispatch with a first-class `ref<Name>` type — for running multiple independent handler instances in one function. See [`docs/effects`](effects) for the full guide.
+
+You lose Koka's fine-grained row-polymorphism annotations on ordinary functions (rows are inferred, not written), non-resuming control effects, and multi-shot resumption. If you need those, you are ready for Koka.
 
 ## Type Annotations: Required vs Optional
 
@@ -332,14 +336,14 @@ Koka has no companion config format; you would reach for JSON or YAML and write 
 - You are learning your first compiled language
 - You are teaching programming to students
 - You want type safety and immutability without a steep learning curve
-- You are building applications where you do not need custom effects
+- You want user-defined algebraic effects (`effect`, `handle`, `spawn`, `actor`) with a friendly surface and none of the row-annotation ceremony
 - You want a familiar, curly-brace syntax with automatic memory management
 
 **Use Koka when:**
 
-- You want to define and handle custom algebraic effects
+- You need non-resuming control effects or multi-shot resumption (hica ships single-shot, resuming effects only)
 - You are doing research in programming language theory
-- You need fine-grained control over effect composition
+- You need to write explicit row-polymorphic annotations on ordinary functions
 - You have outgrown hica's feature set and want the full power underneath
 
 ## The Bridge
@@ -356,6 +360,6 @@ hica is not a replacement for Koka. It is a **front door**, a way in that does n
 
 Koka is a brilliant language with ideas that are ahead of their time. Its effect system is genuinely novel and powerful. But that power comes with a learning curve that puts it out of reach for many programmers.
 
-hica keeps the parts that make Koka great (Perceus memory management, algebraic data types, expression-oriented design, compiled performance) and wraps them in a syntax and programming model that is immediately accessible. You lose custom effects and some type-system expressiveness. You gain an integrated toolchain, a companion config language, and a language you can teach in an afternoon.
+hica keeps the parts that make Koka great (Perceus memory management, algebraic data types, expression-oriented design, compiled performance, and user-defined algebraic effects) and wraps them in a syntax and programming model that is immediately accessible. You lose row-polymorphic annotations on ordinary functions, non-resuming control, and multi-shot resumption. You gain an integrated toolchain, a companion config language, and a language you can teach in an afternoon.
 
 In short: Koka provides the powerful underlying engine; hica provides a specific, ergonomic cockpit designed for building software tools quickly and safely.

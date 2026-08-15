@@ -1,12 +1,11 @@
-// learn/47-effects-actors.hc — the `actor` keyword (post-N5)
+// learn/47-effects-actors.hc — the `actor` keyword
 //
 // Prerequisites: learn/44-effects-intro.hc, learn/45-effects-state.hc,
 // learn/48-named-effects.hc.
 //
 // The `actor` keyword is *sugar* over an `effect` declaration with a bare
-// `send(msg)` operation. Since named effects (v2) landed, an actor
-// declaration is really just a *shape* declaration — you install
-// instances of it with `spawn Name { send(msg) => body } as ref` and
+// `send(msg)` operation. An actor declaration is really just a *shape* declaration:
+// you install instances of it with `spawn Name { send(msg) => body } as ref` and
 // dispatch with `ref.send(msg)`.
 //
 // Run:
@@ -27,9 +26,9 @@
 //   * zero or more `var name = init` state fields (informational — see below)
 //   * a `receive(msg: MsgType) => …` handler for exactly one message type
 //
-// The `msg` parameter MUST carry an explicit type annotation — hica needs it
+// The `msg` parameter MUST carry an explicit type annotation; hica needs it
 // to figure out what messages the actor accepts. The state and receive-body
-// declared inside `actor { … }` are informational: they document the intent
+// declared inside `actor { ... }` are informational: they document the intent
 // but don't reach code generation. The *actual* state and behaviour live at
 // each `spawn` site (see the tests below).
 
@@ -46,7 +45,7 @@ actor Counter {
 }
 
 // ---------------------------------------------------------------------------
-// 2. What the sugar actually produces (N5)
+// 2. What the sugar actually produces
 // ---------------------------------------------------------------------------
 //
 // The declaration above expands to a single effect:
@@ -62,9 +61,9 @@ actor Counter {
 // 3. Installing and using an actor
 // ---------------------------------------------------------------------------
 //
-// You install an actor instance with `spawn Counter { … } with var … as ref`
+// You install an actor instance with `spawn Counter { ... } with var … as ref`
 // and then dispatch with `ref.send(msg)`. State is scoped to the block that
-// spawned the ref — when the block exits, the handler tears down.
+// spawned the ref; when the block exits, the handler tears down.
 
 fun run_counter_to_two() {
   var final_count = -1
