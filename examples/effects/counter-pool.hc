@@ -1,15 +1,9 @@
-// hica — N3 named effects: a pool of independent Counter instances
+// hica — named effects: a pool of independent Counter instances
 //
-// Each worker is a fresh `spawn Counter { … } as wN` — an independent
-// instance with its own state. The `bump` helper takes a `ref<Counter>`
-// argument, showing that references are first-class values that can be
-// passed to functions (design doc §4.4 and §5.5).
+// Each worker is a fresh `spawn Counter { … } as wN`, an independent instance with its own state. 
+// The `bump` helper takes a `ref<Counter>` argument, 
+// showing that references are first-class values that can be passed to functions.
 //
-// After `bump` runs 5×, 3×, 7× on w1/w2/w3, each worker's `get()` returns
-// its own count.
-//
-// See documentation/named-effects-design.md §4.4, §5.5 and §13.2, and
-// documentation/named-effects-journal.md N3.
 
 effect Counter {
   fun incr()
@@ -18,8 +12,7 @@ effect Counter {
 
 // A helper that dispatches on a `ref<Counter>` parameter. The `ref<E>`
 // type is the first-class handle to a named-effect instance. Callers pass
-// it in like any other value; hica's checker unifies it nominally
-// (design doc §7.4 — Koka spells the same idea as `ev<E>`).
+// it in like any other value; hica's checker unifies it nominally.
 fun bump(c: ref<Counter>, n: int) {
   if n > 0 {
     c.incr()

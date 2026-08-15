@@ -1,4 +1,4 @@
-// hica — M4 db-sandbox negative example
+// hica — db-sandbox negative example
 //
 // Companion to `db-sandbox.hc`. Here the callback `leaky_write` uses a
 // `<Log>` op alongside `<Db>` — the effect-row on `with_db`'s callback

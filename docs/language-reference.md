@@ -1091,9 +1091,9 @@ hica test my_file.hc
 - No imports needed. `assert` and `assert_eq` are built-in
 - Exit code is 0 on success, 1 on failure
 
-## Effects (experimental)
+## Effects
 
-hica supports user-defined algebraic effects via `effect` declarations and `handle` blocks. Effects let you name an abstract capability (logging, database, terminal, …), call its operations like ordinary functions, and choose *at the call site* how to fulfil them — the same code path runs against a real backend in production and a mock in tests.
+hica supports user-defined algebraic effects via `effect` declarations and `handle` blocks. Effects let you name an abstract capability (logging, database, terminal, ...), call its operations like ordinary functions, and choose *at the call site* how to fulfil them; the same code path runs against a real backend in production and a mock in tests.
 
 ```hica
 effect Log {
@@ -1130,9 +1130,9 @@ effect Db {
 
 **Handler arms** have their parameters typed automatically from the op signature — you never need to annotate them.
 
-### Stateful handlers (`with var …`)
+### Stateful handlers (`with var ...`)
 
-A handler can carry local mutable state via the `with var …` clause. Each state binding is hoisted before the handler installation; every arm body and the `in { … }` block share the same references. The state dies when the block returns, so each invocation gets fresh state.
+A handler can carry local mutable state via the `with var ...` clause. Each state binding is hoisted before the handler installation; every arm body and the `in { ... }` block share the same references. The state dies when the block returns, so each invocation gets fresh state.
 
 ```hica
 effect Counter {
@@ -1164,7 +1164,7 @@ Function type annotations can restrict which user-defined effects a callback is 
 (A, B) -> <E1, E2> R
 ```
 
-An **empty row** (or no row) is a wildcard — accepts any effects. A **non-empty row** is authoritative: the argument passed at every call site must call only ops declared in that row (plus built-in effects — `console`, `fsys`, `div`, etc. — which are always allowed in v1). Passing a callback that leaks another user-defined effect is a compile-time error at the call site.
+An **empty row** (or no row) is a wildcard and accepts any effects. A **non-empty row** is authoritative: the argument passed at every call site must call only ops declared in that row (plus built-in effects, `console`, `fsys`, `div`, etc.). Passing a callback that leaks another user-defined effect is a compile-time error at the call site.
 
 ```hica
 // with_db permits only <Db> inside the callback
@@ -1192,7 +1192,7 @@ Effect rows compare as sets: `<A, B>` unifies with `<B, A>`. See [`docs/effects.
 
 ### The `actor` keyword
 
-`actor Name { … }` is sugar over `effect + spawn + ref.op()`. It's the shortest way to declare the *shape* of a stateful, message-driven effect:
+`actor Name { ... }` is sugar over `effect + spawn + ref.op()`. It's the shortest way to declare the *shape* of a stateful, message-driven effect:
 
 ```hica
 type CounterMsg { Incr, Decr, Reset }
@@ -1222,12 +1222,11 @@ fun main() {
 }
 ```
 
-Since N5, each `actor` declaration expands to a single item — `effect Name { fun send(msg: MsgType) : () }`. Users install instances with `spawn Name { send(msg) => body } (with var …)? as ref` and dispatch with `ref.send(msg)`. The `var` and `receive` body on the actor block are informational: the concrete state and behaviour live at each `spawn` site. Two actors declaring `send(msg)` never collide because dispatch is per-reference (design doc §11.4). See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
+Each `actor` declaration expands to a single item: `effect Name { fun send(msg: MsgType) : () }`. Users install instances with `spawn Name { send(msg) => body } (with var ...)? as ref` and dispatch with `ref.send(msg)`. The `var` and `receive` body on the actor block are informational: the concrete state and behaviour live at each `spawn` site. Two actors declaring `send(msg)` never collide because dispatch is per-reference. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
 
+### Named effects
 
-### Named effects (experimental — v2 milestones N1 + N2 + N3)
-
-`spawn Name { arms } (with var …)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. Per-instance method dispatch (`ref.op(args)`) lets two independent handlers for the same effect coexist in one function, each with its own state.
+`spawn Name { arms } (with var ...)? as ident` installs a **fresh named-effect handler instance** and binds a reference to it. Per-instance method dispatch (`ref.op(args)`) lets two independent handlers for the same effect coexist in one function, each with its own state.
 
 ```hica
 effect Counter {
@@ -1254,76 +1253,9 @@ fun main() {
 }
 ```
 
-**What works in N1 + N2 (this release):**
-
-- `spawn Name { … } (with var …)? as ident` parses and produces AST.
-- Effects that appear in any `spawn` are promoted to Koka's `named effect` form with tail-resumptive `fun` ops — no `resume(...)` wrapping (design doc §7.2 / §7.6).
-- `spawn` emits `with <binder> <- named handler { fun hc_<op>(...) <body> … }`.
-- **N2:** `ref.op(args)` type-checks per-instance: the checker looks up the op's signature on the referenced effect, freshens it, and unifies each argument. Codegen emits `<recv>.hc_<op>(<args>)` — Koka's named dispatch shape. Type-mismatch errors on ref-dispatched calls carry source spans.
-- Effects used only with `handle` (never `spawn`) keep the v1 `effect + ctl` shape. The two styles coexist per compilation unit.
-
-**Added in N3:**
-
-- **`ref<E>` type in function signatures.** References to named-effect
-  instances are first-class values that can be passed to any function.
-  Callers keep dispatching per-instance while the helper stays generic
-  over the reference (design doc §4.4 / §5.5).
-
-  ```hica
-  fun bump(c: ref<Counter>, n: int) {
-    if n > 0 {
-      c.incr()
-      bump(c, n - 1)
-    }
-  }
-
-  fun main() {
-    spawn Counter {
-      incr() => count = count + 1,
-      get()  => count
-    } with var count = 0 as w1
-
-    bump(w1, 5)                       // pass ref to a helper
-    println("w1 = {show(w1.get())}")  // w1 = 5
-  }
-  ```
-
-  `ref<Name>` is `TRef(Name)` internally and emits as Koka's
-  `ev<name>` (evidence for the named effect).
-
-- **The escape rule.** A `spawn Name … as r` binds `r` for the rest of
-  the enclosing block. The underlying handler is torn down when the block
-  exits, so returning `r` from the function that spawned it — or
-  bubbling it up beyond that scope — is a check-time error:
-
-  ```
-  error: reference of type 'ref<…>' escapes its handler's scope
-    note: 'c' was spawned locally and its handler ends when the
-          enclosing block exits
-   11 |   c
-      |   ^
-  ```
-
-  Refs that flow in as **function parameters** belong to the caller and
-  can be passed around and returned freely — only *locally spawned* refs
-  trigger the escape rule.
-
-**Known limitation:** inline `.op()` dispatch inside a `foreach`-style
-lambda (`workers.foreach((w) => w.incr())`) currently can't be resolved
-because the lambda's parameter type isn't threaded from `foreach`.
-Wrap the dispatch in a `ref<E>`-typed helper (as in `counter-pool.hc`'s
-`bump` and `report`) and pass the helper to `foreach`. Broader inference
-is queued for N4.
-
-**Deferred to N4:**
-
-- `hica check` row reporting for spawn-used effects in every cross-effect scenario.
-- Ref dispatch inside untyped `foreach`-style lambdas (see above).
-
-See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design, `examples/effects/two-counters.hc` for the two-instance smoke test, `examples/effects/counter-pool.hc` for the N3 pool example, and `learn/48-named-effects.hc` for the tutorial.
+See [`documentation/named-effects-design.md`](../documentation/named-effects-design.md) for the full design, `examples/effects/two-counters.hc` for the two-instance smoke test, `examples/effects/counter-pool.hc` for the pool example, and `learn/48-named-effects.hc` for the tutorial.
 
 ## Modules & Imports
-
 
 ### Modules
 

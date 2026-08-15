@@ -1,9 +1,9 @@
-// hica — M2 smoke test: `handle` on an effect that was never declared
+// hica — smoke test: `handle` on an effect that was never declared
 //
 // There is no `Terminal` effect in this file. The checker should reject the
 // `handle Terminal { ... }` expression with an "unknown effect" error.
 //
-// Expected error (per documentation/effects-design.md §8.3):
+// Expected error:
 //   error: unknown effect: 'Terminal'
 //
 // Run:

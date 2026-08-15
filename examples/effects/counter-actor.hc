@@ -1,12 +1,4 @@
-// hica — N5 named-effects: single-actor counter, no callback wrapper.
-//
-// The M6 shape used a compiler-generated `with_counter(() => …)` helper
-// and a `send_counter(msg)` op. N5 retires both:
-//
-//   * The `actor Counter { … }` declaration emits an effect with a bare
-//     `send(msg)` op (design doc §11.4).
-//   * Users install an instance with `spawn Counter { send(msg) => body } as ref`
-//     and dispatch with `ref.send(msg)`. No callback wrapper needed.
+// hica — named-effects: single-actor counter, no callback wrapper.
 //
 // This example demonstrates the flat-block style: `spawn` binds `counter`
 // for the rest of the enclosing block, then subsequent statements dispatch

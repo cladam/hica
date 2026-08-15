@@ -1,4 +1,4 @@
-// hica — M5 stateful handlers (`with var …`)
+// hica — stateful handlers (`with var …`)
 //
 // A handler can carry local mutable state via the `with var …` clause.
 // State bindings are hoisted above the `with handler` block, so every op
@@ -10,8 +10,7 @@
 //   * `decr()`   — decrement the count by one
 //   * `get()`    — read the current count
 //
-// The handler installs a fresh `count = 0` for each invocation. Design doc
-// §4.4 and §7.4.
+// The handler installs a fresh `count = 0` for each invocation. 
 //
 // Expected output:
 //   final = 2

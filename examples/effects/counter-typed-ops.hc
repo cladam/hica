@@ -1,8 +1,4 @@
-// hica — M2 smoke test: arm-param typing against the op signature
-//
-// M2 unifies each handler arm's parameters against the effect op's declared
-// types. This means an arm body can *use* the parameters as their declared
-// types without any user-supplied annotation.
+// hica — smoke test: arm-param typing against the op signature
 //
 // In this example the `Counter` effect declares `add(n: int)`; the handler's
 // `add(n) => count = count + n` arm uses `n` in an integer expression and

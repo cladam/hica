@@ -1,11 +1,9 @@
-// hica — N2 named effects: two independent Counter instances
+// hica — named effects: two independent Counter instances
 //
 // Each `spawn Counter { … } as cN` binds a fresh reference. `cN.incr()`
 // and `cN.get()` dispatch on the reference — the counters keep their
 // state fully isolated.
 //
-// See documentation/named-effects-design.md §4.2, §5.2 and
-// documentation/named-effects-journal.md N2.
 
 effect Counter {
   fun incr()

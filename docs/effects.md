@@ -5,10 +5,7 @@ title: Algebraic Effects - hica
 
 # Algebraic Effects
 
-**Status: experimental, since v0.48.X — `effect` and `handle` are fully parsed, type-checked, and compiled to native Koka. The surface syntax is stable; some advanced features (effect-row polymorphism, stateful handlers) are still in progress.**
-
 hica exposes Koka's effect system in two ways. First, it surfaces built-in effects *implicitly*: `println` gives your function the `<console>` effect, `read_file` gives it `<fsys>`, and so on. Second, you can *define your own effects* and *install handlers* for them. This is what algebraic effects actually are: a way to name an abstract capability, use it like a plain function call, and choose at the call site how to fulfil it.
-
 
 ## The problem effects solve
 
@@ -73,7 +70,7 @@ effect Db {
 
 ## Calling operations
 
-Operations are called exactly like ordinary functions — no special punctuation. Inside any block where the effect is handled, the call resolves to the installed handler arm.
+Operations are called exactly like ordinary functions, no special punctuation. Inside any block where the effect is handled, the call resolves to the installed handler arm.
 
 ```hica
 fun render(lines: list<string>) {
@@ -82,7 +79,7 @@ fun render(lines: list<string>) {
 }
 ```
 
-`render` requires the `<Terminal>` effect. `hica check render.hc` will show `[<Terminal, console>]` in the effect row once M3 lands; until then you can verify with `hica build --generate`.
+`render` requires the `<Terminal>` effect. `hica check render.hc` will show `[<Terminal, console>]` in the effect row.
 
 ## Installing a handler
 
@@ -91,7 +88,7 @@ handle EffectName {
   op1(args) => body,
   op2()     => body
 } in {
-  // code that may call op1, op2, …
+  // code that may call op1, op2, ...
 }
 ```
 
@@ -100,7 +97,7 @@ handle EffectName {
 1. Every operation declared by the effect must have exactly one arm. Missing an op is a compile error.
 2. An arm for an op that doesn't belong to the effect is a compile error.
 3. Duplicate arms for the same op are a compile error.
-4. The whole `handle … in { … }` is an *expression* — it evaluates to the value of the `in` block.
+4. The whole `handle ... in { ... }` is an *expression*, it evaluates to the value of the `in` block.
 
 ```hica
 fun main() {
@@ -162,7 +159,7 @@ The checker looks up `add`'s declared signature `(int, int) -> int`, freshens th
 
 ## Handlers are expressions
 
-`handle … in { … }` evaluates to the value of the `in` block:
+`handle ... in { ... }` evaluates to the value of the `in` block:
 
 ```hica
 let result = handle Math {
@@ -178,7 +175,7 @@ This composes with `let`, `if`, `match`, and everywhere else expressions are exp
 
 ## Handlers with local state
 
-Real-world handlers often need to keep a running value: a counter, a buffer, an accumulator, a message queue. The `with var …` clause after the arm list declares one or more mutable bindings that live for the duration of the surrounding `handle … in { … }` expression:
+Real-world handlers often need to keep a running value: a counter, a buffer, an accumulator, a message queue. The `with var ...` clause after the arm list declares one or more mutable bindings that live for the duration of the surrounding `handle ... in { ... }` expression:
 
 ```hica
 effect Counter {
@@ -204,8 +201,8 @@ Rules:
 
 1. Each `var name = expr` is a separate binding. Multiple bindings share one `with var` clause and are separated by commas: `with var items = [], var size = 0`.
 2. Bindings are visible to **every arm** and to the `in { … }` block.
-3. Bindings die when the `in` block returns — there is no way for the state to escape the handler.
-4. Every `handle … in { … }` gets a fresh binding. Calling the same handler-installing function twice does not share state between calls.
+3. Bindings die when the `in` block returns. There is no way for the state to escape the handler.
+4. Every `handle ... in { ... }` gets a fresh binding. Calling the same handler-installing function twice does not share state between calls.
 
 Assign to state bindings the same way you would to any `var`:
 
@@ -221,7 +218,8 @@ add(n) => { count = count + n; count }   // mutate, then return the new value
 
 ### Why this matters for testing
 
-Because the state lives inside the handler expression, tests never need a `beforeEach` reset — every test creates a fresh handler with fresh state:
+Because the state lives inside the handler expression, tests never need a `beforeEach` reset. 
+Every test creates a fresh handler with fresh state:
 
 ```hica
 test "counter starts at zero" {
@@ -251,10 +249,10 @@ See:
 - `examples/effects/buffer.hc`  — multi-var state with a match-shaped `pop()` arm
 - `learn/45-effects-state.hc`  — a longer walk-through with fresh-state and non-zero-start examples
 
-Arm bodies can be plain expressions, `{ … }` blocks that mutate state, or
+Arm bodies can be plain expressions, `{ ... }` blocks that mutate state, or
 `match` expressions with block-shaped cases (see `buffer.hc`). The compiler
 hoists complex arm-body values into a local `val` before calling
-`resume(…)` so Koka's layout parser sees a clean expression.
+`resume(...)` so Koka's layout parser sees a clean expression.
 
 
 ## Testing with different handlers
@@ -287,7 +285,7 @@ test "arrow-down moves cursor" {
 }
 ```
 
-The test never touches a real terminal. It cannot flake because of terminal state, TTY settings, or CI environment. The `editor_loop` logic is identical in both cases — the divergence is entirely in the handler.
+The test never touches a real terminal. It cannot flake because of terminal state, TTY settings, or CI environment. The `editor_loop` logic is identical in both cases, the divergence is entirely in the handler.
 
 ## Nesting handlers
 
@@ -380,13 +378,13 @@ The check follows references: passing a top-level function like `leaky_write` wa
 
 **Empty row `<>`** means "no user-defined effects". Any call to a user-defined effect op inside such a callback is rejected.
 
-Effect rows are compared **as sets** — `<A, B>` unifies with `<B, A>`.
+Effect rows are compared **as sets**: `<A, B>` unifies with `<B, A>`.
 
 ## The `actor` keyword
 
-An `actor` declaration is sugar over `effect + spawn + ref.op()`. Reach for it when you have a chunk of stateful, message-driven logic and want a compact way to declare the *shape* of the effect — the actor name, message type, and receive contract.
+An `actor` declaration is sugar over `effect + spawn + ref.op()`. Reach for it when you have a chunk of stateful, message-driven logic and want a compact way to declare the *shape* of the effect; the actor name, message type, and receive contract.
 
-Since N5, the actor sugar expands to a single item — an effect declaration with a bare `send(msg)` operation. You install instances with `spawn Name { … } as ref` and dispatch with `ref.send(msg)`:
+The actor sugar expands to a single item, an effect declaration with a bare `send(msg)` operation. You install instances with `spawn Name { ... } as ref` and dispatch with `ref.send(msg)`:
 
 ```hica
 type CounterMsg { Incr, Decr, Reset }
@@ -408,7 +406,7 @@ The declaration expands to:
 effect Counter { fun send(msg: CounterMsg) : () }
 ```
 
-The `var` and `receive` body inside `actor { … }` are informational — they describe intent — but the real state and behaviour live at each `spawn` site. Users install an instance and drive it top-to-bottom:
+The `var` and `receive` body inside `actor { ... }` are informational (they describe intent) but the real state and behaviour live at each `spawn` site. Users install an instance and drive it top-to-bottom:
 
 ```hica
 fun main() {
@@ -430,12 +428,12 @@ fun main() {
 **Rules and constraints:**
 
 - Actor names are **PascalCase** (like `struct` and `effect`).
-- State fields are declared as `var name = init` on the actor block; they document the shape, but each `spawn` site declares its own concrete state via `with var … = …`.
+- State fields are declared as `var name = init` on the actor block; they document the shape, but each `spawn` site declares its own concrete state via `with var ... = ...`.
 - The `receive(msg: MsgType) => body` header is required, and the `msg` parameter must carry an explicit type annotation; hica needs it to figure out what messages the actor accepts.
-- The generated op is a bare `send(msg)` — no `send_<name>` suffix. Since named effects (v2) landed, per-instance dispatch (`counter.send(m)`, `bank.send(m)`) tells two actors apart by reference, not by op name.
+- The generated op is a bare `send(msg)`, per-instance dispatch (`counter.send(m)`, `bank.send(m)`) tells two actors apart by reference, not by op name.
 - Actor sends are unit-typed. If you need to observe state after the block, capture it into an outer `var`.
 
-**Two-actor example — no name-suffix workaround, no callback tower:**
+**Two-actor example: no name-suffix workaround, no callback tower:**
 
 ```hica
 type PingerMsg { Pong }
@@ -473,17 +471,15 @@ fun main() {
 }
 ```
 
-Both actors declare `send(msg)` — the reference (`pinger` vs `ponger`) disambiguates. Under the hood the codegen emits `pinger.hc_pinger_send(...)` / `ponger.hc_ponger_send(...)` — effect-qualified op names — so Koka's `hc_<op>/@select` selectors don't collide.
+Both actors declare `send(msg)`, the reference (`pinger` vs `ponger`) disambiguates. Under the hood the codegen emits `pinger.hc_pinger_send(...)` / `ponger.hc_ponger_send(...)` (effect-qualified op names) so Koka's `hc_<op>/@select` selectors don't collide.
 
 See `examples/effects/counter-actor.hc` (single actor) and `examples/effects/ping-pong-actor.hc` (two actors, one file) for the full pattern.
 
+## Named effects
 
-## Named effects (v2 — experimental, N1 + N2 + N3)
-
-Every `handle Name { … }` gives you **one** handler instance per lexical
+Every `handle Name { ... }` gives you **one** handler instance per lexical
 scope. That's enough for capability sandboxes and one-shot state, but
-breaks the moment you need two independent instances of the same effect
-— a worker pool, a ping-pong actor, two Db connections. **Named effects
+breaks the moment you need two independent instances of the same effect: a worker pool, a ping-pong actor, two Db connections. **Named effects
 fix that.** The full design lives in
 [`documentation/named-effects-design.md`](../documentation/named-effects-design.md);
 this section is the user-facing quick-start.
@@ -523,14 +519,13 @@ Each reference points at its own handler. Dispatch is by reference, not
 by lexical shadow: `c1.incr()` mutates `c1`'s counter, `c2.incr()`
 mutates `c2`'s. State is fully isolated.
 
-### Interoperability with v1 `handle`
+### Interoperability with `handle`
 
 The same effect can be used both ways in the same program. When any
 `spawn E` appears in a program, `E` is promoted to Koka's `named effect`
-shape (design doc §7.6) — this is invisible at the hica surface but
-flows through cleanly to codegen.
+shape, this is invisible at the hica surface but flows through cleanly to codegen.
 
-### `ref<Name>` in function signatures (N3)
+### `ref<Name>` in function signatures
 
 References are first-class values. Pass a `ref<Counter>` to any helper
 that needs to dispatch on it:
@@ -558,7 +553,7 @@ The `ref<Counter>` type parses in any type-annotation position (function
 parameters, return types, `let` annotations). Internally it's `TRef(Counter)`
 and lowers to Koka's `ev<counter>` (evidence for the named effect).
 
-### The escape rule (N3)
+### The escape rule
 
 `spawn Name … as r` binds `r` for the rest of the enclosing block. The
 underlying Koka handler is torn down when the block exits, so a locally
@@ -583,17 +578,16 @@ error: reference of type 'ref<…>' escapes its handler's scope
 ```
 
 Refs that arrive as **function parameters** belong to the caller and can
-be returned or passed onward freely — only locally spawned refs are
-restricted.
+be returned or passed onward freely, only locally spawned refs are restricted.
 
 ### Known limitation: inline `.op()` inside untyped `foreach` lambdas
 
 The checker's per-instance dispatch fires when the receiver's inferred
 type is `TRef(E)`. Inside a `foreach((w) => w.incr())` lambda, the
-parameter `w` starts as a fresh type variable — the type isn't unified
+parameter `w` starts as a fresh type variable; the type isn't unified
 back to `ref<E>` in time, so the dispatch falls through to the ordinary
-UFCS path and reports a mismatch. Workaround: declare a
-`ref<E>`-typed helper and call it from the lambda:
+UFCS path and reports a mismatch. 
+Workaround: declare a `ref<E>`-typed helper and call it from the lambda:
 
 ```hica
 // Instead of this (currently unsupported):

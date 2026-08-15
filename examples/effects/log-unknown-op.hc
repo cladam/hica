@@ -1,10 +1,10 @@
-// hica — M2 smoke test: handler names an operation the effect does not have
+// hica — smoke test: handler names an operation the effect does not have
 //
 // `Log` declares one operation, `info`. The handler below adds an arm for
 // `debug` — the checker should reject it because `debug` is not part of the
 // `Log` effect.
 //
-// Expected error (per documentation/effects-design.md §4.3):
+// Expected error:
 //   error: 'debug' is not an operation of effect 'Log'
 //
 // Run:

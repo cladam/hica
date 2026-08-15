@@ -1,4 +1,4 @@
-// hica — N4 named effects: two effects, two spawn instances, one call chain
+// hica — named effects: two effects, two spawn instances, one call chain
 //
 // This example demonstrates that `hica check` correctly reports a cross-effect
 // row (`[<Counter, Log>]`) when a program spawns instances of two different
@@ -8,8 +8,6 @@
 // on both. `hica check` should see `Counter` and `Log` in the reported row,
 // alongside `console` for the `println` calls inside the Log arm.
 //
-// See documentation/named-effects-design.md §11.1 (interactions), and
-// documentation/named-effects-journal.md N4.
 
 effect Counter {
   fun incr()

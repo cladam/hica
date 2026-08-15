@@ -1,17 +1,8 @@
-// hica — N5 named-effects: two-actor ping-pong, no workarounds.
+// hica — named-effects: two-actor ping-pong, no workarounds.
 //
-// This is the design-doc §13.3 exit criterion for milestone N5. The M6
-// version had to name each actor's op `send_<name>` and nest
-// `with_pinger(() => with_ponger(…))` to sidestep hica's flat effect-op
-// namespace. Named effects retire both workarounds:
-//
-//   * The `actor` declaration desugars to `effect Name { fun send(msg) }`
-//     — bare `send`, no `_<name>` suffix (design doc §11.4).
-//   * We install instances with `spawn Name { send(msg) => body } as ref`
-//     (design doc §4.2) and dispatch with `ref.send(msg)` (§4.3). Each
-//     spawn's state is fully isolated.
-//   * The M6 `with_<name>` helper is gone. `main` reads top-to-bottom;
-//     no callback tower.
+// The `actor` declaration desugars to `effect Name { fun send(msg) }`.
+// We install instances with `spawn Name { send(msg) => body } as ref` and dispatch with `ref.send(msg)`. 
+// Each spawn's state is fully isolated.
 //
 // Expected output:
 //   ponger got Ping (#1), replying Pong

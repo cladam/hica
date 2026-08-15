@@ -1,7 +1,6 @@
-// hica — M4 db-sandbox example (positive path)
+// hica — db-sandbox example (positive path)
 //
-// Demonstrates the effect-row polymorphic callback pattern from
-// documentation/effects-design.md §2.2, §4.5, and §13.2.
+// Demonstrates the effect-row polymorphic callback pattern.
 //
 // `with_db` is a capability-based sandbox: the callback `f` may only use
 // the `<Db>` effect. hica's checker enforces this by walking every call
@@ -9,12 +8,6 @@
 // the argument's effect leak set against the row.
 //
 // `list_users` uses only <Db> ops → the check passes.
-//
-// M4.5 note — the op name `exec` used to collide with hica's stdlib
-// `exec(cmd) → run-system-read(cmd)` codegen intercept. The checker now
-// tags every effect-op call site with an `hc-op:` prefix so the codegen
-// stdlib arms never hijack them; the emitted Koka call is `hc_exec(sql)`,
-// matching the `ctl hc_exec(...)` in the `effect db` declaration.
 //
 // Run:  hica run examples/effects/db-sandbox.hc
 

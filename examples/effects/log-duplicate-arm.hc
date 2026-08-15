@@ -1,4 +1,4 @@
-// hica — M2 smoke test: handler with a duplicate arm
+// hica — smoke test: handler with a duplicate arm
 //
 // The `Log` effect declares one operation, `info`. The handler below has two
 // arms for `info` — the checker should reject the second one.

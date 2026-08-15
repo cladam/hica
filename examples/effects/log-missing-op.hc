@@ -1,10 +1,10 @@
-// hica — M2 smoke test: handler missing an operation
+// hica — smoke test: handler missing an operation
 //
 // The `Log` effect declares two operations, `info` and `warn`. The handler
 // below only implements `info` — the checker should reject it with a
 // hica-level error before Koka ever runs.
 //
-// Expected error (per documentation/effects-design.md §4.3 / §5.2):
+// Expected error:
 //   error: handler for effect 'Log' is missing operation 'warn'
 //
 // Run:
