@@ -1192,7 +1192,7 @@ Effect rows compare as sets: `<A, B>` unifies with `<B, A>`. See [`docs/effects.
 
 ### The `actor` keyword
 
-`actor Name { … }` is sugar over `effect + handle + with var`. It's the shortest way to define a stateful, message-driven component:
+`actor Name { … }` is sugar over `effect + spawn + ref.op()`. It's the shortest way to declare the *shape* of a stateful, message-driven effect:
 
 ```hica
 type CounterMsg { Incr, Decr, Reset }
@@ -1201,22 +1201,29 @@ actor Counter {
   var count = 0
 
   receive(msg: CounterMsg) => match msg {
-    Incr  => count = count + 1,
-    Decr  => count = count - 1,
-    Reset => count = 0
+    Incr  => { }
+    Decr  => { }
+    Reset => { }
   }
 }
 
 fun main() {
-  with_counter(() => {
-    send_counter(Incr)
-    send_counter(Incr)
-    send_counter(Decr)
-  })
+  spawn Counter {
+    send(msg) => match msg {
+      Incr  => count = count + 1,
+      Decr  => count = count - 1,
+      Reset => count = 0
+    }
+  } with var count = 0 as counter
+
+  counter.send(Incr)
+  counter.send(Incr)
+  counter.send(Decr)
 }
 ```
 
-Each `actor` declaration expands to (a) an `effect Name { fun send_<name>(msg: MsgType) : () }` and (b) a `pub fun with_<name>(action) { handle Name { … } with var … in { action() } }` helper. The `msg` parameter on `receive` must carry an explicit type annotation. See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
+Since N5, each `actor` declaration expands to a single item — `effect Name { fun send(msg: MsgType) : () }`. Users install instances with `spawn Name { send(msg) => body } (with var …)? as ref` and dispatch with `ref.send(msg)`. The `var` and `receive` body on the actor block are informational: the concrete state and behaviour live at each `spawn` site. Two actors declaring `send(msg)` never collide because dispatch is per-reference (design doc §11.4). See [`docs/effects.md`](docs/effects#the-actor-keyword) for the full pattern and `examples/effects/counter-actor.hc` / `examples/effects/ping-pong-actor.hc` for runnable demos.
+
 
 ### Named effects (experimental — v2 milestones N1 + N2 + N3)
 

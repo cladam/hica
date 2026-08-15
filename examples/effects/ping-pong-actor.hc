@@ -1,20 +1,17 @@
-// hica — M6 actor sugar: two-actor ping-pong.
+// hica — N5 named-effects: two-actor ping-pong, no workarounds.
 //
-// This is the M6 exit criterion: two actors, each with its own state
-// and message type, communicating within a single `main`. It's the
-// spiritual successor to `src/actors/step5-ping-pong.kk` written
-// without any hand-rolled `process_messages` scaffolding.
+// This is the design-doc §13.3 exit criterion for milestone N5. The M6
+// version had to name each actor's op `send_<name>` and nest
+// `with_pinger(() => with_ponger(…))` to sidestep hica's flat effect-op
+// namespace. Named effects retire both workarounds:
 //
-// Each `actor` desugars into an `effect Name` + `pub fun with_<name>`
-// helper. Because op namespaces are currently flat (design doc §8.2,
-// §10 flags "named effects" as post-M6), the desugarer names each
-// actor's send op `send_<name>` — so `send_pinger(Pong)` and
-// `send_ponger(Ping)` never collide.
-//
-// When named effects land the surface will collapse to
-// `pinger.send(Pong)` / `ponger.send(Ping)` (design doc §13.4), but
-// the semantics — one effect + one handler + local `var` per actor —
-// won't change.
+//   * The `actor` declaration desugars to `effect Name { fun send(msg) }`
+//     — bare `send`, no `_<name>` suffix (design doc §11.4).
+//   * We install instances with `spawn Name { send(msg) => body } as ref`
+//     (design doc §4.2) and dispatch with `ref.send(msg)` (§4.3). Each
+//     spawn's state is fully isolated.
+//   * The M6 `with_<name>` helper is gone. `main` reads top-to-bottom;
+//     no callback tower.
 //
 // Expected output:
 //   ponger got Ping (#1), replying Pong
@@ -35,10 +32,7 @@ actor Pinger {
   var pongs = 0
 
   receive(msg: PingerMsg) => match msg {
-    Pong => {
-      pongs = pongs + 1
-      println("pinger got Pong (#{show(pongs)})")
-    }
+    Pong => { }
   }
 }
 
@@ -46,30 +40,45 @@ actor Ponger {
   var pings = 0
 
   receive(msg: PongerMsg) => match msg {
-    Ping => {
-      pings = pings + 1
-      println("ponger got Ping (#{show(pings)}), replying Pong")
-    }
+    Ping => { }
   }
 }
 
-fun rally(rounds: int) {
+fun rally(pinger: ref<Pinger>, ponger: ref<Ponger>, rounds: int) {
   if rounds <= 0 {
     println("Final: pinger got 3 pongs, ponger got 3 pings")
   } else {
-    // Ping → Ponger; Ponger's receive would send Pong back to Pinger,
-    // but M6 op-arms don't take return values, so we drive the
-    // conversation from the coordinator instead.
-    send_ponger(Ping)
-    send_pinger(Pong)
-    rally(rounds - 1)
+    // Ping → Ponger; the coordinator then drives the reply Pong → Pinger
+    // (op arms don't return values). Per-instance dispatch means each
+    // .send() lands in the referenced actor's arm — no ambiguity.
+    ponger.send(Ping)
+    pinger.send(Pong)
+    rally(pinger, ponger, rounds - 1)
   }
 }
 
 fun main() {
-  with_pinger(() => {
-    with_ponger(() => {
-      rally(3)
-    })
-  })
+  // Each spawn installs a fresh handler instance with its own state.
+  // The `send(msg)` arm captures the actor's counter and prints — the
+  // receive-body declared on the `actor` block is documentation only;
+  // named effects put the real behaviour at the spawn site.
+  spawn Pinger {
+    send(msg) => match msg {
+      Pong => {
+        pongs = pongs + 1
+        println("pinger got Pong (#{show(pongs)})")
+      }
+    }
+  } with var pongs = 0 as pinger
+
+  spawn Ponger {
+    send(msg) => match msg {
+      Ping => {
+        pings = pings + 1
+        println("ponger got Ping (#{show(pings)}), replying Pong")
+      }
+    }
+  } with var pings = 0 as ponger
+
+  rally(pinger, ponger, 3)
 }

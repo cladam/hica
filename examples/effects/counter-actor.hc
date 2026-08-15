@@ -1,23 +1,16 @@
-// hica — M6 actor sugar: single-actor counter.
+// hica — N5 named-effects: single-actor counter, no callback wrapper.
 //
-// `actor Counter { … }` desugars into TWO top-level items:
+// The M6 shape used a compiler-generated `with_counter(() => …)` helper
+// and a `send_counter(msg)` op. N5 retires both:
 //
-//   1. effect Counter { fun send_counter(msg: CounterMsg) : () }
-//   2. pub fun with_counter(action) {
-//        handle Counter {
-//          send_counter(msg) => <receive body>
-//        } with var count = 0 in {
-//          action()
-//        }
-//      }
+//   * The `actor Counter { … }` declaration emits an effect with a bare
+//     `send(msg)` op (design doc §11.4).
+//   * Users install an instance with `spawn Counter { send(msg) => body } as ref`
+//     and dispatch with `ref.send(msg)`. No callback wrapper needed.
 //
-// Inside the callback passed to `with_counter`, `send_counter(m)` is
-// like Erlang's `Actor ! Msg`: fire-and-forget dispatch to the actor
-// whose state and receive-body were declared above. The state is
-// scoped to the `with_counter` call — every invocation gets a fresh
-// counter starting at zero.
-//
-// Design spec: documentation/effects-design.md §11.4 / §13.4.
+// This example demonstrates the flat-block style: `spawn` binds `counter`
+// for the rest of the enclosing block, then subsequent statements dispatch
+// on it.
 //
 // Expected output:
 //   [counter] Incr → 1
@@ -37,29 +30,35 @@ actor Counter {
   var count = 0
 
   receive(msg: CounterMsg) => match msg {
-    Incr  => {
-      count = count + 1
-      println("[counter] Incr → {show(count)}")
-    },
-    Decr  => {
-      count = count - 1
-      println("[counter] Decr → {show(count)}")
-    },
-    Reset => {
-      count = 0
-      println("[counter] Reset → 0")
-    }
+    Incr => { }
+    Decr => { }
+    Reset => { }
   }
 }
 
 fun main() {
-  with_counter(() => {
-    send_counter(Incr)
-    send_counter(Incr)
-    send_counter(Incr)
-    send_counter(Decr)
-    send_counter(Reset)
-    send_counter(Incr)
-    println("done")
-  })
+  spawn Counter {
+    send(msg) => match msg {
+      Incr => {
+        count = count + 1
+        println("[counter] Incr → {show(count)}")
+      },
+      Decr => {
+        count = count - 1
+        println("[counter] Decr → {show(count)}")
+      },
+      Reset => {
+        count = 0
+        println("[counter] Reset → 0")
+      }
+    }
+  } with var count = 0 as counter
+
+  counter.send(Incr)
+  counter.send(Incr)
+  counter.send(Incr)
+  counter.send(Decr)
+  counter.send(Reset)
+  counter.send(Incr)
+  println("done")
 }

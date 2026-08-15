@@ -384,7 +384,9 @@ Effect rows are compared **as sets** — `<A, B>` unifies with `<B, A>`.
 
 ## The `actor` keyword
 
-An `actor` declaration is sugar over `effect + handle + with var`. Reach for it when you have a chunk of stateful, message-driven logic that would otherwise clutter every call site with a hand-written `handle Actor { … } with var … in { … }`.
+An `actor` declaration is sugar over `effect + spawn + ref.op()`. Reach for it when you have a chunk of stateful, message-driven logic and want a compact way to declare the *shape* of the effect — the actor name, message type, and receive contract.
+
+Since N5, the actor sugar expands to a single item — an effect declaration with a bare `send(msg)` operation. You install instances with `spawn Name { … } as ref` and dispatch with `ref.send(msg)`:
 
 ```hica
 type CounterMsg { Incr, Decr, Reset }
@@ -393,41 +395,47 @@ actor Counter {
   var count = 0
 
   receive(msg: CounterMsg) => match msg {
-    Incr  => count = count + 1,
-    Decr  => count = count - 1,
-    Reset => count = 0
+    Incr  => { }
+    Decr  => { }
+    Reset => { }
   }
 }
 ```
 
-The declaration above expands to *two* top-level items:
+The declaration expands to:
 
-1. `effect Counter { fun send_counter(msg: CounterMsg) : () }`
-2. `pub fun with_counter(action) { handle Counter { send_counter(msg) => <receive body> } with var count = 0 in { action() } }`
+```hica
+effect Counter { fun send(msg: CounterMsg) : () }
+```
 
-You install the actor via `with_<name>(fn() { … })`, then send messages inside:
+The `var` and `receive` body inside `actor { … }` are informational — they describe intent — but the real state and behaviour live at each `spawn` site. Users install an instance and drive it top-to-bottom:
 
 ```hica
 fun main() {
-  with_counter(() => {
-    send_counter(Incr)
-    send_counter(Incr)
-    send_counter(Incr)
-    send_counter(Decr)
-    println("done")
-  })
+  spawn Counter {
+    send(msg) => match msg {
+      Incr  => count = count + 1,
+      Decr  => count = count - 1,
+      Reset => count = 0
+    }
+  } with var count = 0 as counter
+
+  counter.send(Incr)
+  counter.send(Incr)
+  counter.send(Decr)
+  println("done")
 }
 ```
 
 **Rules and constraints:**
 
 - Actor names are **PascalCase** (like `struct` and `effect`).
-- State fields are declared as `var name = init` (with optional `: T` annotation), one per line.
+- State fields are declared as `var name = init` on the actor block; they document the shape, but each `spawn` site declares its own concrete state via `with var … = …`.
 - The `receive(msg: MsgType) => body` header is required, and the `msg` parameter must carry an explicit type annotation; hica needs it to figure out what messages the actor accepts.
-- Each actor gets one op named `send_<name>` (e.g. `send_counter`, `send_pinger`). This convention sidesteps the flat effect-op namespace so multiple actors coexist without collision. When named effects is implemented, the surface will collapse to `counter.send(Incr)`.
-- Actor sends are unit-typed. If you need to observe state after the callback, capture it into an outer `var` (see `learn/47-effects-actors.hc`).
+- The generated op is a bare `send(msg)` — no `send_<name>` suffix. Since named effects (v2) landed, per-instance dispatch (`counter.send(m)`, `bank.send(m)`) tells two actors apart by reference, not by op name.
+- Actor sends are unit-typed. If you need to observe state after the block, capture it into an outer `var`.
 
-**Two-actor example:**
+**Two-actor example — no name-suffix workaround, no callback tower:**
 
 ```hica
 type PingerMsg { Pong }
@@ -436,28 +444,39 @@ type PongerMsg { Ping }
 actor Pinger {
   var pongs = 0
   receive(msg: PingerMsg) => match msg {
-    Pong => pongs = pongs + 1
+    Pong => { }
   }
 }
 
 actor Ponger {
   var pings = 0
   receive(msg: PongerMsg) => match msg {
-    Ping => pings = pings + 1
+    Ping => { }
   }
 }
 
 fun main() {
-  with_pinger(() => {
-    with_ponger(() => {
-      send_ponger(Ping)
-      send_pinger(Pong)
-    })
-  })
+  spawn Pinger {
+    send(msg) => match msg {
+      Pong => pongs = pongs + 1
+    }
+  } with var pongs = 0 as pinger
+
+  spawn Ponger {
+    send(msg) => match msg {
+      Ping => pings = pings + 1
+    }
+  } with var pings = 0 as ponger
+
+  ponger.send(Ping)
+  pinger.send(Pong)
 }
 ```
 
+Both actors declare `send(msg)` — the reference (`pinger` vs `ponger`) disambiguates. Under the hood the codegen emits `pinger.hc_pinger_send(...)` / `ponger.hc_ponger_send(...)` — effect-qualified op names — so Koka's `hc_<op>/@select` selectors don't collide.
+
 See `examples/effects/counter-actor.hc` (single actor) and `examples/effects/ping-pong-actor.hc` (two actors, one file) for the full pattern.
+
 
 ## Named effects (v2 — experimental, N1 + N2 + N3)
 

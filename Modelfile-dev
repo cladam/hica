@@ -2,7 +2,7 @@
 #   ollama create hica-dev -f ./Modelfile-dev
 #   ollama run hica-dev
 
-FROM qwen3.6:35b-a3b
+FROM qwen3.8:27b
 
 PARAMETER temperature 0.15
 PARAMETER top_p 0.85

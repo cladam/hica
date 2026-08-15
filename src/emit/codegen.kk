@@ -52,25 +52,39 @@ val effect-op-tag = "hc-op:"
 
 // N2 — named-effect method dispatch tag. The checker rewrites a UFCS-shaped
 // `receiver.op(args)` where `receiver : TRef(E)` into
-// `Call(Var("hc-ref-op:op"), [receiver, ...args])`. Codegen's `Call` arm
-// detects this tag and emits `<receiver>.hc_<op>(<args>)` — a Koka named
-// dispatch site. See documentation/named-effects-design.md §7.3 and
-// named-effects-journal.md N2. The tag flows through `marshal-name` too so
-// that a bare `Var("hc-ref-op:op")` reference (which shouldn't normally
-// occur) at least renders as `hc_op` and not the raw tag.
+// `Call(Var("hc-ref-op:<Effect>:<op>"), [receiver, ...args])`. Codegen's
+// `Call` arm detects this tag and emits
+// `<receiver>.hc_<effect>_<op>(<args>)` — Koka's named dispatch shape.
+// See documentation/named-effects-design.md §7.1 / §7.3 and
+// named-effects-journal.md N2 + N5. The tag flows through `marshal-name`
+// too so a stray `Var("hc-ref-op:E:op")` reference renders as
+// `hc_e_op` rather than the raw tag.
 val ref-op-tag = "hc-ref-op:"
+
+// N5: strip a `hc-ref-op:<effect>:<op>` tag back to the effect-qualified
+// Koka op name `hc_<effect>_<op>`. If the tag is missing the effect
+// segment (older single-colon shape from N2), fall back to `hc_<op>`.
+fun strip-ref-op-tag( rest : string ) : string
+  match rest.list.index-of(fn(c) c == ':')
+    -1 -> "hc_" ++ rest              // no ':' — old shape, single op name
+    i  ->
+      val ename = rest.list.take(i).string
+      val opname = rest.list.drop(i + 1).string
+      if ename.is-empty then "hc_" ++ opname
+      else "hc_" ++ ename.to-lower ++ "_" ++ opname
 
 fun marshal-name( name : string, declared : list<string> ) : string
   match name.starts-with(effect-op-tag)
     Just(rest) -> "hc_" ++ rest.string
     Nothing ->
       match name.starts-with(ref-op-tag)
-        Just(rest) -> "hc_" ++ rest.string
+        Just(rest) -> strip-ref-op-tag(rest.string)
         Nothing ->
           if declared.any(fn(d) d == name) || koka-reserved-names.any(fn(r) r == name)
             || koka-keywords.any(fn(k) k == name)
             then "hc_" ++ name
           else name
+
 
 
 // ---------------------------------------------------------------------------
@@ -711,17 +725,22 @@ fun emit-expr( n : node, declared : list<string> ) : div string
       match (callee.expr, args)
         // N2 — named-effect method dispatch: the checker tags UFCS-shaped
         // `receiver.op(args)` calls where `receiver : TRef(E)` and `op` is a
-        // member of E as `Call(Var("hc-ref-op:op"), [receiver, ...rest])`.
-        // Emit as Koka's named-handler dispatch: `<receiver>.hc_<op>(<rest>)`.
-        // See documentation/named-effects-design.md §7.3. Matched first so
-        // subsequent stdlib intercepts don't hijack the tagged callee.
+        // member of E as `Call(Var("hc-ref-op:<Effect>:<op>"), [receiver, ...])`.
+        // N5: the tag now carries the effect name so we can emit the
+        // effect-qualified Koka op name `hc_<effect>_<op>` — Koka rejects
+        // two `named effect`s that share an op name, so per-effect
+        // qualification is mandatory once two actors declare `send`.
+        // See documentation/named-effects-design.md §7.1 / §7.3 and
+        // named-effects-journal.md N5.
         (Var(raw-cname), Cons(recv, rest)) | raw-cname.starts-with(ref-op-tag).is-just ->
-          val op-name = match raw-cname.starts-with(ref-op-tag)
+          val payload = match raw-cname.starts-with(ref-op-tag)
             Just(s) -> s.string
             Nothing -> raw-cname
+          val op-code = strip-ref-op-tag(payload)
           val recv-code = emit-expr(recv, declared)
           val rest-code = rest.map(fn(a) emit-expr(a, declared))
-          recv-code ++ "." ++ koka-op-name(op-name) ++ "(" ++ rest-code.join(", ") ++ ")"
+          recv-code ++ "." ++ op-code ++ "(" ++ rest-code.join(", ") ++ ")"
+
         (Var("println"), [arg]) ->
           match arg.typ
             Just(TString) -> "println(" ++ emit-expr(arg, declared) ++ ")"
@@ -1325,21 +1344,21 @@ fun emit-expr( n : node, declared : list<string> ) : div string
     // Emits Koka's named-handler form (design doc §7.2):
     //   var <state> := <init>            -- one per state binding
     //   with <binder> <- named handler
-    //     fun hc_<op>(<params>) <arm-body>
+    //     fun hc_<effect>_<op>(<params>) <arm-body>
     //     ...
     // The binder's scope is the enclosing block — subsequent statements are
-    // emitted by the outer walker. N1 uses the naïve promotion path: whenever
-    // ANY spawn appears in the program, emit-effect-def promotes the effect
-    // to `named effect` with `fun` ops (see §7.6). For N1 we do NOT promote
-    // yet — spawn-only usage is validated with the two-counters example, and
-    // named-effect promotion lands in N2 alongside the full checker/dispatch.
-    ESpawn(_effect-name, arms, state, binder) ->
+    // emitted by the outer walker. Every effect that any `spawn` references
+    // gets promoted to `named effect` (see §7.6), and every arm's op name is
+    // qualified with the effect (N5) so two named effects sharing an op name
+    // don't collide on Koka's auto-generated `hc_<op>/@select` selector.
+    ESpawn(effect-name, arms, state, binder) ->
       val state-lines = state.map fn((sname, sinit))
         "var " ++ marshal-name(sname, declared) ++ " := " ++ emit-expr(sinit, declared)
-      val arm-lines = arms.map(fn(arm) emit-named-arm(arm, declared))
+      val arm-lines = arms.map(fn(arm) emit-named-arm(arm, declared, effect-name))
       val pre = if state-lines.is-nil then "" else state-lines.join("\n") ++ "\n"
       pre ++ "with " ++ marshal-name(binder, declared) ++ " <- named handler\n" ++
         arm-lines.join("\n")
+
 
 // Emit a single handler arm.  Multi-statement arm bodies (Block with more
 // than one stmt) are split so the leading statements run *before* resume(),
@@ -1417,10 +1436,18 @@ fun emit-handle-arm( arm : handle-arm, declared : list<string> ) : div string
 //
 // For N1 we accept the simple case: multi-stmt Block bodies become an
 // indented body block; single-expression bodies emit compact.
-fun emit-named-arm( arm : handle-arm, declared : list<string> ) : div string
+//
+// N5: if `effect-name` is non-empty, the arm's op gets qualified with the
+// effect name to match the qualified name emitted by `emit-effect-op-decl`
+// (`hc_<effect>_<op>`). This keeps two `named effect`s that share an op
+// name (e.g. two actors both declaring `send`) from colliding.
+fun emit-named-arm( arm : handle-arm, declared : list<string>, effect-name : string = "" ) : div string
   val ps = arm.params.map(fn(p) marshal-name(p, declared)).join(", ")
-  val op = koka-op-name(arm.op-name)
+  val op = if !effect-name.is-empty
+             then "hc_" ++ effect-name.to-lower ++ "_" ++ arm.op-name
+             else koka-op-name(arm.op-name)
   val header = "  fun " ++ op ++ "(" ++ ps ++ ")"
+
   match arm.arm-body.expr
     Block(stmts) | stmts.length > 1 ->
       val body-code = stmts.map(fn(s) emit-stmt(s, declared)).join("\n")
@@ -1475,8 +1502,19 @@ fun emit-effect-op-param( p : (string, hica-type) ) : div string
 //   named? = False -> v1 shape `ctl hc_<op>(...) : ret`  (used with `handle`)
 //   named? = True  -> v2 shape `fun hc_<op>(...) : ret`  (used with `named handler`,
 //                                                        per named-effects-design.md §7.1)
-fun emit-effect-op-decl( op : effect-op, named-emit : bool = False ) : div string
-  val op-name = koka-op-name(op.name)
+//
+// N5: for named-effect ops, the emitted Koka op name is qualified with the
+// effect name — `hc_<effect>_<op>` — so two named effects that declare an op
+// with the same name (e.g. two actors both declaring `send`) don't collide
+// on the auto-generated `hc_<op>/@select` selector. The dispatch site
+// (`ref.op(args)`) is tagged by the checker with `hc-ref-op:<effect>:<op>`
+// which `strip-ref-op-tag` decodes to the same qualified name. Plain
+// `effect`-with-`handle` code keeps the un-qualified `hc_<op>` shape —
+// only named effects need the qualifier.
+fun emit-effect-op-decl( op : effect-op, named-emit : bool = False, effect-name : string = "" ) : div string
+  val op-name = if named-emit && !effect-name.is-empty
+                  then "hc_" ++ effect-name.to-lower ++ "_" ++ op.name
+                  else koka-op-name(op.name)
   val param-strs = op.params.map(fn(p) emit-effect-op-param(p))
   val params-code = param-strs.join(", ")
   val ret-code = match op.ret
@@ -1486,6 +1524,7 @@ fun emit-effect-op-decl( op : effect-op, named-emit : bool = False ) : div strin
       if r == "" then "()" else r
   val kw = if named-emit then "fun" else "ctl"
   "  " ++ kw ++ " " ++ op-name ++ "(" ++ params-code ++ ") : " ++ ret-code
+
 
 // Emit an effect declaration. `spawn-used` is the set of effect names that
 // appear in any `spawn` expression in the program; effects in this set are
@@ -1501,8 +1540,13 @@ fun emit-effect-def( ed : effect-def, spawn-used : list<string> = [] ) : div str
   val ename = ed.name.to-lower
   val named-emit = spawn-used.any(fn(n) n == ed.name)
   val kw = if named-emit then "named effect" else "effect"
-  val ops-code = ed.ops.map(fn(op) emit-effect-op-decl(op, named-emit)).join("\n")
+  // N5: pass the effect name to op emission so named-effect ops get
+  // qualified with the effect (`hc_<effect>_<op>`), avoiding Koka's
+  // "definition hc_<op>/@select is already defined" collision when two
+  // named effects share an op name.
+  val ops-code = ed.ops.map(fn(op) emit-effect-op-decl(op, named-emit, ed.name)).join("\n")
   pub-str ++ kw ++ " " ++ ename ++ "\n" ++ ops-code
+
 
 
 // Walker: collect every effect name spawned anywhere in the program.

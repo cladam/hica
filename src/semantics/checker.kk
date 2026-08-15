@@ -478,7 +478,13 @@ fun infer-ref-call( env : type-env, s : subst, callee : node, args : list<node>,
       " argument(s), got " ++ rest-args'.length.show)
   // Unify each rest-arg's inferred type with the corresponding declared param.
   val s1 = unify-ref-args(s0, fresh-params, rest-args', n.span, op-name, ename)
-  val tagged-callee = Node(callee.span, Var("hc-ref-op:" ++ op-name), Nothing)
+  // N5: tag the callee with `hc-ref-op:<effect>:<op>` so codegen can emit
+  // the effect-qualified Koka op name (`hc_<effect>_<op>`). This avoids
+  // Koka rejecting two `named effect`s with the same op name (e.g. two
+  // actors both declaring `send`) — see documentation/named-effects-journal.md
+  // N5 for the diagnostic and the design-doc §7.1 op-name mangling rule.
+  val tagged-callee = Node(callee.span, Var("hc-ref-op:" ++ ename ++ ":" ++ op-name), Nothing)
+
   val ret-type = apply-subst(s1, fresh-ret)
   (s1, Node(n.span, Call(tagged-callee, Cons(recv', rest-args')), Just(ret-type)))
 
@@ -1340,6 +1346,13 @@ fun infer-stmts( env : type-env, s : subst, stmts : list<node> ) : <div,diag,fre
 
 // Recursively extract all let bindings from a let chain (let a = ...; let b = ...; body)
 // and extend the environment with each one.
+//
+// N5: also thread ESpawn binders through the chain, so a spawn nested inside
+// a Let/VarDecl body (e.g. `var final = -1; spawn Counter { … } as counter;
+// counter.send(...)`) makes its binder visible to the rest of the block.
+// Without this, the ref-dispatch guard in `ref-dispatch-info` cannot see
+// `counter : TRef(Counter)` and every `counter.send(...)` degrades to the
+// ordinary UFCS lookup (which fails with "undefined variable: counter").
 fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
   match n.expr
     Let(name, _, init', body) ->
@@ -1353,7 +1366,10 @@ fun extend-let-chain( env : type-env, s : subst, n : node ) : div type-env
     VarDecl(name, _, init', body) ->
       val env' = env.extend(name, apply-subst(s, get-type(init')))
       extend-let-chain(env', s, body)
+    ESpawn(ename, _, _, binder) ->
+      env.extend(binder, TRef(ename))
     _ -> env
+
 
 // After an `ESpawn` statement in a block, its binder must be visible to the
 // subsequent statements (design doc §5.3 — the binder scopes to the rest of

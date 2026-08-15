@@ -288,41 +288,46 @@ pub fun main() : io ()
       val no-inline-match = !kk.contains("resume(match ")
       assert/is-true(has-hoist && resumes-local && no-inline-match)
 
-    // --- M6: actor keyword desugars to effect + helper ---------------
+    // --- N5: actor sugar retires `send_<name>` and the with-helper --------
     // `actor Counter { var count = 0; receive(msg: CounterMsg) => … }`
-    // expands to two top-level items: an `effect Counter { fun
-    // send_counter(msg: CounterMsg) }` declaration, and a
-    // `pub fun with_counter(action) { … }` helper that installs the
-    // handler with `with var count = 0` and calls `action()`. The op
-    // name is `send_<name>` (Option A / design doc §13.4) so multiple
-    // actors in the same file coexist without namespace collision.
-    dtest("codegen: actor Counter emits effect + hc_with_counter helper (M6)")
-      val src = "type CounterMsg { Incr, Decr }\nactor Counter {\n  var count = 0\n  receive(msg: CounterMsg) => match msg { Incr => count = count + 1, Decr => count = count - 1 }\n}\nfun main() {\n  with_counter(() => { send_counter(Incr) })\n}"
+    // used to expand to two top-level items: an effect and a
+    // `pub fun with_counter(action)` helper installer. N5 retires both
+    // (see documentation/named-effects-journal.md N5):
+    //   * Op name is a bare `send(msg)` — no `send_<name>` suffix.
+    //   * No `with_<name>` helper — users spawn instances with
+    //     `spawn Counter { … } as ref` directly.
+    // Users spawn the effect and dispatch via per-instance calls
+    // (`counter.send(Incr)`), which the codegen emits as
+    // `counter.hc_counter_send(Incr)` — effect-qualified so two actors
+    // both declaring `send` never collide (design doc §7.1 / §11.4).
+    dtest("codegen: actor sugar emits named effect with bare `send` op (N5)")
+      val src = "type CounterMsg { Incr, Decr }\nactor Counter {\n  var count = 0\n  receive(msg: CounterMsg) => match msg { Incr => { } Decr => { } }\n}\nfun main() {\n  spawn Counter { send(msg) => match msg { Incr => count = count + 1, Decr => count = count - 1 } } with var count = 0 as counter\n  counter.send(Incr)\n}"
       val kk = emit-typed-program(src)
-      // Effect block for the actor. Effect name is lowercased (matches
-      // the M1 rule) and the op carries the hc_ prefix (M4.5 rule).
-      val has-effect = kk.contains("effect counter") && kk.contains("ctl hc_send_counter")
-      // Helper is emitted as `pub fun hc_with_counter(action)`.
-      val has-helper = kk.contains("pub fun hc_with_counter(action)")
-      // Handler body carries the state hoist and the `send_counter` arm.
-      val has-state  = kk.contains("var count := 0")
-      val has-arm    = kk.contains("ctl hc_send_counter(msg)")
-      assert/is-true(has-effect && has-helper && has-state && has-arm)
+      // Effect is promoted to `named effect` since `spawn` is used;
+      // op name is effect-qualified (`hc_counter_send`) to avoid Koka
+      // selector collisions when two named effects share an op name.
+      val is-named-effect   = kk.contains("named effect counter")
+      val has-qualified-op  = kk.contains("fun hc_counter_send")
+      // Dispatch site emits `counter.hc_counter_send(Incr)`.
+      val has-dispatch      = kk.contains("counter.hc_counter_send(Incr)")
+      // N5 retirement — the old shape must NOT be emitted.
+      val no-old-send-op    = !kk.contains("hc_send_counter")
+      val no-old-helper     = !kk.contains("hc_with_counter")
+      assert/is-true(is-named-effect && has-qualified-op && has-dispatch && no-old-send-op && no-old-helper)
 
-    // A minimal, isolated regression on the name-collision fix from M6:
-    // two actors with different message types must produce two effect
-    // blocks and two distinct helpers, without op-name overlap.
-    //
-    // Note: actor names have to be multi-letter here — a single-letter
-    // effect name would be lowercased to `a` in Koka, and Koka's
-    // parser treats a single lowercase letter as a type-variable name
-    // (not an effect name). Filed as a follow-up (see M6 log).
-    dtest("codegen: two actors produce distinct send_<name> ops (M6)")
-      val src = "type FooMsg { F1 }\ntype BarMsg { B1 }\nactor Foo { var x = 0; receive(m: FooMsg) => match m { F1 => x = 1 } }\nactor Bar { var y = 0; receive(m: BarMsg) => match m { B1 => y = 1 } }\nfun main() { with_foo(() => send_foo(F1)); with_bar(() => send_bar(B1)) }"
+    // A minimal, isolated regression on the two-actors-both-declaring-`send`
+    // scenario. N5's effect-qualified op naming is what makes this compile
+    // — without it, two `named effect` decls with the same op name would
+    // collide on Koka's auto-generated `hc_<op>/@select` selector.
+    dtest("codegen: two actors with bare `send` get effect-qualified ops (N5)")
+      val src = "type FooMsg { F1 }\ntype BarMsg { B1 }\nactor Foo { var x = 0; receive(m: FooMsg) => match m { F1 => { } } }\nactor Bar { var y = 0; receive(m: BarMsg) => match m { B1 => { } } }\nfun main() {\n  spawn Foo { send(m) => match m { F1 => x = 1 } } with var x = 0 as foo\n  spawn Bar { send(m) => match m { B1 => y = 1 } } with var y = 0 as bar\n  foo.send(F1)\n  bar.send(B1)\n}"
       val kk = emit-typed-program(src)
-      val ok-foo = kk.contains("ctl hc_send_foo(m)") && kk.contains("pub fun hc_with_foo(action)")
-      val ok-bar = kk.contains("ctl hc_send_bar(m)") && kk.contains("pub fun hc_with_bar(action)")
-      assert/is-true(ok-foo && ok-bar)
+      val ok-foo = kk.contains("fun hc_foo_send") && kk.contains("foo.hc_foo_send(F1)")
+      val ok-bar = kk.contains("fun hc_bar_send") && kk.contains("bar.hc_bar_send(B1)")
+      // No cross-actor name leak.
+      val no-mix = !kk.contains("hc_send(") && !kk.contains("hc_send_foo") && !kk.contains("hc_send_bar")
+      assert/is-true(ok-foo && ok-bar && no-mix)
+
 
     // --- M6.5: single-letter effect / actor names rejected -----------
     // Koka's parser treats a single lowercase identifier at the

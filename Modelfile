@@ -2,7 +2,7 @@
 #   ollama create hica -f ./Modelfile
 #   ollama run hica
 
-FROM qwen3.6:35b-a3b
+FROM qwen3.8:27b
 
 # Lower temperature keeps code structure rigid and reduces hallucinations
 PARAMETER temperature 0.2
