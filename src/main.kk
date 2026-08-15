@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.0-18"
+val version = "0.49.0-19"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -2380,10 +2380,18 @@ fun collect-calls( n : node ) : div list<string>
 // covered by the walk over that arm's expression.
 // M4.5 — strip the `hc-op:` prefix that the checker adds to effect-op call
 // sites, so the discharge test compares the bare op name.
+// N4 — also strip `hc-ref-op:`, which the N2 ref-dispatch rewriter puts on
+// per-instance method calls (`c.incr()` → `Call(Var("hc-ref-op:incr"), [c])`).
+// Without this, `discover-effects` would fail to match ref-op call sites
+// against their effect's op names, and a program that uses only spawn+ref.op()
+// on an effect would not surface that effect in the reported row.
 fun unwrap-op-tag-main( vname : string ) : string
-  match vname.starts-with("hc-op:")
+  match vname.starts-with("hc-ref-op:")
     Just(rest) -> rest.string
-    Nothing    -> vname
+    Nothing ->
+      match vname.starts-with("hc-op:")
+        Just(rest) -> rest.string
+        Nothing    -> vname
 
 fun collect-calls-h( n : node, effects : list<effect-def>, handled : list<string> = [] ) : div list<string>
   match n.expr
