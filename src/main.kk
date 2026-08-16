@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.0"
+val version = "0.49.1"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -342,10 +342,11 @@ fun compile-js( file : string ) : io maybe<path>
   val prog   = run-parser-program(tokens, source)
   val prelude = load-prelude()
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes)
+  val imported-effects = collect-imports-effects(prog.imports, dir.path, dep-includes)
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
-                       effects = prog.effects,
+                       effects = imported-effects ++ prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals,
                        imports = prog.imports)
@@ -353,9 +354,10 @@ fun compile-js( file : string ) : io maybe<path>
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types = prelude.types.length + imported-types.length
+  val skip-effects = imported-effects.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -372,7 +374,7 @@ fun compile-js( file : string ) : io maybe<path>
     val prelude-type-count = prelude.types.length
     val imported-type-count = imported-types.length
     val user-types = typed-prog.types.drop(prelude-type-count + imported-type-count)
-    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports)
     val js-code = emit-js-program(user-prog, mod-name)
     val out-js = dir.path / (mod-name ++ ".js").path
     write-text-file(out-js, js-code)
@@ -408,19 +410,21 @@ fun analyse-one-for-docs( hc-file : string, dep-includes : list<string>, prelude
   val prog   = run-parser-program(tokens, source)
   val dir    = hc-file.path.dirname
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [hc-file], dep-includes)
+  val imported-effects = collect-imports-effects(prog.imports, dir.path, dep-includes)
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
-                       effects = prog.effects,
+                       effects = imported-effects ++ prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
   val skip-decls   = prelude.decls.length   + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types   = prelude.types.length   + imported-types.length
+  val skip-effects = imported-effects.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   if !errors.is-empty then
     println("  [skip] " ++ hc-file ++ " — " ++ errors.length.show ++ " error(s)")
@@ -483,19 +487,21 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
   val dir    = file.path.dirname
   val prelude = load-prelude()
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes)
+  val imported-effects = collect-imports-effects(prog.imports, dir.path, dep-includes)
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
-                       effects = prog.effects,
+                       effects = imported-effects ++ prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types = prelude.types.length + imported-types.length
+  val skip-effects = imported-effects.length
   val (typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
   
   // if there are hard errors, we can't analyse
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
@@ -508,7 +514,7 @@ fun cmd-analyse( file : string, format-str : string, top-n-str : maybe<string>, 
   val user-decls = typed-prog.decls.drop(prelude.decls.length + imported-decls.length)
   val user-structs = typed-prog.structs.drop(prelude.structs.length + imported-structs.length)
   val user-types = typed-prog.types.drop(prelude.types.length + imported-types.length)
-  val user-prog = typed-prog(decls = user-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
+  val user-prog = typed-prog(decls = user-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports)
   val extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes)
   
   if document-flag then
@@ -532,27 +538,29 @@ fun cmd-check( file : string )
   val prelude = load-prelude()
   // need-kk=False: hica check never invokes Koka, so skip compile-module and its expensive check-program
   val (imported-decls, imported-structs, imported-types, _, _) = compile-imports(prog.imports, dir.path, [file], dep-includes, False)
+  val imported-effects = collect-imports-effects(prog.imports, dir.path, dep-includes)
   val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
   val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                        types = prelude.types ++ imported-types ++ prog.types,
-                       effects = prog.effects,
+                       effects = imported-effects ++ prog.effects,
                        decls = prelude.decls ++ imported-decls ++ prog.decls,
                        globals = prog.globals)
   val desugared = desugar-program(merged)
   val skip-decls = prelude.decls.length + imported-decls.length
   val skip-structs = prelude.structs.length + imported-structs.length
   val skip-types = prelude.types.length + imported-types.length
+  val skip-effects = imported-effects.length
   // import-sigs-only=True: skip Phase 1 body inference for prelude+imported decls.
   // Imported functions are already well-typed; seeding from their declared signatures
   // avoids O(N²) substitution growth and makes hica check fast.
   val (_typed-prog, diags) = collect-diagnostics
     run-fresh
-      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+      check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
   val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
   val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
   warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
   if errors.is-empty then
-    val effects = discover-effects(prog)
+    val effects = discover-effects(prog(effects = imported-effects ++ prog.effects))
     val effect-str = if effects.is-empty then "pure"
                      else "<" ++ effects.join(", ") ++ ">"
     println("check: " ++ file ++ " — ok (" ++ prog.decls.length.show ++ " declarations, 0 errors) [" ++ effect-str ++ "]")
@@ -591,10 +599,11 @@ fun cmd-test( file : string )
     // Load prelude and merge
     val prelude = load-prelude()
     val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file], dep-includes)
+    val imported-effects = collect-imports-effects(prog.imports, dir.path, dep-includes)
     val ext-env = collect-extern-env(prog.imports, dir.path, dep-includes)
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
-                         effects = prog.effects,
+                         effects = imported-effects ++ prog.effects,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
                          globals = prog.globals,
                          tests = prog.tests)
@@ -604,9 +613,10 @@ fun cmd-test( file : string )
     val skip-decls = prelude.decls.length + imported-decls.length
     val skip-structs = prelude.structs.length + imported-structs.length
     val skip-types = prelude.types.length + imported-types.length
+    val skip-effects = imported-effects.length
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
     warnings.foreach(fn(d) println(render-diagnostic(source, file, d)))
@@ -624,8 +634,8 @@ fun cmd-test( file : string )
       val prelude-type-count = prelude.types.length
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports, tests = typed-prog.tests)
-      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes))
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports, tests = typed-prog.tests)
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes), imported-effects-count = skip-effects)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path, dep-includes ++ extra-includes) ++ dep-includes ++ extra-includes
@@ -1570,11 +1580,12 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     print("  => processing imports...")
     flush-stdout()
     val (imported-decls, imported-structs, imported-types, imported-names, _) = compile-imports(prog.imports, dir.path, [file], extra-includes)
+    val imported-effects = collect-imports-effects(prog.imports, dir.path, extra-includes)
     val ext-env = collect-extern-env(prog.imports, dir.path, extra-includes)
     println(" done")
     val merged = Program(prelude.structs ++ imported-structs ++ prog.structs,
                          types = prelude.types ++ imported-types ++ prog.types,
-                         effects = prog.effects,
+                         effects = imported-effects ++ prog.effects,
                          decls = prelude.decls ++ imported-decls ++ prog.decls,
                          globals = prog.globals,
                          imports = prog.imports)
@@ -1584,11 +1595,12 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
     val skip-decls = prelude.decls.length + imported-decls.length
     val skip-structs = prelude.structs.length + imported-structs.length
     val skip-types = prelude.types.length + imported-types.length
+    val skip-effects = imported-effects.length
     print("  => checking...")
     flush-stdout()
     val (typed-prog, diags) = collect-diagnostics
       run-fresh
-        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True)
+        check-program(desugared, skip-decls, skip-structs, skip-types, extra-extern = ext-env, prelude-count = prelude.decls.length, import-sigs-only = True, skip-kw-effects = skip-effects)
     println(" done")
     val warnings = diags.filter(fn(d) match d.severity { Warning -> True; _ -> False })
     val errors = diags.filter(fn(d) match d.severity { Error -> True; _ -> False })
@@ -1608,8 +1620,8 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
       val prelude-type-count = prelude.types.length
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
-      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports)
-      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, extra-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, extra-includes))
+      val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports)
+      val koka-code = emit-program(user-prog, mod-name, imported-names = imported-names, source = source, prelude-count = prelude-count, extra-effectful = collect-extern-effectful(prog.imports, dir.path, extra-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, extra-includes), imported-effects-count = skip-effects)
       write-kk-if-changed(out-kk, koka-code, file)
       print("  => compiling...")
       flush-stdout()
@@ -1886,6 +1898,61 @@ fun collect-extern-kk-modules-rec( imp-list : list<import-decl>, base-dir : path
 
 fun collect-extern-kk-modules( imports : list<import-decl>, base-dir : path, include-dirs : list<string> = [] )
   collect-extern-kk-modules-rec(imports, base-dir, [], include-dirs)
+
+// ---------------------------------------------------------------------------
+// Cross-module effect collection (Issue #3 fix — hedit hica-issues.md).
+//
+// `effect` declarations must cross module boundaries so that a `handle E { … }`
+// in one module can dispatch on an effect defined in an imported module.
+// `compile-imports-impl` was designed before user-defined effects existed and
+// only propagates `decls / structs / types / names / kk-paths`. Rather than
+// widen its already-large tuple (Koka has no `Tuple6`), we walk the same
+// import graph with a small parallel helper and merge the result into the
+// consumer's `program.effects` at every call site.
+//
+// Extern and stdlib imports are skipped: they cannot declare hica-level
+// effects. Local imports are parsed once, `pub`/private is ignored (an
+// effect is a *type-level* declaration and always visible to a `handle`
+// site, per documentation/effects-design.md §12 Q1). Duplicate effect
+// names across the graph are deduplicated by name so the emitted Koka
+// only ever sees one `effect X` block per name — this matches the design
+// doc's assumed policy that an effect must be declared exactly once in a
+// module graph.
+// ---------------------------------------------------------------------------
+
+fun collect-imports-effects-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [] ) : io list<effect-def>
+  imp-list.foldl([], fn(acc : list<effect-def>, imp)
+    if imp.is-extern then acc
+    elif imp.path.starts-with("std/").bool then acc
+    else
+      val hc-path = resolve-import(imp.path, base-dir, include-dirs)
+      val hc-str  = hc-path.string
+      if visited.any(fn(v) v == hc-str) || !is-file(hc-path) then acc
+      else
+        val sub-source = read-text-file(hc-path)
+        val sub-tokens = lex(sub-source)
+        val sub-prog   = run-parser-program(sub-tokens, sub-source)
+        val sub-dir    = hc-path.dirname.path
+        // Effects from this module plus everything it (pub-)imports transitively.
+        // We recurse over *all* imports (not just pub) so an effect declared two
+        // hops away and re-exported via private imports is still visible — the
+        // dedup step below guarantees a single decl in the final list.
+        val own-effects = sub-prog.effects
+        val sub-effects = collect-imports-effects-rec(sub-prog.imports, sub-dir, Cons(hc-str, visited), include-dirs)
+        val combined = own-effects ++ sub-effects
+        // Dedup against `acc` by effect name, preserving first-seen order.
+        combined.foldl(acc, fn(a : list<effect-def>, ed : effect-def)
+          if a.any(fn(e) e.name == ed.name) then a else a ++ [ed]
+        )
+  )
+
+// Public entry point: gather every `effect-def` reachable from `imports`.
+// Returns the effects in first-seen order across the graph, with duplicates
+// (same name) collapsed to the first occurrence. Consumers prepend this to
+// their own `prog.effects` when building the merged program so that
+// `check-program` and `emit-program` see cross-module effects as first-class.
+pub fun collect-imports-effects( imports : list<import-decl>, base-dir : path, include-dirs : list<string> = [] ) : io list<effect-def>
+  collect-imports-effects-rec(imports, base-dir, [], include-dirs)
 
 // Per-module memoisation: maps resolved file path → cache entry.
 // Immutable list threaded through calls — avoids ref type annotation issues.

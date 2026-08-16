@@ -1670,6 +1670,14 @@ pub fun parse-program() : <div,parser> program
             advance()
             val gd = parse-global-decl()
             globals := Cons(gd(is-pub = True), globals)
+          TkEffect ->
+            // pub effect Name { … } — cross-module effect visibility.
+            // See hedit hica-issues.md Issue #3: when an effect declared in
+            // module A is used by `handle` in module B, Koka needs the effect's
+            // ops to be exported from A. `pub` in hica → `pub effect` in Koka.
+            advance()
+            val edef = parse-effect-def(True, current-doc)
+            effects := Cons(edef, effects)
           _ ->
             decls := Cons(parse-fun-decl(current-doc), decls)
         current-doc := Nothing

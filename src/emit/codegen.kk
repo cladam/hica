@@ -310,11 +310,17 @@ fun offset-to-line( source : string, offset : int ) : int
 // Program-level emission: generates a complete .kk module
 // ---------------------------------------------------------------------------
 
-pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
+pub fun emit-program( p : program, mod-name : string = "main", imported-names : list<string> = [], source : string = "", prelude-count : int = 0, extra-effectful : list<string> = [], extra-imports : list<string> = [], imported-effects-count : int = 0 ) : div string
   val global-names = p.globals.map(fn(g) g.name)
   // Effect op names must be treated as "declared" so their call sites get
   // `marshal-name`'d to `hc_<op>` — matching the `ctl hc_<op>(...)` names
   // emitted in the `effect` block. See koka-op-name for the rationale.
+  // Both locally-declared and imported effect ops must be in the "declared"
+  // set — otherwise a `handle Terminal { poll_event() => … }` for an
+  // imported effect would render as a bare `poll_event` call site instead
+  // of `hc_poll_event`, and Koka would emit a "definition not found" error
+  // for the operation. See documentation/effects-journal.md M4.5 and
+  // hedit's hica-issues.md Issue #3.
   val effect-op-names = p.effects.flatmap(fn(ed) ed.ops.map(fn(op) op.name))
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ global-names ++ imported-names ++ effect-op-names
 
@@ -367,8 +373,14 @@ pub fun emit-program( p : program, mod-name : string = "main", imported-names : 
   // anywhere in the program must be emitted as `named effect` with `fun` ops,
   // otherwise Koka's `named handler` will reject it.
   val spawn-effects = collect-spawn-effects(p)
-  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
-  val effect-sep = if p.effects.is-nil then "" else "\n\n"
+  // Skip the first `imported-effects-count` effect-defs — they came in from
+  // imported modules and were emitted (and typed by Koka) in their defining
+  // module's `.kk`. Re-emitting them here would produce two Koka `effect X`
+  // declarations that don't unify. See hedit's hica-issues.md Issue #3 and
+  // documentation/effects-design.md §12 Q1.
+  val local-effects = p.effects.drop(imported-effects-count)
+  val effect-defs = local-effects.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
+  val effect-sep = if local-effects.is-nil then "" else "\n\n"
   val global-defs = p.globals.map(fn(g) emit-global(g, declared)).join("\n")
 
   val global-sep = if p.globals.is-empty then "" else "\n\n"
@@ -2682,7 +2694,8 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // Test program emission: generates a self-contained test runner
 // ---------------------------------------------------------------------------
 
-pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [] ) : div string
+pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [], imported-effects-count : int = 0 ) : div string
+
   val effect-op-names = p.effects.flatmap(fn(ed) ed.ops.map(fn(op) op.name))
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names ++ effect-op-names
   val float-import = if program-has-float(p) || tests-have-float(p.tests) then "import std/num/float64\n\n" else ""
@@ -2711,8 +2724,11 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   // block would emit `effect e { ctl … }` instead of `named effect e { fun … }`
   // and Koka's named-handler dispatch would reject it.
   val spawn-effects = collect-spawn-effects(p)
-  val effect-defs = p.effects.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
-  val effect-sep = if p.effects.is-nil then "" else "\n\n"
+  // Skip imported effect-defs — they're emitted in their defining module's .kk.
+  // Same rule as emit-program (see Issue #3 in hedit/docs/hica-issues.md).
+  val local-effects-t = p.effects.drop(imported-effects-count)
+  val effect-defs = local-effects-t.map(fn(ed) emit-effect-def(ed, spawn-effects)).join("\n\n")
+  val effect-sep = if local-effects-t.is-nil then "" else "\n\n"
   val assert-helper = assert-helper-code
   val show-maybe-helper = show-maybe-helper-code
   val show-result-helper = show-result-helper-code

@@ -1689,7 +1689,7 @@ fun infer-decl( env : type-env, s : subst, d : fun-decl ) : <div,diag,fresh,stru
 // declared signatures — no body inference. Eliminates O(N²) substitution growth
 // over imported decls. Safe when all imported functions have explicit type
 // annotations (as is the case for well-typed libraries and stdlib).
-pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [], prelude-count : int = 0, import-sigs-only : bool = False ) : <div,diag,fresh> program
+pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : int = 0, skip-kw-types : int = 0, extra-extern : type-env = [], prelude-count : int = 0, import-sigs-only : bool = False, skip-kw-effects : int = 0 ) : <div,diag,fresh> program
   // For opaque structs: imported ones (indices < skip-kw-structs) retain is-opaque so
   // that StructLit/StructUpdate can reject them. The user's own opaque structs (indices
   // >= skip-kw-structs) have is-opaque cleared so construction is allowed within the
@@ -1729,7 +1729,14 @@ pub fun check-program( p : program, skip-kw-check : int = 0, skip-kw-structs : i
   // and (when applicable) the underlying `actor` declaration.
   // Also covers the `actor` sugar: `actor M { … }` desugars to an effect of
   // the same name at parse time, so the same check catches it.
-  p.effects.foreach fn(edef)
+  // Only warn on locally-declared effects — imported ones (indices <
+  // skip-kw-effects) already went through this check in their defining
+  // module. Duplicate cross-module effect names are collapsed to a single
+  // decl by the import walker (`collect-imports-effects`), so we cannot
+  // detect user-visible duplicates here without re-parsing; the
+  // "declared exactly once in a module graph" invariant documented in
+  // effects-design.md §12 Q1 is a project-level lint, not enforced here.
+  p.effects.drop(skip-kw-effects).foreach fn(edef)
     if edef.name.count <= 1 then
       emit-error(edef.span,
         "effect / actor name '" ++ edef.name ++
