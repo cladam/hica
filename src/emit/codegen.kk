@@ -191,10 +191,43 @@ fun emit-struct-def( sd : struct-def ) : div string
 // Type (enum) definition emission
 // ---------------------------------------------------------------------------
 
-fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<type-def> = [] ) : div string
+pub fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<type-def> = [] ) : div string
   val tname = td.name.to-lower
   val pub-str = if td.is-pub then "pub " else ""
-  val type-str = pub-str ++ "type " ++ tname ++ "\n" ++
+  // Divergent-type detection (see docs/language-reference.md issue upstreamed
+  // from hica-lisp v0.9.0). Koka rejects `type Foo` when a variant field is a
+  // function whose signature mentions `Foo` in *negative* position — i.e., as a
+  // function parameter — because that permits building diverging values.
+  // The Koka diagnostic is:
+  //
+  //   kind error: Type foo is declared as being (co)inductive but it occurs
+  //     recursively in a negative position.
+  //     hint: declare it as a divergent (or retractive) type using
+  //           'div type' (or 'div effect') to allow negative occurrences.
+  //
+  // hica does not surface `div type` in the source language — instead codegen
+  // detects the shape and emits `div type` automatically. A field triggers the
+  // marker when it is (or contains) a `TFun` whose *parameter list* references
+  // this type's own name, or the name of any type in a mutual-recursion
+  // cluster with this one. Return-position occurrences alone stay positive and
+  // don't need the marker.
+  // Mutual-recursion cycle: this type has a field that references *another*
+  // type negatively, and that other type references back to us (in any
+  // position). The "closing edge" only needs to be a reachability edge — not
+  // itself negative — because the divergence potential comes from the
+  // negative arm; the closing edge just proves the two types are in the
+  // same recursive cluster. Koka's kind checker rejects the whole cycle if
+  // any arm is negative, so we mark all types in such a cycle `div`.
+  val is-div = td.variants.any(fn(vd) vd.fields.any(fn((_, ft))
+    ft.references-type-negatively(td.name) ||
+    all-types.any(fn(other)
+      other.name != td.name &&
+      ft.references-type-negatively(other.name) &&
+      other.variants.any(fn(ov) ov.fields.any(fn((_, oft)) oft.references-type(td.name)))
+    )
+  ))
+  val type-keyword = if is-div then "div type " else "type "
+  val type-str = pub-str ++ type-keyword ++ tname ++ "\n" ++
     td.variants.map(fn(vd)
       if vd.fields.is-nil then "  " ++ vd.name
       else "  " ++ vd.name ++ "(" ++ vd.fields.map(fn((fname, ftype)) marshal-field(fname) ++ " : " ++ emit-type(ftype)).join(", ") ++ ")"
@@ -229,6 +262,11 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
     show-arms.join("\n")
   // Auto-derived (==) — variant tag + payload-wise structural equality. See
   // documentation/bugs/hedit-hica-issues.md issue 2.
+  //
+  // Function-typed fields (TFun): no meaningful equality exists at runtime.
+  // We skip them from the comparison so callback-holding variants (see the
+  // hica-lisp v0.9.0 host-dispatch upstream) still get a sensible `==` that
+  // compares tag + other fields — treating callback fields as "always match".
   val eq-effect-ann = if is-rec || refs-rec-struct || refs-rec-type then " : div bool" else " : bool"
   val eq-arms = td.variants.map fn(vd)
     if vd.fields.is-nil then
@@ -236,8 +274,30 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
     else
       val l-names = vd.fields.map(fn(f) marshal-field(f.fst) ++ "1")
       val r-names = vd.fields.map(fn(f) marshal-field(f.fst) ++ "2")
-      val checks = l-names.zip(r-names).map(fn(p) "(" ++ p.fst ++ " == " ++ p.snd ++ ")").join(" && ")
-      "    (" ++ vd.name ++ "(" ++ l-names.join(", ") ++ "), " ++ vd.name ++ "(" ++ r-names.join(", ") ++ ")) -> " ++ checks
+      val paired = l-names.zip(r-names).zip(vd.fields).map fn(triple)
+        val ((l-nm, r-nm), (_fname, ftype)) = triple
+        (l-nm, r-nm, ftype)
+      val eq-terms = paired.map(fn(t)
+        match t
+          (_l-nm, _r-nm, TFun(_, _, _)) ->
+            // Function-valued field — skip from equality (bind as `_` to avoid
+            // unused-variable warnings from Koka).
+            ""
+          (l-nm, r-nm, _) -> "(" ++ l-nm ++ " == " ++ r-nm ++ ")"
+      ).filter(fn(s) !s.is-empty)
+      val checks = if eq-terms.is-empty then "True" else eq-terms.join(" && ")
+      // Wildcard function-typed fields so Koka doesn't warn about unused binds
+      val l-pat = l-names.zip(vd.fields).map(fn(p)
+        match p
+          (_l-nm, (_fname, TFun(_, _, _))) -> "_"
+          (l-nm, _) -> l-nm
+      )
+      val r-pat = r-names.zip(vd.fields).map(fn(p)
+        match p
+          (_r-nm, (_fname, TFun(_, _, _))) -> "_"
+          (r-nm, _) -> r-nm
+      )
+      "    (" ++ vd.name ++ "(" ++ l-pat.join(", ") ++ "), " ++ vd.name ++ "(" ++ r-pat.join(", ") ++ ")) -> " ++ checks
   // Add a catch-all only when there are multiple variants (otherwise Koka warns
   // about an unreachable pattern).
   val eq-catch = if td.variants.length > 1 then "\n    _ -> False" else ""
@@ -247,7 +307,7 @@ fun emit-type-def( td : type-def, structs : list<struct-def>, all-types : list<t
   type-str ++ "\n\n" ++ show-fn ++ "\n\n" ++ eq-fn
 
 // Check if a type references a type name (for recursion detection in enums)
-fun references-type( t : hica-type, name : string ) : div bool
+pub fun references-type( t : hica-type, name : string ) : div bool
   match t
     TEnum(en) -> en == name
     TStruct(sn) -> sn == name
@@ -255,6 +315,37 @@ fun references-type( t : hica-type, name : string ) : div bool
     TList(inner) -> inner.references-type(name)
     TTuple(ts) -> ts.any(fn(tt) tt.references-type(name))
     TFun(params, ret) -> params.any(fn(p) p.references-type(name)) || ret.references-type(name)
+    _ -> False
+
+// Check whether a type references `name` in a *negative* position — i.e., as
+// a parameter of a `TFun` (or transitively as part of such a parameter).
+// Used to decide when to emit `div type` (see emit-type-def).
+//
+// A field of type `(Env) -> Env` is negative in `Env` (parameter), positive in
+// the return.  A field of type `list<Env>` or `maybe<Env>` is positive.  A
+// field of type `(int, Env) -> Env` is negative in `Env` because `Env` appears
+// among the parameter types.
+//
+// The recursion into TFun's `params` uses `references-type` (any occurrence),
+// because once we're already under a function parameter, further nesting still
+// counts as negative from the outer type's perspective (a `(list<Env>) -> ()`
+// callback stored in an Env variant still permits diverging construction).
+// The recursion into `ret` uses `references-type-negatively`, so a chain like
+// `() -> (Env) -> ()` correctly flags the inner parameter position.
+//
+// Note: the parser writes user-defined type names (both structs and enums)
+// as `TStruct(name)` (see parse-type — user-defined identifiers all take the
+// TStruct branch; the checker resolves the ambiguity later). For div-type
+// detection we run at codegen time on the *post-check* type-def fields, but
+// enum-cycle detection must also match TStruct — the fields' types haven't
+// been rewritten from TStruct → TEnum for type-def field annotations because
+// no expression context ever forced the discrimination.
+pub fun references-type-negatively( t : hica-type, name : string ) : div bool
+  match t
+    TMaybe(inner) -> inner.references-type-negatively(name)
+    TList(inner) -> inner.references-type-negatively(name)
+    TTuple(ts) -> ts.any(fn(tt) tt.references-type-negatively(name))
+    TFun(params, ret) -> params.any(fn(p) p.references-type(name)) || ret.references-type-negatively(name)
     _ -> False
 
 // Check if a type references a struct by name (for recursion detection)
@@ -289,6 +380,10 @@ fun emit-show-call( t : hica-type, expr-str : string ) : div string
     TEnum(en)   -> en.to-lower ++ "/show(" ++ expr-str ++ ")"
     TMaybe(inner) -> "hc-show-maybe(" ++ expr-str ++ ", fn(x) " ++ emit-show-call(inner, "x") ++ ")"
     TResult(ok, err) -> "hc-show-result(" ++ expr-str ++ ", fn(x) " ++ emit-show-call(ok, "x") ++ ", fn(e) " ++ emit-show-call(err, "e") ++ ")"
+    // Function values have no meaningful show; emit an opaque placeholder.
+    // This matches Python/Kotlin's `<function>` conventions and avoids Koka
+    // errors on `.show` for a first-class function value.
+    TFun(_, _, _) -> "\"<fn>\""
     _       -> expr-str ++ ".show"
 
 // ---------------------------------------------------------------------------

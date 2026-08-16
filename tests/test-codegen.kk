@@ -2492,3 +2492,43 @@ pub fun main() : io ()
       val ds = check-diagnostics("struct Point { x: int, y: int }\nfun main() {\n  let p1 = Point { x: 3, y: 4 }\n  let p2 = Point { x: 3, y: 4 }\n  let r = (p1 == p2)\n  println(r)\n}")
       val errors = ds.filter(fn(d) d.message.contains("type mismatch") || d.message.contains("undefined"))
       assert/is-true(errors.length == 0)
+
+    // --- div type auto-detection (upstreamed from hica-lisp v0.9.0) ---
+    // See docs/hica-issue-div-type.md in the hica-lisp repo. When a variant
+    // field stores a callback whose signature mentions a type in the same
+    // recursive cluster, Koka requires the type to be marked `div type` (a
+    // divergent / retractive type). hica auto-detects this shape and emits
+    // the marker; users never spell `div` in .hc source.
+    dtest("div type: type with self-recursive callback field is marked div")
+      val src = "pub type Hook { Cb(f: (Hook) -> Hook), NoCb }\nfun main() => 0\n"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("pub div type hook"))
+
+    dtest("div type: mutually-recursive callback cluster is marked div")
+      // HostDispatch → cb : (…, Env) -> …  → Env → host : HostDispatch
+      // The negative arm (Env in cb's params) triggers `div` for HostDispatch.
+      val src = "pub type HostDispatch { HostFn(cb: (string, Env) -> Env), NoHostFn }\npub type Env { EEnv(host: HostDispatch), EEmpty }\nfun main() => 0\n"
+      val code = emit-typed-program(src)
+      assert/is-true(code.contains("pub div type hostdispatch"))
+
+    dtest("div type: plain recursive enum (no callback) stays positive")
+      // Tree { Leaf, Node(v, l: Tree, r: Tree) } — positive recursion only.
+      val src = "type Tree { Leaf, Node(v: int, l: Tree, r: Tree) }\nfun main() => 0\n"
+      val code = emit-typed-program(src)
+      assert/is-true(!code.contains("div type"))
+
+    dtest("div type: TFun fields get \"<fn>\" placeholder in show")
+      val src = "pub type Hook { Cb(f: (Hook) -> Hook), NoCb }\nfun main() => 0\n"
+      val code = emit-typed-program(src)
+      // The show arm for Cb(f) should render f as the "<fn>" placeholder,
+      // not attempt to call .show on a first-class function.
+      assert/is-true(code.contains("\"<fn>\""))
+      assert/is-true(!code.contains("f.show"))
+
+    dtest("div type: TFun fields are skipped from auto-derived equality")
+      val src = "pub type Hook { Cb(f: (Hook) -> Hook), NoCb }\nfun main() => 0\n"
+      val code = emit-typed-program(src)
+      // The == arm for Cb should not attempt (f1 == f2) — functions have no
+      // structural equality. The field should be bound as `_` on both sides.
+      assert/is-true(code.contains("(Cb(_), Cb(_))"))
+      assert/is-true(!code.contains("(f1 == f2)"))
