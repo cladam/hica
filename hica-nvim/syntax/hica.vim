@@ -10,7 +10,7 @@ endif
 " ─── Keywords ────────────────────────────────────────────────────────────────
 
 syntax keyword hicaControl    if else match for in while loop repeat break continue return
-syntax keyword hicaDecl       fun let var struct type extern
+syntax keyword hicaDecl       fun let var struct type extern actor spawn effect haandle with
 syntax keyword hicaImport     import from
 syntax keyword hicaModifier   pub
 syntax keyword hicaTest       test

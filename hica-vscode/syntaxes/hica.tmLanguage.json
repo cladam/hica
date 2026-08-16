@@ -90,7 +90,7 @@
         },
         {
           "name": "keyword.declaration.hica",
-          "match": "\\b(fun|let|var|struct|type|extern)\\b"
+          "match": "\\b(fun|let|var|struct|type|extern|actor|spawn|effect|handle|with)\\b"
         },
         {
           "name": "keyword.import.hica",

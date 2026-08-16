@@ -14,7 +14,7 @@ module Rouge
       ).freeze
 
       KEYWORD_DECLARATION = %w(
-        fun let var struct type extern
+        fun let var struct type extern effect handle with actor spawn
       ).freeze
 
       KEYWORD_IMPORT = %w(
