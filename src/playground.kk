@@ -85,8 +85,17 @@ pub fun compile-to-js( source : string, prelude-sources : list<string> = [], std
     val user-structs = typed-prog.structs.drop(prelude-struct-count)
     val prelude-type-count = prelude.types.length
     val user-types = typed-prog.types.drop(prelude-type-count)
-    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types)
-    Right(emit-js-program(user-prog))
+    val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects)
+    // Reject programs that use user-defined effects/handlers/actors on the
+    // JS backend (playground runs via the same JS codegen as `--target=js`).
+    // See src/emit/codegen-js.kk `check-js-supports` for the walker + rationale.
+    val js-diags = check-js-supports(user-prog)
+    if !js-diags.is-empty then
+      val msgs = js-diags.map(fn(d) render-diagnostic(source, "<playground>", d))
+      Left(msgs.join("\n"))
+    else
+      Right(emit-js-program(user-prog))
+
 
 fun main()
   val source = "fun main() {\n  println(\"Hello from the hica playground!\")\n}\n"

@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.2"
+val version = "0.49.3"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -375,10 +375,25 @@ fun compile-js( file : string ) : io maybe<path>
     val imported-type-count = imported-types.length
     val user-types = typed-prog.types.drop(prelude-type-count + imported-type-count)
     val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports)
-    val js-code = emit-js-program(user-prog, mod-name)
-    val out-js = dir.path / (mod-name ++ ".js").path
-    write-text-file(out-js, js-code)
-    Just(out-js)
+    // Reject programs that use user-defined effects/handlers/actors on the
+    // JS backend. Silent fallback used to produce `undefined /* TODO: ... */`
+    // in the emitted .js, which was only discovered at runtime (or not at
+    // all). See src/emit/codegen-js.kk `check-js-supports` for details.
+    // The check runs on the *full* user program (own effects + own decls);
+    // imported effect decls are excluded so a library that happens to declare
+    // an effect doesn't make the JS build fail unless the current file
+    // actually references it via `handle`/`spawn` in a walked expression.
+    val js-diags = check-js-supports(typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = prog.effects, imports = prog.imports))
+    if !js-diags.is-empty then
+      js-diags.foreach(fn(d) println(render-diagnostic(source, file, d)))
+      println("build: " ++ js-diags.length.show ++ " unsupported construct(s) for --target=js")
+      Nothing
+    else
+      val js-code = emit-js-program(user-prog, mod-name)
+      val out-js = dir.path / (mod-name ++ ".js").path
+      write-text-file(out-js, js-code)
+      Just(out-js)
+
 
 // Build to JavaScript and print status
 fun build-js( file : string ) : io ()
@@ -1215,10 +1230,20 @@ fun repl-eval( input : string, prelude : program, state : repl-state, silent : b
       else
         // Emit JS, send to subprocess, and accumulate
         val typed-decl = typed-prog.decls.last.default(d)
-        val js = emit-js-repl-decl(typed-decl)
-        repl-send-js(js)
-        if !silent then println("  defined: " ++ d.name)
-        state(decls = state.decls ++ [typed-decl], js-defs = state.js-defs ++ js ++ "\n")
+        // Reject fun decls whose body uses handle/spawn — the REPL runs on the
+        // JS backend and has no handler runtime. Effect decls at the top-level
+        // are rejected below in the ReplExpr fallthrough (parser routes them
+        // through parse-program only, not parse-repl-input).
+        val js-diags = check-js-supports(Program([], decls = [typed-decl]))
+        if !js-diags.is-empty then
+          js-diags.foreach(fn(d1) println(render-diagnostic(input, "<repl>", d1)))
+          state
+        else
+          val js = emit-js-repl-decl(typed-decl)
+          repl-send-js(js)
+          if !silent then println("  defined: " ++ d.name)
+          state(decls = state.decls ++ [typed-decl], js-defs = state.js-defs ++ js ++ "\n")
+
 
     ReplStruct(sd) ->
       val js = emit-js-repl-struct(sd)
@@ -1280,12 +1305,22 @@ fun repl-eval-let( binding-name : string, init : node, prelude : program, state 
     val typed-body = typed-prog.decls.last.default(wrapper).body
     val typed-init = unwrap-vals(state.vals, typed-body)
     val init-type = typed-init.typ
-    val js = "var " ++ binding-name ++ " = " ++ emit-js-expr(typed-init) ++ ";\n"
-    val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) { println(show(" ++ binding-name ++ ")); _ = " ++ binding-name ++ "; }\n"
-    if !silent then repl-run-js(show-js)
-    // Store binding and update _ to hold the let's init value
-    val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
-    state(vals = new-vals, js-defs = state.js-defs ++ js)
+    // Reject handle/spawn in the init expression — the REPL runs on the JS
+    // backend and has no handler runtime. See src/emit/codegen-js.kk
+    // `check-js-supports` for the walker + rationale.
+    val guard = Fun-decl(no-span, "__js_guard", params = [], body = typed-init)
+    val js-diags = check-js-supports(Program([], decls = [guard]))
+    if !js-diags.is-empty then
+      js-diags.foreach(fn(d1) println(render-diagnostic(init.show, "<repl>", d1)))
+      state
+    else
+      val js = "var " ++ binding-name ++ " = " ++ emit-js-expr(typed-init) ++ ";\n"
+      val show-js = js ++ "if (" ++ binding-name ++ " !== undefined && " ++ binding-name ++ " !== null) { println(show(" ++ binding-name ++ ")); _ = " ++ binding-name ++ "; }\n"
+      if !silent then repl-run-js(show-js)
+      // Store binding and update _ to hold the let's init value
+      val new-vals = state.vals.filter(fn((n, _v, _t)) n != binding-name && n != "_") ++ [(binding-name, init, init-type), ("_", init, init-type)]
+      state(vals = new-vals, js-defs = state.js-defs ++ js)
+
 
 // Show the type of an expression without evaluating it
 fun repl-type( input : string, prelude : program, state : repl-state )
@@ -1362,11 +1397,20 @@ fun repl-eval-expr( expr : node, prelude : program, state : repl-state )
     val typed-body = typed-prog.decls.last.default(wrapper).body
     val typed-expr = unwrap-vals(state.vals, typed-body)
     val expr-type = typed-expr.typ
-    val js-snippet = emit-js-repl-expr(typed-expr)
-    repl-run-js(js-snippet)
-    // Store _ with TYPE for type checking; _ persists in subprocess
-    val new-vals = state.vals.filter(fn((n, _v, _t)) n != "_") ++ [("_", expr, expr-type)]
-    state(vals = new-vals)
+    // Reject handle/spawn expressions — the REPL runs on the JS backend and
+    // has no handler runtime. See src/emit/codegen-js.kk `check-js-supports`.
+    val guard = Fun-decl(no-span, "__js_guard", params = [], body = typed-expr)
+    val js-diags = check-js-supports(Program([], decls = [guard]))
+    if !js-diags.is-empty then
+      js-diags.foreach(fn(d1) println(render-diagnostic(expr.show, "<repl>", d1)))
+      state
+    else
+      val js-snippet = emit-js-repl-expr(typed-expr)
+      repl-run-js(js-snippet)
+      // Store _ with TYPE for type checking; _ persists in subprocess
+      val new-vals = state.vals.filter(fn((n, _v, _t)) n != "_") ++ [("_", expr, expr-type)]
+      state(vals = new-vals)
+
 
 // Wrap an expression in a chain of let bindings from value state
 // For "_", use the stored init directly if it doesn't self-reference;

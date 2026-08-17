@@ -13,10 +13,91 @@
 module emit/codegen-js
 
 import syntax/ast
+import diagnostics/diagnostics
+
+// ---------------------------------------------------------------------------
+// Backend capability check
+// ---------------------------------------------------------------------------
+//
+// The JavaScript backend does not implement Koka's algebraic effect system.
+// Emitting `effect`, `handle`, `spawn`, or `actor` code silently produces
+// `undefined /* TODO: ... */` in the generated JS, so a user who runs
+// `hica build --target=js` (or hits the REPL/playground) on an effectful
+// program would only discover the failure at runtime — or not at all.
+//
+// `check-js-supports` walks a checked program and returns one `Error`
+// diagnostic per unsupported construct, pointing at the offending source
+// span. Callers (`compile-js` in main.kk and `compile-to-js` in playground.kk)
+// abort the build when this list is non-empty, so users see a clear error
+// with a source pointer instead of a silently broken .js file. Effects,
+// handlers, and actors remain fully supported on the native (default Koka)
+// backend — this check only fires when the JS target is selected.
+//
+// See docs/javascript-target.md for the documented limitation set.
+pub fun check-js-supports( p : program ) : div list<diagnostic>
+  val from-effects = p.effects.map fn(ed)
+    Diagnostic(Error, ed.span,
+      "effect declarations are not supported by the JavaScript backend — " ++
+      "use the default native (Koka) target for effects/handlers/actors")
+  val from-globals = p.globals.flatmap(fn(g) js-unsupported-node(g.body))
+  val from-decls   = p.decls.flatmap(fn(d) js-unsupported-node(d.body))
+  val from-tests   = p.tests.flatmap(fn(t) js-unsupported-node(t.body))
+  from-effects ++ from-globals ++ from-decls ++ from-tests
+
+// Walk one AST node and collect diagnostics for any `handle` or `spawn`
+// expression reachable from it. Mirrors codegen.kk's `collect-spawn-effects-node`
+// shape so both walkers stay in sync when new expression forms are added.
+fun js-unsupported-node( n : node ) : div list<diagnostic>
+  match n.expr
+    EHandle(_, arms, state, body) ->
+      [Diagnostic(Error, n.span,
+        "handle expressions are not supported by the JavaScript backend — " ++
+        "use the default native (Koka) target for effects/handlers/actors")] ++
+      state.flatmap(fn((_, v)) js-unsupported-node(v)) ++
+      arms.flatmap(fn(a) js-unsupported-node(a.arm-body)) ++
+      js-unsupported-node(body)
+    ESpawn(_, arms, state, _) ->
+      [Diagnostic(Error, n.span,
+        "spawn expressions (named-effect actors) are not supported by the " ++
+        "JavaScript backend — use the default native (Koka) target for " ++
+        "effects/handlers/actors")] ++
+      state.flatmap(fn((_, v)) js-unsupported-node(v)) ++
+      arms.flatmap(fn(a) js-unsupported-node(a.arm-body))
+    Call(callee, args) ->
+      js-unsupported-node(callee) ++ args.flatmap(js-unsupported-node)
+    Let(_, _, init, body) ->
+      js-unsupported-node(init) ++ js-unsupported-node(body)
+    VarDecl(_, _, init, body) ->
+      js-unsupported-node(init) ++ js-unsupported-node(body)
+    LetTuple(_, init, body) ->
+      js-unsupported-node(init) ++ js-unsupported-node(body)
+    Assign(_, v) -> js-unsupported-node(v)
+    Fun(_, body) -> js-unsupported-node(body)
+    Binary(_, l, r) ->
+      js-unsupported-node(l) ++ js-unsupported-node(r)
+    Unary(_, o) -> js-unsupported-node(o)
+    If(c, t, e) ->
+      js-unsupported-node(c) ++ js-unsupported-node(t) ++ js-unsupported-node(e)
+    Block(stmts) -> stmts.flatmap(js-unsupported-node)
+    Match(scrut, arms) ->
+      js-unsupported-node(scrut) ++
+      arms.flatmap(fn(a) js-unsupported-node(a.body))
+    Repeat(c, body) -> js-unsupported-node(c) ++ js-unsupported-node(body)
+    ForIn(_, s-e, e-e, body) ->
+      js-unsupported-node(s-e) ++ js-unsupported-node(e-e) ++ js-unsupported-node(body)
+    ForEach(_, coll, body) ->
+      js-unsupported-node(coll) ++ js-unsupported-node(body)
+    While(c, body) -> js-unsupported-node(c) ++ js-unsupported-node(body)
+    Loop(body) -> js-unsupported-node(body)
+    StringInterp(parts) -> parts.flatmap(js-unsupported-node)
+    Tuple(elems) -> elems.flatmap(js-unsupported-node)
+    EList(elems) -> elems.flatmap(js-unsupported-node)
+    _ -> []
 
 // ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
+
 
 pub fun emit-js-program( p : program, mod-name : string = "main" ) : div string
   val struct-defs = p.structs.map(emit-js-struct).join("\n\n")

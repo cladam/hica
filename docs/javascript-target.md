@@ -41,12 +41,25 @@ The JS backend handles most of hica's core language:
 
 The following features are **not supported** in the JS target:
 
-- **Effects** — Koka's algebraic effect system has no JS equivalent. Programs that rely on custom effects won't compile.
-- **Concurrency / actors** — No async/actor model in the JS runtime.
+- **Effects, handlers, and actors** — user-defined `effect` declarations, `handle E { ... } in { ... }` expressions, `spawn Name { ... } as ref`, and the `actor` sugar. These map to Koka's delimited continuations and have no JavaScript equivalent. The JS backend rejects them at compile time with a clear error pointing at the offending source line; use the default native (Koka) target for effectful code. **This includes the REPL and the browser playground**, which both share the JS codegen.
 - **External Koka imports** — `extern` declarations that call Koka or C functions won't work.
-- **Advanced type features** — Rank-2 types, effect rows, and handler-based patterns are not emitted.
+- **Advanced type features** — Rank-2 types and effect rows are not emitted.
 - **Interactive I/O** — `readline()` and terminal interaction are not available.
 - **Multi-module builds** — Each `.hc` file compiles to a single `.js` file. Cross-module imports are not resolved in JS mode.
+
+Example of the rejection:
+
+```
+$ hica build --target=js examples/effects/hello-effect.hc
+error[examples/effects/hello-effect.hc:8:1]: effect declarations are not supported by the JavaScript backend — use the default native (Koka) target for effects/handlers/actors
+ 8 | effect Log {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error[examples/effects/hello-effect.hc:17:3]: handle expressions are not supported by the JavaScript backend — use the default native (Koka) target for effects/handlers/actors
+17 |   handle Log {
+   |   ^^^^^^^^^^^^^^^^...
+build: 2 unsupported construct(s) for --target=js
+```
+
 
 ## Runtime Preamble
 
