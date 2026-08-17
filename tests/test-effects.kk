@@ -371,5 +371,53 @@ pub fun main() : io ()
       val name-too-short-hit = ds.any(fn(d) d.message.contains("too short"))
       assert/is-true(!name-too-short-hit)
 
+    // --- Issue #5 (hedit): auto-panic handlers in test-mode `main` ---------
+    // A `pub fun` whose inferred effect row carries N user-defined effects
+    // used to force *every* test to install *all* N handlers. The compiler
+    // now wraps each `hctestN()` invocation in `try({ <panic> hctestN() })`
+    // for every `handle`-style effect visible in the merged program, so a
+    // real handler installed inside the test body shadows the panic arms
+    // and only genuinely-unhandled ops abort at runtime.
+    //
+    // See the "Issue #5" comment in emit/codegen.kk (emit-test-program +
+    // emit-panic-block + emit-test-runner-body). Repro: hedit's
+    // tests/runtime_test.hc under a Copy/Paste-carrying event_loop.
+    dtest("codegen: test-mode main installs panic handlers for user effects (Issue #5)")
+      val src = "effect Term {\n  fun poll() : int\n  fun render(s: string)\n}\neffect Clip {\n  fun get_selection() : string\n  fun set_selection(text: string)\n}\ntest \"nested handlers work\" {\n  let n = handle Clip {\n    get_selection() => clip,\n    set_selection(t) => clip = t\n  } with var clip = \"\" in {\n    handle Term { poll() => 1, render(_s) => () } in { 42 }\n  }\n  assert(n == 42)\n}"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (typed-prog, _) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val kk = emit-test-program(typed-prog)
+      // Both effects' ops are panic-wrapped around hctestN().
+      val has-term-panic = kk.contains("ctl hc_poll() -> throw(\"unhandled op: Term.poll")
+      val has-render-panic = kk.contains("ctl hc_render(_s) -> throw(\"unhandled op: Term.render")
+      val has-getsel-panic = kk.contains("ctl hc_get_selection() -> throw(\"unhandled op: Clip.get_selection")
+      val has-setsel-panic = kk.contains("ctl hc_set_selection(_text) -> throw(\"unhandled op: Clip.set_selection")
+      // The runner wraps the hctestN() call in `try({ ... hctest0() })`.
+      val wrapped-try = kk.contains("match try({") && kk.contains("hctest0()")
+      assert/is-true(has-term-panic && has-render-panic && has-getsel-panic && has-setsel-panic && wrapped-try)
+
+    // When a test file declares no effects at all, the panic-wrap path
+    // must NOT engage — `try({ hctestN() })` stays in its original compact
+    // shape. This is what keeps every existing test unchanged.
+    dtest("codegen: test-mode main keeps compact try({...}) when no user effects (Issue #5)")
+      val src = "test \"trivial\" { assert(1 + 1 == 2) }"
+      val tokens = lex(src)
+      val prog = run-parser-program(tokens)
+      val desugared = desugar-program(prog)
+      val (typed-prog, _) = collect-diagnostics
+        run-fresh
+          check-program(desugared)
+      val kk = emit-test-program(typed-prog)
+      // Original compact runner shape.
+      val compact-form = kk.contains("match try({ hctest0() })")
+      // No panic handlers should have been inserted.
+      val no-panic = !kk.contains("unhandled op:")
+      assert/is-true(compact-form && no-panic)
+
+
 
 
