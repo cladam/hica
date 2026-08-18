@@ -2,6 +2,29 @@
 
 ### 🐛 Fixes
 
+- fix(codegen): map operations on `list<(K, V)>` now emit through
+  `list.foldr` instead of `.find`/`.any`/`.map`/`.filter` chains (see
+  [hedit](https://github.com/cladam/hedit) `docs/hica-issues.md` Issue #6).
+  Before: `map_set`/`map_get`/`map_remove`/`map_keys`/`map_values`/
+  `map_contains_key` desugared to chains like
+  `if xs.any(...) then xs.map(...) else xs ++ [(k, v)]`. Koka's `list.any`
+  and `list.map` are recursive over `list<a>` and inferred as `<div>`,
+  which then leaked into any callback that touched a map op — most
+  visibly HiLisp's `register_host_dispatch` in hedit, whose callback
+  signature is required to be `total`. The `<div>` row bubbled all the
+  way out through the map helpers, forcing every consumer that stored
+  host state as an alist to fall back to raw `env_set` bindings.
+  After: each map op emits a single `list.foldr` pass. Koka's totality
+  analysis recognises `foldr` as structurally recursive on the list
+  spine, so map ops on `list<(K, V)>` now compose cleanly into `total`
+  callbacks (as long as the payload's own `==` is total — which it is
+  for `string`/`int`/`char`/…). Existing dot-called call sites keep
+  working; only the emitted Koka shape changes.
+  Codegen tests in `tests/test-codegen.kk` updated to assert the
+  `.foldr(...)` shape. Repro: hedit's `hilisp_host.hc` (which uses
+  `map_set` inside a `total` host-dispatch callback) now compiles clean
+  once hica-lisp is rebuilt against the new codegen.
+
 - fix(effects): auto-install panic handlers in test-mode `main` for every
   user-declared `handle`-style effect visible in the merged program
   (see [hedit](https://github.com/cladam/hedit) `docs/hica-issues.md` Issue #5).

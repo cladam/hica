@@ -1811,30 +1811,37 @@ pub fun main() : io ()
       assert/is-true(code.contains("(\"a\", 1)"))
       assert/is-true(code.contains("(\"b\", 2)"))
 
-    dtest("map_get emits find")
+    // Map operations are now emitted through list.foldr (Issue #6). foldr is
+    // structurally-recursive on the list spine and Koka's totality analysis
+    // accepts it as total — so map_set/map_get/map_remove/… compose cleanly
+    // into `total` callbacks (e.g. hilisp's register_host_dispatch).
+    dtest("map_get emits foldr")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  println(m.map_get(\"a\"))\n}")
-      assert/is-true(code.contains(".find("))
+      assert/is-true(code.contains(".foldr(Nothing"))
 
-    dtest("map_set emits update-or-append")
+    dtest("map_set emits foldr with update-or-append accumulator")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  let m2 = m.map_set(\"b\", 2)\n  println(m2)\n}")
-      assert/is-true(code.contains(".any("))
-      assert/is-true(code.contains(".map("))
+      assert/is-true(code.contains(".foldr((Nil, False)"))
+      // Falls through to `++ [(k, v)]` in the not-seen branch.
+      assert/is-true(code.contains("hc__r ++"))
 
-    dtest("map_remove emits filter")
+    dtest("map_remove emits foldr with skip accumulator")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  let m2 = m.map_remove(\"a\")\n  println(m2)\n}")
-      assert/is-true(code.contains(".filter("))
+      assert/is-true(code.contains(".foldr([]"))
 
-    dtest("map_keys emits map projection")
+    dtest("map_keys emits foldr projection")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_keys())\n}")
-      assert/is-true(code.contains(".map(fn((hc__k, _)) hc__k)"))
+      assert/is-true(code.contains(".foldr([]"))
+      assert/is-true(code.contains("Cons(hc__k, hc__acc)"))
 
-    dtest("map_values emits map projection")
+    dtest("map_values emits foldr projection")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_values())\n}")
-      assert/is-true(code.contains(".map(fn((_, hc__v)) hc__v)"))
+      assert/is-true(code.contains(".foldr([]"))
+      assert/is-true(code.contains("Cons(hc__v, hc__acc)"))
 
-    dtest("map_contains_key emits any")
+    dtest("map_contains_key emits foldr short-circuit")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1}\n  println(m.map_contains_key(\"a\"))\n}")
-      assert/is-true(code.contains(".any("))
+      assert/is-true(code.contains(".foldr(False"))
 
     dtest("map_size emits length")
       val code = emit-typed-program("fun main() {\n  let m = {\"a\": 1, \"b\": 2}\n  println(m.map_size())\n}")

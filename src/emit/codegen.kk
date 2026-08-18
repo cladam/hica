@@ -1096,26 +1096,43 @@ fun emit-expr( n : node, declared : list<string> ) : div string
           val l-code = emit-expr(lst, declared)
           "hc-assert(!" ++ l-code ++ ".is-nil)"
 
-        // Map operations — maps are list<(k, v)>
+        // Map operations — maps are list<(k, v)>.
+        //
+        // Issue #6: these previously codegened as `.find/.any/.map/.filter`
+        // chains. Koka's `list.any`/`.map`/`.find`/`.filter` are recursive
+        // over `list<a>` and inferred as `<div>`, which then leaked into
+        // any callback that used a map op — most visibly hedit's
+        // `hedit_host_dispatch`, whose signature must be `total` to
+        // satisfy HiLisp's `register_host_dispatch(cb : … -> total …)`.
+        //
+        // We now emit each map op through `list.foldr`, which Koka's
+        // totality analysis recognises as structurally-recursive on the
+        // list spine. The result: map ops on `list<(K, V)>` compose
+        // cleanly into `total` callbacks, so long as the payload's own
+        // `==` is total (equality on `string`/`int`/`char`/… is).
         (Var("map_get"), [m, key]) ->
           val m-code = emit-expr(m, declared)
           val k-code = emit-expr(key, declared)
-          "(match " ++ m-code ++ ".find(fn((hc__k, _)) hc__k == " ++ k-code ++ ") { Just((_, hc__v)) -> Just(hc__v); Nothing -> Nothing })"
+          m-code ++ ".foldr(Nothing, fn(hc__p, hc__acc) { match hc__p { (hc__k, hc__v) -> if hc__k == " ++ k-code ++ " then Just(hc__v) else hc__acc } })"
         (Var("map_set"), [m, key, value]) ->
           val m-code = emit-expr(m, declared)
           val k-code = emit-expr(key, declared)
           val v-code = emit-expr(value, declared)
-          "(if " ++ m-code ++ ".any(fn((hc__k, _)) hc__k == " ++ k-code ++ ") then " ++ m-code ++ ".map(fn((hc__k, hc__v)) if hc__k == " ++ k-code ++ " then (" ++ k-code ++ ", " ++ v-code ++ ") else (hc__k, hc__v)) else " ++ m-code ++ " ++ [(" ++ k-code ++ ", " ++ v-code ++ ")])"
+          // Single pass: rebuild the alist replacing an existing key if
+          // seen, else append the new pair at the end. `foldr` starts
+          // from the tail so the accumulator carries `(rest, found)` and
+          // we prepend with `Cons`, preserving original insertion order.
+          "(match " ++ m-code ++ ".foldr((Nil, False), fn(hc__p, hc__acc) { match hc__acc { (hc__rest, hc__seen) -> match hc__p { (hc__k, hc__v) -> if hc__k == " ++ k-code ++ " then (Cons((" ++ k-code ++ ", " ++ v-code ++ "), hc__rest), True) else (Cons((hc__k, hc__v), hc__rest), hc__seen) } } }) { (hc__r, True) -> hc__r; (hc__r, False) -> hc__r ++ [(" ++ k-code ++ ", " ++ v-code ++ ")] })"
         (Var("map_remove"), [m, key]) ->
           val m-code = emit-expr(m, declared)
           val k-code = emit-expr(key, declared)
-          m-code ++ ".filter(fn((hc__k, _)) hc__k != " ++ k-code ++ ")"
+          m-code ++ ".foldr([], fn(hc__p, hc__acc) { match hc__p { (hc__k, _) -> if hc__k == " ++ k-code ++ " then hc__acc else Cons(hc__p, hc__acc) } })"
         (Var("map_keys"), [m]) ->
-          emit-expr(m, declared) ++ ".map(fn((hc__k, _)) hc__k)"
+          emit-expr(m, declared) ++ ".foldr([], fn(hc__p, hc__acc) { match hc__p { (hc__k, _) -> Cons(hc__k, hc__acc) } })"
         (Var("map_values"), [m]) ->
-          emit-expr(m, declared) ++ ".map(fn((_, hc__v)) hc__v)"
+          emit-expr(m, declared) ++ ".foldr([], fn(hc__p, hc__acc) { match hc__p { (_, hc__v) -> Cons(hc__v, hc__acc) } })"
         (Var("map_contains_key"), [m, key]) ->
-          emit-expr(m, declared) ++ ".any(fn((hc__k, _)) hc__k == " ++ emit-expr(key, declared) ++ ")"
+          emit-expr(m, declared) ++ ".foldr(False, fn(hc__p, hc__acc) { match hc__p { (hc__k, _) -> if hc__k == " ++ emit-expr(key, declared) ++ " then True else hc__acc } })"
         (Var("map_size"), [m]) ->
           emit-expr(m, declared) ++ ".length"
 
