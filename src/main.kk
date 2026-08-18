@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.5"
+val version = "0.49.6"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -1675,14 +1675,49 @@ fun build( file : string, opt-level : string = "2", extra-includes : list<string
         println("generated: " ++ out-bin)
       ok
 
-// Collect unique directories that imported modules live in (for Koka -i flags)
+// Collect unique directories that imported modules live in (for Koka -i flags).
+//
+// Historically this only inspected the *direct* imports of the entry module.
+// That works when the entry directly imports every leaf `.hc` it needs, but
+// falls over as soon as a helper module (e.g. `hilisp_host.hc`) is the only
+// place a third-party library import (`../lib/hilisp/src/lisp`) appears —
+// `hica build entry.hc` would then omit the library directory from koka's
+// `-i` list, producing `could not find module: lisp` even though `hica test`
+// on a test file that imports the library directly worked fine.
+//
+// We now walk the same import graph as `collect-extern-env` / `compile-imports`
+// so any directory that hosts a `.hc` reachable from `imports` (including via
+// non-`pub` and transitive imports) is contributed. Extern (`.kk`) imports and
+// `std/...` imports never introduce new user-file directories, so they're
+// skipped to keep the walk cheap and cycle-free.
 fun import-dirs( imports : list<import-decl>, base-dir : path, include-dirs : list<string> = [] ) : io list<string>
-  imports.map(fn(imp)
-    val imp-file = resolve-import(imp.path, base-dir, include-dirs)
-    imp-file.dirname.show
-  ).foldl([], fn(acc : list<string>, d)
-    if acc.any(fn(a) a == d) then acc else Cons(d, acc)
-  ).reverse
+  val dirs = import-dirs-rec(imports, base-dir, [], include-dirs)
+  // Preserve first-seen order and deduplicate.
+  dirs.foldl([], fn(acc : list<string>, d)
+    if acc.any(fn(a) a == d) then acc else acc ++ [d]
+  )
+
+// Recursive collector: for each local `.hc` import, contribute its directory
+// and then recurse into that module's own imports. `visited` tracks resolved
+// `.hc` paths already walked so cycles / diamond imports don't loop forever.
+fun import-dirs-rec( imp-list : list<import-decl>, base-dir : path, visited : list<string>, include-dirs : list<string> = [] ) : io list<string>
+  imp-list.foldl([], fn(acc : list<string>, imp)
+    if imp.is-extern then acc
+    elif imp.path.starts-with("std/").bool then acc
+    else
+      val hc-path = resolve-import(imp.path, base-dir, include-dirs)
+      val hc-str  = hc-path.string
+      if visited.any(fn(v) v == hc-str) || !is-file(hc-path) then acc
+      else
+        val this-dir = hc-path.dirname.show
+        val sub-source = read-text-file(hc-path)
+        val sub-tokens = lex(sub-source)
+        val sub-prog   = run-parser-program(sub-tokens, sub-source)
+        val sub-dir    = hc-path.dirname.path
+        val sub-dirs   = import-dirs-rec(sub-prog.imports, sub-dir, Cons(hc-str, visited), include-dirs)
+        acc ++ Cons(this-dir, sub-dirs)
+  )
+
 
 // ---------------------------------------------------------------------------
 // Import resolution: compile imported modules, collect pub declarations
@@ -2386,7 +2421,24 @@ fun resolve-flags-paths( flags : string, mdir : string ) : string
     ).join(" ")
 
 fun hml-field( content : string, element : string, key : string ) : div maybe<string>
-  // Parse "key: value" within @element { ... } blocks in hica.hml
+  // Parse "key: value" within @element { ... } blocks in hica.hml.
+  //
+  // Supports two block layouts:
+  //   1. Multi-line:
+  //        @element {
+  //            key: value
+  //        }
+  //   2. Single-line compact form:
+  //        @element { key: value }
+  //
+  // The single-line form used to be silently ignored because the parser
+  // only recognised bare `@element` opener lines and a bare `}` closer,
+  // which meant `@koka { include: "./lib" }` never became visible to
+  // `hica build`/`hica run` (issue: manifest `@koka { include }` not
+  // honored by `hica build`). We now detect a `{` on the header line and
+  // strip both the leading `@element {` and the trailing `}` before
+  // scanning for `key:` on the same line, so compact and expanded forms
+  // behave identically.
   val all-lines = content.lines
   var in-element := False
   var result := Nothing
@@ -2394,15 +2446,41 @@ fun hml-field( content : string, element : string, key : string ) : div maybe<st
     val trimmed = line.trim
     if trimmed.starts-with("//").bool then ()
     elif !in-element then
-      if trimmed.starts-with("@" ++ element).bool then in-element := True
+      if trimmed.starts-with("@" ++ element).bool then
+        // Header line — may be `@element {` (opens a multi-line block)
+        // or `@element { key: value ... }` (single-line block). Only
+        // enter multi-line mode when there is no matching `}` on the
+        // same line.
+        val after-elem = trimmed.slice.sslice/drop(("@" ++ element).count).string.trim-left
+        if after-elem.starts-with("{").bool then
+          val body = after-elem.slice.sslice/drop(1).string.trim
+          if body.ends-with("}").bool then
+            // Single-line: strip trailing `}` and scan the inner body.
+            val inner = body.slice.sslice/extend(0 - 1).string.trim
+            match hml-extract-key(inner, key)
+              Just(v) -> result := Just(v)
+              Nothing -> ()
+          else
+            in-element := True
     else
       if trimmed == "}" then in-element := False
       else
-        if trimmed.starts-with(key).bool then
-          val after-key = trimmed.slice.sslice/drop(key.count).string.trim-left
-          if after-key.starts-with(":").bool then
-            result := Just(after-key.slice.sslice/drop(1).string.trim.unquote)
+        match hml-extract-key(trimmed, key)
+          Just(v) -> result := Just(v)
+          Nothing -> ()
   result
+
+// Extract `key: value` from a single trimmed HML body line.
+// Returns Nothing if the line does not start with `key` (allowing the
+// caller to keep scanning). The value is unquoted so string literals
+// come back without their surrounding quotes.
+fun hml-extract-key( line : string, key : string ) : div maybe<string>
+  if !line.starts-with(key).bool then Nothing
+  else
+    val after-key = line.slice.sslice/drop(key.count).string.trim-left
+    if !after-key.starts-with(":").bool then Nothing
+    else Just(after-key.slice.sslice/drop(1).string.trim.unquote)
+
 
 fun unquote( s : string ) : string
   if s.count >= 2 && s.starts-with("\"").bool && s.ends-with("\"").bool then

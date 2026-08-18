@@ -2,7 +2,40 @@
 
 ### 🐛 Fixes
 
+- fix(manifest, build): `@koka { include: "..." }` in `hica.hml` is now
+  honored by `hica build`/`hica run` (see [hedit](https://github.com/cladam/hedit)
+  `docs/hica-issues.md`: "@koka { include } not honored by hica build").
+  Two independent bugs conspired to hide the include from koka's `-i`
+  search path when only a *helper* module transitively imported the
+  library:
+
+  1. `hml-field` in `src/main.kk` was line-oriented and never noticed
+     the closing `}` on the same header line, so the compact form
+     `@koka { include: "./lib/hilisp/src" }` parsed as an unterminated
+     block and the include list came back empty. Multi-line blocks
+     (`@koka {\n    include: …\n}`) worked, which is why the bug went
+     unnoticed for the other manifest blocks. `hml-field` now peels the
+     trailing `}` off the header line and scans the inner body, so
+     compact and expanded forms behave identically.
+
+  2. `import-dirs` only walked the *direct* imports of the entry file.
+     `hica test tests/hilisp_host_test.hc` succeeded because the test
+     itself imports `../lib/hilisp/src/lisp`, but `hica build
+     src/main.hc` (which reaches `lisp` only via `hilisp_host.hc`)
+     omitted `lib/hilisp/src` from koka's `-i` list and failed with
+     `could not find module: lisp`. `import-dirs` now walks the same
+     graph as `collect-extern-env` / `compile-imports`, contributing
+     the directory of every reachable `.hc` (with cycle-safety and
+     dedup).
+
+  Combined effect: any project that keeps a hica library under
+  `lib/…/src` and lists it via `@koka { include }` — including hedit's
+  `lib/hilisp/src` bridge — builds without a manifest workaround. Tests,
+  `hica check`, and the JS backend all pick up the same graph walk via
+  their existing `include-dirs` plumbing.
+
 - fix(codegen): map operations on `list<(K, V)>` now emit through
+
   `list.foldr` instead of `.find`/`.any`/`.map`/`.filter` chains (see
   [hedit](https://github.com/cladam/hedit) `docs/hica-issues.md` Issue #6).
   Before: `map_set`/`map_get`/`map_remove`/`map_keys`/`map_values`/
