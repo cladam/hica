@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.6"
+val version = "0.49.7"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -215,8 +215,8 @@ fun clean-cli() : command
 
 fun fmt-cli() : command
   command("hica fmt")
-    .about("Format a .hc file")
-    .arg(positional("FILE").help("Source .hc file").required)
+    .about("Format one or more .hc files")
+    .arg(positional("FILE").help("Source .hc file(s)").required.multiple)
     .arg(flag("check").help("Check formatting without modifying the file"))
 
 fun test-cli() : command
@@ -289,6 +289,22 @@ fun main-dispatch( hica-args : list<string>, user-args : list<string> )
     "fetch" -> cmd-fetch()
     "repl"  -> cmd-repl-with-file(file)
     "clean" -> cmd-clean(file, m.get-flag("cache"))
+    "fmt"   ->
+      val files = m.get-many("FILE")
+      if files.is-nil then
+        println("error: missing file argument")
+        println(fmt-cli().format-help)
+        hica-exit(1)
+      else
+        cmd-fmt(files, m.get-flag("check"))
+    "f"     ->
+      val files = m.get-many("FILE")
+      if files.is-nil then
+        println("error: missing file argument")
+        println(fmt-cli().format-help)
+        hica-exit(1)
+      else
+        cmd-fmt(files, m.get-flag("check"))
     _ ->
       val resolved = match file
         Just(f) -> Just(f)
@@ -306,8 +322,6 @@ fun main-dispatch( hica-args : list<string>, user-args : list<string> )
             "c"     -> cmd-check(f)
             "analyse" -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"), m.get-flag("document"), m.get-one("out-dir"), m.get-flag("check-docs"))
             "a"     -> cmd-analyse(f, m.get-one-or("format", "text"), m.get-one("top"), m.get-flag("document"), m.get-one("out-dir"), m.get-flag("check-docs"))
-            "fmt"   -> cmd-fmt(f, m.get-flag("check"))
-            "f"     -> cmd-fmt(f, m.get-flag("check"))
             "test"  -> cmd-test(f)
             "t"     -> cmd-test(f)
             other   ->
@@ -583,21 +597,27 @@ fun cmd-check( file : string )
     errors.foreach(fn(d) println(render-diagnostic(source, file, d)))
     println("check: " ++ file ++ " — " ++ errors.length.show ++ " error(s)")
 
-fun cmd-fmt( file : string, check-only : bool )
-  val source    = read-text-file(file.path)
-  val formatted = format-source(source)
-  if check-only then
-    if source == formatted then
-      println("fmt: " ++ file ++ " — ok")
+fun cmd-fmt( files : list<string>, check-only : bool )
+  var failed := 0
+  files.foreach fn(file)
+    val source    = read-text-file(file.path)
+    val formatted = format-source(source)
+    if check-only then
+      if source == formatted then
+        println("fmt: " ++ file ++ " — ok")
+      else
+        println("fmt: " ++ file ++ " — needs formatting")
+        failed := failed + 1
     else
-      println("fmt: " ++ file ++ " — needs formatting")
-      hica-exit(1)
-  else
-    if source == formatted then
-      println("fmt: " ++ file ++ " — unchanged")
-    else
-      write-text-file(file.path, formatted)
-      println("fmt: " ++ file ++ " — formatted")
+      if source == formatted then
+        println("fmt: " ++ file ++ " — unchanged")
+      else
+        write-text-file(file.path, formatted)
+        println("fmt: " ++ file ++ " — formatted")
+  if check-only && failed > 0 then
+    if files.length > 1 then
+      println("fmt: " ++ show(failed) ++ "/" ++ show(files.length) ++ " file(s) need formatting")
+    hica-exit(1)
 
 fun cmd-test( file : string )
   val (extra-includes, koka-flags) = read-manifest-koka(file.path.dirname)

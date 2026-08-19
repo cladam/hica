@@ -18,7 +18,8 @@ pub fun format-source( source : string ) : div string
   val trimmed   = raw-lines.map(fn(l) l.strip-trailing)
   val spaced    = trimmed.map(fn(l) fix-spacing(l))
   val blanked   = normalise-blank-lines(spaced)
-  val result    = blanked.join("\n")
+  val gapped    = insert-toplevel-blanks(blanked)
+  val result    = gapped.join("\n")
   // Ensure file ends with a single trailing newline
   if result.list.last == Just('\n') then result
   else result ++ "\n"
@@ -126,6 +127,7 @@ fun format-chars( cs : list<char>, acc : list<char>, in-str : bool ) : div list<
     Cons('=', Cons('=', rest)) -> emit-op(acc, ['=', '='], rest)
     Cons('!', Cons('=', rest)) -> emit-op(acc, ['!', '='], rest)
     Cons('<', Cons('=', rest)) -> emit-op(acc, ['<', '='], rest)
+    Cons('<', Cons('-', rest)) -> emit-op(acc, ['<', '-'], rest)  // <- effects bind
     Cons('>', Cons('=', rest)) -> emit-op(acc, ['>', '='], rest)
     Cons('&', Cons('&', rest)) -> emit-op(acc, ['&', '&'], rest)
     Cons('|', Cons('|', rest)) -> emit-op(acc, ['|', '|'], rest)
@@ -138,6 +140,16 @@ fun format-chars( cs : list<char>, acc : list<char>, in-str : bool ) : div list<
         _ -> emit-op(acc, ['='], rest)
     // + — space around
     Cons('+', rest) -> emit-op(acc, ['+'], rest)
+    // - binary/unary: binary after alnum, _, ), ] — unary otherwise
+    Cons('-', Cons('>', rest)) ->
+      // -> type annotation arrow: pass through without spacing
+      format-chars(rest, Cons('>', Cons('-', acc)), False)
+    Cons('-', rest) ->
+      match acc.prev-non-space
+        Just(c) | c.is-alpha || c.is-digit || c == '_' || c == ')' || c == ']' ->
+          emit-op(acc, ['-'], rest)
+        _ ->
+          format-chars(rest, Cons('-', acc), False)
     // * — space around
     Cons('*', rest) -> emit-op(acc, ['*'], rest)
     // / — but not // (comment handled earlier)
@@ -188,6 +200,35 @@ fun emit-op( acc : list<char>, op : list<char>, rest : list<char> ) : div list<c
 fun normalise-blank-lines( lines : list<string> ) : div list<string>
   collapse-blanks(lines, False)
 
+// Insert a blank line before top-level definitions that lack one.
+fun insert-toplevel-blanks( lines : list<string> ) : div list<string>
+  insert-blanks-go(lines, Nothing)
+
+fun insert-blanks-go( lines : list<string>, prev : maybe<string> ) : div list<string>
+  match lines
+    Nil -> []
+    Cons(line, rest) ->
+      val needs-blank = match prev
+        Nothing -> False
+        Just(p) ->
+          line.is-toplevel-def
+          && p.trim-left-ws != ""          // previous line is not blank
+          && !p.trim-left-ws.starts-with("//").bool  // not a comment line
+      if needs-blank then
+        Cons("", Cons(line, insert-blanks-go(rest, Just(line))))
+      else
+        Cons(line, insert-blanks-go(rest, Just(line)))
+
+fun is-toplevel-def( line : string ) : bool
+  line.starts-with("fun ").bool
+  || line.starts-with("pub ").bool
+  || line.starts-with("struct ").bool
+  || line.starts-with("type ").bool
+  || line.starts-with("test \"").bool
+  || line.starts-with("effect ").bool
+  || line.starts-with("extern ").bool
+  || line.starts-with("actor ").bool
+
 fun collapse-blanks( lines : list<string>, prev-blank : bool ) : div list<string>
   match lines
     Nil -> []
@@ -219,6 +260,14 @@ fun is-close-paren-or-bracket( cs : list<char> ) : bool
 // Check if the accumulator contains at least one non-whitespace character.
 fun has-nonspace( acc : list<char> ) : bool
   acc.any(fn(c) c != ' ' && c != '\t')
+
+// Return the previous non-space character from the reversed accumulator.
+fun prev-non-space( acc : list<char> ) : maybe<char>
+  match acc
+    Nil -> Nothing
+    Cons(' ', rest) -> prev-non-space(rest)
+    Cons('\t', rest) -> prev-non-space(rest)
+    Cons(c, _) -> Just(c)
 
 // Extract the preceding identifier word from the reversed accumulator
 // and check if it's a language keyword that should keep space before '('.
