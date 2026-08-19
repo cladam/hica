@@ -36,7 +36,7 @@ import http
 import semantics/analyser
 import semantics/docgen
 
-val version = "0.49.7"
+val version = "0.49.8"
 
 // Clean process exit without throwing exceptions
 extern hica-exit( code : int ) : a
@@ -670,7 +670,11 @@ fun cmd-test( file : string )
       val imported-type-count = imported-types.length
       val user-types = typed-prog.types.take(prelude-type-count) ++ typed-prog.types.drop(prelude-type-count + imported-type-count)
       val user-prog = typed-prog(decls = user-typed-decls, structs = user-structs, types = user-types, effects = imported-effects ++ prog.effects, imports = prog.imports, tests = typed-prog.tests)
-      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes), imported-effects-count = skip-effects)
+      // Issue #9: compute spawn-effects from full typed-prog (with imported bodies)
+      // before the imported decls are stripped from user-prog, so the filter in
+      // emit-test-program correctly excludes named effects from imported modules.
+      val all-spawn-effects = collect-spawn-effects(typed-prog)
+      val koka-code = emit-test-program(user-prog, mod-name, imported-names = imported-names, extra-effectful = collect-extern-effectful(prog.imports, dir.path, dep-includes) ++ compute-div-names(imported-decls), extra-imports = collect-extern-kk-modules(prog.imports, dir.path, dep-includes), imported-effects-count = skip-effects, imported-spawn-effects = all-spawn-effects)
       val out-kk  = dir.path / (mod-name ++ ".kk").path
       write-kk-if-changed(out-kk, koka-code, file)
       val inc-dirs = import-dirs(prog.imports, dir.path, dep-includes ++ extra-includes) ++ dep-includes ++ extra-includes

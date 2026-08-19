@@ -2806,7 +2806,7 @@ fun wrap-break-handler( body : node, loop-code : string ) : div string
 // Test program emission: generates a self-contained test runner
 // ---------------------------------------------------------------------------
 
-pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [], imported-effects-count : int = 0 ) : div string
+pub fun emit-test-program( p : program, mod-name : string = "main", imported-names : list<string> = [], extra-effectful : list<string> = [], extra-imports : list<string> = [], imported-effects-count : int = 0, imported-spawn-effects : list<string> = [] ) : div string
 
   val effect-op-names = p.effects.flatmap(fn(ed) ed.ops.map(fn(op) op.name))
   val declared = p.decls.map(fn(d) d.name).filter(fn(n) n != "main") ++ imported-names ++ effect-op-names
@@ -2835,7 +2835,13 @@ pub fun emit-test-program( p : program, mod-name : string = "main", imported-nam
   // emit-program (design doc §7.6). Without this, `spawn` inside a `test`
   // block would emit `effect e { ctl … }` instead of `named effect e { fun … }`
   // and Koka's named-handler dispatch would reject it.
-  val spawn-effects = collect-spawn-effects(p)
+  // Issue #9: also union with imported-spawn-effects — imported module bodies
+  // are stripped from user-prog.decls before emit-test-program is called, so
+  // collect-spawn-effects(p) cannot see Spawn nodes inside imported functions.
+  // cmd-test computes the full set from typed-prog and threads it here.
+  val local-spawn-effects = collect-spawn-effects(p)
+  val spawn-effects = (local-spawn-effects ++ imported-spawn-effects).foldl([]) fn(acc : list<string>, e)
+    if acc.any(fn(a) a == e) then acc else acc ++ [e]
   // Skip imported effect-defs — they're emitted in their defining module's .kk.
   // Same rule as emit-program (see Issue #3 in hedit/docs/hica-issues.md).
   val local-effects-t = p.effects.drop(imported-effects-count)
